@@ -1,5 +1,6 @@
 import React from "react";
-import Home from "./components/homepage";
+import Home from "./components/homepage"
+import "./App.css"
 
 const App: React.FC = () => {
   return (
@@ -9,4 +10,4 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+export default App

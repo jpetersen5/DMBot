@@ -6,7 +6,7 @@ Ask me on discord `@._satan` for permission to use the `process_songs.py` file f
 I probably won't be giving out `data/env.json` since it contains the sensitive token for DMBot.
 
 Running the webapp: 
-- `cd webapp` and `npm install`
+- `npm install`
 - `npm install -D tailwindcss postcss autoprefixer`
 
 If Tailwind is showing errors in VSCode install Tailwind CSS IntelliSense extension and add this to your `settings.json`:

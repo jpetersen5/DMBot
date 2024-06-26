@@ -1,9 +1,9 @@
 {
-  "name": "dmbot-web",
+  "name": "dmbot",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://jpetersen5.github.io/dmbot-web",
+  "homepage": "https://jpetersen5.github.io/dmbot",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
