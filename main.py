@@ -1,5 +1,5 @@
 from bot.dm_bot import DMBot
-from utils.song_identifier import process_cache, identify_songs
+# from utils.song_identifier import process_cache, identify_songs
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
