@@ -21,8 +21,11 @@ jobs:
           npm ci --verbose
       - name: Build
         run: npm run build
+      - name: List build directory
+        run: ls -R dist
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          personal_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           publish_dir: ./dist
+          publish_branch: gh-pages
