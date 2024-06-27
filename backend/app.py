@@ -5,6 +5,8 @@ from flask_session import Session
 from dotenv import load_dotenv
 from supabase import create_client, Client
 import requests
+import jwt
+import datetime
 import secrets
 import warnings
 
@@ -18,6 +20,12 @@ if not SECRET_KEY:
 app.config['SECRET_KEY'] = SECRET_KEY
 app.config['SESSION_TYPE'] = 'filesystem'
 Session(app)
+
+JWT_SECRET = os.getenv('JWT_SECRET')
+if not JWT_SECRET:
+    warnings.warn("JWT_SECRET not set. Using a random value. This is insecure in a production environment.", RuntimeWarning)
+    JWT_SECRET = secrets.token_hex(32)
+app.config['JWT_SECRET'] = JWT_SECRET
 
 allowed_origins = os.getenv("ALLOWED_ORIGINS", "https://jpetersen5.github.io").split(",")
 CORS(app, resources={r"/api/*": {
@@ -71,8 +79,12 @@ def callback():
     
     session['user'] = user_data
     
-    user_data_params = f"id={user_data['id']}&username={user_data['username']}&avatar={user_data.get('avatar', '')}"
-    return redirect(f'{FRONTEND_URL}/auth/callback?{user_data_params}')
+    token = jwt.encode({
+        'user_id': user_data['id'],
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+    }, JWT_SECRET, algorithm='HS256')
+    
+    return redirect(f"{FRONTEND_URL}/#/auth?token={token}")
 
 @app.route("/api/auth/logout")
 def logout():
@@ -81,10 +93,31 @@ def logout():
 
 @app.route("/api/user")
 def get_user():
-    if 'user' in session:
-        return jsonify(session['user'])
-    else:
-        return jsonify({"error": "Not authenticated"}), 401
+    auth_header = request.headers.get('Authorization')
+    if not auth_header:
+        return jsonify({"error": "No token provided"}), 401
+    try:
+        token = auth_header.split(' ')[1]
+        payload = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
+        user_id = payload['user_id']
+        response = supabase.table("users").select("*").eq("id", user_id).execute()
+        
+        if response.data:
+            user = response.data[0]
+            return jsonify({
+                "id": user["id"],
+                "username": user["username"],
+                "email": user["email"],
+                "avatar": user["avatar"]
+            })
+        else:
+            return jsonify({"error": "User not found"}), 404
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token has expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/api/hello", methods=["GET"])
 def hello():

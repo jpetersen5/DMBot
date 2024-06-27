@@ -11,15 +11,25 @@ const Auth: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/user`)
-      .then(response => {
-        if (response.ok) {
-          return response.json();
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      fetch(`${API_URL}/api/user`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-        throw new Error('Not authenticated');
       })
-      .then((data: User) => setUser(data))
-      .catch(error => console.error('Error:', error));
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          }
+          throw new Error('Not authenticated');
+        })
+        .then((data: User) => setUser(data))
+        .catch(error => {
+          console.error('Error:', error);
+          localStorage.removeItem('auth_token');
+        });
+    }
   }, []);
 
   const handleLogin = () => {
@@ -27,9 +37,8 @@ const Auth: React.FC = () => {
   };
 
   const handleLogout = () => {
-    fetch(`${API_URL}/api/auth/logout`)
-      .then(() => setUser(null))
-      .catch(error => console.error('Logout error:', error));
+    localStorage.removeItem('auth_token');
+    setUser(null);
   };
 
   return (
