@@ -8,6 +8,7 @@ I probably won't be giving out `data/env.json` since it contains the sensitive t
 Running the webapp: 
 - `npm install`
 - `npm install -D tailwindcss postcss autoprefixer`
+- `pip install -r backend/requirements.txt`
 
 If Tailwind is showing errors in VSCode install Tailwind CSS IntelliSense extension and add this to your `settings.json`:
 ```json
