@@ -5,9 +5,7 @@ const Home: React.FC = () => {
   const [backendStatus, setBackendStatus] = useState("Not functional");
 
   useEffect(() => {
-    fetch(`${API_URL}/api/hello`, {
-      credentials: 'include',
-    })
+    fetch(`${API_URL}/api/hello`)
       .then(response => response.json())
       .then(data => setBackendStatus(data.message))
       .catch(error => console.error('Error:', error));
