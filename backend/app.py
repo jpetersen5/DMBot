@@ -25,7 +25,7 @@ def hello():
 @app.route('/api/db-status', methods=['GET'])
 def db_status():
     try:
-        result = supabase.table('users').select('id').limit(1).execute()
+        result = supabase.rpc('version').execute()
         return jsonify({"status": "Connected", "message": "Database is functional"})
     except Exception as e:
         return jsonify({"status": "Error", "message": str(e)})
