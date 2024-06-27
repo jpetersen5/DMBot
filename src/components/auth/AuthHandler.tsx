@@ -8,9 +8,13 @@ const AuthHandler: React.FC = () => {
   useEffect(() => {
     const hashParams = new URLSearchParams(location.hash.slice(1));
     const token = hashParams.get('token');
+    console.log('Received token:', token);
     if (token) {
       localStorage.setItem('auth_token', token);
+      console.log('Token stored in localStorage');
       navigate('/');
+    } else {
+      console.log('No token found in URL');
     }
   }, [location, navigate]);
 

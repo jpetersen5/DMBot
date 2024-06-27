@@ -9,9 +9,11 @@ interface User {
 
 const Auth: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
+    console.log('Token from localStorage:', token);
     if (token) {
       fetch(`${API_URL}/api/user`, {
         headers: {
@@ -19,14 +21,19 @@ const Auth: React.FC = () => {
         }
       })
         .then(response => {
+          console.log('API response status:', response.status);
           if (response.ok) {
             return response.json();
           }
           throw new Error('Not authenticated');
         })
-        .then((data: User) => setUser(data))
+        .then((data: User) => {
+          console.log('User data received:', data);
+          setUser(data);
+        })
         .catch(error => {
-          console.error('Error:', error);
+          console.error('Error fetching user data:', error);
+          setError(error.message);
           localStorage.removeItem('auth_token');
         });
     }
@@ -39,6 +46,7 @@ const Auth: React.FC = () => {
   const handleLogout = () => {
     localStorage.removeItem('auth_token');
     setUser(null);
+    setError(null);
   };
 
   return (
@@ -50,7 +58,10 @@ const Auth: React.FC = () => {
           <button onClick={handleLogout}>Logout</button>
         </div>
       ) : (
-        <button onClick={handleLogin}>Login with Discord</button>
+        <div>
+          <button onClick={handleLogin}>Login with Discord</button>
+          {error && <p>Error: {error}</p>}
+        </div>
       )}
     </div>
   );
