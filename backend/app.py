@@ -9,9 +9,12 @@ import jwt
 import datetime
 import secrets
 import warnings
+from postgrest.exceptions import APIError
+import logging
 
 load_dotenv()
 app = Flask(__name__)
+app.logger.setLevel(logging.INFO)
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 if not SECRET_KEY:
@@ -50,41 +53,63 @@ def login():
 
 @app.route("/api/auth/callback")
 def callback():
-    code = request.args.get("code")
-    data = {
-        "client_id": DISCORD_CLIENT_ID,
-        "client_secret": DISCORD_CLIENT_SECRET,
-        "grant_type": "authorization_code",
-        "code": code,
-        "redirect_uri": DISCORD_REDIRECT_URI
-    }
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
-    response = requests.post(f"{DISCORD_API_ENDPOINT}/oauth2/token", data=data, headers=headers)
-    credentials = response.json()
-    access_token = credentials["access_token"]
+    try:
+        code = request.args.get("code")
+        data = {
+            "client_id": DISCORD_CLIENT_ID,
+            "client_secret": DISCORD_CLIENT_SECRET,
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": DISCORD_REDIRECT_URI
+        }
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+        response = requests.post(f"{DISCORD_API_ENDPOINT}/oauth2/token", data=data, headers=headers)
+        response.raise_for_status()
+        credentials = response.json()
+        access_token = credentials["access_token"]
 
-    user_response = requests.get(f"{DISCORD_API_ENDPOINT}/users/@me", headers={
-        "Authorization": f"Bearer {access_token}"
-    })
-    user_data = user_response.json()
+        user_response = requests.get(f"{DISCORD_API_ENDPOINT}/users/@me", headers={
+            "Authorization": f"Bearer {access_token}"
+        })
+        user_response.raise_for_status()
+        user_data = user_response.json()
 
-    supabase.table("users").upsert({
-        "id": user_data["id"],
-        "username": user_data["username"],
-        "email": user_data["email"],
-        "avatar": user_data["avatar"]
-    }).execute()
+        try:
+            result = supabase.table("users").insert({
+                "id": user_data["id"],
+                "username": user_data["username"],
+                "email": user_data.get("email", ""),
+                "avatar": user_data.get("avatar", "")
+            }).execute()
+        except APIError as e:
+            if "violates row-level security policy" in str(e):
+                # User likely already exists, try updating
+                result = supabase.table("users").update({
+                    "username": user_data["username"],
+                    "email": user_data.get("email", ""),
+                    "avatar": user_data.get("avatar", "")
+                }).eq("id", user_data["id"]).execute()
+            else:
+                raise
     
-    session['user'] = user_data
+        token = jwt.encode({
+            'user_id': user_data['id'],
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+        }, JWT_SECRET, algorithm='HS256')
     
-    token = jwt.encode({
-        'user_id': user_data['id'],
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
-    }, JWT_SECRET, algorithm='HS256')
+        return redirect(f"{FRONTEND_URL}/#/auth?token={token}")
     
-    return redirect(f"{FRONTEND_URL}/#/auth?token={token}")
+    except requests.RequestException as e:
+        app.logger.error(f"Error during Discord API request: {str(e)}")
+        return jsonify({"error": "Failed to authenticate with Discord"}), 500
+    except APIError as e:
+        app.logger.error(f"Supabase API error: {str(e)}")
+        return jsonify({"error": "Database operation failed"}), 500
+    except Exception as e:
+        app.logger.error(f"Unexpected error in callback: {str(e)}")
+        return jsonify({"error": "An unexpected error occurred"}), 500
 
 @app.route("/api/auth/logout")
 def logout():
