@@ -33,4 +33,6 @@ If Tailwind is showing errors in VSCode install Tailwind CSS IntelliSense extens
 FLASK_APP=app.py
 FLASK_ENV=production
 ALLOWED_ORIGINS=https://jpetersen5.github.io,http://localhost:3000
+SUPABASE_URL=https://tczhxtrzfaqgsjoudhoi.supabase.co
+SUPABASE_KEY=[dm me for the key]
 ```
