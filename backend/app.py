@@ -1,12 +1,23 @@
 import os
-from flask import Flask, jsonify, request, redirect
+from flask import Flask, jsonify, request, redirect, session
 from flask_cors import CORS
+from flask_session import Session
 from dotenv import load_dotenv
 from supabase import create_client, Client
 import requests
+import secrets
+import warnings
 
 load_dotenv()
 app = Flask(__name__)
+
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    warnings.warn("SECRET_KEY not set. Using a random value. This is insecure in a production environment.", RuntimeWarning)
+    SECRET_KEY = secrets.token_hex(16)
+app.config['SECRET_KEY'] = SECRET_KEY
+app.config['SESSION_TYPE'] = 'filesystem'
+Session(app)
 
 allowed_origins = os.getenv("ALLOWED_ORIGINS", "https://jpetersen5.github.io").split(",")
 CORS(app, resources={r"/api/*": {
@@ -58,12 +69,22 @@ def callback():
         "avatar": user_data["avatar"]
     }).execute()
     
+    session['user'] = user_data
+    
     user_data_params = f"id={user_data['id']}&username={user_data['username']}&avatar={user_data.get('avatar', '')}"
     return redirect(f'{FRONTEND_URL}/auth/callback?{user_data_params}')
 
+@app.route("/api/auth/logout")
+def logout():
+    session.pop('user', None)
+    return jsonify({"message": "Logged out successfully"})
+
 @app.route("/api/user")
 def get_user():
-    return jsonify({'id': '123', 'username': 'testuser', 'avatar': 'avatar_hash'})
+    if 'user' in session:
+        return jsonify(session['user'])
+    else:
+        return jsonify({"error": "Not authenticated"}), 401
 
 @app.route("/api/hello", methods=["GET"])
 def hello():
