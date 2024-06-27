@@ -1,29 +1,25 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_URL } from "../../App";
 
 const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get("code");
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    const username = params.get('username');
+    const avatar = params.get('avatar');
 
-    if (code) {
-      fetch(`${API_URL}/api/auth/callback?code=${code}`)
-        .then(response => response.json())
-        .then(data => {
-          console.log("Logged in:", data);
-          navigate("/");
-        })
-        .catch(error => {
-          console.error("Login error:", error);
-          navigate("/");
-        });
+    if (id && username) {
+      localStorage.setItem('user', JSON.stringify({ id, username, avatar }));
+      navigate('/');
+    } else {
+      console.error('Authentication failed');
+      navigate('/');
     }
   }, [navigate]);
 
-  return <div>Logging in...</div>;
+  return <div>Authenticating...</div>;
 };
 
 export default AuthCallback;
