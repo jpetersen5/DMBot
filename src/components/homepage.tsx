@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { API_URL } from "../App";
+import Auth from "./auth/Auth";
 
-const Home: React.FC = () => {
+const Homepage: React.FC = () => {
   const [backendStatus, setBackendStatus] = useState("Not functional");
   const [dbStatus, setDbStatus] = useState("Unknown");
 
@@ -29,8 +30,10 @@ const Home: React.FC = () => {
       <p className="text-xl text-gray-700">Give us a minute, we're under construction.</p>
       <p className="text-xl text-gray-700">Backend status: {backendStatus}</p>
       <p className="text-xl text-gray-700">Database status: {dbStatus}</p>
+      <br></br>
+      <Auth />
     </div>
   );
 };
 
-export default Home;
+export default Homepage;

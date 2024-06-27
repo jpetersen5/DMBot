@@ -1,14 +1,19 @@
 import React from "react";
-import Home from "./components/homepage"
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Homepage from "./components/Homepage";
+import AuthCallback from "./components/auth/AuthCallback";
 import "./App.css"
 
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const App: React.FC = () => {
   return (
-    <div className="App">
-      <Home />
-    </div>
+    <Router basename="/DMBot">
+      <Routes>
+        <Route path="/" element={<Homepage />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+      </Routes>
+    </Router>
   );
 };
 
