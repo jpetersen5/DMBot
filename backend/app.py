@@ -101,6 +101,7 @@ def callback():
         return jsonify({"error": "Failed to authenticate with Discord"}), 500
     except APIError as e:
         app.logger.error(f"Supabase API error: {str(e)}")
+        print(e)
         return jsonify({"error": "Database operation failed"}), 500
     except Exception as e:
         app.logger.error(f"Unexpected error in callback: {str(e)}")
