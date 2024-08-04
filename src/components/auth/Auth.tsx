@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { Image } from "react-bootstrap";
 import { API_URL } from "../../App";
-
-interface User {
-  id: string;
-  username: string;
-  avatar: string;
-}
+import { User, getUserImage } from "../../utils/user";
 
 const Auth: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -14,14 +10,14 @@ const Auth: React.FC = () => {
   useEffect(() => {
     const checkAuth = async () => {
       console.log("Checking authentication...");
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem("auth_token");
       console.log("Token from localStorage:", token ? "exists" : "not found");
       if (token) {
         try {
           console.log("Fetching user data...");
           const response = await fetch(`${API_URL}/api/user`, {
             headers: {
-              'Authorization': `Bearer ${token}`
+              "Authorization": `Bearer ${token}`
             }
           });
           console.log("API response status:", response.status);
@@ -30,14 +26,14 @@ const Auth: React.FC = () => {
             console.log("User data received:", userData);
             setUser(userData);
           } else {
-            console.error('Invalid token:', response.statusText);
+            console.error("Invalid token:", response.statusText);
             const errorData = await response.json();
-            console.error('Error details:', errorData);
-            localStorage.removeItem('auth_token');
+            console.error("Error details:", errorData);
+            localStorage.removeItem("auth_token");
           }
         } catch (error) {
-          console.error('Error checking auth:', error);
-          localStorage.removeItem('auth_token');
+          console.error("Error checking auth:", error);
+          localStorage.removeItem("auth_token");
         }
       } else {
         console.log("No token found in localStorage");
@@ -59,7 +55,7 @@ const Auth: React.FC = () => {
 
   const handleLogout = () => {
     console.log("Logging out...");
-    localStorage.removeItem('auth_token');
+    localStorage.removeItem("auth_token");
     setUser(null);
   };
 
@@ -74,7 +70,12 @@ const Auth: React.FC = () => {
       {user ? (
         <div>
           <h2>Welcome, {user.username}!</h2>
-          <img src={`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`} alt="User Avatar" />
+          <Image 
+            src={getUserImage(user)} 
+            roundedCircle 
+            fluid 
+            className="user-avatar"
+          />
           <button onClick={handleLogout}>Logout</button>
         </div>
       ) : (

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { API_URL } from "../App";
 import Auth from "./auth/Auth";
+import UserGrid from "./UserGrid/UserGrid";
 
 const Homepage: React.FC = () => {
   const [backendStatus, setBackendStatus] = useState("Not functional");
@@ -32,6 +33,7 @@ const Homepage: React.FC = () => {
       <p className="text-xl text-gray-700">Database status: {dbStatus}</p>
       <br></br>
       <Auth />
+      <UserGrid />
     </div>
   );
 };
