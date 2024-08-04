@@ -34,5 +34,6 @@ FLASK_APP=app.py
 FLASK_ENV=production
 ALLOWED_ORIGINS=https://jpetersen5.github.io,http://localhost:3000
 SUPABASE_URL=https://tczhxtrzfaqgsjoudhoi.supabase.co
-SUPABASE_KEY=[dm me for the key]
+SUPABASE_KEY=[dm me]
+SUPABASE_SERVICE_ROLE_KEY=[dm me]
 ```
