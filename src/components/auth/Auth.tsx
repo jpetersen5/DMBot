@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Image } from "react-bootstrap";
 import { API_URL } from "../../App";
 import { User, getUserImage } from "../../utils/user";
+import './Auth.scss';
 
 const Auth: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -49,26 +49,26 @@ const Auth: React.FC = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="auth-loading">Loading...</div>;
   }
 
   console.log(user);
 
   return (
-    <div>
+    <div className="auth-container">
       {user ? (
-        <div>
+        <div className="auth-user">
           <h2>Welcome, {user.username}!</h2>
-          <Image 
+          <img 
             src={getUserImage(user)} 
-            roundedCircle 
+            alt={user.username}
             className="user-avatar"
           />
-          <button onClick={handleLogout}>Logout</button>
+          <button className="auth-button logout-button" onClick={handleLogout}>Logout</button>
         </div>
       ) : (
-        <div>
-          <button onClick={handleLogin}>Login with Discord</button>
+        <div className="auth-login">
+          <button className="auth-button login-button" onClick={handleLogin}>Login with Discord</button>
         </div>
       )}
     </div>
