@@ -76,27 +76,22 @@ def callback():
         user_response.raise_for_status()
         user_data = user_response.json()
 
-        try:
-            result = supabase.table("users").insert({
-                "id": user_data["id"],
-                "username": user_data["username"],
-                "email": user_data.get("email", ""),
-                "avatar": user_data.get("avatar", "")
-            }).execute()
-        except APIError as e:
-            if "violates row-level security policy" in str(e):
-                # User likely already exists, try updating
-                result = supabase.table("users").update({
-                    "username": user_data["username"],
-                    "email": user_data.get("email", ""),
-                    "avatar": user_data.get("avatar", "")
-                }).eq("id", user_data["id"]).execute()
-            else:
-                raise
+        user_data = {
+            "id": user_data["id"],
+            "username": user_data["username"],
+            "email": user_data.get("email", ""),
+            "avatar": user_data.get("avatar", ""),
+            "last_login": datetime.datetime.utcnow().isoformat()
+        }
+
+        result = supabase.table("users").upsert(user_data, "id").execute()
+
+        if not result.data:
+            raise APIError("Failed to upsert user data")
     
         token = jwt.encode({
             'user_id': user_data['id'],
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=30)
         }, JWT_SECRET, algorithm='HS256')
     
         return redirect(f"{FRONTEND_URL}/#/auth?token={token}")
@@ -132,7 +127,6 @@ def get_user():
             return jsonify({
                 "id": user["id"],
                 "username": user["username"],
-                "email": user["email"],
                 "avatar": user["avatar"]
             })
         else:

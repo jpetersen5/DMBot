@@ -9,34 +9,35 @@ interface User {
 
 const Auth: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('auth_token');
-    console.log('Token from localStorage:', token);
-    if (token) {
-      fetch(`${API_URL}/api/user`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-        .then(response => {
-          console.log('API response status:', response.status);
+    const checkAuth = async () => {
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        try {
+          const response = await fetch(`${API_URL}/api/user`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
           if (response.ok) {
-            return response.json();
+            const userData: User = await response.json();
+            setUser(userData);
+          } else {
+            // Token is invalid or expired
+            console.error('Invalid token:', response.statusText);
+            localStorage.removeItem('auth_token');
           }
-          throw new Error('Not authenticated');
-        })
-        .then((data: User) => {
-          console.log('User data received:', data);
-          setUser(data);
-        })
-        .catch(error => {
-          console.error('Error fetching user data:', error);
-          setError(error.message);
+        } catch (error) {
+          console.error('Error checking auth:', error);
           localStorage.removeItem('auth_token');
-        });
-    }
+        }
+      }
+      setLoading(false);
+    };
+
+    checkAuth();
   }, []);
 
   const handleLogin = () => {
@@ -46,8 +47,11 @@ const Auth: React.FC = () => {
   const handleLogout = () => {
     localStorage.removeItem('auth_token');
     setUser(null);
-    setError(null);
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div>
@@ -60,7 +64,6 @@ const Auth: React.FC = () => {
       ) : (
         <div>
           <button onClick={handleLogin}>Login with Discord</button>
-          {error && <p>Error: {error}</p>}
         </div>
       )}
     </div>
