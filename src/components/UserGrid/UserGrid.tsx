@@ -1,7 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Image, OverlayTrigger, Tooltip } from "react-bootstrap";
-import { API_URL } from "../../App";
-import { User, getUserImage } from "../../utils/user";
+import React, { useState, useEffect } from 'react';
+import { API_URL } from '../../App';
+import './UserGrid.scss';
+import { getUserImage } from '../../utils/user';
+
+interface User {
+  id: string;
+  username: string;
+  avatar: string;
+}
 
 const UserGrid: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -10,30 +16,25 @@ const UserGrid: React.FC = () => {
     fetch(`${API_URL}/api/users`)
       .then(response => response.json())
       .then(data => setUsers(data))
-      .catch(error => console.error("Error fetching users:", error));
+      .catch(error => console.error('Error fetching users:', error));
   }, []);
 
   return (
-    <Container className="user-grid">
-      <h2>Others already here!</h2>
-      <Row>
+    <div className="user-grid">
+      <h2>Authenticated Users</h2>
+      <div className="user-list">
         {users.map(user => (
-          <Col key={user.id} xs={6} sm={4} md={3} lg={2} className="mb-3">
-            <OverlayTrigger
-              placement="top"
-              overlay={<Tooltip id={`tooltip-${user.id}`}>{user.username}</Tooltip>}
-            >
-              <Image 
-                src={getUserImage(user)} 
-                roundedCircle 
-                fluid 
-                className="user-avatar"
-              />
-            </OverlayTrigger>
-          </Col>
+          <div key={user.id} className="user-avatar" title={user.username}>
+            <img 
+              src={getUserImage(user)} 
+              alt={user.username}
+              width="32"
+              height="32"
+            />
+          </div>
         ))}
-      </Row>
-    </Container>
+      </div>
+    </div>
   );
 };
 

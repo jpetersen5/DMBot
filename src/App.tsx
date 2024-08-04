@@ -1,9 +1,8 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Homepage from "./components/homepage";
-// import AuthCallback from "./components/auth/AuthCallback";
 import AuthHandler from "./components/auth/AuthHandler";
-import "./App.css"
+import "./styles.scss";
 
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
