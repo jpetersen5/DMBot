@@ -95,7 +95,7 @@ def callback():
             'exp': datetime.datetime.utcnow() + datetime.timedelta(days=30)
         }, JWT_SECRET, algorithm='HS256')
     
-        return redirect(f"{FRONTEND_URL}/#/auth?token={token}")
+        return redirect(f"{FRONTEND_URL}/auth?token={token}")
     
     except requests.RequestException as e:
         app.logger.error(f"Error during Discord API request: {str(e)}")
