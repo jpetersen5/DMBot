@@ -139,6 +139,15 @@ def get_user():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/users")
+def get_users():
+    try:
+        result = supabase.table("users").select("id", "username", "avatar").execute()
+        return jsonify(result.data)
+    except Exception as e:
+        app.logger.error(f"Error fetching users: {str(e)}")
+        return jsonify({"error": "An error occurred while fetching users"}), 500
+
 @app.route("/api/hello", methods=["GET"])
 def hello():
     return jsonify({"message": "Functional"})
