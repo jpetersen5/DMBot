@@ -6,13 +6,6 @@ export default defineConfig(({ command }) => {
   const config = {
     plugins: [react()],
     base: "/DMBot/",
-    css: {
-      preprocessorOptions: {
-        scss: {
-          additionalData: `@import "src/styles.scss";`
-        }
-      }
-    },
     build: {
       outDir: "dist",
       assetsDir: "assets",
