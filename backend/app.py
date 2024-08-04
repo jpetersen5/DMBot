@@ -38,8 +38,9 @@ CORS(app, resources={r"/api/*": {
 }})
 
 supabase_url = os.getenv("SUPABASE_URL")
-supabase_key = os.getenv("SUPABASE_KEY")
-supabase: Client = create_client(supabase_url, supabase_key)
+# supabase_key = os.getenv("SUPABASE_KEY")
+supabase_service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+supabase: Client = create_client(supabase_url, supabase_service_key)
 
 DISCORD_CLIENT_ID = os.getenv("DISCORD_CLIENT_ID")
 DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
@@ -101,7 +102,6 @@ def callback():
         return jsonify({"error": "Failed to authenticate with Discord"}), 500
     except APIError as e:
         app.logger.error(f"Supabase API error: {str(e)}")
-        print(e)
         return jsonify({"error": "Database operation failed"}), 500
     except Exception as e:
         app.logger.error(f"Unexpected error in callback: {str(e)}")
