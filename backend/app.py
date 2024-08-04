@@ -143,6 +143,10 @@ def get_user():
 def get_users():
     try:
         result = supabase.table("users").select("id", "username", "avatar").execute()
+        app.logger.info(f"Fetched users from database: {result.data}")
+        for user in result.data:
+            user['id'] = str(user['id'])
+        app.logger.info(f"Sending users to frontend: {result.data}")
         return jsonify(result.data)
     except Exception as e:
         app.logger.error(f"Error fetching users: {str(e)}")
