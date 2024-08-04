@@ -6,7 +6,7 @@ const AuthHandler: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const hashParams = new URLSearchParams(location.hash.slice(1));
+    const hashParams = new URLSearchParams(location.search);
     const token = hashParams.get('token');
     console.log('Received token:', token);
     if (token) {
@@ -15,6 +15,7 @@ const AuthHandler: React.FC = () => {
       navigate('/');
     } else {
       console.log('No token found in URL');
+      navigate('/');
     }
   }, [location, navigate]);
 
