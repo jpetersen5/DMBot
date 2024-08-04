@@ -84,7 +84,7 @@ def callback():
             "last_login": datetime.datetime.utcnow().isoformat()
         }
 
-        result = supabase.table("users").upsert(user_data, "id").execute()
+        result = supabase.table("users").upsert(user_data).execute()
 
         if not result.data:
             raise APIError("Failed to upsert user data")
