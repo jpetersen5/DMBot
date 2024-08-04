@@ -29,7 +29,7 @@ const UserGrid: React.FC = () => {
             placement="top"
             overlay={<Tooltip id={`tooltip-${user.id}`}>{user.username}</Tooltip>}
           >
-            <div key={user.id} className="user-avatar">
+            <div key={user.id} className="user-grid-avatar">
               <img 
                 src={getUserImage(user)} 
                 alt={user.username}
