@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { API_URL } from "../../App";
-import { renderSafeHTML } from '../../utils/safeHTML';
+import { renderSafeHTML } from "../../utils/safeHTML";
 import "./SongList.scss";
 
 interface Song {
@@ -189,11 +189,16 @@ const SongTableCell: React.FC<SongTableCellProps> = ({ content }) => {
     return <td></td>;
   }
 
-  const processedContent = typeof content === 'string' 
-    ? content.replace(/color=/g, 'style="color:')
+  const processedContent = typeof content === "string" 
+    ? content.replace(/<color=(#[0-9A-Fa-f]{3,6})>(.*?)<\/color>/g, (match, color, text) => {
+        const fullColor = color.length === 4 
+          ? `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}` 
+          : color;
+        return `<span style="color:${fullColor}">${text}</span>`;
+      })
     : String(content);
 
-    if (content.includes('color=')) {
+    if (content.includes("color=")) {
       console.log(processedContent);
     }
 
