@@ -8,6 +8,20 @@
     margin-bottom: 1.5rem;
   }
 
+  .table-controls {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+
+    label {
+      margin-right: 0.5rem;
+    }
+
+    select {
+      padding: 0.25rem;
+    }
+  }
+
   table {
     width: 100%;
     border-collapse: collapse;
@@ -25,6 +39,12 @@
       background-color: #202020;
       color: #fff;
       font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+
+      &:hover {
+        background-color: #404040;
+      }
     }
 
     tr:nth-child(even) {
@@ -63,6 +83,12 @@
 
     span {
       margin: 0 1rem;
+
+      input[type="number"] {
+        width: 50px;
+        padding: 0.25rem;
+        text-align: center;
+      }
     }
   }
 }

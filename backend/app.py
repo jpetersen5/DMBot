@@ -173,13 +173,24 @@ if __name__ == "__main__":
 @songs.route('/api/songs', methods=['GET'])
 def get_songs():
     page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 50, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    sort_by = request.args.get('sort_by', 'name')
+    sort_order = request.args.get('sort_order', 'asc')
+
+    per_page = min(max(per_page, 10), 100)
     
     start = (page - 1) * per_page
     end = start + per_page - 1
 
     try:
-        response = supabase.table('songs').select('*').range(start, end).execute()
+        query = supabase.table('songs').select('*')
+        
+        if sort_order.lower() == 'desc':
+            query = query.order(sort_by, desc=True)
+        else:
+            query = query.order(sort_by)
+
+        response = query.range(start, end).execute()
         songs = response.data
 
         count_response = supabase.table('songs').select('id', count='exact').execute()
@@ -189,7 +200,9 @@ def get_songs():
             'songs': songs,
             'total': total_songs,
             'page': page,
-            'per_page': per_page
+            'per_page': per_page,
+            'sort_by': sort_by,
+            'sort_order': sort_order
         }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
