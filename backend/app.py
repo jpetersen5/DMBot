@@ -198,27 +198,28 @@ def get_songs():
 
         logger.info(f"Querying songs with parameters: page={page}, per_page={per_page}, sort_by={sort_by}, sort_order={sort_order}, search={search}, filter={filter_field}")
 
-        query = supabase.table('songs')
+        query = supabase.table('songs').select('*')
         
         if search:
             if filter_field:
                 query = query.ilike(filter_field, f'%{search}%')
             else:
-                search_conditions = ' or '.join([
+                search_conditions = [
                     f"{field}.ilike.%{search}%"
                     for field in ALLOWED_FIELDS if field != 'song_length'
-                ])
+                ]
                 query = query.or_(search_conditions)
 
-        count_query = query.select('id', count='exact')
+        count_query = supabase.table('songs').select('id', count='exact')
         count_response = count_query.execute()
         total_songs = count_response.count
 
         logger.info(f"Total songs matching query: {total_songs}")
 
         query = query.order(sort_by, desc=(sort_order == 'desc'))
-
-        response = query.range(start, end).execute()
+        query = query.range(start, end)
+        
+        response = query.execute()
         songs = response.data
 
         logger.info(f"Retrieved {len(songs)} songs")
