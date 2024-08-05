@@ -204,11 +204,9 @@ def get_songs():
             if filter_field:
                 query = query.ilike(filter_field, f'%{search}%')
             else:
-                search_conditions = ' or '.join([
-                    f"{field}.ilike.%{search}%"
-                    for field in ALLOWED_FIELDS if field != 'song_length'
-                ])
-                query = query.or_(search_conditions)
+                search_fields = ['name', 'artist', 'album', 'year', 'genre', 'charter']
+                or_conditions = [f"{field}.ilike.%{search}%" for field in search_fields]
+                query = query.or_(','.join(or_conditions))
 
         count_response = query.execute()
         total_songs = count_response.count
