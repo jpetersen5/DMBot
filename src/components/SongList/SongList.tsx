@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { API_URL } from "../../App";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
-import Pagination from "./Pagination";
+import { TableControls, Pagination, Search } from "./TableControls";
 import "./SongList.scss";
 
 interface Song {
@@ -38,19 +38,27 @@ const SongList: React.FC = () => {
   const [perPage, setPerPage] = useState(20);
   const [sortBy, setSortBy] = useState("name");
   const [sortOrder, setSortOrder] = useState("asc");
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("");
 
   const totalPages = Math.ceil(totalSongs / perPage);
 
   useEffect(() => {
     fetchSongs();
-  }, [page, perPage, sortBy, sortOrder]);
+  }, [page, perPage, sortBy, sortOrder, search, filter]);
 
   async function fetchSongs() {
     setLoading(true);
     try {
-      const response = await fetch(
-        `${API_URL}/api/songs?page=${page}&per_page=${perPage}&sort_by=${sortBy}&sort_order=${sortOrder}`
-      );
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        per_page: perPage.toString(),
+        sort_by: sortBy,
+        sort_order: sortOrder,
+        search,
+        filter,
+      });
+      const response = await fetch(`${API_URL}/api/songs?${queryParams}`);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -64,11 +72,6 @@ const SongList: React.FC = () => {
     }
   }
 
-  const handlePerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setPerPage(parseInt(e.target.value));
-    setPage(1);
-  };
-
   const handleSort = (column: string) => {
     if (sortBy === column) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -78,6 +81,10 @@ const SongList: React.FC = () => {
     }
   };
 
+  const handleSearchSubmit = () => {
+    setPage(1);
+  };
+
   if (loading) {
     return <div>Loading songs...</div>;
   }
@@ -85,23 +92,23 @@ const SongList: React.FC = () => {
   return (
     <div className="song-list">
       <h1>Song List</h1>
-      <div className="table-controls">
-        <div>
-          <label htmlFor="per-page">Songs per page:</label>
-          <select id="per-page" value={perPage} onChange={handlePerPageChange}>
-            <option value="20">20</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </select>
-        </div>
+      <div className="control-bar">
+        <TableControls perPage={perPage} setPerPage={setPerPage} setPage={setPage} />
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          inputPage={inputPage}
+          setPage={setPage}
+          setInputPage={setInputPage}
+        />
+        <Search
+          search={search}
+          filter={filter}
+          setSearch={setSearch}
+          setFilter={setFilter}
+          submitSearch={handleSearchSubmit}
+        />
       </div>
-      <Pagination
-        page={page}
-        totalPages={totalPages}
-        inputPage={inputPage}
-        setPage={setPage}
-        setInputPage={setInputPage}
-      />
       <table>
         <thead>
           <tr>
@@ -176,7 +183,7 @@ const SongTableRow: React.FC<SongTableRowProps> = ({ song }) => (
     <SongTableCell content={song.album} />
     <SongTableCell content={song.year} />
     <SongTableCell content={song.genre} />
-    <SongTableCell content={song.difficulty} />
+    <SongTableCell content={song.difficulty || "?"} />
     <SongTableCell content={song.song_length != null ? new Date(song.song_length).toISOString().substring(11, 19) : null} />
     <SongTableCell content={processCharters(song.charter)} />
   </tr>

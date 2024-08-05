@@ -11,6 +11,7 @@ import secrets
 import warnings
 from postgrest.exceptions import APIError
 import logging
+import re
 
 load_dotenv()
 app = Flask(__name__)
@@ -49,6 +50,8 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "https://jpetersen5.github.io/DMBot")
 DISCORD_API_ENDPOINT = "https://discord.com/api/v10"
 
 songs = Blueprint('songs', __name__)
+
+ALLOWED_FIELDS = {'name', 'artist', 'album', 'year', 'genre', 'difficulty', 'charter', 'song_length'}
 
 @app.route("/api/auth/login")
 def login():
@@ -170,31 +173,48 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
 
+def sanitize_input(input_string):
+    """Remove any potentially dangerous characters"""
+    return re.sub(r'[^\w\s-]', '', input_string)
+
 @songs.route('/api/songs', methods=['GET'])
 def get_songs():
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 20, type=int)
-    sort_by = request.args.get('sort_by', 'name')
-    sort_order = request.args.get('sort_order', 'asc')
-
-    per_page = min(max(per_page, 10), 100)
-    
-    start = (page - 1) * per_page
-    end = start + per_page - 1
-
     try:
+        page = max(1, request.args.get('page', 1, type=int))
+        per_page = min(max(request.args.get('per_page', 20, type=int), 10), 100)
+        sort_by = sanitize_input(request.args.get('sort_by', 'name'))
+        sort_order = 'desc' if request.args.get('sort_order', 'asc').lower() == 'desc' else 'asc'
+        search = sanitize_input(request.args.get('search', ''))
+        filter_field = sanitize_input(request.args.get('filter', ''))
+
+        if sort_by not in ALLOWED_FIELDS:
+            sort_by = 'name'
+        if filter_field and filter_field not in ALLOWED_FIELDS:
+            filter_field = ''
+        
+        start = (page - 1) * per_page
+        end = start + per_page - 1
+
         query = supabase.table('songs').select('*')
         
-        if sort_order.lower() == 'desc':
-            query = query.order(sort_by, desc=True)
-        else:
-            query = query.order(sort_by)
+        if search:
+            if filter_field:
+                query = query.ilike(filter_field, f'%{search}%')
+            else:
+                search_conditions = [
+                    f"{field}.ilike.%{search}%"
+                    for field in ALLOWED_FIELDS if field != 'song_length'
+                ]
+                query = query.or_(','.join(search_conditions))
+
+        count_query = query.select('id', count='exact')
+        count_response = count_query.execute()
+        total_songs = count_response.count
+
+        query = query.order(sort_by, desc=(sort_order == 'desc'))
 
         response = query.range(start, end).execute()
         songs = response.data
-
-        count_response = supabase.table('songs').select('id', count='exact').execute()
-        total_songs = count_response.count
 
         return jsonify({
             'songs': songs,
@@ -204,6 +224,8 @@ def get_songs():
             'sort_by': sort_by,
             'sort_order': sort_order
         }), 200
+    except APIError as e:
+        return jsonify({'error': str(e)}), 400
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     
