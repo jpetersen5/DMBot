@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { API_URL } from "../../App";
-import { renderSafeHTML } from "../../utils/safeHTML";
+import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
+import Pagination from "./Pagination";
 import "./SongList.scss";
 
 interface Song {
@@ -145,21 +146,16 @@ const SongList: React.FC = () => {
           ))}
         </tbody>
       </table>
-      <div className="pagination">
-        <button onClick={handlePrevPage} disabled={page === 1}>Previous</button>
-        <span>
-          Page <input 
-            type="number" 
-            value={inputPage} 
-            onChange={handlePageInputChange}
-            onBlur={handlePageInputUpdate}
-            onKeyDown={handlePageInputKeyPress}
-            min={1} 
-            max={totalPages} 
-          /> of {totalPages}
-        </span>
-        <button onClick={handleNextPage} disabled={page === totalPages}>Next</button>
-      </div>
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        inputPage={inputPage}
+        onPrevPage={handlePrevPage}
+        onNextPage={handleNextPage}
+        onPageInputChange={handlePageInputChange}
+        onPageInputUpdate={handlePageInputUpdate}
+        onPageInputKeyPress={handlePageInputKeyPress}
+      />
     </div>
   );
 };
@@ -190,22 +186,11 @@ const SongTableCell: React.FC<SongTableCellProps> = ({ content }) => {
   }
 
   const processedContent = typeof content === "string" 
-    ? content.replace(/<color=(#[0-9A-Fa-f]{3,6})>(.*?)<\/color>/g, (match, color, text) => {
-        console.log(match, color, text);
-        const fullColor = color.length === 4 
-          ? `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}` 
-          : color;
-        return `<span style="color:${fullColor}">${text}</span>`;
-      })
+    ? processColorTags(content)
     : String(content);
-
-    if (content.includes("color=")) {
-      console.log(processedContent);
-    }
 
   return <td dangerouslySetInnerHTML={renderSafeHTML(processedContent)} />;
 };
-
 
 interface SongTableRowProps {
   song: Song;
@@ -220,8 +205,18 @@ const SongTableRow: React.FC<SongTableRowProps> = ({ song }) => (
     <SongTableCell content={song.genre} />
     <SongTableCell content={song.difficulty} />
     <SongTableCell content={song.song_length != null ? new Date(song.song_length).toISOString().substr(11, 8) : null} />
-    <SongTableCell content={song.charter} />
+    <SongTableCell content={processCharters(song.charter)} />
   </tr>
 );
+
+const processCharters = (charters: string | null) => {
+  if (charters == null) {
+    return "Unknown Charter";
+  }
+  // will be used to handle charter links in the future
+  const charterList = charters.split(/\s*[,/]\s*/).map(charter => charter.trim());
+  const charterDisplay = charterList.join(', ');
+  return charterDisplay;
+}
 
 export default SongList;
