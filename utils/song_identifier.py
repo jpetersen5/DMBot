@@ -163,3 +163,11 @@ def identify_songs(identifier_file, output_file):
     with open(output_file, "w", encoding="utf-8") as file:
         json.dump(songs, file, indent=2)
     print(f"Processed data saved to {output_file}.")
+
+if __name__ == "__main__":
+    score_data_path = "../data/scoredata.txt"
+    binary_file_path = "../data/bin/songcache.bin"
+    output_path = "../data/songidentifiers.txt"
+
+    process_cache(score_data_path, binary_file_path, output_path)
+    identify_songs(output_path, "songs.txt")
