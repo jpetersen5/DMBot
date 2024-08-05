@@ -198,7 +198,7 @@ def get_songs():
 
         logger.info(f"Querying songs with parameters: page={page}, per_page={per_page}, sort_by={sort_by}, sort_order={sort_order}, search={search}, filter={filter_field}")
 
-        query = supabase.table('songs').select('*')
+        query = supabase.table('songs').select('*', count='exact')
         
         if search:
             if filter_field:
