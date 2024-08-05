@@ -185,7 +185,7 @@ interface SongTableCellProps {
 }
 
 const SongTableCell: React.FC<SongTableCellProps> = ({ content }) => (
-  <td dangerouslySetInnerHTML={renderSafeHTML(content)} />
+  <td dangerouslySetInnerHTML={renderSafeHTML(content.replace(/color=/g, 'style="color:'))} />
 );
 
 
