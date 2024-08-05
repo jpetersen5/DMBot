@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import "./Sidebar.scss";
 
-import { ReactComponent as HomeIcon } from "../../assets//home-icon.svg";
+import HomeIcon from "../../assets//home-icon.svg";
 
 interface NavItem {
   path: string;
