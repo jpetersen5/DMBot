@@ -7,11 +7,11 @@ import HomeIcon from "../../assets//home-icon.svg";
 interface NavItem {
   path: string;
   name: string;
-  icon: React.ReactNode;
+  icon: string;
 }
 
 const navItems: NavItem[] = [
-  { path: "/", name: "Home", icon: <HomeIcon /> },
+  { path: "/", name: "Home", icon: HomeIcon },
 ];
 
 const Sidebar: React.FC = () => {
@@ -31,7 +31,9 @@ const Sidebar: React.FC = () => {
           {navItems.map((item) => (
             <li key={item.path}>
               <Link to={item.path}>
-                <span className="icon">{item.icon}</span>
+                <span className="icon">
+                  <img src={item.icon} alt={item.name} />
+                </span>
                 <span className="nav-text">{item.name}</span>
               </Link>
             </li>
