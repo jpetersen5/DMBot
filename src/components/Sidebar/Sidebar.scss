@@ -87,8 +87,8 @@
 }
 
 .main-content {
-  width: calc(100% - 60px);
-  margin-left: 60px;
+  width: calc(100% - 44px);
+  margin-left: 44px;
   transition: width 0.3s ease, margin-left 0.3s ease;
 
   .sidebar.open + & {
