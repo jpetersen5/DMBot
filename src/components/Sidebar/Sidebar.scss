@@ -33,15 +33,15 @@
       margin: 0;
 
       a {
+        display: flex;
+        align-items: center;
+        color: white;
+        text-decoration: none;
         padding: 10px;
 
         li {
           display: flex;
-          align-items: center;
-          color: white;
-          text-decoration: none;
-          height: 24px;
-
+          
           .icon {
             flex: 0 0 24px;
             height: 24px;
