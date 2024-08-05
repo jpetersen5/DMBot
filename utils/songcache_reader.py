@@ -72,14 +72,13 @@ def process_songs(base_path, binary_file_path, output_file):
             
             song_info = {
                 "md5": md5_hex,
-                "file_path": path,
                 "artist": song_data.get('artist', ''),
                 "name": song_data.get('name', ''),
                 "album": song_data.get('album', ''),
                 "track": song_data.get('track', ''),
                 "year": song_data.get('year', ''),
                 "genre": song_data.get('genre', ''),
-                "diff_drums_real": song_data.get('diff_drums_real', ''),
+                "diff_drums": song_data.get('diff_drums', ''),
                 "song_length": song_data.get('song_length', ''),
                 "charter": song_data.get('charter', '')
             }
@@ -109,14 +108,13 @@ def process_songs(base_path, binary_file_path, output_file):
             
             song_info = {
                 "md5": md5_hex,
-                "file_path": path,
                 "artist": song_data.get('artist', ''),
                 "name": song_data.get('name', ''),
                 "album": song_data.get('album', ''),
                 "track": song_data.get('track', ''),
                 "year": song_data.get('year', ''),
                 "genre": song_data.get('genre', ''),
-                "diff_drums_real": song_data.get('diff_drums_real', ''),
+                "difficulty": song_data.get('diff_drums', ''),
                 "song_length": song_data.get('song_length', ''),
                 "charter": song_data.get('charter', '')
             }
@@ -135,7 +133,7 @@ def parse_ini_file(ini_path):
     data = {}
     required_fields = [
         "artist", "name", "album", "track", "year",
-        "genre", "diff_drums_real", "song_length", "charter"
+        "genre", "diff_drums", "song_length", "charter"
     ]
     try:
         with open(ini_path, "r", encoding="utf-8") as file:
