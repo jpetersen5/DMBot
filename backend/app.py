@@ -16,6 +16,7 @@ import re
 load_dotenv()
 app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 if not SECRET_KEY:
@@ -195,6 +196,8 @@ def get_songs():
         start = (page - 1) * per_page
         end = start + per_page - 1
 
+        logger.info(f"Querying songs with parameters: page={page}, per_page={per_page}, sort_by={sort_by}, sort_order={sort_order}, search={search}, filter={filter_field}")
+
         query = supabase.table('songs').select('*')
         
         if search:
@@ -211,10 +214,14 @@ def get_songs():
         count_response = count_query.execute()
         total_songs = count_response.count
 
+        logger.info(f"Total songs matching query: {total_songs}")
+
         query = query.order(sort_by, desc=(sort_order == 'desc'))
 
         response = query.range(start, end).execute()
         songs = response.data
+
+        logger.info(f"Retrieved {len(songs)} songs")
 
         return jsonify({
             'songs': songs,
@@ -225,8 +232,10 @@ def get_songs():
             'sort_order': sort_order
         }), 200
     except APIError as e:
+        logger.error(f"Supabase API error: {str(e)}")
         return jsonify({'error': str(e)}), 400
     except Exception as e:
+        logger.exception("An unexpected error occurred")
         return jsonify({'error': str(e)}), 500
     
 app.register_blueprint(songs)
