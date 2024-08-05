@@ -156,7 +156,7 @@ interface SongListHeaderProps {
 
 const SongListHeader: React.FC<SongListHeaderProps> = ({ onClick, content, sort, sortOrder }) => (
   <th onClick={onClick}>
-    {`${content} ${sort && sortOrder === "asc" ? "▲" : "▼"}`}
+    {`${content} ${sort && (sortOrder === "asc" ? "▲" : "▼")}`}
   </th>
 );
 
