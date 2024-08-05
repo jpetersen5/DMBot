@@ -34,7 +34,7 @@ const Sidebar: React.FC = () => {
                 <span className="icon">
                   <img src={item.icon} alt={item.name} />
                 </span>
-                <span className="nav-text">{item.name}</span>
+                {isOpen && <span className="nav-text">{item.name}</span>}
               </Link>
             </li>
           ))}
