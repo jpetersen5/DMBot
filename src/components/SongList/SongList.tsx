@@ -45,7 +45,7 @@ const SongList: React.FC = () => {
 
   useEffect(() => {
     fetchSongs();
-  }, [page, perPage, sortBy, sortOrder, search, filter]);
+  }, [page, perPage, sortBy, sortOrder]);
 
   async function fetchSongs() {
     setLoading(true);
@@ -82,7 +82,11 @@ const SongList: React.FC = () => {
   };
 
   const handleSearchSubmit = () => {
-    setPage(1);
+    if (page === 1) {
+      fetchSongs();
+    } else {
+      setPage(1);
+    }
   };
 
   if (loading) {
