@@ -10,6 +10,7 @@
 
   .table-controls {
     display: flex;
+    position: absolute;
     justify-content: space-between;
     margin-bottom: 1rem;
 
@@ -50,7 +51,7 @@
         align-items: center;
         justify-content: space-between;
       }
-      
+
       &:hover {
         background-color: #404040;
       }
@@ -69,7 +70,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 1rem;
+    margin: 1rem 0;
 
     button {
       background-color: #202020;
