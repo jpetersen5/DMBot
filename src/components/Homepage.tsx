@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { API_URL } from "../App";
-import Auth from "./auth/Auth";
+import Auth from "./Auth/Auth";
 import UserGrid from "./UserGrid/UserGrid";
 import './Homepage.scss';
 

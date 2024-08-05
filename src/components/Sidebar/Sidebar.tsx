@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import "./Sidebar.scss";
 
 import HomeIcon from "../../assets//home-icon.svg";
+import ProfileIcon from "../../assets/profile-icon.svg";
 
 interface NavItem {
   path: string;
@@ -12,6 +13,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { path: "/", name: "Home", icon: HomeIcon },
+  { path: "/profile", name: "Profile", icon: ProfileIcon },
 ];
 
 const Sidebar: React.FC = () => {

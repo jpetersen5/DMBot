@@ -1,58 +1,30 @@
-import React, { useState, useEffect } from "react";
-import { API_URL } from "../../App";
-import { User, getUserImage } from "../../utils/user";
-import './Auth.scss';
+import React from "react";
+import { useAuth } from "../../hooks/useAuth";
+import { getUserImage } from "../../utils/user";
+import "./Auth.scss";
 
-const Auth: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+interface AuthProps {
+  onlyButtons?: boolean;
+}
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem("auth_token");
-      if (token) {
-        try {
-          const response = await fetch(`${API_URL}/api/user`, {
-            headers: {
-              "Authorization": `Bearer ${token}`
-            }
-          });
-          if (response.ok) {
-            const userData: User = await response.json();
-            setUser(userData);
-          } else {
-            console.error("Invalid token:", response.statusText);
-            const errorData = await response.json();
-            console.error("Error details:", errorData);
-            localStorage.removeItem("auth_token");
-          }
-        } catch (error) {
-          console.error("Error checking auth:", error);
-          localStorage.removeItem("auth_token");
-        }
-      } else {
-        console.log("No token found in localStorage");
-      }
-      setLoading(false);
-    };
-
-    checkAuth();
-  }, []);
-
-  const handleLogin = () => {
-    window.location.href = `${API_URL}/api/auth/login`;
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("auth_token");
-    setUser(null);
-  };
+const Auth: React.FC<AuthProps> = ({ onlyButtons = false }) => {
+  const { user, loading, login, logout } = useAuth();
 
   if (loading) {
     return <div className="auth-loading">Loading...</div>;
   }
 
-  console.log(user);
+  if (onlyButtons) {
+    return (
+      <div className="auth-container">
+        {user ? (
+          <button className="auth-button logout-button" onClick={logout}>Logout</button>
+        ) : (
+          <button className="auth-button login-button" onClick={login}>Login with Discord</button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="auth-container">
@@ -64,11 +36,11 @@ const Auth: React.FC = () => {
             alt={user.username}
             className="user-avatar"
           />
-          <button className="auth-button logout-button" onClick={handleLogout}>Logout</button>
+          <button className="auth-button logout-button" onClick={logout}>Logout</button>
         </div>
       ) : (
         <div className="auth-login">
-          <button className="auth-button login-button" onClick={handleLogin}>Login with Discord</button>
+          <button className="auth-button login-button" onClick={login}>Login with Discord</button>
         </div>
       )}
     </div>
