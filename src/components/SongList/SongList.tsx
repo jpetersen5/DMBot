@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { API_URL } from "../../App";
+import { renderSafeHTML } from '../../utils/safeHTML';
 import "./SongList.scss";
 
 interface Song {
@@ -128,7 +129,7 @@ const SongList: React.FC = () => {
         <thead>
           <tr>
             {Object.entries(TABLE_HEADERS).map(([key, value]) => (
-              <SongListHeader
+              <SongTableHeader
                 key={key}
                 content={value}
                 onClick={() => handleSort(key)}
@@ -140,16 +141,7 @@ const SongList: React.FC = () => {
         </thead>
         <tbody>
           {songs.map((song) => (
-            <tr key={song.id}>
-              <td>{song.name}</td>
-              <td>{song.artist}</td>
-              <td>{song.album}</td>
-              <td>{song.year}</td>
-              <td>{song.genre}</td>
-              <td>{song.difficulty}</td>
-              <td>{new Date(song.song_length).toISOString().substr(11, 8)}</td>
-              <td>{song.charter}</td>
-            </tr>
+            <SongTableRow key={song.id} song={song} />
           ))}
         </tbody>
       </table>
@@ -172,20 +164,46 @@ const SongList: React.FC = () => {
   );
 };
 
-interface SongListHeaderProps {
+interface SongTableHeaderProps {
   onClick: () => void;
   content: string;
   sort: boolean;
   sortOrder: string;
 }
 
-const SongListHeader: React.FC<SongListHeaderProps> = ({ onClick, content, sort, sortOrder }) => (
+const SongTableHeader: React.FC<SongTableHeaderProps> = ({ onClick, content, sort, sortOrder }) => (
   <th onClick={onClick}>
     <div className="header-content">
       <span className="header-text">{content}</span>
       {sort && <span className="sort-arrow">{sortOrder === "asc" ? "▲" : "▼"}</span>}
     </div>
   </th>
+);
+
+interface SongTableCellProps {
+  content: string;
+}
+
+const SongTableCell: React.FC<SongTableCellProps> = ({ content }) => (
+  <td dangerouslySetInnerHTML={renderSafeHTML(content)} />
+);
+
+
+interface SongTableRowProps {
+  song: Song;
+}
+
+const SongTableRow: React.FC<SongTableRowProps> = ({ song }) => (
+  <tr>
+    <SongTableCell content={song.name} />
+    <SongTableCell content={song.artist} />
+    <SongTableCell content={song.album} />
+    <SongTableCell content={song.year} />
+    <SongTableCell content={song.genre} />
+    <SongTableCell content={song.difficulty} />
+    <SongTableCell content={new Date(song.song_length).toISOString().substr(11, 8)} />
+    <SongTableCell content={song.charter} />
+  </tr>
 );
 
 export default SongList;

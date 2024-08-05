@@ -50,14 +50,7 @@
         align-items: center;
         justify-content: space-between;
       }
-
-      .sort-arrow {
-        position: absolute;
-        right: 5px;
-        top: 50%;
-        transform: translateY(-50%);
-      }
-
+      
       &:hover {
         background-color: #404040;
       }
