@@ -6,15 +6,15 @@ import "./SongList.scss";
 interface Song {
   id: number;
   md5: string;
-  artist: string;
-  name: string;
-  album: string;
-  track: string;
-  year: string;
-  genre: string;
-  difficulty: string;
-  song_length: number;
-  charter: string;
+  artist: string | null;
+  name: string | null;
+  album: string | null;
+  track: string | null;
+  year: string | null;
+  genre: string | null;
+  difficulty: string | null;
+  song_length: number | null;
+  charter: string | null;
 }
 
 const TABLE_HEADERS = {
@@ -181,12 +181,20 @@ const SongTableHeader: React.FC<SongTableHeaderProps> = ({ onClick, content, sor
 );
 
 interface SongTableCellProps {
-  content: string;
+  content: string | null | undefined;
 }
 
-const SongTableCell: React.FC<SongTableCellProps> = ({ content }) => (
-  <td dangerouslySetInnerHTML={renderSafeHTML(content.replace(/color=/g, 'style="color:'))} />
-);
+const SongTableCell: React.FC<SongTableCellProps> = ({ content }) => {
+  if (content == null) {
+    return <td></td>;
+  }
+
+  const processedContent = typeof content === 'string' 
+    ? content.replace(/color=/g, 'style="color:')
+    : String(content);
+
+  return <td dangerouslySetInnerHTML={renderSafeHTML(processedContent)} />;
+};
 
 
 interface SongTableRowProps {
@@ -201,7 +209,7 @@ const SongTableRow: React.FC<SongTableRowProps> = ({ song }) => (
     <SongTableCell content={song.year} />
     <SongTableCell content={song.genre} />
     <SongTableCell content={song.difficulty} />
-    <SongTableCell content={new Date(song.song_length).toISOString().substr(11, 8)} />
+    <SongTableCell content={song.song_length != null ? new Date(song.song_length).toISOString().substr(11, 8) : null} />
     <SongTableCell content={song.charter} />
   </tr>
 );
