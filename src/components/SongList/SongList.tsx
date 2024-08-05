@@ -198,7 +198,7 @@ const processCharters = (charters: string | null) => {
     return "Unknown Charter";
   }
   // will be used to handle charter links in the future
-  const charterList = charters.split(/\s*[,/]\s*/).map(charter => charter.trim());
+  const charterList = charters.split(/(?![^<]*>|[^>]*<)\s*[,/]\s*/).map(charter => charter.trim());
   const charterDisplay = charterList.join(', ');
   return charterDisplay;
 }
