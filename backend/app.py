@@ -198,7 +198,7 @@ def get_songs():
 
         logger.info(f"Querying songs with parameters: page={page}, per_page={per_page}, sort_by={sort_by}, sort_order={sort_order}, search={search}, filter={filter_field}")
 
-        query = supabase.table('songs')
+        query = supabase.table('songs').select('*')
         
         if search:
             if filter_field:
@@ -210,17 +210,14 @@ def get_songs():
                 ])
                 query = query.or_(search_conditions)
 
-        count_query = query.select('id', count='exact')
-        count_response = count_query.execute()
+        count_response = query.execute()
         total_songs = count_response.count
 
-        logger.info(f"Total songs matching query: {total_songs}")
-
-        query = query.select('*').order(sort_by, desc=(sort_order == 'desc')).range(start, end)
-        
+        query = query.order(sort_by, desc=(sort_order == 'desc')).range(start, end)
         response = query.execute()
         songs = response.data
 
+        logger.info(f"Total songs matching query: {total_songs}")
         logger.info(f"Retrieved {len(songs)} songs")
 
         return jsonify({
