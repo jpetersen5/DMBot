@@ -31,6 +31,7 @@ const SongList: React.FC = () => {
   const [songs, setSongs] = useState<Song[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [inputPage, setInputPage] = useState(page.toString());
   const [totalSongs, setTotalSongs] = useState(0);
   const [perPage, setPerPage] = useState(20);
   const [sortBy, setSortBy] = useState("name");
@@ -69,12 +70,28 @@ const SongList: React.FC = () => {
     if (page < totalPages) setPage(page + 1);
   };
 
-  const handlePageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newPage = parseInt(e.target.value);
-    if (newPage >= 1 && newPage <= totalPages) {
+  const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputPage(e.target.value);
+  };
+
+  const handlePageInputUpdate = () => {
+    const newPage = parseInt(inputPage, 10);
+    if (!isNaN(newPage) && newPage >= 1 && newPage <= totalPages) {
       setPage(newPage);
+    } else {
+      setInputPage(page.toString());
     }
   };
+
+  const handlePageInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handlePageInputUpdate();
+    }
+  };
+
+  useEffect(() => {
+    setInputPage(page.toString());
+  }, [page]);
 
   const handlePerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setPerPage(parseInt(e.target.value));
@@ -139,7 +156,15 @@ const SongList: React.FC = () => {
       <div className="pagination">
         <button onClick={handlePrevPage} disabled={page === 1}>Previous</button>
         <span>
-          Page <input type="number" value={page} onChange={handlePageChange} min={1} max={totalPages} /> of {totalPages}
+          Page <input 
+            type="number" 
+            value={inputPage} 
+            onChange={handlePageInputChange}
+            onBlur={handlePageInputUpdate}
+            onKeyDown={handlePageInputKeyPress}
+            min={1} 
+            max={totalPages} 
+          /> of {totalPages}
         </span>
         <button onClick={handleNextPage} disabled={page === totalPages}>Next</button>
       </div>
@@ -156,7 +181,8 @@ interface SongListHeaderProps {
 
 const SongListHeader: React.FC<SongListHeaderProps> = ({ onClick, content, sort, sortOrder }) => (
   <th onClick={onClick}>
-    {`${content} ${sort && (sortOrder === "asc" ? "▲" : "▼")}`}
+  {content}
+  {sort && <span className="sort-arrow">{sortOrder === "asc" ? " ▲" : " ▼"}</span>}
   </th>
 );
 
