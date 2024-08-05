@@ -193,6 +193,10 @@ const SongTableCell: React.FC<SongTableCellProps> = ({ content }) => {
     ? content.replace(/color=/g, 'style="color:')
     : String(content);
 
+    if (content.includes('color=')) {
+      console.log(processedContent);
+    }
+
   return <td dangerouslySetInnerHTML={renderSafeHTML(processedContent)} />;
 };
 
