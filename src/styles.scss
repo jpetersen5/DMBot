@@ -1,3 +1,8 @@
 @import './components/Homepage.scss';
 @import './components/UserGrid/UserGrid.scss';
 @import './components/auth/Auth.scss';
+@import './components/Sidebar.scss';
+
+.app-container {
+  display: flex;
+}
