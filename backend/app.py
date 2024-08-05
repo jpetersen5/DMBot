@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, request, redirect, session
+from flask import Flask, Blueprint, jsonify, request, redirect, session
 from flask_cors import CORS
 from flask_session import Session
 from dotenv import load_dotenv
@@ -47,6 +47,8 @@ DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
 DISCORD_REDIRECT_URI = os.getenv("DISCORD_REDIRECT_URI")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "https://jpetersen5.github.io/DMBot")
 DISCORD_API_ENDPOINT = "https://discord.com/api/v10"
+
+songs = Blueprint('songs', __name__)
 
 @app.route("/api/auth/login")
 def login():
@@ -167,3 +169,29 @@ def db_status():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
+@songs.route('/api/songs', methods=['GET'])
+def get_songs():
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 50, type=int)
+    
+    start = (page - 1) * per_page
+    end = start + per_page - 1
+
+    try:
+        response = supabase.table('songs').select('*').range(start, end).execute()
+        songs = response.data
+
+        count_response = supabase.table('songs').select('id', count='exact').execute()
+        total_songs = count_response.count
+
+        return jsonify({
+            'songs': songs,
+            'total': total_songs,
+            'page': page,
+            'per_page': per_page
+        }), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+app.register_blueprint(songs)
