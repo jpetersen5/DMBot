@@ -39,6 +39,8 @@ const SongList: React.FC = () => {
   const [sortBy, setSortBy] = useState("name");
   const [sortOrder, setSortOrder] = useState("asc");
 
+  const totalPages = Math.ceil(totalSongs / perPage);
+
   useEffect(() => {
     fetchSongs();
   }, [page, perPage, sortBy, sortOrder]);
@@ -61,39 +63,6 @@ const SongList: React.FC = () => {
       setLoading(false);
     }
   }
-
-  const totalPages = Math.ceil(totalSongs / perPage);
-
-  const handlePrevPage = () => {
-    if (page > 1) setPage(page - 1);
-  };
-
-  const handleNextPage = () => {
-    if (page < totalPages) setPage(page + 1);
-  };
-
-  const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputPage(e.target.value);
-  };
-
-  const handlePageInputUpdate = () => {
-    const newPage = parseInt(inputPage, 10);
-    if (!isNaN(newPage) && newPage >= 1 && newPage <= totalPages) {
-      setPage(newPage);
-    } else {
-      setInputPage(page.toString());
-    }
-  };
-
-  const handlePageInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handlePageInputUpdate();
-    }
-  };
-
-  useEffect(() => {
-    setInputPage(page.toString());
-  }, [page]);
 
   const handlePerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setPerPage(parseInt(e.target.value));
@@ -126,6 +95,13 @@ const SongList: React.FC = () => {
           </select>
         </div>
       </div>
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        inputPage={inputPage}
+        setPage={setPage}
+        setInputPage={setInputPage}
+      />
       <table>
         <thead>
           <tr>
@@ -150,11 +126,8 @@ const SongList: React.FC = () => {
         page={page}
         totalPages={totalPages}
         inputPage={inputPage}
-        onPrevPage={handlePrevPage}
-        onNextPage={handleNextPage}
-        onPageInputChange={handlePageInputChange}
-        onPageInputUpdate={handlePageInputUpdate}
-        onPageInputKeyPress={handlePageInputKeyPress}
+        setPage={setPage}
+        setInputPage={setInputPage}
       />
     </div>
   );
@@ -204,7 +177,7 @@ const SongTableRow: React.FC<SongTableRowProps> = ({ song }) => (
     <SongTableCell content={song.year} />
     <SongTableCell content={song.genre} />
     <SongTableCell content={song.difficulty} />
-    <SongTableCell content={song.song_length != null ? new Date(song.song_length).toISOString().substr(11, 8) : null} />
+    <SongTableCell content={song.song_length != null ? new Date(song.song_length).toISOString().substring(11, 19) : null} />
     <SongTableCell content={processCharters(song.charter)} />
   </tr>
 );
