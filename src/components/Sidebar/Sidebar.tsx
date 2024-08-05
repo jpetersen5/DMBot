@@ -31,14 +31,14 @@ const Sidebar: React.FC = () => {
       <nav className="nav-menu">
         <ul>
           {navItems.map((item) => (
-            <li key={item.path}>
-              <Link to={item.path}>
-                <span className="icon">
-                  <img src={item.icon} alt={item.name} />
-                </span>
-                {isOpen && <span className="nav-text">{item.name}</span>}
-              </Link>
-            </li>
+            <Link to={item.path}>
+              <li key={item.path}>
+                  <span className="icon">
+                    <img src={item.icon} alt={item.name} />
+                  </span>
+                  {isOpen && <span className="nav-text">{item.name}</span>}
+              </li>
+            </Link>
           ))}
         </ul>
       </nav>
