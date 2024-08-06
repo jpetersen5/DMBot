@@ -248,7 +248,7 @@ def get_related_songs():
     query = supabase.table('songs').select('*').eq(relation_type, value)
 
     if relation_type == 'album':
-        query = query.order('track', ascending=True)
+        query = query.order('track', desc=False)
     
     query = query.limit(10)
     response = query.execute()
