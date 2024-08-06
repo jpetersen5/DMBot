@@ -249,8 +249,9 @@ def get_related_songs():
 
     if relation_type == 'album':
         query = query.order('track', desc=False)
-    
-    query = query.limit(10)
+    else:
+        query = query.limit(10)
+        
     response = query.execute()
 
     return jsonify({
