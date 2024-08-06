@@ -64,9 +64,9 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, song }) => {
         </thead>
         <tbody>
           {loading && <tr><td colSpan={columns.length}><LoadingSpinner /></td></tr>}
-          {!loading && relatedSongs.map((relatedSong, index) => (
+          {!loading && relatedSongs.map((relatedSong) => (
             <tr key={relatedSong.id} onClick={() => onHide()}>
-              {relationType === "album" && <td>{index + 1}</td>}
+              {relationType === "album" && <td>{relatedSong.track || 'N/A'}</td>}
               <td>{relatedSong.name}</td>
               {relationType === "artist" && <td>{relatedSong.album}</td>}
               {(relationType === "genre" || relationType === "charter") && <td>{relatedSong.artist}</td>}

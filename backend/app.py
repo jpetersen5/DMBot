@@ -245,7 +245,12 @@ def get_related_songs():
     if not value:
         return jsonify({'error': 'Missing relation value'}), 400
 
-    query = supabase.table('songs').select('*').eq(relation_type, value).limit(10)
+    query = supabase.table('songs').select('*').eq(relation_type, value)
+
+    if relation_type == 'album':
+        query = query.order('track', ascending=True)
+    
+    query = query.limit(10)
     response = query.execute()
 
     return jsonify({
