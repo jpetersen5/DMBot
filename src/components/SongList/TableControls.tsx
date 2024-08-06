@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 interface TableControlsProps {
   perPage: number;
@@ -106,16 +106,31 @@ export const Search: React.FC<SearchProps> = ({
   setFilter,
   submitSearch
 }) => {
+  const [previousSearch, setPreviousSearch] = useState(search);
+
+  useEffect(() => {
+    setPreviousSearch(search);
+  }, [search]);
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
   };
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFilter(e.target.value);
+    if (search.trim() !== "") {
+      submitSearch();
+    }
   }
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
+      submitSearch();
+    }
+  };
+
+  const handleBlur = () => {
+    if (search !== previousSearch) {
       submitSearch();
     }
   };
@@ -126,7 +141,7 @@ export const Search: React.FC<SearchProps> = ({
         type="text"
         value={search}
         onChange={handleSearchChange}
-        onBlur={submitSearch}
+        onBlur={handleBlur}
         onKeyDown={handleKeyPress}
         placeholder="Search..."
       />
