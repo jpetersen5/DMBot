@@ -234,3 +234,20 @@ def get_songs():
         return jsonify({'error': str(e)}), 500
     
 app.register_blueprint(songs)
+
+@app.route('/api/related-songs', methods=['GET'])
+def get_related_songs():
+    relation_type = next((param for param in ['album', 'artist', 'genre'] if param in request.args), None)
+    if not relation_type:
+        return jsonify({'error': 'Invalid relation type'}), 400
+
+    value = request.args.get(relation_type)
+    if not value:
+        return jsonify({'error': 'Missing relation value'}), 400
+
+    query = supabase.table('songs').select('*').eq(relation_type, value).limit(10)
+    response = query.execute()
+
+    return jsonify({
+        'songs': response.data
+    })

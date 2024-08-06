@@ -2,32 +2,9 @@ import React, { useState, useEffect } from "react";
 import { API_URL } from "../../App";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import { TableControls, Pagination, Search } from "./TableControls";
+import { Song, SONG_TABLE_HEADERS } from "../../utils/song";
+import SongModal from "./SongModal";
 import "./SongList.scss";
-
-interface Song {
-  id: number;
-  md5: string;
-  artist: string | null;
-  name: string | null;
-  album: string | null;
-  track: string | null;
-  year: string | null;
-  genre: string | null;
-  difficulty: string | null;
-  song_length: number | null;
-  charter: string | null;
-}
-
-const TABLE_HEADERS = {
-  name: "Name",
-  artist: "Artist",
-  album: "Album",
-  year: "Year",
-  genre: "Genre",
-  difficulty: "Difficulty",
-  song_length: "Length",
-  charter: "Charter",
-};
 
 const SongList: React.FC = () => {
   const [songs, setSongs] = useState<Song[]>([]);
@@ -40,6 +17,7 @@ const SongList: React.FC = () => {
   const [sortOrder, setSortOrder] = useState("asc");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("");
+  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
 
   const totalPages = Math.ceil(totalSongs / perPage);
 
@@ -89,6 +67,10 @@ const SongList: React.FC = () => {
     }
   };
 
+  const handleRowClick = (song: Song) => {
+    setSelectedSong(song);
+  };
+
   return (
     <div className="song-list">
       <h1>Song List</h1>
@@ -112,7 +94,7 @@ const SongList: React.FC = () => {
       <table>
         <thead>
           <tr>
-            {Object.entries(TABLE_HEADERS).map(([key, value]) => (
+            {Object.entries(SONG_TABLE_HEADERS).map(([key, value]) => (
               <SongTableHeader
                 key={key}
                 content={value}
@@ -126,16 +108,22 @@ const SongList: React.FC = () => {
         <tbody>
           {loading && (
             <tr>
-              <td colSpan={Object.keys(TABLE_HEADERS).length}>Loading...</td>
+              <td colSpan={Object.keys(SONG_TABLE_HEADERS).length}>Loading...</td>
             </tr>
           )}
           {!loading && songs.length === 0 && (
             <tr>
-              <td colSpan={Object.keys(TABLE_HEADERS).length}>No songs found</td>
+              <td colSpan={Object.keys(SONG_TABLE_HEADERS).length}>No songs found</td>
             </tr>
           )}
           {!loading && songs.length > 0 && (
-            songs.map((song) => <SongTableRow key={song.id} song={song} />)
+            songs.map((song) => (
+              <SongTableRow 
+                key={song.id} 
+                song={song} 
+                onClick={() => handleRowClick(song)}
+              />
+            ))
           )}
         </tbody>
       </table>
@@ -145,6 +133,11 @@ const SongList: React.FC = () => {
         inputPage={inputPage}
         setPage={setPage}
         setInputPage={setInputPage}
+      />
+      <SongModal 
+        show={!!selectedSong} 
+        onHide={() => setSelectedSong(null)} 
+        song={selectedSong}
       />
     </div>
   );
@@ -184,10 +177,11 @@ const SongTableCell: React.FC<SongTableCellProps> = ({ content }) => {
 
 interface SongTableRowProps {
   song: Song;
+  onClick: () => void;
 }
 
-const SongTableRow: React.FC<SongTableRowProps> = ({ song }) => (
-  <tr>
+const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick }) => (
+  <tr onClick={onClick} style={{ cursor: "pointer" }}>
     <SongTableCell content={song.name} />
     <SongTableCell content={song.artist} />
     <SongTableCell content={song.album} />
@@ -205,7 +199,7 @@ const processCharters = (charters: string | null) => {
   }
   // will be used to handle charter links in the future
   const charterList = charters.split(/(?![^<]*>|[^>]*<)\s*[,/]\s*/).map(charter => charter.trim());
-  const charterDisplay = charterList.join(', ');
+  const charterDisplay = charterList.join(", ");
   return charterDisplay;
 }
 
