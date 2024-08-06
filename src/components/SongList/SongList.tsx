@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { API_URL } from "../../App";
-import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import { TableControls, Pagination, Search } from "./TableControls";
-import { Song, SONG_TABLE_HEADERS, msToTime } from "../../utils/song";
 import SongModal from "./SongModal";
+import LoadingSpinner from "../Loading/LoadingSpinner";
+import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
+import { Song, SONG_TABLE_HEADERS, msToTime } from "../../utils/song";
 import "./SongList.scss";
 
 const SongList: React.FC = () => {
@@ -108,7 +109,9 @@ const SongList: React.FC = () => {
         <tbody>
           {loading && (
             <tr>
-              <td colSpan={Object.keys(SONG_TABLE_HEADERS).length}>Loading...</td>
+              <td colSpan={Object.keys(SONG_TABLE_HEADERS).length}>
+                <LoadingSpinner message="Loading songs..." />
+              </td>
             </tr>
           )}
           {!loading && songs.length === 0 && (

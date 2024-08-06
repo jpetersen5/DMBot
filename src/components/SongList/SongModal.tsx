@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Nav } from "react-bootstrap";
 import { API_URL } from "../../App";
+import LoadingSpinner from "../Loading/LoadingSpinner";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import { Song, msToTime } from "../../utils/song";
 import "./SongModal.scss";
@@ -14,6 +15,7 @@ interface SongModalProps {
 const SongModal: React.FC<SongModalProps> = ({ show, onHide, song }) => {
   const [relatedSongs, setRelatedSongs] = useState<Song[]>([]);
   const [relationType, setRelationType] = useState<"album" | "artist" | "genre" | "charter">("album");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (song) {
@@ -23,6 +25,7 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, song }) => {
 
   const fetchRelatedSongs = async () => {
     if (!song) return;
+    setLoading(true);
     try {
       const response = await fetch(`${API_URL}/api/related-songs?${relationType}=${song[relationType]}`);
       if (!response.ok) throw new Error("Failed to fetch related songs");
@@ -30,6 +33,8 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, song }) => {
       setRelatedSongs(data.songs);
     } catch (error) {
       console.error("Error fetching related songs:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -58,7 +63,8 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, song }) => {
           </tr>
         </thead>
         <tbody>
-          {relatedSongs.map((relatedSong, index) => (
+          {loading && <tr><td colSpan={columns.length}><LoadingSpinner /></td></tr>}
+          {!loading && relatedSongs.map((relatedSong, index) => (
             <tr key={relatedSong.id} onClick={() => onHide()}>
               {relationType === "album" && <td>{index + 1}</td>}
               <td>{relatedSong.name}</td>

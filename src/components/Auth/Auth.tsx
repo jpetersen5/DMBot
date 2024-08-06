@@ -1,4 +1,5 @@
 import React from "react";
+import LoadingSpinner from "../Loading/LoadingSpinner";
 import { useAuth } from "../../hooks/useAuth";
 import { getUserImage } from "../../utils/user";
 import "./Auth.scss";
@@ -11,7 +12,7 @@ const Auth: React.FC<AuthProps> = ({ onlyButtons = false }) => {
   const { user, loading, login, logout } = useAuth();
 
   if (loading) {
-    return <div className="auth-loading">Loading...</div>;
+    return <LoadingSpinner message="Loading user..." />;
   }
 
   if (onlyButtons) {

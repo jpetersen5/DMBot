@@ -1,0 +1,19 @@
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  
+  .spinner-icon {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 10px;
+  }
+  
+  .loading-message {
+    font-size: 1rem;
+    color: #202020;
+  }
+}
