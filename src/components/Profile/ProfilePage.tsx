@@ -13,7 +13,7 @@ const ProfilePage: React.FC = () => {
       <div className="profile-page">
         <h1>User Profile</h1>
         <p>Please log in to view your profile.</p>
-        <Auth />
+        <Auth onlyButtons />
       </div>
     );
   }
