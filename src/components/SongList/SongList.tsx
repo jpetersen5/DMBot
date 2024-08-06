@@ -89,10 +89,6 @@ const SongList: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return <div>Loading songs...</div>;
-  }
-
   return (
     <div className="song-list">
       <h1>Song List</h1>
@@ -128,9 +124,19 @@ const SongList: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {songs.map((song) => (
-            <SongTableRow key={song.id} song={song} />
-          ))}
+          {loading && (
+            <tr>
+              <td colSpan={Object.keys(TABLE_HEADERS).length}>Loading...</td>
+            </tr>
+          )}
+          {!loading && songs.length === 0 && (
+            <tr>
+              <td colSpan={Object.keys(TABLE_HEADERS).length}>No songs found</td>
+            </tr>
+          )}
+          {!loading && songs.length > 0 && (
+            songs.map((song) => <SongTableRow key={song.id} song={song} />)
+          )}
         </tbody>
       </table>
       <Pagination
