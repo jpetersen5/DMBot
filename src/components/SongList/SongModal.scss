@@ -10,6 +10,18 @@
   .modal-header {
     background-color: #202020;
     color: #fff;
+
+    .back-button {
+      background-color: transparent;
+      border: none;
+      color: #fff;
+      font-size: 1.5rem;
+      transition: background-color 0.3s;
+
+      &:hover {
+        background-color: #404040;
+      }
+    }
   }
 
   .modal-body {

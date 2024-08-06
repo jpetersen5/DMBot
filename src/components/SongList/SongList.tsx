@@ -140,8 +140,7 @@ const SongList: React.FC = () => {
       <SongModal 
         show={!!selectedSong} 
         onHide={() => setSelectedSong(null)} 
-        song={selectedSong}
-        handleRowClick={handleRowClick}
+        initialSong={selectedSong}
       />
     </div>
   );
