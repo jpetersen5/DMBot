@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { API_URL } from "../../App";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import { TableControls, Pagination, Search } from "./TableControls";
-import { Song, SONG_TABLE_HEADERS } from "../../utils/song";
+import { Song, SONG_TABLE_HEADERS, msToTime } from "../../utils/song";
 import SongModal from "./SongModal";
 import "./SongList.scss";
 
@@ -188,7 +188,7 @@ const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick }) => (
     <SongTableCell content={song.year} />
     <SongTableCell content={song.genre} />
     <SongTableCell content={song.difficulty || "?"} />
-    <SongTableCell content={song.song_length != null ? new Date(song.song_length).toISOString().substring(11, 19) : null} />
+    <SongTableCell content={song.song_length != null ? msToTime(song.song_length) : "Unknown"} />
     <SongTableCell content={processCharters(song.charter)} />
   </tr>
 );

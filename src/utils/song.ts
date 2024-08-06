@@ -22,3 +22,7 @@ export const SONG_TABLE_HEADERS = {
   song_length: "Length",
   charter: "Charter",
 };
+
+export const msToTime = (duration: number) => {
+  return new Date(duration).toISOString().substring(11, 19);
+}

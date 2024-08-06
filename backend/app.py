@@ -237,7 +237,7 @@ app.register_blueprint(songs)
 
 @app.route('/api/related-songs', methods=['GET'])
 def get_related_songs():
-    relation_type = next((param for param in ['album', 'artist', 'genre'] if param in request.args), None)
+    relation_type = next((param for param in ['album', 'artist', 'genre', 'charter'] if param in request.args), None)
     if not relation_type:
         return jsonify({'error': 'Invalid relation type'}), 400
 
