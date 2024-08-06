@@ -105,7 +105,7 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
   return (
     <Modal show={show} onHide={onHide} size="xl" dialogClassName="song-modal">
       <Modal.Header>
-        <Button variant="link" onClick={handleBack} className="back-button">
+        <Button onClick={handleBack} className="back-button">
           {previousSongs.length > 0 ? "←" : "X"}
         </Button>
         <Modal.Title>{currentSong.name}</Modal.Title>
