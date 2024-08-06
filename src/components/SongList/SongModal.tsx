@@ -10,9 +10,10 @@ interface SongModalProps {
   show: boolean;
   onHide: () => void;
   song: Song | null;
+  handleRowClick: (song: Song) => void;
 }
 
-const SongModal: React.FC<SongModalProps> = ({ show, onHide, song }) => {
+const SongModal: React.FC<SongModalProps> = ({ show, onHide, song, handleRowClick }) => {
   const [relatedSongs, setRelatedSongs] = useState<Song[]>([]);
   const [relationType, setRelationType] = useState<"album" | "artist" | "genre" | "charter">("album");
   const [loading, setLoading] = useState(false);
@@ -65,7 +66,7 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, song }) => {
         <tbody>
           {loading && <tr><td colSpan={columns.length}><LoadingSpinner /></td></tr>}
           {!loading && relatedSongs.map((relatedSong) => (
-            <tr key={relatedSong.id} onClick={() => onHide()}>
+            <tr key={relatedSong.id} onClick={() => handleRowClick(relatedSong)}>
               {relationType === "album" && <td>{relatedSong.track || 'N/A'}</td>}
               <td>{relatedSong.name}</td>
               {relationType === "artist" && <td>{relatedSong.album}</td>}

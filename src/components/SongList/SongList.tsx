@@ -141,6 +141,7 @@ const SongList: React.FC = () => {
         show={!!selectedSong} 
         onHide={() => setSelectedSong(null)} 
         song={selectedSong}
+        handleRowClick={handleRowClick}
       />
     </div>
   );
