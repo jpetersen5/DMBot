@@ -316,13 +316,13 @@ def get_related_songs():
     if relation_type == 'charter':
         charter_names = [name.strip() for name in value.split(',')]
         if len(charter_names) == 1:
-            query = query.contains('charter_refs', charter_names)
+            query = query.contains('charter_refs', [charter_names[0]])
         else:
             charter_conditions = [
-                query.contains('charter_refs', [charter_name])
+                f"charter_refs.cs.{{'{charter_name}'}}"
                 for charter_name in charter_names
             ]
-            query = query.or_(' or '.join(f"charter_refs.cs.{{'{charter_name}'}}" for charter_name in charter_names))
+            query = query.or_(','.join(charter_conditions))
     else:
         query = query.eq(relation_type, value)
 
