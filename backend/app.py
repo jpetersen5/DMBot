@@ -54,12 +54,31 @@ songs = Blueprint('songs', __name__)
 
 ALLOWED_FIELDS = {'name', 'artist', 'album', 'year', 'genre', 'difficulty', 'charter', 'song_length'}
 
+##################################################
+###################### AUTH ######################
+##################################################
 @app.route("/api/auth/login")
 def login():
+    """
+    initiates Discord OAuth2 login process
+    
+    returns:
+        redirect to the Discord authorization page
+    """
     return redirect(f"{DISCORD_API_ENDPOINT}/oauth2/authorize?client_id={DISCORD_CLIENT_ID}&redirect_uri={DISCORD_REDIRECT_URI}&response_type=code&scope=identify email")
 
 @app.route("/api/auth/callback")
 def callback():
+    """
+    handles OAuth2 callback from Discord, creates or updates user data,
+    issues a JWT token for authentication
+    
+    params:
+        code (str): The authorization code returned by Discord
+    
+    returns:
+        redirect to the frontend with the JWT token
+    """
     try:
         code = request.args.get("code")
         data = {
@@ -115,11 +134,29 @@ def callback():
 
 @app.route("/api/auth/logout")
 def logout():
+    """
+    log out the current user by clearing their session
+    
+    returns:
+        JSON: message confirming successful logout
+    """
     session.pop('user', None)
     return jsonify({"message": "Logged out successfully"})
 
+##################################################
+###################### USER ######################
+##################################################
 @app.route("/api/user")
 def get_user():
+    """
+    retrieves current user's information based on their JWT token
+    
+    returns:
+        JSON: User information; id, username, and avatar
+    
+    authentication:
+        requires valid JWT token in the Authorization header
+    """
     auth_header = request.headers.get('Authorization')
     if not auth_header:
         return jsonify({"error": "No token provided"}), 401
@@ -147,6 +184,12 @@ def get_user():
 
 @app.route("/api/users")
 def get_users():
+    """
+    retrieves list of all users in the system
+    
+    returns:
+        JSON: list of user objects; ids, usernames, and avatars
+    """
     try:
         result = supabase.table("users").select("id", "username", "avatar").execute()
         app.logger.info(f"Fetched users from database: {result.data}")
@@ -158,28 +201,29 @@ def get_users():
         app.logger.error(f"Error fetching users: {str(e)}")
         return jsonify({"error": "An error occurred while fetching users"}), 500
 
-@app.route("/api/hello", methods=["GET"])
-def hello():
-    return jsonify({"message": "Functional"})
-
-@app.route("/api/db-status", methods=["GET"])
-def db_status():
-    try:
-        result = supabase.table("users").select("id").limit(1).execute()
-        return jsonify({"status": "Connected", "message": "Functional"})
-    except Exception as e:
-        return jsonify({"status": "Error", "message": str(e)})
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
-
+##################################################
+##################### SONGS ######################
+##################################################
 def sanitize_input(input_string):
     """Remove any potentially dangerous characters"""
     return re.sub(r'[^\w\s-]', '', input_string)
 
 @songs.route('/api/songs', methods=['GET'])
 def get_songs():
+    """
+    retrieves paginated, sorted, and optionally filtered list of songs
+    
+    params:
+        page (int): page number (default: 1)
+        per_page (int): items per page (default: 20, min: 10, max: 100)
+        sort_by (str): field to sort by (default: 'name')
+        sort_order (str): sort order 'asc' or 'desc' (default: 'asc')
+        search (str): search term to filter songs
+        filter (str): field to apply the search filter
+    
+    returns:
+        JSON: Paginated list of songs and metadata.
+    """
     try:
         page = max(1, request.args.get('page', 1, type=int))
         per_page = min(max(request.args.get('per_page', 20, type=int), 10), 100)
@@ -237,6 +281,15 @@ app.register_blueprint(songs)
 
 @app.route('/api/related-songs', methods=['GET'])
 def get_related_songs():
+    """
+    retrieves songs related by album, artist, genre, or charter
+    
+    params:
+        album, artist, genre, or charter (str): relation type and value
+    
+    returns:
+        JSON: list of related songs
+    """
     relation_type = next((param for param in ['album', 'artist', 'genre', 'charter'] if param in request.args), None)
     if not relation_type:
         return jsonify({'error': 'Invalid relation type'}), 400
@@ -257,3 +310,34 @@ def get_related_songs():
     return jsonify({
         'songs': response.data
     })
+
+##################################################
+##################### STATUS #####################
+##################################################
+@app.route("/api/hello", methods=["GET"])
+def hello():
+    """
+    health check endpoint
+    
+    returns:
+        JSON: message indicating the API is functional
+    """
+    return jsonify({"message": "Functional"})
+
+@app.route("/api/db-status", methods=["GET"])
+def db_status():
+    """
+    checks status of the database connection
+    
+    returns:
+        JSON: status of the database connection
+    """
+    try:
+        result = supabase.table("users").select("id").limit(1).execute()
+        return jsonify({"status": "Connected", "message": "Functional"})
+    except Exception as e:
+        return jsonify({"status": "Error", "message": str(e)})
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
