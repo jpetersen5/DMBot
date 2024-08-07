@@ -245,7 +245,9 @@ def get_songs():
         query = supabase.table('songs').select('*', count='exact')
         
         if search:
-            if filter_field:
+            if filter_field == 'charter':
+                query = query.filter('charter_refs', 'cs', '{' + search + '}')
+            elif filter_field:
                 query = query.ilike(filter_field, f'%{search}%')
             else:
                 search_fields = ['name', 'artist', 'album', 'year', 'genre']
