@@ -1,5 +1,6 @@
 import React from "react";
 import { renderSafeHTML } from "../../utils/safeHTML";
+import "./CharterName.scss";
 
 interface CharterNameProps {
   names: string;
