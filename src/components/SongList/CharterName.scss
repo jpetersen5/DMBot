@@ -1,19 +1,21 @@
 .charter-name {
-  button {
-    border: none;
-    background-color: transparent;
-    border-radius: 2px;
-    cursor: pointer;
-    transition: background-color 0.3s;
+  p {
+    button {
+      border: none;
+      background-color: transparent;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: background-color 0.3s;
 
-    &:hover {
-      background-color: #c0c0c0;
-    }
+      &:hover {
+        background-color: #a0a0a0;
+      }
 
-    &:disabled {
-      background-color: #888;
-      color: #404040;
-      cursor: not-allowed;
+      &:disabled {
+        background-color: #888;
+        color: #404040;
+        cursor: not-allowed;
+      }
     }
   }
 }
