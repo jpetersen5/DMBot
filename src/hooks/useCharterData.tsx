@@ -22,6 +22,9 @@ export const useCharterData = () => {
         charterCache[name] = colorizedName as string;
       });
     } catch (err) {
+      Object.entries(uncachedNames).forEach(([name]) => {
+        charterCache[name] = name;
+      }); // fallback to original name
       console.error('Error fetching charter data');
     } finally {
       setIsLoading(false);
