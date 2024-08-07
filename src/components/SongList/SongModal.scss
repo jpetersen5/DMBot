@@ -41,6 +41,11 @@
       .artist-info {
         p {
           display: flex;
+          align-items: center;
+
+          strong {
+            margin-right: 0.25rem;
+          }
         }
       }
 
