@@ -52,7 +52,7 @@ DISCORD_API_ENDPOINT = "https://discord.com/api/v10"
 
 songs = Blueprint('songs', __name__)
 
-ALLOWED_FIELDS = {'name', 'artist', 'album', 'year', 'genre', 'difficulty', 'charter', 'song_length'}
+ALLOWED_FIELDS = {'name', 'artist', 'album', 'year', 'genre', 'difficulty', 'charter_refs', 'song_length'}
 
 ##################################################
 ###################### AUTH ######################
@@ -248,8 +248,9 @@ def get_songs():
             if filter_field:
                 query = query.ilike(filter_field, f'%{search}%')
             else:
-                search_fields = ['name', 'artist', 'album', 'year', 'genre', 'charter']
+                search_fields = ['name', 'artist', 'album', 'year', 'genre']
                 or_conditions = [f"{field}.ilike.%{search}%" for field in search_fields]
+                or_conditions.append(f"charter_refs.cs.{{%{search}%}}")
                 query = query.or_(','.join(or_conditions))
 
         count_response = query.execute()
@@ -258,6 +259,17 @@ def get_songs():
         query = query.order(sort_by, desc=(sort_order == 'desc')).range(start, end)
         response = query.execute()
         songs = response.data
+
+        charter_names = set()
+        for song in songs:
+            charter_names.update(song.get('charter_refs', []))
+
+        charters_query = supabase.table('charters').select('name', 'colorized_name').in_('name', list(charter_names))
+        charters_response = charters_query.execute()
+        charters_data = {charter['name']: charter['colorized_name'] for charter in charters_response.data if charter['colorized_name']}
+
+        for song in songs:
+            song['charters'] = [charters_data.get(charter, charter) for charter in song.get('charter_refs', [])]
 
         logger.info(f"Total songs matching query: {total_songs}")
         logger.info(f"Retrieved {len(songs)} songs")
@@ -290,7 +302,8 @@ def get_related_songs():
     returns:
         JSON: list of related songs
     """
-    relation_type = next((param for param in ['album', 'artist', 'genre', 'charter'] if param in request.args), None)
+    relation_types = ['album', 'artist', 'genre', 'charter']
+    relation_type = next((param for param in relation_types if param in request.args), None)
     if not relation_type:
         return jsonify({'error': 'Invalid relation type'}), 400
 
@@ -298,7 +311,20 @@ def get_related_songs():
     if not value:
         return jsonify({'error': 'Missing relation value'}), 400
 
-    query = supabase.table('songs').select('*').eq(relation_type, value)
+    query = supabase.table('songs').select('*')
+
+    if relation_type == 'charter':
+        charter_names = [name.strip() for name in value.split(',')]
+        if len(charter_names) == 1:
+            query = query.contains('charter_refs', charter_names)
+        else:
+            charter_conditions = [
+                query.contains('charter_refs', [charter_name])
+                for charter_name in charter_names
+            ]
+            query = query.or_(' or '.join(f"charter_refs.cs.{{'{charter_name}'}}" for charter_name in charter_names))
+    else:
+        query = query.eq(relation_type, value)
 
     if relation_type == 'album':
         query = query.order('track', desc=False)

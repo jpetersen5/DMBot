@@ -36,7 +36,16 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
     if (!currentSong) return;
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/related-songs?${relationType}=${currentSong[relationType]}`);
+      let url = `${API_URL}/api/related-songs?${relationType}=`;
+      if (currentSong.charter_refs === null) {
+        currentSong.charter_refs = ["Unknown Author"];
+      }
+      if (relationType === "charter") {
+        url += encodeURIComponent(currentSong.charter_refs.join(','));
+      } else {
+        url += encodeURIComponent(currentSong[relationType] || `Unknown ${relationType}`);
+      }
+      const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch related songs");
       const data = await response.json();
       setRelatedSongs(data.songs);
@@ -120,7 +129,7 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
             <SongInfoLine label="Genre" value={currentSong.genre} />
             <SongInfoLine label="Difficulty" value={currentSong.difficulty} />
             <SongInfoLine label="Length" value={msToTime(currentSong.song_length || 0)} />
-            <SongInfoLine label="Charter" value={currentSong.charter} />
+            <SongInfoLine label="Charter" value={currentSong.charter_refs ? currentSong.charter_refs.join(", ") : "Unknown Author"} />
             <SongInfoLine label="MD5" value={currentSong.md5} />
           </div>
           <div className="related-songs">

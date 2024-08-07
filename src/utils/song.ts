@@ -9,7 +9,7 @@ export interface Song {
   genre: string | null;
   difficulty: string | null;
   song_length: number | null;
-  charter: string | null;
+  charter_refs: string[] | null;
 }
 
 export const SONG_TABLE_HEADERS = {
