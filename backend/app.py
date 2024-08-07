@@ -52,7 +52,7 @@ DISCORD_API_ENDPOINT = "https://discord.com/api/v10"
 
 songs = Blueprint('songs', __name__)
 
-ALLOWED_FIELDS = {'name', 'artist', 'album', 'year', 'genre', 'difficulty', 'charter_refs', 'song_length'}
+ALLOWED_FIELDS = {'name', 'artist', 'album', 'year', 'genre', 'difficulty', 'charter', 'song_length'}
 
 ##################################################
 ###################### AUTH ######################
