@@ -246,13 +246,13 @@ def get_songs():
         
         if search:
             if filter_field == 'charter':
-                query = query.filter('charter_refs', 'cs', '{' + search + '}')
+                query = query.filter('array_to_string(charter_refs, \',\')', 'ilike', f'%{search}%')
             elif filter_field:
                 query = query.ilike(filter_field, f'%{search}%')
             else:
                 search_fields = ['name', 'artist', 'album', 'year', 'genre']
                 or_conditions = [f"{field}.ilike.%{search}%" for field in search_fields]
-                or_conditions.append(f"charter_refs.cs.{{%{search}%}}")
+                or_conditions.append(f"array_to_string(charter_refs, ',').ilike.%{search}%")
                 query = query.or_(','.join(or_conditions))
 
         count_response = query.execute()
