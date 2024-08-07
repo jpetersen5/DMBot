@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Modal, Button, Nav } from "react-bootstrap";
 import { API_URL } from "../../App";
 import LoadingSpinner from "../Loading/LoadingSpinner";
+import CharterName from "./CharterName";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import { Song, msToTime } from "../../utils/song";
 import "./SongModal.scss";
@@ -171,6 +172,12 @@ interface SongInfoLineProps {
 const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
   if (value == null) {
     return <p><strong>{label}:</strong>  N/A</p>
+  }
+  else if (label === "MD5") {
+    return <p><strong>{label}:</strong> <code>{value}</code></p>
+  }
+  else if (label === "Charter") {
+    return <p><strong>{label}:</strong> <CharterName name={value as string} /></p>
   }
   const processedValue = typeof value === "string" 
     ? processColorTags(value)

@@ -3,6 +3,7 @@ import { API_URL } from "../../App";
 import { TableControls, Pagination, Search } from "./TableControls";
 import SongModal from "./SongModal";
 import LoadingSpinner from "../Loading/LoadingSpinner";
+import CharterName from "./CharterName";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import { Song, SONG_TABLE_HEADERS, msToTime } from "../../utils/song";
 import "./SongList.scss";
@@ -164,11 +165,15 @@ const SongTableHeader: React.FC<SongTableHeaderProps> = ({ onClick, content, sor
 
 interface SongTableCellProps {
   content: string | null | undefined;
+  charter?: boolean;
 }
 
-const SongTableCell: React.FC<SongTableCellProps> = ({ content }) => {
+const SongTableCell: React.FC<SongTableCellProps> = ({ content, charter }) => {
   if (content == null) {
     return <td></td>;
+  }
+  if (charter) {
+    return <td><CharterName name={content} /></td>;
   }
 
   const processedContent = typeof content === "string" 
@@ -191,19 +196,9 @@ const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick }) => (
     <SongTableCell content={song.year} />
     <SongTableCell content={song.genre} />
     <SongTableCell content={song.difficulty || "?"} />
-    <SongTableCell content={song.song_length != null ? msToTime(song.song_length) : "Unknown"} />
-    <SongTableCell content={processCharters(song.charter)} />
+    <SongTableCell content={song.song_length != null ? msToTime(song.song_length) : "??:??:??"} />
+    <SongTableCell content={song.charter_refs ? song.charter_refs.join(", ") : "Unknown Author"} charter />
   </tr>
 );
-
-const processCharters = (charters: string | null) => {
-  if (charters == null) {
-    return "Unknown Charter";
-  }
-  // will be used to handle charter links in the future
-  const charterList = charters.split(/(?![^<]*>|[^>]*<)\s*[,/]\s*/).map(charter => charter.trim());
-  const charterDisplay = charterList.join(", ");
-  return charterDisplay;
-}
 
 export default SongList;
