@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { API_URL } from "../../App";
+import React, { useEffect, memo } from "react";
+import { charterCache, useCharterData } from "../../hooks/useCharterData";
 import { renderSafeHTML } from "../../utils/safeHTML";
 import "./CharterName.scss";
 
@@ -7,36 +7,17 @@ interface CharterNameProps {
   names: string;
 }
 
-interface CharterData {
-  [key: string]: string;
-}
-
 // TODO: redirect to charter page on click
-const CharterName: React.FC<CharterNameProps> = ({ names }) => {
-  const [charterData, setCharterData] = useState<CharterData>({});
-  const [isLoading, setIsLoading] = useState(true);
+const CharterName: React.FC<CharterNameProps> = memo(({ names }) => {
+  const charters = names.split(',').map(name => name.trim());
+  const { fetchCharterData, isLoading } = useCharterData();
 
   useEffect(() => {
-    const fetchCharterData = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch(`${API_URL}/api/charter-colors?names=${encodeURIComponent(names)}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch charter data');
-        }
-        const data = await response.json();
-        setCharterData(data);
-      } catch (err) {
-        console.error('Error fetching charter data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchCharterData();
-  }, [names]);
-
-  const charters = names.split(',');
+    const uncachedCharters = charters.filter(name => !charterCache[name]);
+    if (uncachedCharters.length > 0) {
+      fetchCharterData(uncachedCharters);
+    }
+  }, [charters, fetchCharterData]);
 
   const onClick = (name: string) => {
     console.log("Charter name clicked:", name);
@@ -52,13 +33,13 @@ const CharterName: React.FC<CharterNameProps> = ({ names }) => {
               e.stopPropagation();
               onClick(name);
             }}
-            dangerouslySetInnerHTML={renderSafeHTML(isLoading ? name : (charterData[name.trim()] || name))}
+            dangerouslySetInnerHTML={renderSafeHTML(isLoading ? name : (charterCache[name] || name))}
           />
           {i < charters.length - 1 && ", "}
         </p>
       ))}
     </div>
   );
-};
+});
 
 export default CharterName;
