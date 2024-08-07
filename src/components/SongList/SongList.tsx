@@ -173,7 +173,7 @@ const SongTableCell: React.FC<SongTableCellProps> = ({ content, charter }) => {
     return <td></td>;
   }
   if (charter) {
-    return <td><CharterName name={content} /></td>;
+    return <td><CharterName names={content} /></td>;
   }
 
   const processedContent = typeof content === "string" 
