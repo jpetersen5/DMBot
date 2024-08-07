@@ -108,6 +108,9 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
               <td>{msToTime(relatedSong.song_length || 0)}</td>
             </tr>
           ))}
+          {!loading && relatedSongs.length === 0 && (
+            <tr><td colSpan={columns.length}>{`No related songs from ${relationType}`}</td></tr>
+          )}
         </tbody>
       </table>
     );
