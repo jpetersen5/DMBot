@@ -180,7 +180,7 @@ const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
     return <p><strong>{label}:</strong> <code>{value}</code></p>
   }
   else if (label === "Charter") {
-    return <p><strong>{label}: </strong> <CharterName names={value as string} /></p>
+    return <p><strong>{label}{": "}</strong> <CharterName names={value as string} /></p>
   }
   const processedValue = typeof value === "string" 
     ? processColorTags(value)
