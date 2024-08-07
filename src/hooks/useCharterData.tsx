@@ -13,7 +13,7 @@ export const useCharterData = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/charters?names=${encodeURIComponent(uncachedNames.join(','))}`);
+      const response = await fetch(`${API_URL}/api/charter-colors?names=${encodeURIComponent(uncachedNames.join(','))}`);
       if (!response.ok) {
         throw new Error('Failed to fetch charter data');
       }
