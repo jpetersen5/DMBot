@@ -247,13 +247,32 @@ def get_songs():
         if search:
             search_lower = search.lower()
             if filter_field == 'charter':
-                query = query.filter('charter_refs', 'cs', f'%{search_lower}%')
+                charters_query = supabase.table('charters').select('name').ilike('name', f'%{search_lower}%')
+                charters_response = charters_query.execute()
+                matching_charters = [charter['name'] for charter in charters_response.data]
+                
+                if matching_charters:
+                    query = query.filter('charter_refs', 'cs', '{' + ','.join(matching_charters) + '}')
+                else:
+                    return jsonify({
+                        'songs': [],
+                        'total': 0,
+                        'page': page,
+                        'per_page': per_page,
+                        'sort_by': sort_by,
+                        'sort_order': sort_order
+                    }), 200
             elif filter_field:
                 query = query.ilike(filter_field, f'%{search}%')
             else:
                 search_fields = ['name', 'artist', 'album', 'year', 'genre']
                 or_conditions = [f"{field}.ilike.%{search}%" for field in search_fields]
-                or_conditions.append(f"charter_refs.cs.%{search_lower}%")
+                charters_query = supabase.table('charters').select('name').ilike('name', f'%{search_lower}%')
+                charters_response = charters_query.execute()
+                matching_charters = [charter['name'] for charter in charters_response.data]
+                if matching_charters:
+                    or_conditions.append(f"charter_refs.cs.{{{','.join(matching_charters)}}}")
+                
                 query = query.or_(','.join(or_conditions))
 
         count_response = query.execute()
