@@ -262,14 +262,21 @@ def get_songs():
 
         charter_names = set()
         for song in songs:
-            charter_names.update(song.get('charter_refs', []))
+            if song.get('charter_refs'):
+                charter_names.update(song.get('charter_refs', []))
+            else:
+                logger.warning(f"Song {song.get('id', 'unknown')} has no charter_refs")
 
         charters_query = supabase.table('charters').select('name', 'colorized_name').in_('name', list(charter_names))
         charters_response = charters_query.execute()
         charters_data = {charter['name']: charter['colorized_name'] for charter in charters_response.data if charter['colorized_name']}
 
         for song in songs:
-            song['charters'] = [charters_data.get(charter, charter) for charter in song.get('charter_refs', [])]
+            if song.get('charter_refs'):
+                song['charters'] = [charters_data.get(charter, charter) for charter in song.get('charter_refs', [])]
+            else:
+                song['charters'] = []
+                logger.warning(f"Song {song.get('id', 'unknown')} has no charters")
 
         logger.info(f"Total songs matching query: {total_songs}")
         logger.info(f"Retrieved {len(songs)} songs")
