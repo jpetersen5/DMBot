@@ -6,10 +6,10 @@ from dotenv import load_dotenv
 from supabase import create_client, Client
 from postgrest.exceptions import APIError
 from werkzeug.utils import secure_filename
-from scripts.process_songs import parse_score_data
 import requests
 import jwt
 import datetime
+import base64
 import secrets
 import warnings
 import logging
@@ -422,6 +422,14 @@ def get_charters():
 ALLOWED_EXTENSIONS = {'bin'}
 MAX_FILE_SIZE = 1024 * 1024 * 1  # 1 MB
 
+def get_process_songs_script():
+    encoded_script = os.getenv("PROCESS_SONGS_SCRIPT")
+    if not encoded_script:
+        raise ValueError("PROCESS_SONGS_SCRIPT environment variable is not set")
+    return base64.b64decode(encoded_script).decode('utf-8')
+
+exec(get_process_songs_script())
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -518,7 +526,8 @@ def upload_scoredata():
         
         try:
             with open(filepath, 'rb') as f:
-                result = parse_score_data(f)
+                # from process_songs.py, encoded and saved in env
+                result = parse_score_data(f) # type: ignore
             
             if result['version'] != 20211009:
                 return jsonify({"error": "Score data is outdated"}), 400
