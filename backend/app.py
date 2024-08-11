@@ -189,7 +189,7 @@ def get_user_by_id(user_id):
         if response.data:
             user = response.data[0]
             return jsonify({
-                "id": user["id"],
+                "id": str(user["id"]),
                 "username": user["username"],
                 "avatar": user["avatar"]
             })
