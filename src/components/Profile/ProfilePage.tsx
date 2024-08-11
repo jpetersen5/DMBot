@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import LoadingSpinner from "../Loading/LoadingSpinner";
+import ScoreUpload from "./ScoreUpload";
 import { getUserImage } from "../../utils/user";
 import { useAuth } from "../../hooks/useAuth";
 import { User } from "../../utils/user";
@@ -58,19 +59,17 @@ const ProfilePage: React.FC = () => {
               <p><strong>Discord ID:</strong> {profileUser.id}</p>
             </div>
           </div>
+          <div className="profile-scores">
+            <h2>Recent Scores</h2>
+            <p>Score data will be displayed here in the future.</p>
+          </div>
           {isOwnProfile ? (
-            <div className="profile-actions">
-              <button disabled>Edit Profile</button>
-            </div>
+            <ScoreUpload />
           ) : (
             <div className="profile-actions">
               <button disabled>Add Friend</button>
             </div>
           )}
-          <div className="profile-scores">
-            <h2>Recent Scores</h2>
-            <p>Score data will be displayed here in the future.</p>
-          </div>
         </>
       }
     </div>
