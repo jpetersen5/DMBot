@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import "./Sidebar.scss";
@@ -16,14 +16,19 @@ interface NavItem {
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
+  const [userPagePath, setUserPagePath] = useState<string>(user ? `/user/${user.id}` : "/login");
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
 
+  useEffect(() => {
+    setUserPagePath(user ? `/user/${user.id}` : "/login");
+  }, [user]);
+
   const navItems: NavItem[] = [
     { path: "/", name: "Home", icon: HomeIcon },
-    { path: user ? `/user/${user.id}` : "/login", name: "Profile", icon: ProfileIcon },
+    { path: userPagePath, name: "Profile", icon: ProfileIcon },
     { path: "/songs", name: "Songs", icon: SongsIcon },
   ];
 
