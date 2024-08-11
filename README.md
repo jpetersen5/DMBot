@@ -8,32 +8,25 @@ I probably won't be giving out `data/env.json` since it contains the sensitive t
 Frontend is running on GitHub Pages
 Backend is running on Render's free tier Webservices tool
 
-Running the webapp (locally, you can otherwise deploy and view on GH pages at https://jpetersen5.github.io/DMBot/): 
-- `npm install`
-- `npm install -D tailwindcss postcss autoprefixer`
-- `pip install -r backend/requirements.txt`
-
-If Tailwind is showing errors in VSCode install Tailwind CSS IntelliSense extension and add this to your `settings.json`:
-```json
-{
-  "css.validate": false,
-  "editor.quickSuggestions": {
-    "strings": true
-  },
-  "tailwindCSS.includeLanguages": {
-    "plaintext": "html"
-  },
-  "tailwindCSS.emmetCompletions": true,
-  "editor.inlineSuggest.enabled": true
-}
-```
-
 `backend/.env`:
 ```
 FLASK_APP=app.py
 FLASK_ENV=production
+
 ALLOWED_ORIGINS=https://jpetersen5.github.io,http://localhost:3000
+
+SECRET_KEY=
+JWT_SECRET=
+
 SUPABASE_URL=https://tczhxtrzfaqgsjoudhoi.supabase.co
-SUPABASE_KEY=[dm me]
-SUPABASE_SERVICE_ROLE_KEY=[dm me]
+SUPABASE_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+
+DISCORD_CLIENT_ID=1230729896393703425
+DISCORD_CLIENT_SECRET=
+DISCORD_REDIRECT_URI=https://dmbot-kb5j.onrender.com/api/auth/callback
+
+UPLOAD_FOLDER=uploads
+
+PROCESS_SONGS_SCRIPT=[base64 encoded script, dm me]
 ```
