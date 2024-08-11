@@ -11,15 +11,19 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-  }
 
-  .user-grid-avatar {
-    img {
-      border-radius: 50%;
-      transition: transform 0.2s;
-      
+    .user-grid-avatar {
+      display: inline-block;
+      margin: 5px;
+      transition: transform 0.2s ease-in-out;
+
       &:hover {
         transform: scale(1.1);
+      }
+
+      img {
+        border-radius: 50%;
+        object-fit: cover;
       }
     }
   }

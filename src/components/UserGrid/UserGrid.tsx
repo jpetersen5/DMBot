@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Tooltip, OverlayTrigger } from "react-bootstrap";
 import { API_URL } from "../../App";
 import "./UserGrid.scss";
@@ -26,17 +27,18 @@ const UserGrid: React.FC = () => {
       <div className="user-list">
         {users.map(user => (
           <OverlayTrigger
+            key={user.id}
             placement="top"
             overlay={<Tooltip id={`tooltip-${user.id}`}>{user.username}</Tooltip>}
           >
-            <div key={user.id} className="user-grid-avatar">
+            <Link to={`/profile/${user.id}`} className="user-grid-avatar">
               <img 
                 src={getUserImage(user)} 
                 alt={user.username}
                 width="32"
                 height="32"
               />
-            </div>
+            </Link>
           </OverlayTrigger>
         ))}
       </div>
