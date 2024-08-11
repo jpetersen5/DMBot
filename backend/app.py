@@ -4,12 +4,14 @@ from flask_cors import CORS
 from flask_session import Session
 from dotenv import load_dotenv
 from supabase import create_client, Client
+from postgrest.exceptions import APIError
+from werkzeug.utils import secure_filename
+from scripts.process_songs import parse_score_data
 import requests
 import jwt
 import datetime
 import secrets
 import warnings
-from postgrest.exceptions import APIError
 import logging
 import re
 
@@ -51,6 +53,8 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "https://jpetersen5.github.io/DMBot")
 DISCORD_API_ENDPOINT = "https://discord.com/api/v10"
 
 songs = Blueprint('songs', __name__)
+UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "uploads")
+app.config['UPLOAD_FOLDER'] = 'uploads'
 
 ALLOWED_FIELDS = {'name', 'artist', 'album', 'year', 'genre', 'difficulty', 'charter', 'song_length'}
 
@@ -411,6 +415,108 @@ def get_charters():
     except Exception as e:
         app.logger.error(f"Error fetching charter data: {str(e)}")
         return jsonify({"error": "An error occurred while fetching charter data"}), 500
+
+##################################################
+##################### SCORES #####################
+##################################################
+ALLOWED_EXTENSIONS = {'bin'}
+MAX_FILE_SIZE = 1024 * 1024 * 1  # 1 MB
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def process_and_save_scores(result, user_id):
+    user_scores = []
+    
+    for song in result['songs']:
+        song_info = supabase.table('songs').select('*').eq('md5', song['identifier']).execute().data
+        song_info = song_info[0] if song_info else None
+        
+        for score in song['scores']:
+            if score['instrument'] == 9:  # drums
+                score_data = {
+                    'identifier': song['identifier'],
+                    'song_name': song_info.name if song_info else f"Unknown Song: {song['identifier']}",
+                    'artist': song_info.artist if song_info else "Unknown Artist",
+                    'percent': score['percent'],
+                    'is_fc': score['is_fc'],
+                    'speed': score['speed'],
+                    'score': score['score']
+                }
+                user_scores.append(score_data)
+                
+                if song_info:
+                    leaderboard = song_info.get('leaderboard', [])
+                    user_data = supabase.table('users').select('username').eq('id', user_id).execute().data
+                    username = user_data[0]['username'] if user_data else "Unknown User"
+
+                    leaderboard_entry = {
+                        'user_id': user_id,
+                        'username': username,
+                        'score': score['score'],
+                        'percent': score['percent'],
+                        'is_fc': score['is_fc'],
+                        'speed': score['speed']
+                    }
+                    
+                    user_entry = next((entry for entry in leaderboard if entry['user_id'] == user_id), None)
+                    if user_entry:
+                        if score['score'] > user_entry['score']:
+                            leaderboard.remove(user_entry)
+                            leaderboard.append(leaderboard_entry)
+                    else:
+                        leaderboard.append(leaderboard_entry)
+                    
+                    leaderboard.sort(key=lambda x: x['score'], reverse=True)
+                    
+                    supabase.table('songs').update({'leaderboard': leaderboard}).eq('md5', song['identifier']).execute()
+    
+    supabase.table('users').update({'scores': user_scores}).eq('id', user_id).execute()
+
+@app.route('/api/upload_scoredata', methods=['POST'])
+def upload_scoredata():
+    auth_header = request.headers.get('Authorization')
+    if not auth_header:
+        return jsonify({"error": "No token provided"}), 401
+    try:
+        token = auth_header.split(' ')[1]
+        payload = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
+        user_id = payload['user_id']
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token has expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
+    
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    if file and allowed_file(file.filename):
+        if file.filename != 'scoredata.bin':
+            return jsonify({"error": "File must be named scoredata.bin"}), 400
+        if file.content_length > MAX_FILE_SIZE:
+            return jsonify({"error": "File size exceeds 1 MB limit"}), 400
+        
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        
+        try:
+            with open(filepath, 'rb') as f:
+                result = parse_score_data(f)
+            
+            if result['version'] != 20211009:
+                return jsonify({"error": "Score data is outdated"}), 400
+            
+            process_and_save_scores(result, user_id)
+            
+            return jsonify({"message": "Score data processed successfully"}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+        finally:
+            os.remove(filepath)
+    return jsonify({"error": "Invalid file"}), 400
 
 ##################################################
 ##################### STATUS #####################
