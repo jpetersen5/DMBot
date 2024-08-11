@@ -65,7 +65,7 @@ def login():
     returns:
         redirect to the Discord authorization page
     """
-    return redirect(f"{DISCORD_API_ENDPOINT}/oauth2/authorize?client_id={DISCORD_CLIENT_ID}&redirect_uri={DISCORD_REDIRECT_URI}&response_type=code&scope=identify email")
+    return redirect(f"{DISCORD_API_ENDPOINT}/oauth2/authorize?client_id={DISCORD_CLIENT_ID}&redirect_uri={DISCORD_REDIRECT_URI}&response_type=code&scope=identify")
 
 @app.route("/api/auth/callback")
 def callback():
@@ -105,7 +105,6 @@ def callback():
         user_data = {
             "id": user_data["id"],
             "username": user_data["username"],
-            "email": user_data.get("email", ""),
             "avatar": user_data.get("avatar", ""),
             "last_login": datetime.datetime.utcnow().isoformat()
         }
