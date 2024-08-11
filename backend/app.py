@@ -436,8 +436,8 @@ def allowed_file(filename):
 def process_and_save_scores(result, user_id):
     user_scores = []
 
-    logging.info(f"Fetching information for {len(song_identifiers)} songs")
     song_identifiers = [song['identifier'] for song in result['songs']]
+    logging.info(f"Fetching information for {len(song_identifiers)} songs")
     songs_info = supabase.table('songs').select('*').in_('md5', song_identifiers).execute().data
     songs_dict = {song['md5']: song for song in songs_info}
 
