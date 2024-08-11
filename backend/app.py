@@ -536,7 +536,7 @@ def upload_scoredata():
             
             process_and_save_scores(result, user_id)
             
-            return jsonify({"message": "Score data processed successfully"}), 200
+            return jsonify({"message": "Score data processed successfully", "songs_processed": result['song_count']}), 200
         except ValueError as e:
             logging.error(f"Error parsing score data: {str(e)}")
             return jsonify({"error": str(e)}), 400
