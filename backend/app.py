@@ -54,7 +54,7 @@ DISCORD_API_ENDPOINT = "https://discord.com/api/v10"
 
 songs = Blueprint('songs', __name__)
 UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "uploads")
-app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 ALLOWED_FIELDS = {'name', 'artist', 'album', 'year', 'genre', 'difficulty', 'charter', 'song_length'}
 
@@ -517,10 +517,12 @@ def upload_scoredata():
     if file and allowed_file(file.filename):
         if file.filename != 'scoredata.bin':
             return jsonify({"error": "File must be named scoredata.bin"}), 400
-        if file.content_length > MAX_FILE_SIZE:
+        if int(request.headers.get('Content-Length', 0)) > MAX_FILE_SIZE:
             return jsonify({"error": "File size exceeds 1 MB limit"}), 400
         
         filename = secure_filename(file.filename)
+        if not os.path.exists(app.config['UPLOAD_FOLDER']):
+            os.makedirs(app.config['UPLOAD_FOLDER'])
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
         
@@ -538,7 +540,8 @@ def upload_scoredata():
         except Exception as e:
             return jsonify({"error": str(e)}), 500
         finally:
-            os.remove(filepath)
+            if os.path.exists(filepath):
+                os.remove(filepath)
     return jsonify({"error": "Invalid file"}), 400
 
 ##################################################

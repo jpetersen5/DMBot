@@ -5,7 +5,7 @@ import "./ScoreUpload.scss";
 
 const ScoreUpload: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
-  const [message, setMessage] = useState<string>("");
+  const [message, setMessage] = useState<string>("scoredata.bin can be found at %APPDATA%\\..\\LocalLow\\srylain Inc_\\Clone Hero");
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,7 +56,7 @@ const ScoreUpload: React.FC = () => {
         <input type="file" onChange={handleFileChange} accept=".bin" />
       </div>
       <button onClick={handleUpload} disabled={!file || isUploading}>
-        {isUploading && <LoadingSpinner message="Uploading..." timeout={5000} />}
+        {isUploading ? <LoadingSpinner message="" timeout={5000} /> : "Upload"}
       </button>
       {message && <p>{message}</p>}
     </div>
