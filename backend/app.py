@@ -435,10 +435,19 @@ def allowed_file(filename):
 
 def process_and_save_scores(result, user_id):
     user_scores = []
+
+    logging.info(f"Fetching information for {len(song_identifiers)} songs")
+    song_identifiers = [song['identifier'] for song in result['songs']]
+    songs_info = supabase.table('songs').select('*').in_('md5', song_identifiers).execute().data
+    songs_dict = {song['md5']: song for song in songs_info}
+
+    logging.info(f"Fetching user data for user {user_id}")
+    user_data = supabase.table('users').select('username').eq('id', user_id).execute().data
+    username = user_data[0]['username'] if user_data else "Unknown User"
     
-    for song in result['songs']:
-        song_info = supabase.table('songs').select('*').eq('md5', song['identifier']).execute().data
-        song_info = song_info[0] if song_info else None
+    for i, song in enumerate(result['songs'], 1):
+        logging.info(f"Processing song {i} of {len(result['songs'])}")
+        song_info = songs_dict.get(song['identifier'])
         
         for score in song['scores']:
             if score['instrument'] == 9:  # drums
@@ -455,9 +464,6 @@ def process_and_save_scores(result, user_id):
                 
                 if song_info:
                     leaderboard = song_info.get('leaderboard', [])
-                    user_data = supabase.table('users').select('username').eq('id', user_id).execute().data
-                    username = user_data[0]['username'] if user_data else "Unknown User"
-
                     leaderboard_entry = {
                         'user_id': user_id,
                         'username': username,
@@ -493,6 +499,7 @@ def process_and_save_scores(result, user_id):
     
     existing_scores.sort(key=lambda x: x['score'], reverse=True)
     
+    logging.info(f"Updating scores for user {user_id}")
     supabase.table('users').update({'scores': existing_scores}).eq('id', user_id).execute()
 
 @app.route('/api/upload_scoredata', methods=['POST'])
