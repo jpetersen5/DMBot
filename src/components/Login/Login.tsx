@@ -7,7 +7,7 @@ const Login: React.FC = () => {
   const { user, login } = useAuth();
 
   if (user) {
-    return <Navigate to={`/profile/${user.id}`} replace />;
+    return <Navigate to={`/user/${user.id}`} replace />;
   }
 
   return (

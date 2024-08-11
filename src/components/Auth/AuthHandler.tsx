@@ -13,7 +13,7 @@ const AuthHandler: React.FC = () => {
     if (token) {
       localStorage.setItem("auth_token", token);
       if (user) {
-        navigate(`/profile/${user.id}`);
+        navigate(`/user/${user.id}`);
       } else {
         navigate("/");
       }

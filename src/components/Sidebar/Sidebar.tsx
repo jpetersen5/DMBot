@@ -23,7 +23,7 @@ const Sidebar: React.FC = () => {
 
   const navItems: NavItem[] = [
     { path: "/", name: "Home", icon: HomeIcon },
-    { path: user ? `/profile/${user.id}` : "/login", name: "Profile", icon: ProfileIcon },
+    { path: user ? `/user/${user.id}` : "/login", name: "Profile", icon: ProfileIcon },
     { path: "/songs", name: "Songs", icon: SongsIcon },
   ];
 

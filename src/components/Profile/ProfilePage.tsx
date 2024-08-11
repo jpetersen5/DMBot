@@ -17,7 +17,7 @@ const ProfilePage: React.FC = () => {
   useEffect(() => {
     const fetchUser = async () => {
       if (!userId && currentUser) {
-        navigate(`/profile/${currentUser.id}`);
+        navigate(`/user/${currentUser.id}`);
         return;
       }
 
