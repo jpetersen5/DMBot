@@ -471,7 +471,21 @@ def process_and_save_scores(result, user_id):
                     
                     supabase.table('songs').update({'leaderboard': leaderboard}).eq('md5', song['identifier']).execute()
     
-    supabase.table('users').update({'scores': user_scores}).eq('id', user_id).execute()
+    existing_scores = supabase.table('users').select('scores').eq('id', user_id).execute().data
+    existing_scores = existing_scores[0]['scores'] if existing_scores and existing_scores[0]['scores'] else []
+    
+    for new_score in user_scores:
+        existing_score = next((score for score in existing_scores if score['identifier'] == new_score['identifier']), None)
+        if existing_score:
+            if new_score['score'] > existing_score['score']:
+                existing_scores.remove(existing_score)
+                existing_scores.append(new_score)
+        else:
+            existing_scores.append(new_score)
+    
+    existing_scores.sort(key=lambda x: x['score'], reverse=True)
+    
+    supabase.table('users').update({'scores': existing_scores}).eq('id', user_id).execute()
 
 @app.route('/api/upload_scoredata', methods=['POST'])
 def upload_scoredata():
