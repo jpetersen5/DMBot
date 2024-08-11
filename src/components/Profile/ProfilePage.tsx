@@ -1,40 +1,78 @@
-import React from "react";
-import Auth from "../Auth/Auth";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import { getUserImage } from "../../utils/user";
 import { useAuth } from "../../hooks/useAuth";
+import { User } from "../../utils/user";
+import { API_URL } from "../../App";
 import "./ProfilePage.scss";
 
 const ProfilePage: React.FC = () => {
-  const { user, loading } = useAuth();
+  const { userId } = useParams<{ userId: string }>();
+  const { user: currentUser, loading: authLoading } = useAuth();
+  const [profileUser, setProfileUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const navigate = useNavigate();
 
-  if (!user) {
-    return (
-      <div className="profile-page">
-        <h1>User Profile</h1>
-        <p>Please log in to view your profile.</p>
-        <Auth onlyButtons />
-      </div>
-    );
-  }
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!userId && currentUser) {
+        navigate(`/profile/${currentUser.id}`);
+        return;
+      }
+
+      if (userId) {
+        try {
+          const response = await fetch(`${API_URL}/api/user/${userId}`);
+          if (response.ok) {
+            const userData: User = await response.json();
+            setProfileUser(userData);
+          } else {
+            console.error("Error fetching user:", response.statusText);
+          }
+        } catch (error) {
+          console.error("Error fetching user:", error);
+        }
+      }
+      setLoading(false);
+    };
+
+    if (!authLoading) {
+      fetchUser();
+    }
+  }, [userId, currentUser, authLoading, navigate]);
+
+  const isOwnProfile = currentUser && currentUser.id === profileUser?.id;
 
   return (
     <div className="profile-page">
-      {loading && <LoadingSpinner message="Loading user profile..." />}
-      {!loading && (<>
-        <h1>User Profile</h1>
-        <div className="profile-info">
-          <img src={getUserImage(user)} alt={user.username} className="profile-avatar" />
-          <div className="profile-details">
-            <p><strong>Username:</strong> {user.username}</p>
-            <p><strong>Discord ID:</strong> {user.id}</p>
+      <h1>User Profile</h1>
+      {loading && <LoadingSpinner />}
+      {!profileUser && !loading && <p>User not found.</p>}
+      {profileUser && !loading &&
+        <>
+          <div className="profile-info">
+            <img src={getUserImage(profileUser)} alt={profileUser.username} className="profile-avatar" />
+            <div className="profile-details">
+              <p><strong>Username:</strong> {profileUser.username}</p>
+              <p><strong>Discord ID:</strong> {profileUser.id}</p>
+            </div>
           </div>
-        </div>
-        <div className="profile-scores">
-          <h2>Recent Scores</h2>
-          <p>Score data will be displayed here in the future.</p>
-        </div>
-      </>)}
+          {isOwnProfile ? (
+            <div className="profile-actions">
+              <button disabled>Edit Profile</button>
+            </div>
+          ) : (
+            <div className="profile-actions">
+              <button disabled>Add Friend</button>
+            </div>
+          )}
+          <div className="profile-scores">
+            <h2>Recent Scores</h2>
+            <p>Score data will be displayed here in the future.</p>
+          </div>
+        </>
+      }
     </div>
   );
 };

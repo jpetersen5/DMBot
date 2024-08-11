@@ -164,6 +164,26 @@ def get_user():
         token = auth_header.split(' ')[1]
         payload = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
         user_id = payload['user_id']
+        return get_user_by_id(user_id)
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token has expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/user/<string:user_id>")
+def get_user_by_id(user_id):
+    """
+    Retrieves user information based on the provided user ID
+    
+    Args:
+        user_id (str): The Discord ID of the user
+    
+    Returns:
+        JSON: User information; id, username, and avatar
+    """
+    try:
         response = supabase.table("users").select("*").eq("id", user_id).execute()
         
         if response.data:
@@ -175,10 +195,6 @@ def get_user():
             })
         else:
             return jsonify({"error": "User not found"}), 404
-    except jwt.ExpiredSignatureError:
-        return jsonify({"error": "Token has expired"}), 401
-    except jwt.InvalidTokenError:
-        return jsonify({"error": "Invalid token"}), 401
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

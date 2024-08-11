@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Homepage from "./components/Homepage";
 import ProfilePage from "./components/Profile/ProfilePage";
 import AuthHandler from "./components/Auth/AuthHandler";
+import Login from "./components/Login/Login";
 import Sidebar from "./components/Sidebar/Sidebar";
 import SongList from "./components/SongList/SongList";
 import "./styles.scss";
@@ -19,6 +20,7 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Homepage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/auth" element={<AuthHandler />} />
             <Route path="/songs" element={<SongList />} />
           </Routes>
