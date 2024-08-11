@@ -537,11 +537,16 @@ def upload_scoredata():
             process_and_save_scores(result, user_id)
             
             return jsonify({"message": "Score data processed successfully"}), 200
+        except ValueError as e:
+            logging.error(f"Error parsing score data: {str(e)}")
+            return jsonify({"error": str(e)}), 400
         except Exception as e:
+            logging.error(f"Unexpected error processing score data: {str(e)}", exc_info=True)
             return jsonify({"error": str(e)}), 500
         finally:
             if os.path.exists(filepath):
                 os.remove(filepath)
+    logging.warning("Invalid file in upload request")
     return jsonify({"error": "Invalid file"}), 400
 
 ##################################################
