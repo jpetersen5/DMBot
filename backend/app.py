@@ -464,57 +464,67 @@ def process_and_save_scores(result, user_id):
                 logger.info(f"Processing song {processed_songs} of {total_songs}")
                 song_info = songs_dict.get(song['identifier'])
             
-                for score in song['scores']:
-                    if score['instrument'] == 9:  # drums
-                        score_data = {
-                            'identifier': song['identifier'],
-                            'song_name': song_info['name'] if song_info else f"Unknown Song: {song['identifier']}",
-                            'artist': song_info['artist'] if song_info else "Unknown Artist",
-                            'percent': score['percent'],
-                            'is_fc': score['is_fc'],
-                            'speed': score['speed'],
-                            'score': score['score']
-                        }
-                        user_scores.append(score_data)
-                        
-                        if song_info:
-                            leaderboard = song_info.get('leaderboard', [])
-                            if leaderboard is None:
-                                leaderboard = []
-
-                            leaderboard_entry = {
-                                'user_id': user_id,
-                                'username': username,
-                                'score': score['score'],
+                if song_info:
+                    for score in song['scores']:
+                        if score['instrument'] == 9:  # drums
+                            score_data = {
+                                'identifier': song['identifier'],
+                                'song_name': song_info['name'] if song_info else f"Unknown Song: {song['identifier']}",
+                                'artist': song_info['artist'] if song_info else "Unknown Artist",
                                 'percent': score['percent'],
                                 'is_fc': score['is_fc'],
-                                'speed': score['speed']
+                                'speed': score['speed'],
+                                'score': score['score']
                             }
+                            user_scores.append(score_data)
                             
-                            user_entry = next((entry for entry in leaderboard if entry['user_id'] == user_id), None)
-                            if user_entry:
-                                if score['score'] > user_entry['score']:
-                                    leaderboard.remove(user_entry)
+                            if song_info:
+                                leaderboard = song_info.get('leaderboard', [])
+                                if leaderboard is None:
+                                    leaderboard = []
+
+                                leaderboard_entry = {
+                                    'user_id': user_id,
+                                    'username': username,
+                                    'score': score['score'],
+                                    'percent': score['percent'],
+                                    'is_fc': score['is_fc'],
+                                    'speed': score['speed']
+                                }
+                                
+                                user_entry = next((entry for entry in leaderboard if entry['user_id'] == user_id), None)
+                                if user_entry:
+                                    if score['score'] > user_entry['score']:
+                                        leaderboard.remove(user_entry)
+                                        leaderboard.append(leaderboard_entry)
+                                else:
                                     leaderboard.append(leaderboard_entry)
-                            else:
-                                leaderboard.append(leaderboard_entry)
-                            
-                            leaderboard.sort(key=lambda x: x['score'], reverse=True)
-                            
-                            leaderboard_updates.append({
-                                'md5': song['identifier'],
-                                'leaderboard': leaderboard
-                            })
+                                
+                                leaderboard.sort(key=lambda x: x['score'], reverse=True)
+                                
+                                leaderboard_updates.append({
+                                    'md5': song['identifier'],
+                                    'leaderboard': leaderboard
+                                })
+                else:
+                    logger.info(f"Song with identifier {song['identifier']} not found in database. Skipping.")
             
             if len(leaderboard_updates) >= 100:
-                supabase.table('songs').upsert(leaderboard_updates).execute()
-                leaderboard_updates = []
+                try:
+                    supabase.table('songs').upsert(leaderboard_updates).execute()
+                    leaderboard_updates = []
+                except Exception as e:
+                    logger.error(f"Error updating leaderboards: {str(e)}")
 
             progress = (processed_songs / total_songs) * 100
             socketio.emit('score_processing_progress', {'progress': progress, 'processed': processed_songs, 'total': total_songs}, room=user_id)
         
         if leaderboard_updates:
-            supabase.table('songs').upsert(leaderboard_updates).execute()
+            try:
+                supabase.table('songs').upsert(leaderboard_updates).execute()
+                leaderboard_updates = []
+            except Exception as e:
+                logger.error(f"Error updating leaderboards: {str(e)}")
 
         existing_scores = supabase.table('users').select('scores').eq('id', user_id).execute().data
         existing_scores = existing_scores[0]['scores'] if existing_scores and existing_scores[0]['scores'] else []
