@@ -511,6 +511,7 @@ def process_and_save_scores(result, user_id):
             
             if len(leaderboard_updates) >= 100:
                 try:
+                    logger.info(f"Updating leaderboards for {len(leaderboard_updates)} songs")
                     supabase.table('songs').upsert(leaderboard_updates).execute()
                     leaderboard_updates = []
                 except Exception as e:
@@ -521,6 +522,7 @@ def process_and_save_scores(result, user_id):
         
         if leaderboard_updates:
             try:
+                logger.info("Updating leaderboards for rest of songs")
                 supabase.table('songs').upsert(leaderboard_updates).execute()
                 leaderboard_updates = []
             except Exception as e:
