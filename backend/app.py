@@ -509,10 +509,11 @@ def process_and_save_scores(result, user_id):
                 else:
                     logger.info(f"Song with identifier {song['identifier']} not found in database. Skipping.")
             
-            if len(leaderboard_updates) >= 100:
+            if len(leaderboard_updates) >= 50:
                 try:
                     logger.info(f"Updating leaderboards for {len(leaderboard_updates)} songs")
-                    supabase.table('songs').upsert(leaderboard_updates).execute()
+                    for update in leaderboard_updates:
+                        supabase.table('songs').update({'leaderboard': update['leaderboard']}).eq('md5', update['md5']).execute()
                     leaderboard_updates = []
                 except Exception as e:
                     logger.error(f"Error updating leaderboards: {str(e)}")
@@ -523,7 +524,8 @@ def process_and_save_scores(result, user_id):
         if leaderboard_updates:
             try:
                 logger.info("Updating leaderboards for rest of songs")
-                supabase.table('songs').upsert(leaderboard_updates).execute()
+                for update in leaderboard_updates:
+                    supabase.table('songs').update({'leaderboard': update['leaderboard']}).eq('md5', update['md5']).execute()
                 leaderboard_updates = []
             except Exception as e:
                 logger.error(f"Error updating leaderboards: {str(e)}")
