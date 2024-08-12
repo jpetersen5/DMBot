@@ -44,10 +44,10 @@ const ScoreUpload: React.FC = () => {
         setFile(null);
       } else {
         setMessage(result.error || "An error occurred while processing the file");
+        setIsUploading(false);
       }
     } catch (error) {
       setMessage("An error occurred while uploading the file");
-    } finally {
       setIsUploading(false);
     }
   };
@@ -68,6 +68,12 @@ const ScoreUpload: React.FC = () => {
       setMessage(data.message);
       setIsUploading(false);
       setProgress(100);
+    });
+
+    socket.on('score_processing_error', (data) => {
+      setMessage(data.message);
+      setIsUploading(false);
+      setProgress(0);
     });
 
     return () => {

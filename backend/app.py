@@ -474,6 +474,9 @@ def process_and_save_scores(result, user_id):
                     
                     if song_info:
                         leaderboard = song_info.get('leaderboard', [])
+                        if leaderboard is None:
+                            leaderboard = []
+                            
                         leaderboard_entry = {
                             'user_id': user_id,
                             'username': username,
