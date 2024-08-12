@@ -463,8 +463,8 @@ def process_and_save_scores(result, user_id):
                 if score['instrument'] == 9:  # drums
                     score_data = {
                         'identifier': song['identifier'],
-                        'song_name': song_info.name if song_info else f"Unknown Song: {song['identifier']}",
-                        'artist': song_info.artist if song_info else "Unknown Artist",
+                        'song_name': song_info['name'] if song_info else f"Unknown Song: {song['identifier']}",
+                        'artist': song_info['artist'] if song_info else "Unknown Artist",
                         'percent': score['percent'],
                         'is_fc': score['is_fc'],
                         'speed': score['speed'],
