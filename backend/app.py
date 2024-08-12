@@ -1,3 +1,6 @@
+import eventlet
+eventlet.monkey_patch()
+
 import os
 from flask import Flask, Blueprint, jsonify, request, redirect, session
 from flask_cors import CORS
@@ -7,7 +10,6 @@ from dotenv import load_dotenv
 from supabase import create_client, Client
 from postgrest.exceptions import APIError
 from werkzeug.utils import secure_filename
-import eventlet
 import requests
 import jwt
 import datetime
@@ -18,7 +20,6 @@ import logging
 import re
 
 load_dotenv()
-eventlet.monkey_patch()
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 app.logger.setLevel(logging.INFO)
