@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from supabase import create_client, Client
 from postgrest.exceptions import APIError
 from werkzeug.utils import secure_filename
+from flask_socketio import SocketIO
+import time
 import requests
 import jwt
 import datetime
@@ -19,6 +21,7 @@ load_dotenv()
 app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 if not SECRET_KEY:
@@ -435,55 +438,67 @@ def allowed_file(filename):
 
 def process_and_save_scores(result, user_id):
     user_scores = []
-
-    song_identifiers = [song['identifier'] for song in result['songs']]
-    logging.info(f"Fetching information for {len(song_identifiers)} songs")
-    songs_info = supabase.table('songs').select('*').in_('md5', song_identifiers).execute().data
-    songs_dict = {song['md5']: song for song in songs_info}
+    batch_size = 50
+    total_songs = len(result['songs'])
+    processed_songs = 0
 
     logging.info(f"Fetching user data for user {user_id}")
     user_data = supabase.table('users').select('username').eq('id', user_id).execute().data
     username = user_data[0]['username'] if user_data else "Unknown User"
     
-    for i, song in enumerate(result['songs'], 1):
-        logging.info(f"Processing song {i} of {len(result['songs'])}")
-        song_info = songs_dict.get(song['identifier'])
+    for i in range(0, total_songs, batch_size):
+        batch = result['songs'][i:i+batch_size]
+        song_identifiers = [song['identifier'] for song in batch]
         
-        for score in song['scores']:
-            if score['instrument'] == 9:  # drums
-                score_data = {
-                    'identifier': song['identifier'],
-                    'song_name': song_info.name if song_info else f"Unknown Song: {song['identifier']}",
-                    'artist': song_info.artist if song_info else "Unknown Artist",
-                    'percent': score['percent'],
-                    'is_fc': score['is_fc'],
-                    'speed': score['speed'],
-                    'score': score['score']
-                }
-                user_scores.append(score_data)
-                
-                if song_info:
-                    leaderboard = song_info.get('leaderboard', [])
-                    leaderboard_entry = {
-                        'user_id': user_id,
-                        'username': username,
-                        'score': score['score'],
+        logging.info(f"Fetching information for batch of {len(song_identifiers)} songs")
+        songs_info = supabase.table('songs').select('*').in_('md5', song_identifiers).execute().data
+        songs_dict = {song['md5']: song for song in songs_info}
+
+        for song in batch:
+            processed_songs += 1
+            logging.info(f"Processing song {processed_songs} of {total_songs}")
+            song_info = songs_dict.get(song['identifier'])
+        
+            for score in song['scores']:
+                if score['instrument'] == 9:  # drums
+                    score_data = {
+                        'identifier': song['identifier'],
+                        'song_name': song_info.name if song_info else f"Unknown Song: {song['identifier']}",
+                        'artist': song_info.artist if song_info else "Unknown Artist",
                         'percent': score['percent'],
                         'is_fc': score['is_fc'],
-                        'speed': score['speed']
+                        'speed': score['speed'],
+                        'score': score['score']
                     }
+                    user_scores.append(score_data)
                     
-                    user_entry = next((entry for entry in leaderboard if entry['user_id'] == user_id), None)
-                    if user_entry:
-                        if score['score'] > user_entry['score']:
-                            leaderboard.remove(user_entry)
+                    if song_info:
+                        leaderboard = song_info.get('leaderboard', [])
+                        leaderboard_entry = {
+                            'user_id': user_id,
+                            'username': username,
+                            'score': score['score'],
+                            'percent': score['percent'],
+                            'is_fc': score['is_fc'],
+                            'speed': score['speed']
+                        }
+                        
+                        user_entry = next((entry for entry in leaderboard if entry['user_id'] == user_id), None)
+                        if user_entry:
+                            if score['score'] > user_entry['score']:
+                                leaderboard.remove(user_entry)
+                                leaderboard.append(leaderboard_entry)
+                        else:
                             leaderboard.append(leaderboard_entry)
-                    else:
-                        leaderboard.append(leaderboard_entry)
-                    
-                    leaderboard.sort(key=lambda x: x['score'], reverse=True)
-                    
-                    supabase.table('songs').update({'leaderboard': leaderboard}).eq('md5', song['identifier']).execute()
+                        
+                        leaderboard.sort(key=lambda x: x['score'], reverse=True)
+                        
+                        supabase.table('songs').update({'leaderboard': leaderboard}).eq('md5', song['identifier']).execute()
+        
+        progress = (processed_songs / total_songs) * 100
+        socketio.emit('score_processing_progress', {'progress': progress, 'processed': processed_songs, 'total': total_songs}, room=user_id)
+        
+        time.sleep(0.1)
     
     existing_scores = supabase.table('users').select('scores').eq('id', user_id).execute().data
     existing_scores = existing_scores[0]['scores'] if existing_scores and existing_scores[0]['scores'] else []
@@ -501,6 +516,9 @@ def process_and_save_scores(result, user_id):
     
     logging.info(f"Updating scores for user {user_id}")
     supabase.table('users').update({'scores': existing_scores}).eq('id', user_id).execute()
+
+    socketio.emit('score_processing_complete', {'message': 'Score processing completed'}, room=user_id)
+    logging.info("Score processing completed successfully")
 
 @app.route('/api/upload_scoredata', methods=['POST'])
 def upload_scoredata():
@@ -541,9 +559,9 @@ def upload_scoredata():
             if result['version'] != 20211009:
                 return jsonify({"error": "Score data is outdated"}), 400
             
-            process_and_save_scores(result, user_id)
+            socketio.start_background_task(process_and_save_scores, result, user_id)
             
-            return jsonify({"message": "Score data processed successfully", "songs_processed": result['song_count']}), 200
+            return jsonify({"message": "Score processing started", "total_songs": len(result['songs'])}), 202
         except ValueError as e:
             logging.error(f"Error parsing score data: {str(e)}")
             return jsonify({"error": str(e)}), 400
