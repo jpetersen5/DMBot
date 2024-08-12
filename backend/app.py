@@ -461,7 +461,6 @@ def process_and_save_scores(result, user_id):
 
             for song in batch:
                 processed_songs += 1
-                logger.info(f"Processing song {processed_songs} of {total_songs}")
                 song_info = songs_dict.get(song['identifier'])
             
                 if song_info:
