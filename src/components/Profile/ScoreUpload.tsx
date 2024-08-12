@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import LoadingSpinner from "../Loading/LoadingSpinner";
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import { API_URL } from "../../App";
 import "./ScoreUpload.scss";
 
@@ -9,6 +9,7 @@ const ScoreUpload: React.FC = () => {
   const [message, setMessage] = useState<string>("scoredata.bin can be found at %APPDATA%\\..\\LocalLow\\srylain Inc_\\Clone Hero");
   const [progress, setProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -53,31 +54,48 @@ const ScoreUpload: React.FC = () => {
   };
 
   useEffect(() => {
-    const socket = io(API_URL);
+    const newSocket = io(API_URL, {
+      transports: ['websocket'],
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
     
-    socket.on("connect", () => {
-      console.log("Connected to server");
+    newSocket.on('connect', () => {
+      console.log('Connected to server');
+      setMessage('Connected to server');
     });
 
-    socket.on("score_processing_progress", (data) => {
+    newSocket.on('connect_error', (error) => {
+      console.error('Connection error:', error);
+      setMessage('Connection error. Retrying...');
+    });
+
+    newSocket.on('disconnect', (reason) => {
+      console.log('Disconnected:', reason);
+      setMessage('Disconnected from server. Retrying...');
+    });
+
+    newSocket.on('score_processing_progress', (data) => {
       setProgress(data.progress);
       setMessage(`Processing song ${data.processed} of ${data.total}`);
     });
 
-    socket.on("score_processing_complete", (data) => {
+    newSocket.on('score_processing_complete', (data) => {
       setMessage(data.message);
       setIsUploading(false);
       setProgress(100);
     });
 
-    socket.on('score_processing_error', (data) => {
+    newSocket.on('score_processing_error', (data) => {
       setMessage(data.message);
       setIsUploading(false);
       setProgress(0);
     });
 
+    setSocket(newSocket);
+
     return () => {
-      socket.disconnect();
+      newSocket.disconnect();
     };
   }, []);
 
@@ -87,7 +105,7 @@ const ScoreUpload: React.FC = () => {
       <div className="file-input-wrapper">
         <input type="file" onChange={handleFileChange} accept=".bin" />
       </div>
-      <button onClick={handleUpload} disabled={!file || isUploading}>
+      <button onClick={handleUpload} disabled={!file || isUploading || !socket?.connected}>
         {isUploading ? <LoadingSpinner message="" timeout={5000} /> : "Upload"}
       </button>
       {message && <p>{message}</p>}

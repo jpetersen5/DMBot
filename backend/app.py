@@ -2,11 +2,11 @@ import os
 from flask import Flask, Blueprint, jsonify, request, redirect, session
 from flask_cors import CORS
 from flask_session import Session
+from flask_socketio import SocketIO
 from dotenv import load_dotenv
 from supabase import create_client, Client
 from postgrest.exceptions import APIError
 from werkzeug.utils import secure_filename
-from flask_socketio import SocketIO
 import time
 import requests
 import jwt
@@ -19,6 +19,7 @@ import re
 
 load_dotenv()
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
 app.logger.setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -441,8 +442,9 @@ def process_and_save_scores(result, user_id):
     batch_size = 50
     total_songs = len(result['songs'])
     processed_songs = 0
+    leaderboard_updates = []
 
-    logging.info(f"Fetching user data for user {user_id}")
+    logger.info(f"Fetching user data for user {user_id}")
     user_data = supabase.table('users').select('username').eq('id', user_id).execute().data
     username = user_data[0]['username'] if user_data else "Unknown User"
     
@@ -450,13 +452,13 @@ def process_and_save_scores(result, user_id):
         batch = result['songs'][i:i+batch_size]
         song_identifiers = [song['identifier'] for song in batch]
         
-        logging.info(f"Fetching information for batch of {len(song_identifiers)} songs")
+        logger.info(f"Fetching information for batch of {len(song_identifiers)} songs")
         songs_info = supabase.table('songs').select('*').in_('md5', song_identifiers).execute().data
         songs_dict = {song['md5']: song for song in songs_info}
 
         for song in batch:
             processed_songs += 1
-            logging.info(f"Processing song {processed_songs} of {total_songs}")
+            logger.info(f"Processing song {processed_songs} of {total_songs}")
             song_info = songs_dict.get(song['identifier'])
         
             for score in song['scores']:
@@ -476,7 +478,7 @@ def process_and_save_scores(result, user_id):
                         leaderboard = song_info.get('leaderboard', [])
                         if leaderboard is None:
                             leaderboard = []
-                            
+
                         leaderboard_entry = {
                             'user_id': user_id,
                             'username': username,
@@ -496,13 +498,21 @@ def process_and_save_scores(result, user_id):
                         
                         leaderboard.sort(key=lambda x: x['score'], reverse=True)
                         
-                        supabase.table('songs').update({'leaderboard': leaderboard}).eq('md5', song['identifier']).execute()
+                        leaderboard_updates.append({
+                            'md5': song['identifier'],
+                            'leaderboard': leaderboard
+                        })
         
+        if len(leaderboard_updates) >= 100:
+            supabase.table('songs').upsert(leaderboard_updates).execute()
+            leaderboard_updates = []
+
         progress = (processed_songs / total_songs) * 100
         socketio.emit('score_processing_progress', {'progress': progress, 'processed': processed_songs, 'total': total_songs}, room=user_id)
-        
-        time.sleep(0.1)
     
+    if leaderboard_updates:
+        supabase.table('songs').upsert(leaderboard_updates).execute()
+
     existing_scores = supabase.table('users').select('scores').eq('id', user_id).execute().data
     existing_scores = existing_scores[0]['scores'] if existing_scores and existing_scores[0]['scores'] else []
     
@@ -517,11 +527,11 @@ def process_and_save_scores(result, user_id):
     
     existing_scores.sort(key=lambda x: x['score'], reverse=True)
     
-    logging.info(f"Updating scores for user {user_id}")
+    logger.info(f"Updating scores for user {user_id}")
     supabase.table('users').update({'scores': existing_scores}).eq('id', user_id).execute()
 
     socketio.emit('score_processing_complete', {'message': 'Score processing completed'}, room=user_id)
-    logging.info("Score processing completed successfully")
+    logger.info("Score processing completed successfully")
 
 @app.route('/api/upload_scoredata', methods=['POST'])
 def upload_scoredata():
@@ -566,15 +576,15 @@ def upload_scoredata():
             
             return jsonify({"message": "Score processing started", "total_songs": len(result['songs'])}), 202
         except ValueError as e:
-            logging.error(f"Error parsing score data: {str(e)}")
+            logger.error(f"Error parsing score data: {str(e)}")
             return jsonify({"error": str(e)}), 400
         except Exception as e:
-            logging.error(f"Unexpected error processing score data: {str(e)}", exc_info=True)
+            logger.error(f"Unexpected error processing score data: {str(e)}", exc_info=True)
             return jsonify({"error": str(e)}), 500
         finally:
             if os.path.exists(filepath):
                 os.remove(filepath)
-    logging.warning("Invalid file in upload request")
+    logger.warning("Invalid file in upload request")
     return jsonify({"error": "Invalid file"}), 400
 
 ##################################################
@@ -606,4 +616,4 @@ def db_status():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    socketio.run(app, host="0.0.0.0", port=port)
