@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from supabase import create_client, Client
 from postgrest.exceptions import APIError
 from werkzeug.utils import secure_filename
-import time
+import eventlet
 import requests
 import jwt
 import datetime
@@ -18,11 +18,12 @@ import logging
 import re
 
 load_dotenv()
+eventlet.monkey_patch()
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 app.logger.setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 if not SECRET_KEY:
@@ -438,100 +439,101 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def process_and_save_scores(result, user_id):
-    user_scores = []
-    batch_size = 50
-    total_songs = len(result['songs'])
-    processed_songs = 0
-    leaderboard_updates = []
+    with app.app_context():
+        user_scores = []
+        batch_size = 50
+        total_songs = len(result['songs'])
+        processed_songs = 0
+        leaderboard_updates = []
 
-    logger.info(f"Fetching user data for user {user_id}")
-    user_data = supabase.table('users').select('username').eq('id', user_id).execute().data
-    username = user_data[0]['username'] if user_data else "Unknown User"
-    
-    for i in range(0, total_songs, batch_size):
-        batch = result['songs'][i:i+batch_size]
-        song_identifiers = [song['identifier'] for song in batch]
+        logger.info(f"Fetching user data for user {user_id}")
+        user_data = supabase.table('users').select('username').eq('id', user_id).execute().data
+        username = user_data[0]['username'] if user_data else "Unknown User"
         
-        logger.info(f"Fetching information for batch of {len(song_identifiers)} songs")
-        songs_info = supabase.table('songs').select('*').in_('md5', song_identifiers).execute().data
-        songs_dict = {song['md5']: song for song in songs_info}
+        for i in range(0, total_songs, batch_size):
+            batch = result['songs'][i:i+batch_size]
+            song_identifiers = [song['identifier'] for song in batch]
+            
+            logger.info(f"Fetching information for batch of {len(song_identifiers)} songs")
+            songs_info = supabase.table('songs').select('*').in_('md5', song_identifiers).execute().data
+            songs_dict = {song['md5']: song for song in songs_info}
 
-        for song in batch:
-            processed_songs += 1
-            logger.info(f"Processing song {processed_songs} of {total_songs}")
-            song_info = songs_dict.get(song['identifier'])
-        
-            for score in song['scores']:
-                if score['instrument'] == 9:  # drums
-                    score_data = {
-                        'identifier': song['identifier'],
-                        'song_name': song_info['name'] if song_info else f"Unknown Song: {song['identifier']}",
-                        'artist': song_info['artist'] if song_info else "Unknown Artist",
-                        'percent': score['percent'],
-                        'is_fc': score['is_fc'],
-                        'speed': score['speed'],
-                        'score': score['score']
-                    }
-                    user_scores.append(score_data)
-                    
-                    if song_info:
-                        leaderboard = song_info.get('leaderboard', [])
-                        if leaderboard is None:
-                            leaderboard = []
-
-                        leaderboard_entry = {
-                            'user_id': user_id,
-                            'username': username,
-                            'score': score['score'],
+            for song in batch:
+                processed_songs += 1
+                logger.info(f"Processing song {processed_songs} of {total_songs}")
+                song_info = songs_dict.get(song['identifier'])
+            
+                for score in song['scores']:
+                    if score['instrument'] == 9:  # drums
+                        score_data = {
+                            'identifier': song['identifier'],
+                            'song_name': song_info['name'] if song_info else f"Unknown Song: {song['identifier']}",
+                            'artist': song_info['artist'] if song_info else "Unknown Artist",
                             'percent': score['percent'],
                             'is_fc': score['is_fc'],
-                            'speed': score['speed']
+                            'speed': score['speed'],
+                            'score': score['score']
                         }
+                        user_scores.append(score_data)
                         
-                        user_entry = next((entry for entry in leaderboard if entry['user_id'] == user_id), None)
-                        if user_entry:
-                            if score['score'] > user_entry['score']:
-                                leaderboard.remove(user_entry)
+                        if song_info:
+                            leaderboard = song_info.get('leaderboard', [])
+                            if leaderboard is None:
+                                leaderboard = []
+
+                            leaderboard_entry = {
+                                'user_id': user_id,
+                                'username': username,
+                                'score': score['score'],
+                                'percent': score['percent'],
+                                'is_fc': score['is_fc'],
+                                'speed': score['speed']
+                            }
+                            
+                            user_entry = next((entry for entry in leaderboard if entry['user_id'] == user_id), None)
+                            if user_entry:
+                                if score['score'] > user_entry['score']:
+                                    leaderboard.remove(user_entry)
+                                    leaderboard.append(leaderboard_entry)
+                            else:
                                 leaderboard.append(leaderboard_entry)
-                        else:
-                            leaderboard.append(leaderboard_entry)
-                        
-                        leaderboard.sort(key=lambda x: x['score'], reverse=True)
-                        
-                        leaderboard_updates.append({
-                            'md5': song['identifier'],
-                            'leaderboard': leaderboard
-                        })
+                            
+                            leaderboard.sort(key=lambda x: x['score'], reverse=True)
+                            
+                            leaderboard_updates.append({
+                                'md5': song['identifier'],
+                                'leaderboard': leaderboard
+                            })
+            
+            if len(leaderboard_updates) >= 100:
+                supabase.table('songs').upsert(leaderboard_updates).execute()
+                leaderboard_updates = []
+
+            progress = (processed_songs / total_songs) * 100
+            socketio.emit('score_processing_progress', {'progress': progress, 'processed': processed_songs, 'total': total_songs}, room=user_id)
         
-        if len(leaderboard_updates) >= 100:
+        if leaderboard_updates:
             supabase.table('songs').upsert(leaderboard_updates).execute()
-            leaderboard_updates = []
 
-        progress = (processed_songs / total_songs) * 100
-        socketio.emit('score_processing_progress', {'progress': progress, 'processed': processed_songs, 'total': total_songs}, room=user_id)
-    
-    if leaderboard_updates:
-        supabase.table('songs').upsert(leaderboard_updates).execute()
-
-    existing_scores = supabase.table('users').select('scores').eq('id', user_id).execute().data
-    existing_scores = existing_scores[0]['scores'] if existing_scores and existing_scores[0]['scores'] else []
-    
-    for new_score in user_scores:
-        existing_score = next((score for score in existing_scores if score['identifier'] == new_score['identifier']), None)
-        if existing_score:
-            if new_score['score'] > existing_score['score']:
-                existing_scores.remove(existing_score)
+        existing_scores = supabase.table('users').select('scores').eq('id', user_id).execute().data
+        existing_scores = existing_scores[0]['scores'] if existing_scores and existing_scores[0]['scores'] else []
+        
+        for new_score in user_scores:
+            existing_score = next((score for score in existing_scores if score['identifier'] == new_score['identifier']), None)
+            if existing_score:
+                if new_score['score'] > existing_score['score']:
+                    existing_scores.remove(existing_score)
+                    existing_scores.append(new_score)
+            else:
                 existing_scores.append(new_score)
-        else:
-            existing_scores.append(new_score)
-    
-    existing_scores.sort(key=lambda x: x['score'], reverse=True)
-    
-    logger.info(f"Updating scores for user {user_id}")
-    supabase.table('users').update({'scores': existing_scores}).eq('id', user_id).execute()
+        
+        existing_scores.sort(key=lambda x: x['score'], reverse=True)
+        
+        logger.info(f"Updating scores for user {user_id}")
+        supabase.table('users').update({'scores': existing_scores}).eq('id', user_id).execute()
 
-    socketio.emit('score_processing_complete', {'message': 'Score processing completed'}, room=user_id)
-    logger.info("Score processing completed successfully")
+        socketio.emit('score_processing_complete', {'message': 'Score processing completed'}, room=user_id)
+        logger.info("Score processing completed successfully")
 
 @app.route('/api/upload_scoredata', methods=['POST'])
 def upload_scoredata():
