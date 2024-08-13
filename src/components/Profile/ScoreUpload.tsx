@@ -106,7 +106,7 @@ const ScoreUpload: React.FC = () => {
         <input type="file" onChange={handleFileChange} accept=".bin" />
       </div>
       <button onClick={handleUpload} disabled={!file || isUploading || !socket?.connected}>
-        {isUploading ? <LoadingSpinner message="" timeout={5000} /> : "Upload"}
+        {isUploading ? <LoadingSpinner message="" timeout={0} /> : "Upload"}
       </button>
       {message && <p>{message}</p>}
       {isUploading && <progress value={progress} max="100" />}

@@ -14,6 +14,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   const [showTimeoutMessage, setShowTimeoutMessage] = useState(false);
 
   useEffect(() => {
+    if (timeout === 0) return;
     const timer = setTimeout(() => {
       setShowTimeoutMessage(true);
     }, timeout);
