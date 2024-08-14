@@ -1,9 +1,10 @@
-from eventlet import monkey_patch
-monkey_patch()
+import eventlet
+import eventlet.wsgi
+eventlet.monkey_patch()
 
 from app import create_app, socketio
 
 app = create_app()
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
+    eventlet.wsgi.server(eventlet.listen(("", 5000)), app)
