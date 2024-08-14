@@ -167,9 +167,10 @@ def upload_scoredata():
             return jsonify({"error": "File size exceeds 1 MB limit"}), 400
         
         filename = secure_filename(file.filename)
-        if not os.path.exists(Config.UPLOAD_FOLDER):
-            os.makedirs(Config.UPLOAD_FOLDER)
-        filepath = os.path.join(Config.UPLOAD_FOLDER, filename)
+        upload_folder = Config.UPLOAD_FOLDER
+        if not os.path.exists(upload_folder):
+            os.makedirs(upload_folder)
+        filepath = os.path.join(upload_folder, filename)
         file.save(filepath)
         
         try:

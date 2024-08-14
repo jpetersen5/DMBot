@@ -16,7 +16,7 @@ def create_app(config_class=Config):
         "allow_headers": ["Content-Type", "Authorization"]
     }})
     Session(app)
-    socketio.init_app(app, async_mode="eventlet", cors_allowed_origins="*")
+    socketio.init_app(app)
 
     init_supabase(app)
 
