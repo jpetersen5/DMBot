@@ -17,3 +17,4 @@ class Config:
     DISCORD_REDIRECT_URI = os.getenv("DISCORD_REDIRECT_URI")
     FRONTEND_URL = os.getenv("FRONTEND_URL", "https://jpetersen5.github.io/DMBot")
     DISCORD_API_ENDPOINT = "https://discord.com/api/v10"
+    REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")

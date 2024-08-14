@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from ..services.supabase_service import get_supabase
 from ..utils.helpers import allowed_file, get_process_songs_script
 from ..config import Config
-from ..extensions import socketio
+from ..extensions import socketio, redis
 from werkzeug.utils import secure_filename
 import os
 import jwt
@@ -11,6 +11,17 @@ from ..extensions import logger
 bp = Blueprint("scores", __name__)
 exec(get_process_songs_script())
 MAX_FILE_SIZE = 1024 * 1024 * 1 # 1 MB
+
+def update_processing_status(user_id, status, progress, processed, total):
+    """
+    updates the processing status in redis
+    """
+    redis.hset(f"processing_status:{user_id}", mapping={
+        "status": status,
+        "progress": progress,
+        "processed": processed,
+        "total": total
+    })
 
 def process_and_save_scores(result, user_id):
     """
@@ -29,6 +40,8 @@ def process_and_save_scores(result, user_id):
     total_songs = len(result["songs"])
     processed_songs = 0
     leaderboard_updates = []
+    
+    update_processing_status(user_id, "in_progress", 0, processed_songs, total_songs)
 
     logger.info(f"Fetching user data for user {user_id}")
     user_data = supabase.table("users").select("username").eq("id", user_id).execute().data
@@ -101,6 +114,7 @@ def process_and_save_scores(result, user_id):
                 logger.error(f"Error updating leaderboards: {str(e)}")
 
         progress = (processed_songs / total_songs) * 100
+        update_processing_status(user_id, "in_progress", progress, processed_songs, total_songs)
         socketio.emit("score_processing_progress", {"progress": progress, "processed": processed_songs, "total": total_songs}, room=user_id)
     
     if leaderboard_updates:
@@ -129,6 +143,7 @@ def process_and_save_scores(result, user_id):
     logger.info(f"Updating scores for user {user_id}")
     supabase.table("users").update({"scores": existing_scores}).eq("id", user_id).execute()
 
+    update_processing_status(user_id, "completed", 100, total_songs, total_songs)
     socketio.emit("score_processing_complete", {"message": "Score processing completed"}, room=user_id)
     logger.info("Score processing completed successfully")
 
@@ -195,3 +210,35 @@ def upload_scoredata():
                 os.remove(filepath)
     logger.warning("Invalid file in upload request")
     return jsonify({"error": "Invalid file"}), 400
+
+@bp.route("/api/processing_status", methods=["GET"])
+def processing_status():
+    """
+    Retrieves the current processing status for the user
+
+    returns:
+        JSON: Current processing status
+    """
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        return jsonify({"error": "No token provided"}), 401
+    try:
+        token = auth_header.split(" ")[1]
+        payload = jwt.decode(token, Config.JWT_SECRET, algorithms=["HS256"])
+        user_id = payload["user_id"]
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token has expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
+    
+    status: dict = redis.hgetall(f"processing_status:{user_id}")
+    
+    if status:
+        return jsonify({
+            "status": status.get(b"status", b"unknown").decode('utf-8'),
+            "progress": float(status.get(b"progress", 0)),
+            "processed": int(status.get(b"processed", 0)),
+            "total": int(status.get(b"total", 0))
+        }), 200
+    else:
+        return jsonify({"status": "no_active_processing"}), 404

@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
-from .extensions import Session, socketio, logger
+from .extensions import Session, socketio, logger, redis
 from .config import Config
 from .api import auth, users, songs, charters, scores, status
 from .services.supabase_service import init_supabase
@@ -17,6 +17,7 @@ def create_app(config_class=Config):
     }})
     Session(app)
     socketio.init_app(app)
+    redis.init_app(app)
 
     init_supabase(app)
 
