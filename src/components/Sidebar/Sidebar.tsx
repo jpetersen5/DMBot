@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import "./Sidebar.scss";
@@ -13,26 +13,26 @@ interface NavItem {
   icon: string;
 }
 
+const staticNavItems: NavItem[] = [
+  { path: "/", name: "Home", icon: HomeIcon },
+  { path: "/songs", name: "Songs", icon: SongsIcon },
+];
+
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
-  const [navItems, setNavItems] = useState<NavItem[]>([
-    { path: "/", name: "Home", icon: HomeIcon },
-    { path: user ? `/user/${user.id}` : "/login", name: "Profile", icon: ProfileIcon },
-    { path: "/songs", name: "Songs", icon: SongsIcon },
-  ]);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
 
-  useEffect(() => {
-    setNavItems([
-      { path: "/", name: "Home", icon: HomeIcon },
-      { path: user ? `/user/${user.id}` : "/login", name: "Profile", icon: ProfileIcon },
-      { path: "/songs", name: "Songs", icon: SongsIcon },
-    ]);
-  }, [localStorage.getItem("auth_token")]);
+  const profileNavItem: NavItem = {
+    path: user ? `/user/${user.id}` : "/login",
+    name: "Profile",
+    icon: ProfileIcon,
+  };
+
+  const navItems = user ? [...staticNavItems, profileNavItem] : staticNavItems;
 
   return (
     <div className={`sidebar ${isOpen ? "open" : ""}`}>
