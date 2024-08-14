@@ -19,7 +19,9 @@ def login():
         redirect to the Discord authorization page
     """
     api = Config.DISCORD_API_ENDPOINT
-    return redirect(f"{api}/oauth2/authorize?client_id={api}&redirect_uri={api}&response_type=code&scope=identify")
+    id = Config.DISCORD_CLIENT_ID
+    redirect_uri = Config.DISCORD_REDIRECT_URI
+    return redirect(f"{api}/oauth2/authorize?client_id={id}&redirect_uri={redirect_uri}&response_type=code&scope=identify")
 
 @bp.route("/api/auth/callback")
 def callback():
