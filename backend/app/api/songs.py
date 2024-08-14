@@ -1,11 +1,10 @@
 from flask import Blueprint, jsonify, request
-import logging
+from ..extensions import logger
 from postgrest.exceptions import APIError
 from ..services.supabase_service import get_supabase
 from ..utils.helpers import sanitize_input
 
 bp = Blueprint("songs", __name__)
-logger = logging.getLogger(__name__)
 
 ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "difficulty", "charter", "song_length"}
 

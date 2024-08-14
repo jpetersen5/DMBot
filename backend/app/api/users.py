@@ -1,11 +1,10 @@
 from flask import Blueprint, jsonify, request
 import jwt
-import logging
+from ..extensions import logger
 from ..services.supabase_service import get_supabase
 from ..config import Config
 
 bp = Blueprint("users", __name__)
-logger = logging.getLogger(__name__)
 
 @bp.route("/api/user")
 def get_user():

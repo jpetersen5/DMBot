@@ -2,13 +2,12 @@ from flask import Blueprint, jsonify, request, redirect, session
 import jwt
 import datetime
 import requests
-import logging
 from postgrest.exceptions import APIError
 from ..services.supabase_service import get_supabase
+from ..extensions import logger
 from ..config import Config
 
 bp = Blueprint("auth", __name__)
-logger = logging.getLogger(__name__)
 
 @bp.route("/api/auth/login")
 def login():

@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
-from .extensions import Session, socketio
+from .extensions import Session, socketio, logger
 from .config import Config
 from .api import auth, users, songs, charters, scores, status
 from .services.supabase_service import init_supabase
@@ -8,6 +8,7 @@ from .services.supabase_service import init_supabase
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+    app.logger.addHandler(logger)
 
     CORS(app, resources={r"/api/*": {
         "origins": app.config["ALLOWED_ORIGINS"],

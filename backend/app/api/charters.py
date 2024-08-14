@@ -1,10 +1,9 @@
 from flask import Blueprint, jsonify, request
-import logging
+from ..extensions import logger
 from ..services.supabase_service import get_supabase
 from ..utils.helpers import sanitize_input
 
 bp = Blueprint("charters", __name__)
-logger = logging.getLogger(__name__)
 
 @bp.route("/api/charter-colors", methods=["GET"])
 def get_charters():

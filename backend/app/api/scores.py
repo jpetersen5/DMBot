@@ -6,10 +6,9 @@ from ..extensions import socketio
 from werkzeug.utils import secure_filename
 import os
 import jwt
-import logging
+from ..extensions import logger
 
 bp = Blueprint("scores", __name__)
-logger = logging.getLogger(__name__)
 exec(get_process_songs_script())
 MAX_FILE_SIZE = 1024 * 1024 * 1 # 1 MB
 
