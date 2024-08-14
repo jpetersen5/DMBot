@@ -115,7 +115,9 @@ def process_and_save_scores(result, user_id):
 
         progress = (processed_songs / total_songs) * 100
         update_processing_status(user_id, "in_progress", progress, processed_songs, total_songs)
-        socketio.emit("score_processing_progress", {"progress": progress, "processed": processed_songs, "total": total_songs}, room=user_id)
+        socketio.emit("score_processing_progress", 
+                      {"progress": progress, "processed": processed_songs, "total": total_songs}, 
+                      room=str(user_id))
     
     if leaderboard_updates:
         try:
@@ -144,7 +146,9 @@ def process_and_save_scores(result, user_id):
     supabase.table("users").update({"scores": existing_scores}).eq("id", user_id).execute()
 
     update_processing_status(user_id, "completed", 100, total_songs, total_songs)
-    socketio.emit("score_processing_complete", {"message": "Score processing completed"}, room=user_id)
+    socketio.emit("score_processing_complete", 
+                  {"message": "Score processing completed"}, 
+                  room=str(user_id))
     logger.info("Score processing completed successfully")
 
 @bp.route("/api/upload_scoredata", methods=["POST"])
@@ -235,7 +239,7 @@ def processing_status():
     
     if status:
         return jsonify({
-            "status": status.get(b"status", b"unknown").decode('utf-8'),
+            "status": status.get(b"status", b"unknown").decode("utf-8"),
             "progress": float(status.get(b"progress", 0)),
             "processed": int(status.get(b"processed", 0)),
             "total": int(status.get(b"total", 0))

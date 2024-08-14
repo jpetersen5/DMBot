@@ -16,7 +16,7 @@ def create_app(config_class=Config):
         "allow_headers": ["Content-Type", "Authorization"]
     }})
     Session(app)
-    socketio.init_app(app)
+    socketio.init_app(app, cors_allowed_origins="*")
     redis.init_app(app)
 
     init_supabase(app)

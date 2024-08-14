@@ -24,6 +24,14 @@ const ScoreUpload: React.FC = () => {
       console.log("Connected to server");
       setIsConnected(true);
       setMessage("Connected to server");
+      
+      const userId = localStorage.getItem("user_id");
+      if (userId) {
+        console.log("Joining room:", userId);
+        newSocket.emit("join", userId);
+      } else {
+        console.error("No user ID found in localStorage");
+      }
     });
 
     newSocket.on("connect_error", (error) => {
@@ -91,6 +99,10 @@ const ScoreUpload: React.FC = () => {
       if (response.ok) {
         setMessage(`Processing started. Total songs: ${result.total_songs}`);
         setFile(null);
+        const userId = localStorage.getItem("user_id");
+        if (userId && socketRef.current) {
+          socketRef.current.emit("join", userId);
+        }
       } else {
         setMessage(result.error || "An error occurred while processing the file");
         setIsUploading(false);
