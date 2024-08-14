@@ -156,4 +156,4 @@ dist-ssr
 # ignore data and sensitive scripts
 data
 utils/process_songs.py
-backend/scripts/process_songs.py
+backend/app/scripts/process_songs.py
