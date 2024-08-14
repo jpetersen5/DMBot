@@ -16,21 +16,23 @@ interface NavItem {
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
-  const [userPagePath, setUserPagePath] = useState<string>(user ? `/user/${user.id}` : "/login");
+  const [navItems, setNavItems] = useState<NavItem[]>([
+    { path: "/", name: "Home", icon: HomeIcon },
+    { path: user ? `/user/${user.id}` : "/login", name: "Profile", icon: ProfileIcon },
+    { path: "/songs", name: "Songs", icon: SongsIcon },
+  ]);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
 
   useEffect(() => {
-    setUserPagePath(user ? `/user/${user.id}` : "/login");
+    setNavItems([
+      { path: "/", name: "Home", icon: HomeIcon },
+      { path: user ? `/user/${user.id}` : "/login", name: "Profile", icon: ProfileIcon },
+      { path: "/songs", name: "Songs", icon: SongsIcon },
+    ]);
   }, [user]);
-
-  const navItems: NavItem[] = [
-    { path: "/", name: "Home", icon: HomeIcon },
-    { path: userPagePath, name: "Profile", icon: ProfileIcon },
-    { path: "/songs", name: "Songs", icon: SongsIcon },
-  ];
 
   return (
     <div className={`sidebar ${isOpen ? "open" : ""}`}>
