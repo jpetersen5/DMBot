@@ -1,7 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
-from flask_socketio import SocketIO
-from .extensions import Session
+from .extensions import Session, socketio
 from .config import Config
 from .api import auth, users, songs, charters, scores
 from .services.supabase_service import init_supabase
@@ -16,7 +15,7 @@ def create_app(config_class=Config):
         "allow_headers": ["Content-Type", "Authorization"]
     }})
     Session(app)
-    socketio = SocketIO(app, async_mode="eventlet", cors_allowed_origins="*")
+    socketio.init_app(app, async_mode="eventlet", cors_allowed_origins="*")
 
     init_supabase(app)
 
@@ -26,4 +25,4 @@ def create_app(config_class=Config):
     app.register_blueprint(charters.bp)
     app.register_blueprint(scores.bp)
 
-    return app, socketio
+    return app
