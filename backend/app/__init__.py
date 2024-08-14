@@ -2,7 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from .extensions import Session, socketio
 from .config import Config
-from .api import auth, users, songs, charters, scores
+from .api import auth, users, songs, charters, scores, status
 from .services.supabase_service import init_supabase
 
 def create_app(config_class=Config):
@@ -24,5 +24,6 @@ def create_app(config_class=Config):
     app.register_blueprint(songs.bp)
     app.register_blueprint(charters.bp)
     app.register_blueprint(scores.bp)
+    app.register_blueprint(status.bp)
 
     return app

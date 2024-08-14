@@ -2,14 +2,12 @@ from flask import Blueprint, jsonify, request
 import jwt
 import logging
 from ..services.supabase_service import get_supabase
-from ..utils.helpers import token_required
 from ..config import Config
 
 bp = Blueprint("users", __name__)
 logger = logging.getLogger(__name__)
 
 @bp.route("/api/user")
-@token_required
 def get_user():
     """
     retrieves current user's information based on their JWT token
