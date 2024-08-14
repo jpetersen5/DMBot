@@ -32,7 +32,7 @@ const Sidebar: React.FC = () => {
       { path: user ? `/user/${user.id}` : "/login", name: "Profile", icon: ProfileIcon },
       { path: "/songs", name: "Songs", icon: SongsIcon },
     ]);
-  }, [user]);
+  }, [localStorage.getItem("auth_token")]);
 
   return (
     <div className={`sidebar ${isOpen ? "open" : ""}`}>
