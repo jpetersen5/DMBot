@@ -27,14 +27,17 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
           });
           if (response.ok) {
             const userData: User = await response.json();
+            localStorage.setItem("user_id", userData.id);
             setUser(userData);
           } else {
             console.error("Invalid token:", response.statusText);
             localStorage.removeItem("auth_token");
+            localStorage.removeItem("user_id");
           }
         } catch (error) {
           console.error("Error checking auth:", error);
           localStorage.removeItem("auth_token");
+          localStorage.removeItem("user_id");
         }
       }
       setLoading(false);
@@ -49,6 +52,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
 
   const logout = () => {
     localStorage.removeItem("auth_token");
+    localStorage.removeItem("user_id");
     setUser(null);
   };
 
