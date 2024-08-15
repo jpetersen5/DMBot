@@ -4,7 +4,7 @@ import { TableControls, Pagination, Search } from "./TableControls";
 import SongModal from "./SongModal";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import CharterName from "./CharterName";
-import { useCharterData } from "../../hooks/useCharterData";
+import { useCharterData } from "../../context/CharterContext";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import { Song, SONG_TABLE_HEADERS, msToTime } from "../../utils/song";
 import "./SongList.scss";
