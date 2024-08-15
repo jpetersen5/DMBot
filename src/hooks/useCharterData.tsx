@@ -11,8 +11,8 @@ export const useCharterData = () => {
 
   useEffect(() => {
     const fetchAllCharterColors = async () => {
+      setIsLoading(true);
       try {
-        console.log("Fetching charter colors...");
         const response = await fetch(`${API_URL}/api/all-charter-colors`);
         if (!response.ok) {
           throw new Error("Failed to fetch charter colors");

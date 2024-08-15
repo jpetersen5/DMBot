@@ -4,13 +4,14 @@ import { TableControls, Pagination, Search } from "./TableControls";
 import SongModal from "./SongModal";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import CharterName from "./CharterName";
+import { useCharterData } from "../../hooks/useCharterData";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import { Song, SONG_TABLE_HEADERS, msToTime } from "../../utils/song";
 import "./SongList.scss";
 
 const SongList: React.FC = () => {
   const [songs, setSongs] = useState<Song[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [songsLoading, setSongsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [inputPage, setInputPage] = useState(page.toString());
   const [totalSongs, setTotalSongs] = useState(0);
@@ -20,6 +21,7 @@ const SongList: React.FC = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("");
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
+  const { charterCache, isLoading: chartersLoading } = useCharterData();
 
   const totalPages = Math.ceil(totalSongs / perPage);
 
@@ -28,7 +30,7 @@ const SongList: React.FC = () => {
   }, [page, perPage, sortBy, sortOrder]);
 
   async function fetchSongs() {
-    setLoading(true);
+    setSongsLoading(true);
     try {
       const queryParams = new URLSearchParams({
         page: page.toString(),
@@ -48,7 +50,7 @@ const SongList: React.FC = () => {
     } catch (error) {
       console.error("Error fetching songs:", error);
     } finally {
-      setLoading(false);
+      setSongsLoading(false);
     }
   }
 
@@ -72,6 +74,8 @@ const SongList: React.FC = () => {
   const handleRowClick = (song: Song) => {
     setSelectedSong(song);
   };
+
+  const loading = songsLoading || chartersLoading;
 
   return (
     <div className="song-list">
@@ -126,6 +130,7 @@ const SongList: React.FC = () => {
                 key={song.id} 
                 song={song} 
                 onClick={() => handleRowClick(song)}
+                charterCache={charterCache}
               />
             ))
           )}
@@ -165,15 +170,15 @@ const SongTableHeader: React.FC<SongTableHeaderProps> = ({ onClick, content, sor
 
 interface SongTableCellProps {
   content: string | null | undefined;
-  charter?: boolean;
+  charterCache?: { [key: string]: string };
 }
 
-const SongTableCell: React.FC<SongTableCellProps> = ({ content, charter }) => {
+const SongTableCell: React.FC<SongTableCellProps> = ({ content, charterCache }) => {
   if (content == null) {
     return <td></td>;
   }
-  if (charter) {
-    return <td><CharterName names={content} /></td>;
+  if (charterCache) {
+    return <td><CharterName names={content} charterCache={charterCache} /></td>;
   }
 
   const processedContent = typeof content === "string" 
@@ -186,9 +191,10 @@ const SongTableCell: React.FC<SongTableCellProps> = ({ content, charter }) => {
 interface SongTableRowProps {
   song: Song;
   onClick: () => void;
+  charterCache: { [key: string]: string };
 }
 
-const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick }) => (
+const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick, charterCache }) => (
   <tr onClick={onClick} style={{ cursor: "pointer" }}>
     <SongTableCell content={song.name} />
     <SongTableCell content={song.artist} />
@@ -197,7 +203,7 @@ const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick }) => (
     <SongTableCell content={song.genre} />
     <SongTableCell content={song.difficulty || "?"} />
     <SongTableCell content={song.song_length != null ? msToTime(song.song_length) : "??:??:??"} />
-    <SongTableCell content={song.charter_refs ? song.charter_refs.join(", ") : "Unknown Author"} charter />
+    <SongTableCell content={song.charter_refs ? song.charter_refs.join(", ") : "Unknown Author"} charterCache={charterCache} />
   </tr>
 );
 

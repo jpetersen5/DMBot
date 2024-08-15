@@ -1,17 +1,15 @@
 import React, { memo } from "react";
-import { useCharterData } from "../../hooks/useCharterData";
 import { renderSafeHTML } from "../../utils/safeHTML";
 import "./CharterName.scss";
 
 interface CharterNameProps {
   names: string;
+  charterCache: { [key: string]: string };
 }
 
 // TODO: redirect to charter page on click
-const CharterName: React.FC<CharterNameProps> = memo(({ names }) => {
+const CharterName: React.FC<CharterNameProps> = memo(({ names, charterCache }) => {
   const charters = names.split(",").map(name => name.trim());
-  console.log("charter cache", charters);
-  const { charterCache, isLoading } = useCharterData();
 
   const onClick = (name: string) => {
     console.log("Charter name clicked:", name);
@@ -26,7 +24,7 @@ const CharterName: React.FC<CharterNameProps> = memo(({ names }) => {
               e.stopPropagation();
               onClick(name);
             }}
-            dangerouslySetInnerHTML={renderSafeHTML(isLoading ? name : (charterCache[name] || name))}
+            dangerouslySetInnerHTML={renderSafeHTML(charterCache[name] || name)}
           />
           {i < charters.length - 1 && ", "}
         </React.Fragment>
