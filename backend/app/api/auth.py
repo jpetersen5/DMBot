@@ -1,10 +1,9 @@
-from flask import Blueprint, jsonify, request, redirect, session
+from flask import Blueprint, jsonify, request, redirect, session, current_app
 import jwt
 import datetime
 import requests
 from postgrest.exceptions import APIError
 from ..services.supabase_service import get_supabase
-from ..extensions import logger
 from ..config import Config
 
 bp = Blueprint("auth", __name__)
@@ -35,6 +34,7 @@ def callback():
         redirect to the frontend with the JWT token
     """
     supabase = get_supabase()
+    logger = current_app.logger
     api = Config.DISCORD_API_ENDPOINT
     try:
         code = request.args.get("code")

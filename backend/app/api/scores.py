@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 from ..services.supabase_service import get_supabase
 from ..utils.helpers import allowed_file, get_process_songs_script
 from ..config import Config
@@ -6,7 +6,6 @@ from ..extensions import socketio, redis
 from werkzeug.utils import secure_filename
 import os
 import jwt
-from ..extensions import logger
 
 bp = Blueprint("scores", __name__)
 exec(get_process_songs_script())
@@ -35,6 +34,7 @@ def process_and_save_scores(result, user_id):
         None
     """
     supabase = get_supabase()
+    logger = current_app.logger
     user_scores = []
     batch_size = 50
     total_songs = len(result["songs"])
@@ -163,6 +163,7 @@ def upload_scoredata():
         JSON: async message indicating the start of score processing
     """
     auth_header = request.headers.get("Authorization")
+    logger = current_app.logger
     if not auth_header:
         return jsonify({"error": "No token provided"}), 401
     try:

@@ -1,5 +1,4 @@
-from flask import Blueprint, jsonify, request
-from ..extensions import logger
+from flask import Blueprint, jsonify, request, current_app
 from postgrest.exceptions import APIError
 from ..services.supabase_service import get_supabase
 from ..utils.helpers import sanitize_input
@@ -25,6 +24,7 @@ def get_songs():
         JSON: Paginated list of songs and metadata.
     """
     supabase = get_supabase()
+    logger = current_app.logger
     try:
         page = max(1, request.args.get("page", 1, type=int))
         per_page = min(max(request.args.get("per_page", 20, type=int), 10), 100)

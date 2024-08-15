@@ -1,6 +1,5 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 import jwt
-from ..extensions import logger
 from ..services.supabase_service import get_supabase
 from ..config import Config
 
@@ -68,6 +67,7 @@ def get_users():
         JSON: list of user objects; ids, usernames, and avatars
     """
     supabase = get_supabase()
+    logger = current_app.logger
     try:
         result = supabase.table("users").select("id", "username", "avatar").execute()
         logger.info(f"Fetched users from database: {result.data}")
