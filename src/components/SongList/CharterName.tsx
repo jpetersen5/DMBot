@@ -10,6 +10,7 @@ interface CharterNameProps {
 // TODO: redirect to charter page on click
 const CharterName: React.FC<CharterNameProps> = memo(({ names }) => {
   const { charterCache } = useCharterData();
+  console.log(charterCache);
   const charters = names.split(",").map(name => name.trim());
 
   const onClick = (name: string) => {
