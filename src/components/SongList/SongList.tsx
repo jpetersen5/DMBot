@@ -21,7 +21,7 @@ const SongList: React.FC = () => {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("");
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
-  const { charterCache, isLoading: chartersLoading } = useCharterData();
+  const { isLoading: chartersLoading } = useCharterData();
 
   const totalPages = Math.ceil(totalSongs / perPage);
 
@@ -130,7 +130,6 @@ const SongList: React.FC = () => {
                 key={song.id} 
                 song={song} 
                 onClick={() => handleRowClick(song)}
-                charterCache={charterCache}
               />
             ))
           )}
@@ -170,15 +169,15 @@ const SongTableHeader: React.FC<SongTableHeaderProps> = ({ onClick, content, sor
 
 interface SongTableCellProps {
   content: string | null | undefined;
-  charterCache?: { [key: string]: string };
+  charter?: boolean;
 }
 
-const SongTableCell: React.FC<SongTableCellProps> = ({ content, charterCache }) => {
+const SongTableCell: React.FC<SongTableCellProps> = ({ content, charter }) => {
   if (content == null) {
     return <td></td>;
   }
-  if (charterCache) {
-    return <td><CharterName names={content} charterCache={charterCache} /></td>;
+  if (charter) {
+    return <td><CharterName names={content} /></td>;
   }
 
   const processedContent = typeof content === "string" 
@@ -191,10 +190,9 @@ const SongTableCell: React.FC<SongTableCellProps> = ({ content, charterCache }) 
 interface SongTableRowProps {
   song: Song;
   onClick: () => void;
-  charterCache: { [key: string]: string };
 }
 
-const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick, charterCache }) => (
+const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick }) => (
   <tr onClick={onClick} style={{ cursor: "pointer" }}>
     <SongTableCell content={song.name} />
     <SongTableCell content={song.artist} />
@@ -203,7 +201,7 @@ const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick, charterCache
     <SongTableCell content={song.genre} />
     <SongTableCell content={song.difficulty || "?"} />
     <SongTableCell content={song.song_length != null ? msToTime(song.song_length) : "??:??:??"} />
-    <SongTableCell content={song.charter_refs ? song.charter_refs.join(", ") : "Unknown Author"} charterCache={charterCache} />
+    <SongTableCell content={song.charter_refs ? song.charter_refs.join(", ") : "Unknown Author"} charter />
   </tr>
 );
 

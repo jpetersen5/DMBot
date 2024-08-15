@@ -1,14 +1,15 @@
 import React, { memo } from "react";
+import { useCharterData } from "../../context/CharterContext";
 import { renderSafeHTML } from "../../utils/safeHTML";
 import "./CharterName.scss";
 
 interface CharterNameProps {
   names: string;
-  charterCache: { [key: string]: string };
 }
 
 // TODO: redirect to charter page on click
-const CharterName: React.FC<CharterNameProps> = memo(({ names, charterCache }) => {
+const CharterName: React.FC<CharterNameProps> = memo(({ names }) => {
+  const { charterCache } = useCharterData();
   const charters = names.split(",").map(name => name.trim());
 
   const onClick = (name: string) => {

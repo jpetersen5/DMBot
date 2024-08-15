@@ -1,6 +1,6 @@
 import React from "react";
 import LoadingSpinner from "../Loading/LoadingSpinner";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "../../context/AuthContext";
 import { getUserImage } from "../../utils/user";
 import "./Auth.scss";
 

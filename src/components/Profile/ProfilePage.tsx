@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import ScoreUpload from "./ScoreUpload";
 import { getUserImage } from "../../utils/user";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "../../context/AuthContext";
 import { User } from "../../utils/user";
 import { API_URL } from "../../App";
 import "./ProfilePage.scss";

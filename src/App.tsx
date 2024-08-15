@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Homepage from "./components/Homepage";
 import ProfilePage from "./components/Profile/ProfilePage";
 import AuthHandler from "./components/Auth/AuthHandler";
-import { AuthProvider } from "./hooks/useAuth";
+import AppProvider from "./context/AppContext";
 import Login from "./components/Login/Login";
 import Sidebar from "./components/Sidebar/Sidebar";
 import SongList from "./components/SongList/SongList";
@@ -14,7 +14,7 @@ export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
+    <AppProvider>
       <Router basename="/DMBot">
         <div className="app-container">
           <Sidebar />
@@ -29,7 +29,7 @@ const App: React.FC = () => {
           </main>
         </div>
       </Router>
-    </AuthProvider>
+    </AppProvider>
   );
 };
 
