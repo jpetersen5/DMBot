@@ -1,35 +1,38 @@
-import { useCallback, useState } from "react";
+import { useEffect, useState } from "react";
 import { API_URL } from "../App";
 
-export const charterCache: { [key: string]: string } = {};
+interface Charter {
+  name: string;
+  colorized_name: string;
+}
 
 export const useCharterData = () => {
+  const [charterCache, setCharterCache] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchCharterData = useCallback(async (names: string[]) => {
-    const uncachedNames = names.filter(name => !charterCache[name]);
-    
-    if (uncachedNames.length === 0) return;
-
-    setIsLoading(true);
-    try {
-      const response = await fetch(`${API_URL}/api/charter-colors?names=${encodeURIComponent(uncachedNames.join(','))}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch charter data');
+  useEffect(() => {
+    const fetchAllCharterData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/api/all-charter-colors`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch charter data");
+        }
+        const data: Charter[] = await response.json();
+        const newCache = data.reduce((acc, charter) => {
+          acc[charter.name] = charter.colorized_name;
+          return acc;
+        }, {} as { [key: string]: string });
+        setCharterCache(newCache);
+      } catch (err) {
+        console.error("Error fetching charter data:", err);
+      } finally {
+        setIsLoading(false);
       }
-      const data = await response.json();
-      Object.entries(data).forEach(([name, colorizedName]) => {
-        charterCache[name] = colorizedName as string;
-      });
-    } catch (err) {
-      Object.entries(uncachedNames).forEach(([name]) => {
-        charterCache[name] = name;
-      }); // fallback to original name
-      console.error('Error fetching charter data');
-    } finally {
-      setIsLoading(false);
-    }
+    };
+
+    fetchAllCharterData();
   }, []);
 
-  return { fetchCharterData, isLoading };
+  return { charterCache, isLoading };
 };

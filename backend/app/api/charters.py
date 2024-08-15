@@ -5,8 +5,28 @@ from ..utils.helpers import sanitize_input
 
 bp = Blueprint("charters", __name__)
 
+@bp.route("/api/all-charter-colors", methods=["GET"])
+def get_all_charters_colors():
+    """
+    retrieves all charters with colorized names
+
+    returns:
+        JSON: list of charters with their colorized names
+    """
+    supabase = get_supabase()
+    try:
+        query = supabase.table("charters").select("name", "colorized_name").not_.is_("colorized_name", "null")
+        response = query.execute()
+        
+        charters_data = [{"name": charter["name"], "colorized_name": charter["colorized_name"]} for charter in response.data]
+        
+        return jsonify(charters_data), 200
+    except Exception as e:
+        logger.error(f"Error fetching charter data: {str(e)}")
+        return jsonify({"error": "An error occurred while fetching charter data"}), 500
+
 @bp.route("/api/charter-colors", methods=["GET"])
-def get_charters():
+def get_charters_colors():
     """
     retrieves colorized names for a list of charters
 
