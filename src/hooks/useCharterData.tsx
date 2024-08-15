@@ -1,37 +1,31 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "../App";
 
-interface Charter {
-  name: string;
-  colorized_name: string;
+interface CharterCache {
+  [key: string]: string;
 }
 
 export const useCharterData = () => {
-  const [charterCache, setCharterCache] = useState<{ [key: string]: string }>({});
+  const [charterCache, setCharterCache] = useState<CharterCache>({});
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const fetchAllCharterData = async () => {
-      setIsLoading(true);
+    const fetchAllCharterColors = async () => {
       try {
         const response = await fetch(`${API_URL}/api/all-charter-colors`);
         if (!response.ok) {
-          throw new Error("Failed to fetch charter data");
+          throw new Error("Failed to fetch charter colors");
         }
-        const data: Charter[] = await response.json();
-        const newCache = data.reduce((acc, charter) => {
-          acc[charter.name] = charter.colorized_name;
-          return acc;
-        }, {} as { [key: string]: string });
-        setCharterCache(newCache);
-      } catch (err) {
-        console.error("Error fetching charter data:", err);
+        const data = await response.json();
+        setCharterCache(data);
+      } catch (error) {
+        console.error("Error fetching charter colors:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchAllCharterData();
+    fetchAllCharterColors();
   }, []);
 
   return { charterCache, isLoading };
