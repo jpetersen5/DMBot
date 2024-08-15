@@ -1,28 +1,26 @@
 .charter-name {
-  p {
-    button {
-      border: none;
-      background-color: transparent;
-      border-radius: 4px;
-      padding: 2px 4px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-      transition: transform 0.3s;
+  button {
+    border: none;
+    background-color: transparent;
+    border-radius: 4px;
+    padding: 2px 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    transition: transform 0.3s;
 
-      &:hover {
-        background-color: #d0d0d0;
-      }
+    &:hover {
+      background-color: #d0d0d0;
+    }
 
-      &.active {
-        background-color: #a0a0a0;
-        transform: scale(0.95);
-      }
+    &.active {
+      background-color: #a0a0a0;
+      transform: scale(0.95);
+    }
 
-      &:disabled {
-        background-color: #888;
-        color: #404040;
-        cursor: not-allowed;
-      }
+    &:disabled {
+      background-color: #888;
+      color: #404040;
+      cursor: not-allowed;
     }
   }
 }
