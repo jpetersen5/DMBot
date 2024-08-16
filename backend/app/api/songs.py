@@ -157,7 +157,7 @@ def get_songs():
         query = supabase.table("songs").select("*", count="exact")
         
         if search and filter_field:
-            query = query.ilike(filter_field, f"%{search}%")
+            query = query.filter(f"{filter_field}.ilike.%{search}%")
         elif search:
             query = query.or_(f"name.ilike.%{search}%,artist.ilike.%{search}%,album.ilike.%{search}%")
 
