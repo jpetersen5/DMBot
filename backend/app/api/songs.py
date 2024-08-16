@@ -67,12 +67,14 @@ def get_songs():
                 query = query.ilike(filter_field, f"%{search}%")
             else:
                 search_fields = ["name", "artist", "album", "year", "genre"]
-                or_conditions = [f"{field}.ilike.%{search}%" for field in search_fields]
+                #or_conditions = [f"{field}.ilike.%{search}%" for field in search_fields]
+                or_conditions = [f"textSearch({field}, '{search}')" for field in search_fields]
                 charters_query = supabase.table("charters").select("name").ilike("name", f"%{search_lower}%")
                 charters_response = charters_query.execute()
                 matching_charters = [charter["name"] for charter in charters_response.data]
                 if matching_charters:
-                    or_conditions.append(f"charter_refs.cs.{{{','.join(matching_charters)}}}")
+                    charter_conditions = [f"charter_refs.cs.{{'{charter}'}}" for charter in matching_charters]
+                    query = query.or_(",".join(charter_conditions))
                 
                 query = query.or_(",".join(or_conditions))
 
