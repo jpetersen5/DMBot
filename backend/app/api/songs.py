@@ -161,7 +161,7 @@ def get_songs():
         elif search:
             query = query.or_(f"name.ilike.%{search}%,artist.ilike.%{search}%,album.ilike.%{search}%")
 
-        logger.info(f"Constructed query: {query._builder.query}")
+        logger.info(f"Constructed query: {query}")
 
         try:
             count_response = query.execute()
@@ -173,7 +173,7 @@ def get_songs():
 
         query = query.order(sort_by, desc=(sort_order == "desc")).range(start, end)
         
-        logger.info(f"Final query: {query._builder.query}")
+        logger.info(f"Final query: {query}")
 
         try:
             response = query.execute()
