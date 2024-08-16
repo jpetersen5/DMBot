@@ -12,10 +12,6 @@ const CharterName: React.FC<CharterNameProps> = memo(({ names }) => {
   const { charterCache } = useCharterData();
   const charters = names.split(",").map(name => name.trim());
 
-  charters.map((name) => {
-    console.log(charterCache[name]);
-  });
-
   const onClick = (name: string) => {
     console.log("Charter name clicked:", name);
   };

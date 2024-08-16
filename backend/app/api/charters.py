@@ -18,7 +18,7 @@ def get_all_charters_colors():
         query = supabase.table("charters").select("name", "colorized_name").not_.is_("colorized_name", "null")
         response = query.execute()
         
-        charters_data = [{"name": charter["name"], "colorized_name": charter["colorized_name"]} for charter in response.data]
+        charters_data = {charter["name"]: charter["colorized_name"] for charter in response.data}
         
         return jsonify(charters_data), 200
     except Exception as e:

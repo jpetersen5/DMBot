@@ -24,7 +24,7 @@ const CharterProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         if (!response.ok) {
           throw new Error("Failed to fetch charter colors");
         }
-        const data = await response.json();
+        const data: CharterCache = await response.json();
         setCharterCache(data);
       } catch (error) {
         console.error("Error fetching charter colors:", error);
