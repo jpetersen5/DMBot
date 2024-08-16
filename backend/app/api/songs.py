@@ -70,6 +70,7 @@ def get_songs():
                 #or_conditions = [f"{field}.ilike.%{search}%" for field in search_fields]
                 or_conditions = [f"textSearch({field}, '{search}')" for field in search_fields]
                 charters_query = supabase.table("charters").select("name").ilike("name", f"%{search_lower}%")
+                logger.info(f"Searching for charters matching: {search_lower}")
                 charters_response = charters_query.execute()
                 matching_charters = [charter["name"] for charter in charters_response.data]
                 if matching_charters:
@@ -79,6 +80,7 @@ def get_songs():
                 query = query.or_(",".join(or_conditions))
 
         try:
+            logger.info("Executing count query")
             count_response = query.execute()
             total_songs = count_response.count
         except APIError as e:
@@ -88,6 +90,7 @@ def get_songs():
         query = query.order(sort_by, desc=(sort_order == "desc")).range(start, end)
         
         try:
+            logger.info("Executing main query")
             response = query.execute()
             songs: list[dict] = response.data
         except APIError as e:
