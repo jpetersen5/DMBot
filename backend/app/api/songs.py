@@ -76,12 +76,21 @@ def get_songs():
                 
                 query = query.or_(",".join(or_conditions))
 
-        count_response = query.execute()
-        total_songs = count_response.count
+        try:
+            count_response = query.execute()
+            total_songs = count_response.count
+        except APIError as e:
+            logger.error(f"Error executing count query: {str(e)}")
+            total_songs = 0
 
         query = query.order(sort_by, desc=(sort_order == "desc")).range(start, end)
-        response = query.execute()
-        songs: list[dict] = response.data
+        
+        try:
+            response = query.execute()
+            songs: list[dict] = response.data
+        except APIError as e:
+            logger.error(f"Error executing main query: {str(e)}")
+            songs: list[dict] = []
 
         charter_names = set()
         for song in songs:
@@ -90,9 +99,16 @@ def get_songs():
             else:
                 logger.warning(f"Song {song.get('id', 'unknown')} has no charter_refs")
 
-        charters_query = supabase.table("charters").select("name", "colorized_name").in_("name", list(charter_names))
-        charters_response = charters_query.execute()
-        charters_data = {charter["name"]: charter["colorized_name"] for charter in charters_response.data if charter["colorized_name"]}
+        if charter_names:
+            try:
+                charters_query = supabase.table("charters").select("name", "colorized_name").in_("name", list(charter_names))
+                charters_response = charters_query.execute()
+                charters_data = {charter["name"]: charter["colorized_name"] for charter in charters_response.data if charter["colorized_name"]}
+            except APIError as e:
+                logger.error(f"Error fetching charter data: {str(e)}")
+                charters_data = {}
+        else:
+            charters_data = {}
 
         for song in songs:
             if song.get("charter_refs"):
