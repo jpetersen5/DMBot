@@ -149,39 +149,51 @@ def get_songs():
         search = sanitize_input(request.args.get("search", ""))
         filter_field = sanitize_input(request.args.get("filter", ""))
 
-        start = (page - 1) * per_page
-        end = start + per_page - 1
+        offset = (page - 1) * per_page
 
-        logger.info(f"Querying songs with parameters: page={page}, per_page={per_page}, sort_by={sort_by}, sort_order={sort_order}, search={search}, filter={filter_field}")
+        sql_query = f"""
+        SELECT *
+        FROM songs
+        WHERE 1=1
+        """
 
-        query = supabase.table("songs").select("*", count="exact")
-        
+        params = {}
         if search and filter_field:
-            query = query.filter(filter_field, "ilike", f"%{search}%")
-        elif search:
-            query = query.or_(f"name.ilike.%{search}%,artist.ilike.%{search}%,album.ilike.%{search}%")
+            sql_query += f" AND {filter_field} ILIKE :search"
+            params['search'] = f"%{search}%"
 
-        logger.info(f"Constructed query: {query}")
+        sql_query += f"""
+        ORDER BY {sort_by} {sort_order}
+        LIMIT :limit OFFSET :offset
+        """
+        params['limit'] = per_page
+        params['offset'] = offset
+
+        logger.info(f"Executing SQL query: {sql_query}")
+        logger.info(f"Query params: {params}")
 
         try:
-            count_response = query.execute()
-            total_songs = count_response.count
-            logger.info(f"Count query successful. Total songs: {total_songs}")
-        except APIError as e:
+            response = supabase.raw(sql_query, params).execute()
+            songs = response.data
+            logger.info(f"Query successful. Retrieved {len(songs)} songs")
+        except Exception as e:
+            logger.error(f"Error executing query: {str(e)}")
+            songs = []
+
+        count_query = f"""
+        SELECT COUNT(*) as total
+        FROM songs
+        WHERE 1=1
+        """
+        if search and filter_field:
+            count_query += f" AND {filter_field} ILIKE :search"
+
+        try:
+            count_response = supabase.raw(count_query, params).execute()
+            total_songs = count_response.data[0]['total']
+        except Exception as e:
             logger.error(f"Error executing count query: {str(e)}")
             total_songs = 0
-
-        query = query.order(sort_by, desc=(sort_order == "desc")).range(start, end)
-        
-        logger.info(f"Final query: {query}")
-
-        try:
-            response = query.execute()
-            songs = response.data
-            logger.info(f"Main query successful. Retrieved {len(songs)} songs")
-        except APIError as e:
-            logger.error(f"Error executing main query: {str(e)}")
-            songs = []
 
         return jsonify({
             "songs": songs,
