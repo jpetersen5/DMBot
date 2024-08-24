@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, current_app
-from postgrest.exceptions import APIError
+from typing import Any, Dict, List, Optional
 from ..services.supabase_service import get_supabase
 from ..utils.helpers import sanitize_input
 
@@ -140,72 +140,54 @@ ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "difficulty", "cha
 @bp.route("/api/songs", methods=["GET"])
 def get_songs():
     supabase = get_supabase()
-    logger = current_app.logger
-    try:
-        page = max(1, request.args.get("page", 1, type=int))
-        per_page = min(max(request.args.get("per_page", 20, type=int), 10), 100)
-        sort_by = sanitize_input(request.args.get("sort_by", "name"))
-        sort_order = "desc" if request.args.get("sort_order", "asc").lower() == "desc" else "asc"
-        search = sanitize_input(request.args.get("search", ""))
-        filter_field = sanitize_input(request.args.get("filter", ""))
+    
+    page: int = max(1, int(request.args.get("page", 1)))
+    per_page: int = max(10, min(100, int(request.args.get("per_page", 20))))
+    sort_by: str = sanitize_input(request.args.get("sort_by", "name"))
+    sort_order: str = request.args.get("sort_order", "asc").lower()
+    search: Optional[str] = request.args.get("search")
+    filter: Optional[str] = request.args.get("filter")
 
-        offset = (page - 1) * per_page
+    if sort_order not in ["asc", "desc"]:
+        sort_order = "asc"
 
-        sql_query = f"""
-        SELECT *
-        FROM songs
-        WHERE 1=1
-        """
+    query = supabase.table("songs").select("artist", "name", "album", "track", "year", "genre", "difficulty", "song_length", "charter_refs", count="exact")
 
-        params = {}
-        if search and filter_field:
-            sql_query += f" AND {filter_field} ILIKE :search"
-            params['search'] = f"%{search}%"
+    if search:
+        search = sanitize_input(search)
+        if filter:
+            filter = sanitize_input(filter)
+            if filter == "charter":
+                query = query.filter("charter_refs", "cs", f"%{search}%")
+            elif filter in ["name", "artist", "album", "year", "genre"]:
+                query = query.ilike(filter, f"%{search}%")
+        else:
+            query = query.or_(
+                f"name.ilike.%{search}%",
+                f"artist.ilike.%{search}%",
+                f"album.ilike.%{search}%",
+                f"year.ilike.%{search}%",
+                f"genre.ilike.%{search}%",
+                f"charter_refs.cs.%{search}%"
+            )
 
-        sql_query += f"""
-        ORDER BY {sort_by} {sort_order}
-        LIMIT :limit OFFSET :offset
-        """
-        params['limit'] = per_page
-        params['offset'] = offset
+    total_songs = query.execute().count
 
-        logger.info(f"Executing SQL query: {sql_query}")
-        logger.info(f"Query params: {params}")
+    query = query.order(sort_by, desc=(sort_order == "desc"))
+    query = query.range((page - 1) * per_page, page * per_page - 1)
 
-        try:
-            response = supabase.raw(sql_query, params).execute()
-            songs = response.data
-            logger.info(f"Query successful. Retrieved {len(songs)} songs")
-        except Exception as e:
-            logger.error(f"Error executing query: {str(e)}")
-            songs = []
+    result = query.execute()
 
-        count_query = f"""
-        SELECT COUNT(*) as total
-        FROM songs
-        WHERE 1=1
-        """
-        if search and filter_field:
-            count_query += f" AND {filter_field} ILIKE :search"
+    songs: List[Dict[str, Any]] = result.data
 
-        try:
-            count_response = supabase.raw(count_query, params).execute()
-            total_songs = count_response.data[0]['total']
-        except Exception as e:
-            logger.error(f"Error executing count query: {str(e)}")
-            total_songs = 0
-
-        return jsonify({
-            "songs": songs,
-            "total": total_songs,
-            "page": page,
-            "per_page": per_page,
-            "sort_by": sort_by,
-            "sort_order": sort_order
-        }), 200
-    except Exception as e:
-        logger.exception("An unexpected error occurred")
-        return jsonify({"error": str(e)}), 500
+    return jsonify({
+        "songs": songs,
+        "total": total_songs,
+        "page": page,
+        "per_page": per_page,
+        "sort_by": sort_by,
+        "sort_order": sort_order
+    })
 
 @bp.route("/api/related-songs", methods=["GET"])
 def get_related_songs():
