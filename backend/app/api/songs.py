@@ -162,11 +162,14 @@ def get_songs():
             elif filter in ["name", "artist", "album", "year", "genre"]:
                 query = query.ilike(filter, f"%{search}%")
         else:
-            query = query.or_(f"name.ilike.%{search}%")
-            query = query.or_(f"artist.ilike.%{search}%")
-            query = query.or_(f"album.ilike.%{search}%")
-            query = query.or_(f"year.ilike.%{search}%")
-            query = query.or_(f"genre.ilike.%{search}%")
+            query = query.or_(
+                f"name.ilike.%{search}%,"
+                f"artist.ilike.%{search}%,"
+                f"album.ilike.%{search}%,"
+                f"year.ilike.%{search}%,"
+                f"genre.ilike.%{search}%,"
+                f"charter_refs.cs.%{search}%"
+            )
 
     total_songs = query.execute().count
 
