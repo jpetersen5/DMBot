@@ -164,19 +164,7 @@ def get_songs():
                 matching_charters = [charter["name"] for charter in charters_response.data]
                 
                 if matching_charters:
-                    logger.info(f"Found matching charters: {matching_charters}")
-                    or_conditions = [f"charter_refs.cs.{{'{charter}'}}" for charter in matching_charters]
-                    logger.info(f"Or conditions: {or_conditions}")
-                    query = query.or_(",".join(or_conditions))
-                else:
-                    return jsonify({
-                        "songs": [],
-                        "total": 0,
-                        "page": page,
-                        "per_page": per_page,
-                        "sort_by": sort_by,
-                        "sort_order": sort_order
-                    }), 200
+                    query = query.filter("charter_refs", "overlaps", matching_charters)
             elif filter in ["name", "artist", "album", "year", "genre"]:
                 query = query.ilike(filter, f"*{search}*")
         else:
@@ -186,8 +174,7 @@ def get_songs():
             charters_response = charters_query.execute()
             matching_charters = [charter["name"] for charter in charters_response.data]
             if matching_charters:
-                or_conditions = [f"charter_refs.cs.{{'{charter}'}}" for charter in matching_charters]
-                query = query.or_(",".join(or_conditions))
+                    query = query.filter("charter_refs", "overlaps", matching_charters)
             
             query = query.or_(",".join(or_conditions))
 
