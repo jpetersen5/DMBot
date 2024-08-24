@@ -159,20 +159,35 @@ def get_songs():
         if filter:
             filter = sanitize_input(filter)
             if filter == "charter":
-                query = query.filter("charter_refs", "cs", f"{{%{search}%}}")
+                charters_query = supabase.table("charters").select("name").ilike("name", f"%{search}%")
+                charters_response = charters_query.execute()
+                matching_charters = [charter["name"] for charter in charters_response.data]
+                
+                for charter in matching_charters:
+                    query = query.contains("charter_refs", [charter])
+                else:
+                    return jsonify({
+                        "songs": [],
+                        "total": 0,
+                        "page": page,
+                        "per_page": per_page,
+                        "sort_by": sort_by,
+                        "sort_order": sort_order
+                    }), 200
             elif filter in ["name", "artist", "album", "year", "genre"]:
-                logger.info(f"Filtering by {filter} with search term {search}")
-                query = query.filter(filter, "ilike", f"%{search}%")
+                query = query.ilike(filter, f"%{search}%")
         else:
-            query = query.or_(
-                f"name.ilike.%{search}%,"
-                f"artist.ilike.%{search}%,"
-                f"album.ilike.%{search}%,"
-                f"year.ilike.%{search}%,"
-                f"genre.ilike.%{search}%,"
-                f"charter_refs.cs.{{%{search}%}}"
-            )
+            search_fields = ["name", "artist", "album", "year", "genre"]
+            or_conditions = [f"{field}.ilike.%{search}%" for field in search_fields]
+            charters_query = supabase.table("charters").select("name").ilike("name", f"%{search}%")
+            charters_response = charters_query.execute()
+            matching_charters = [charter["name"] for charter in charters_response.data]
+            for charter in matching_charters:
+                or_conditions.append(f"charter_refs.cs.{{'{charter}'}}")
+            
+            query = query.or_(",".join(or_conditions))
 
+    logger.info(f"Querying songs with query: {query.to_dict()}")
     total_songs = query.execute().count
 
     query = query.order(sort_by, desc=(sort_order == "desc"))
