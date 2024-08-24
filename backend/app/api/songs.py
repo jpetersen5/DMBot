@@ -165,7 +165,7 @@ def get_songs():
             query = query.or_(f"name.ilike.%{search}%")
             query = query.or_(f"artist.ilike.%{search}%")
             query = query.or_(f"album.ilike.%{search}%")
-            query = query.or_(f"year::text.ilike.%{search}%")
+            query = query.or_(f"year.ilike.%{search}%")
             query = query.or_(f"genre.ilike.%{search}%")
 
     total_songs = query.execute().count
