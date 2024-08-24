@@ -140,6 +140,7 @@ ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "difficulty", "cha
 @bp.route("/api/songs", methods=["GET"])
 def get_songs():
     supabase = get_supabase()
+    logger = current_app.logger
     
     page: int = max(1, int(request.args.get("page", 1)))
     per_page: int = max(10, min(100, int(request.args.get("per_page", 20))))
@@ -162,14 +163,17 @@ def get_songs():
             elif filter in ["name", "artist", "album", "year", "genre"]:
                 query = query.ilike(filter, f"%{search}%")
         else:
-            query = query.or_(
-                f"name.ilike.%{search}%,"
-                f"artist.ilike.%{search}%,"
-                f"album.ilike.%{search}%,"
-                f"year.ilike.%{search}%,"
-                f"genre.ilike.%{search}%,"
+            or_conditions = [
+                f"name.ilike.%{search}%",
+                f"artist.ilike.%{search}%",
+                f"album.ilike.%{search}%",
+                f"year.ilike.%{search}%",
+                f"genre.ilike.%{search}%",
                 f"charter_refs.cs.%{search}%"
-            )
+            ]
+            logger.info(f"{','.join(or_conditions)}")
+            query = query.or_(f"{','.join(or_conditions)}")
+
 
     total_songs = query.execute().count
 
