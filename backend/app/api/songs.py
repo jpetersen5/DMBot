@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request, current_app
 from typing import Any, Dict, List, Optional
+from postgrest.base_request_builder import BaseFilterRequestBuilder
 from ..services.supabase_service import get_supabase
 from ..utils.helpers import sanitize_input
 
@@ -164,10 +165,8 @@ def get_songs():
                 matching_charters = [charter["name"] for charter in charters_response.data]
                 
                 if matching_charters:
-                    query = query.rpc(
-                        "array_has_overlap", 
-                        {"array1": "charter_refs", "array2": matching_charters}
-                    )
+                    charters_array = "ARRAY[" + ",".join(f"'{charter}'" for charter in matching_charters) + "]"
+                    query = query.filter(f"array_has_overlap(charter_refs, {charters_array})", BaseFilterRequestBuilder.FilterType.RAW)
                 
             elif filter in ["name", "artist", "album", "year", "genre"]:
                 query = query.ilike(filter, f"*{search}*")
@@ -179,10 +178,8 @@ def get_songs():
             matching_charters = [charter["name"] for charter in charters_response.data]
             
             # if matching_charters:
-            #     query = query.rpc(
-            #         "array_has_overlap", 
-            #         {"array1": "charter_refs", "array2": matching_charters}
-            #     )
+            #     charters_array = "ARRAY[" + ",".join(f"'{charter}'" for charter in matching_charters) + "]"
+            #     query = query.filter(f"array_has_overlap(charter_refs, {charters_array})")
             
             query = query.or_(",".join(or_conditions))
 
