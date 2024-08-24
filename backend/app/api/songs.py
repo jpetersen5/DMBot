@@ -164,8 +164,10 @@ def get_songs():
                 matching_charters = [charter["name"] for charter in charters_response.data]
                 
                 if matching_charters:
-                    charters_array = "ARRAY[" + ",".join(f"'{charter}'" for charter in matching_charters) + "]"
-                    query = query.filter(f"array_has_overlap(charter_refs, {charters_array})")
+                    query = query.rpc(
+                        "array_has_overlap", 
+                        {"array1": "charter_refs", "array2": matching_charters}
+                    )
                 
             elif filter in ["name", "artist", "album", "year", "genre"]:
                 query = query.ilike(filter, f"*{search}*")
@@ -176,9 +178,11 @@ def get_songs():
             charters_response = charters_query.execute()
             matching_charters = [charter["name"] for charter in charters_response.data]
             
-            if matching_charters:
-                charters_array = "ARRAY[" + ",".join(f"'{charter}'" for charter in matching_charters) + "]"
-                query = query.filter(f"array_has_overlap(charter_refs, {charters_array})")
+            # if matching_charters:
+            #     query = query.rpc(
+            #         "array_has_overlap", 
+            #         {"array1": "charter_refs", "array2": matching_charters}
+            #     )
             
             query = query.or_(",".join(or_conditions))
 
