@@ -165,23 +165,32 @@ def get_songs():
                 matching_charters = [charter["name"] for charter in charters_response.data]
                 
                 if matching_charters:
-                    charter_condition = f"charter_refs.ov.{{{','.join(repr(charter) for charter in matching_charters)}}}"
-                    logger.info(f"Charter condition: {charter_condition}")
-                    query = query.or_(charter_condition)
+                    charter_array = "ARRAY[" + ",".join(f"'{charter}'" for charter in matching_charters) + "]"
+                    raw_query = f"""
+                        SELECT artist, name, album, track, year, genre, difficulty, song_length, charter_refs
+                        FROM songs
+                        WHERE charter_refs && {charter_array}
+                        ORDER BY {sort_by} {sort_order}
+                    """
+                    total_songs = supabase.rpc("songs", {"q": raw_query}).execute().count
+                    raw_query += f" OFFSET {per_page * (page - 1)} LIMIT {per_page}"
+                    result = supabase.rpc("songs", {"q": raw_query}).execute()
+                    songs: List[Dict[str, Any]] = result.data
+
+                    return jsonify({
+                        "songs": songs,
+                        "total": total_songs,
+                        "page": page,
+                        "per_page": per_page,
+                        "sort_by": sort_by,
+                        "sort_order": sort_order
+                    })
                 
             elif filter in ["name", "artist", "album", "year", "genre"]:
                 query = query.ilike(filter, f"*{search}*")
         else:
             search_fields = ["name", "artist", "album", "year", "genre"]
             or_conditions = [f"{field}.ilike.%{search}%" for field in search_fields]
-            charters_query = (supabase.table("charters").select("name").or_(f"name.ilike.%{search}%"))
-            charters_response = charters_query.execute()
-            matching_charters = [charter["name"] for charter in charters_response.data]
-            
-            if matching_charters:
-                quoted_charters = ",".join(f'"{charter}"' for charter in matching_charters)
-                charter_condition = f"charter_refs.cs.{{{quoted_charters}}}"
-                or_conditions.append(charter_condition)
             
             query = query.or_(",".join(or_conditions))
 
