@@ -162,11 +162,11 @@ def get_songs():
                 charters_query = (supabase.table("charters").select("name").ilike("name", f"*{search}*"))
                 charters_response = charters_query.execute()
                 matching_charters = [charter["name"] for charter in charters_response.data]
-                logger.info(f"Matching charters: {matching_charters}")
+                
                 if matching_charters:
                     or_conditions = []
                     for charter in matching_charters:
-                        or_conditions.append(f"charter_refs.cs.{{'{charter}'}}")
+                        or_conditions.append(f"charter_refs.cs.{{'%{charter}%'}}")
                     query = query.or_(",".join(or_conditions))
                 else:
                     return jsonify({
@@ -186,7 +186,7 @@ def get_songs():
             charters_response = charters_query.execute()
             matching_charters = [charter["name"] for charter in charters_response.data]
             for charter in matching_charters:
-                or_conditions.append(f"charter_refs.cs.{{'{charter}'}}")
+                or_conditions.append(f"charter_refs.cs.{{'%{charter}%'}}")
             
             query = query.or_(",".join(or_conditions))
 
