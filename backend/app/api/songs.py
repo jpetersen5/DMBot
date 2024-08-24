@@ -159,12 +159,15 @@ def get_songs():
         if filter:
             filter = sanitize_input(filter)
             if filter == "charter":
-                charters_query = (supabase.table("charters").select("name").filter("name", "ilike", f"%{search}%"))
+                charters_query = (supabase.table("charters").select("name").or_(f"name.ilike.%{search}%"))
                 charters_response = charters_query.execute()
                 matching_charters = [charter["name"] for charter in charters_response.data]
                 
-                for charter in matching_charters:
-                    query = query.contains("charter_refs", [charter])
+                if matching_charters:
+                    or_conditions = []
+                    for charter in matching_charters:
+                        or_conditions.append(f"charter_refs.cs.{{'{charter}'}}")
+                    query = query.or_(",".join(or_conditions))
                 else:
                     return jsonify({
                         "songs": [],
@@ -175,13 +178,11 @@ def get_songs():
                         "sort_order": sort_order
                     }), 200
             elif filter in ["name", "artist", "album", "year", "genre"]:
-                query = query.filter(filter, "ilike", f"%{search}%")
+                query = query.or_(f"{filter}.ilike.%{search}%")
         else:
             search_fields = ["name", "artist", "album", "year", "genre"]
             or_conditions = [f"{field}.ilike.%{search}%" for field in search_fields]
-            test_query = supabase.table("charters").select("*").ilike("name", f"%blood%").execute()
-            logger.info(test_query)
-            charters_query = (supabase.table("charters").select("name").filter("name", "ilike", f"%{search}%"))
+            charters_query = (supabase.table("charters").select("name").or_(f"name.ilike.%{search}%"))
             charters_response = charters_query.execute()
             matching_charters = [charter["name"] for charter in charters_response.data]
             for charter in matching_charters:
