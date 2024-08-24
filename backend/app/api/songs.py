@@ -165,7 +165,7 @@ def get_songs():
                 matching_charters = [charter["name"] for charter in charters_response.data]
                 
                 if matching_charters:
-                    charter_array = '"{\'' + "\',\'".join(matching_charters) + '\'}"'
+                    charter_array = "{" + ",".join(f'"{charter}"' for charter in matching_charters) + "}"
                     query = query.filter("charter_refs", "cs", charter_array)
                 
             elif filter in ["name", "artist", "album", "year", "genre"]:
