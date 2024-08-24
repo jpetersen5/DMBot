@@ -164,7 +164,7 @@ def get_songs():
                 matching_charters = [charter["name"] for charter in charters_response.data]
                 
                 if matching_charters:
-                    query = query.filter("charter_refs", "overlaps", matching_charters)
+                    query = query.filter("charter_refs", "cs", "{" + ",".join(matching_charters) + "}")
             elif filter in ["name", "artist", "album", "year", "genre"]:
                 query = query.ilike(filter, f"*{search}*")
         else:
@@ -174,7 +174,7 @@ def get_songs():
             charters_response = charters_query.execute()
             matching_charters = [charter["name"] for charter in charters_response.data]
             if matching_charters:
-                    query = query.filter("charter_refs", "overlaps", matching_charters)
+                query = query.filter("charter_refs", "cs", "{" + ",".join(matching_charters) + "}")
             
             query = query.or_(",".join(or_conditions))
 
