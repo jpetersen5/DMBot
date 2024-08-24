@@ -165,8 +165,8 @@ def get_songs():
                 matching_charters = [charter["name"] for charter in charters_response.data]
                 
                 if matching_charters:
-                    charters_array = "ARRAY[" + ",".join(f"'{charter}'" for charter in matching_charters) + "]"
-                    query = query.filter(f"array_has_overlap(charter_refs, {charters_array})", BaseFilterRequestBuilder.FilterType.RAW)
+                    charter_condition = f"charter_refs.cs.{{{','.join(f'\\"{charter}\\"' for charter in matching_charters)}}}"
+                    query = query.or_(charter_condition)
                 
             elif filter in ["name", "artist", "album", "year", "genre"]:
                 query = query.ilike(filter, f"*{search}*")
@@ -177,9 +177,9 @@ def get_songs():
             charters_response = charters_query.execute()
             matching_charters = [charter["name"] for charter in charters_response.data]
             
-            # if matching_charters:
-            #     charters_array = "ARRAY[" + ",".join(f"'{charter}'" for charter in matching_charters) + "]"
-            #     query = query.filter(f"array_has_overlap(charter_refs, {charters_array})")
+            if matching_charters:
+                charter_condition = f"charter_refs.cs.{{{','.join(f'\\"{charter}\\"' for charter in matching_charters)}}}"
+                or_conditions.append(charter_condition)
             
             query = query.or_(",".join(or_conditions))
 
