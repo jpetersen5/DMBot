@@ -165,7 +165,7 @@ def get_songs():
                 
                 if matching_charters:
                     for charter in matching_charters:
-                        query = query.contains("charter_refs", [charter])
+                        query = query.filter("charter_refs", "cs", "{*" + charter + "*}")
                 else:
                     return jsonify({
                         "songs": [],
@@ -185,7 +185,7 @@ def get_songs():
             matching_charters = [charter["name"] for charter in charters_response.data]
             if matching_charters:
                     for charter in matching_charters:
-                        query = query.contains("charter_refs", [charter])
+                        query = query.filter("charter_refs", "cs", "{*" + charter + "*}")
             
             query = query.or_(",".join(or_conditions))
 
