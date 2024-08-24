@@ -165,9 +165,8 @@ def get_songs():
                 matching_charters = [charter["name"] for charter in charters_response.data]
                 
                 if matching_charters:
-                    charter_conditions = [f"charter_refs.cs.{{\\{charter}\\}}" for charter in matching_charters]
-                    or_condition = ",".join(charter_conditions)
-                    query = query.or_(or_condition)
+                    charter_array = '"{\'' + "\',\'".join(matching_charters) + '\'}"'
+                    query = query.filter("charter_refs", "cs", charter_array)
                 
             elif filter in ["name", "artist", "album", "year", "genre"]:
                 query = query.ilike(filter, f"*{search}*")
