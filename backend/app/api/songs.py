@@ -178,7 +178,7 @@ def get_songs():
                         "sort_order": sort_order
                     }), 200
             elif filter in ["name", "artist", "album", "year", "genre"]:
-                query = query.or_(f"{filter}.ilike.%{search}%")
+                query = query.ilike(filter, f"*{search}*")
         else:
             search_fields = ["name", "artist", "album", "year", "genre"]
             or_conditions = [f"{field}.ilike.%{search}%" for field in search_fields]
