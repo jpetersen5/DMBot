@@ -159,7 +159,7 @@ def get_songs():
         if filter:
             filter = sanitize_input(filter)
             if filter == "charter":
-                charters_query = supabase.table("charters").select("name").ilike("name", f"%{search}%")
+                charters_query = (supabase.table("charters").select("name").filter("name", "ilike", f"%{search}%"))
                 charters_response = charters_query.execute()
                 matching_charters = [charter["name"] for charter in charters_response.data]
                 
@@ -179,7 +179,7 @@ def get_songs():
         else:
             search_fields = ["name", "artist", "album", "year", "genre"]
             or_conditions = [f"{field}.ilike.%{search}%" for field in search_fields]
-            charters_query = supabase.table("charters").select("name").ilike("name", f"%{search}%")
+            charters_query = (supabase.table("charters").select("name").filter("name", "ilike", f"%{search}%"))
             charters_response = charters_query.execute()
             matching_charters = [charter["name"] for charter in charters_response.data]
             for charter in matching_charters:
