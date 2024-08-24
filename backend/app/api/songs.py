@@ -165,7 +165,8 @@ def get_songs():
                 matching_charters = [charter["name"] for charter in charters_response.data]
                 
                 if matching_charters:
-                    charter_condition = f"charter_refs.cs.{{{','.join(f'\\"{charter}\\"' for charter in matching_charters)}}}"
+                    quoted_charters = ",".join(f'"{charter}"' for charter in matching_charters)
+                    charter_condition = f"charter_refs.cs.{{{quoted_charters}}}"
                     query = query.or_(charter_condition)
                 
             elif filter in ["name", "artist", "album", "year", "genre"]:
@@ -178,7 +179,8 @@ def get_songs():
             matching_charters = [charter["name"] for charter in charters_response.data]
             
             if matching_charters:
-                charter_condition = f"charter_refs.cs.{{{','.join(f'\\"{charter}\\"' for charter in matching_charters)}}}"
+                quoted_charters = ",".join(f'"{charter}"' for charter in matching_charters)
+                charter_condition = f"charter_refs.cs.{{{quoted_charters}}}"
                 or_conditions.append(charter_condition)
             
             query = query.or_(",".join(or_conditions))
