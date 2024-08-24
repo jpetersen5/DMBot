@@ -159,9 +159,9 @@ def get_songs():
         if filter:
             filter = sanitize_input(filter)
             if filter == "charter":
-                query = query.filter("charter_refs", "cs", f"%{search}%")
+                query = query.filter("charter_refs", "cs", f"{{%{search}%}}")
             elif filter in ["name", "artist", "album", "year", "genre"]:
-                query = query.ilike(filter, f"%{search}%")
+                query = query.filter(filter, "ilike", f"%{search}%")
         else:
             query = query.or_(
                 f"name.ilike.%{search}%,"
