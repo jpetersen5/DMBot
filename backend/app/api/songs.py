@@ -187,7 +187,6 @@ def get_songs():
             
             query = query.or_(",".join(or_conditions))
 
-    logger.info(f"Querying songs with query: {query.to_dict()}")
     total_songs = query.execute().count
 
     query = query.order(sort_by, desc=(sort_order == "desc"))
