@@ -172,9 +172,9 @@ def get_songs():
                         WHERE charter_refs && {charter_array}
                         ORDER BY {sort_by} {sort_order}
                     """
-                    total_songs = supabase.rpc("songs", {"q": raw_query}).execute().count
+                    total_songs = supabase.sql(raw_query).execute().count
                     raw_query += f" OFFSET {per_page * (page - 1)} LIMIT {per_page}"
-                    result = supabase.rpc("songs", {"q": raw_query}).execute()
+                    result = supabase.sql(raw_query).execute()
                     songs: List[Dict[str, Any]] = result.data
 
                     return jsonify({
