@@ -159,13 +159,13 @@ def get_songs():
         if filter:
             filter = sanitize_input(filter)
             if filter == "charter":
-                charters_query = (supabase.table("charters").select("name").ilike("name", f"*{search}*"))
+                charters_query = (supabase.table("charters").select("name").or_(f"name.ilike.%{search}%"))
                 charters_response = charters_query.execute()
                 matching_charters = [charter["name"] for charter in charters_response.data]
                 
                 if matching_charters:
-                    for charter in matching_charters:
-                        query = query.filter("charter_refs", "cs", "{*" + charter + "*}")
+                    or_conditions = [f"charter_refs.cs.{{'{charter}'}}" for charter in matching_charters]
+                    query = query.or_(",".join(or_conditions))
                 else:
                     return jsonify({
                         "songs": [],
@@ -180,12 +180,12 @@ def get_songs():
         else:
             search_fields = ["name", "artist", "album", "year", "genre"]
             or_conditions = [f"{field}.ilike.%{search}%" for field in search_fields]
-            charters_query = (supabase.table("charters").select("name").ilike("name", f"*{search}*"))
+            charters_query = (supabase.table("charters").select("name").or_(f"name.ilike.%{search}%"))
             charters_response = charters_query.execute()
             matching_charters = [charter["name"] for charter in charters_response.data]
             if matching_charters:
-                    for charter in matching_charters:
-                        query = query.filter("charter_refs", "cs", "{*" + charter + "*}")
+                or_conditions = [f"charter_refs.cs.{{'{charter}'}}" for charter in matching_charters]
+                query = query.or_(",".join(or_conditions))
             
             query = query.or_(",".join(or_conditions))
 
