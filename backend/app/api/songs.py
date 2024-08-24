@@ -165,8 +165,8 @@ def get_songs():
                 matching_charters = [charter["name"] for charter in charters_response.data]
                 
                 if matching_charters:
-                    quoted_charters = ",".join(f'"{charter}"' for charter in matching_charters)
-                    charter_condition = f"charter_refs.cs.{{{quoted_charters}}}"
+                    charter_conditions = [f"charter_refs.cs.{{%{charter}%}}" for charter in matching_charters]
+                    charter_condition = " or ".join(charter_conditions)
                     logger.info(f"Charter condition: {charter_condition}")
                     query = query.or_(charter_condition)
                 
