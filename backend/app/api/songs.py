@@ -160,31 +160,14 @@ def get_songs():
         if filter:
             filter = sanitize_input(filter)
             if filter == "charter":
-                charters_query = (supabase.table("charters").select("name").or_(f"name.ilike.%{search}%"))
+                charters_query = (supabase.table("charters").select("name").ilike("name", f"*{search}*"))
                 charters_response = charters_query.execute()
                 matching_charters = [charter["name"] for charter in charters_response.data]
                 
                 if matching_charters:
-                    charter_array = "ARRAY[" + ",".join(f"'{charter}'" for charter in matching_charters) + "]"
-                    raw_query = f"""
-                        SELECT artist, name, album, track, year, genre, difficulty, song_length, charter_refs
-                        FROM songs
-                        WHERE charter_refs && {charter_array}
-                        ORDER BY {sort_by} {sort_order}
-                    """
-                    total_songs = supabase.sql(raw_query).execute().count
-                    raw_query += f" OFFSET {per_page * (page - 1)} LIMIT {per_page}"
-                    result = supabase.sql(raw_query).execute()
-                    songs: List[Dict[str, Any]] = result.data
-
-                    return jsonify({
-                        "songs": songs,
-                        "total": total_songs,
-                        "page": page,
-                        "per_page": per_page,
-                        "sort_by": sort_by,
-                        "sort_order": sort_order
-                    })
+                    charter_conditions = [f"charter_refs.cs.{{\\{charter}\\}}" for charter in matching_charters]
+                    or_condition = ",".join(charter_conditions)
+                    query = query.or_(or_condition)
                 
             elif filter in ["name", "artist", "album", "year", "genre"]:
                 query = query.ilike(filter, f"*{search}*")
