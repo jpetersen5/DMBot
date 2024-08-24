@@ -164,7 +164,9 @@ def get_songs():
                 matching_charters = [charter["name"] for charter in charters_response.data]
                 
                 if matching_charters:
-                    query = query.filter("charter_refs", "cd", f"{{{'{}'}}}".format(','.join(matching_charters)))
+                    charters_array = "ARRAY[" + ",".join(f"'{charter}'" for charter in matching_charters) + "]"
+                    query = query.filter(f"array_has_overlap(charter_refs, {charters_array})")
+                
             elif filter in ["name", "artist", "album", "year", "genre"]:
                 query = query.ilike(filter, f"*{search}*")
         else:
@@ -173,8 +175,10 @@ def get_songs():
             charters_query = (supabase.table("charters").select("name").or_(f"name.ilike.%{search}%"))
             charters_response = charters_query.execute()
             matching_charters = [charter["name"] for charter in charters_response.data]
+            
             if matching_charters:
-                or_conditions += f"charter_refs.cd.{{{'{}'}}}".format(",".join(matching_charters))
+                charters_array = "ARRAY[" + ",".join(f"'{charter}'" for charter in matching_charters) + "]"
+                query = query.filter(f"array_has_overlap(charter_refs, {charters_array})")
             
             query = query.or_(",".join(or_conditions))
 
