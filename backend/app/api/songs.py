@@ -164,7 +164,9 @@ def get_songs():
                 matching_charters = [charter["name"] for charter in charters_response.data]
                 
                 if matching_charters:
+                    logger.info(f"Found matching charters: {matching_charters}")
                     or_conditions = [f"charter_refs.cs.{{'{charter}'}}" for charter in matching_charters]
+                    logger.info(f"Or conditions: {or_conditions}")
                     query = query.or_(",".join(or_conditions))
                 else:
                     return jsonify({
