@@ -108,37 +108,28 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
     }
 
     return (
-      <>
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          inputPage={inputPage}
-          setInputPage={setInputPage}
-          setPage={setPage}
-        />
-        <table className="related-songs-table">
-          <thead>
-            <tr>
-              {columns.map(col => <th key={col}>{col}</th>)}
+      <table className="related-songs-table">
+        <thead>
+          <tr>
+            {columns.map(col => <th key={col}>{col}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {loading && <tr><td colSpan={columns.length}><LoadingSpinner /></td></tr>}
+          {!loading && relatedSongs.map((relatedSong) => (
+            <tr key={relatedSong.id} onClick={() => handleRelatedSongClick(relatedSong)}>
+              {relationType === "album" && <td>{relatedSong.track || "N/A"}</td>}
+              <td>{relatedSong.name}</td>
+              {relationType === "artist" && <td>{relatedSong.album}</td>}
+              {(relationType === "genre" || relationType === "charter") && <td>{relatedSong.artist}</td>}
+              <td>{msToTime(relatedSong.song_length || 0)}</td>
             </tr>
-          </thead>
-          <tbody>
-            {loading && <tr><td colSpan={columns.length}><LoadingSpinner /></td></tr>}
-            {!loading && relatedSongs.map((relatedSong) => (
-              <tr key={relatedSong.id} onClick={() => handleRelatedSongClick(relatedSong)}>
-                {relationType === "album" && <td>{relatedSong.track || "N/A"}</td>}
-                <td>{relatedSong.name}</td>
-                {relationType === "artist" && <td>{relatedSong.album}</td>}
-                {(relationType === "genre" || relationType === "charter") && <td>{relatedSong.artist}</td>}
-                <td>{msToTime(relatedSong.song_length || 0)}</td>
-              </tr>
-            ))}
-            {!loading && relatedSongs.length === 0 && (
-              <tr><td colSpan={columns.length}>{`No related songs from ${relationType}`}</td></tr>
-            )}
-          </tbody>
-        </table>
-      </>
+          ))}
+          {!loading && relatedSongs.length === 0 && (
+            <tr><td colSpan={columns.length}>{`No related songs from ${relationType}`}</td></tr>
+          )}
+        </tbody>
+      </table>
     );
   };
 
@@ -166,22 +157,31 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
           </div>
           <div className="related-songs">
             <h5>Related Songs</h5>
-            <Nav variant="tabs" activeKey={relationType} onSelect={(k) => setRelationType(k as "album" | "artist" | "genre" | "charter")}>
-              <Nav.Item>
-                <Nav.Link eventKey="album">Album</Nav.Link>
-              </Nav.Item>
-              <Nav.Item>
-                <Nav.Link eventKey="artist">Artist</Nav.Link>
-              </Nav.Item>
-              <Nav.Item>
-                <Nav.Link eventKey="genre">Genre</Nav.Link>
-              </Nav.Item>
-              {numCharters > 0 && (
+            <div className="related-songs-topbar">
+              <Nav variant="tabs" activeKey={relationType} onSelect={(k) => setRelationType(k as "album" | "artist" | "genre" | "charter")}>
                 <Nav.Item>
-                  <Nav.Link eventKey="charter">{`Charter${numCharters > 1 ? "s" : ""}`}</Nav.Link>
+                  <Nav.Link eventKey="album">Album</Nav.Link>
                 </Nav.Item>
-              )}
-            </Nav>
+                <Nav.Item>
+                  <Nav.Link eventKey="artist">Artist</Nav.Link>
+                </Nav.Item>
+                <Nav.Item>
+                  <Nav.Link eventKey="genre">Genre</Nav.Link>
+                </Nav.Item>
+                {numCharters > 0 && (
+                  <Nav.Item>
+                    <Nav.Link eventKey="charter">{`Charter${numCharters > 1 ? "s" : ""}`}</Nav.Link>
+                  </Nav.Item>
+                )}
+              </Nav>
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                inputPage={inputPage}
+                setInputPage={setInputPage}
+                setPage={setPage}
+              />
+            </div>
             {renderRelatedSongsTable()}
           </div>
         </div>

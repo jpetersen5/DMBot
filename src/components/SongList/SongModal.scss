@@ -55,14 +55,54 @@
       }
     }
 
-    .nav-tabs {
-      .nav-link {
-        border: 0;
-        color: #202020;
+    .related-songs-topbar {
+      display: flex;
 
-        &.active {
+      .nav-tabs {
+        .nav-link {
+          border: 0;
+          color: #202020;
+
+          &.active {
+            background-color: #202020;
+            color: #fff;
+          }
+        }
+      }
+
+      .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 1rem 0;
+    
+        button {
           background-color: #202020;
           color: #fff;
+          border: none;
+          padding: 0.5rem 1rem;
+          margin: 0 0.5rem;
+          cursor: pointer;
+          transition: background-color 0.3s;
+    
+          &:hover {
+            background-color: #404040;
+          }
+    
+          &:disabled {
+            background-color: #888;
+            cursor: not-allowed;
+          }
+        }
+    
+        span {
+          margin: 0 1rem;
+    
+          input[type="number"] {
+            width: 50px;
+            padding: 0.25rem;
+            text-align: center;
+          }
         }
       }
     }
