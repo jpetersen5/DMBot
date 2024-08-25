@@ -9,6 +9,20 @@ ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "difficulty", "cha
 
 @bp.route("/api/songs", methods=["GET"])
 def get_songs():
+    """
+    retrieves songs from the database
+
+    params:
+        page (int): page number (default 1)
+        per_page (int): number of songs per page (default 20)
+        sort_by (str): field to sort by (default "name")
+        sort_order (str): sort order ("asc" or "desc", default "asc")
+        search (str): search query (default None)
+        filter (str): field to filter by (default None)
+
+    returns:
+        JSON: list of songs, total count, page number, songs per page, sort field, and sort order
+    """
     supabase = get_supabase()
     logger = current_app.logger
     
@@ -80,11 +94,15 @@ def get_related_songs():
     
     params:
         album, artist, genre, or charter (str): relation type and value
+        page (int): page number (default 1)
+        per_page (int): number of songs per page (default 8)
     
     returns:
-        JSON: list of related songs
+        JSON: list of related songs, total count, page number, and songs per page
     """
     supabase = get_supabase()
+    logger = current_app.logger
+
     relation_types = ["album", "artist", "genre", "charter"]
     relation_type = next((param for param in relation_types if param in request.args), None)
     if not relation_type:
@@ -94,7 +112,10 @@ def get_related_songs():
     if not value:
         return jsonify({"error": "Missing relation value"}), 400
 
-    query = supabase.table("songs").select("*")
+    page = int(request.args.get("page", 1))
+    per_page = int(request.args.get("per_page", 8))
+
+    query = supabase.table("songs").select("artist", "name", "album", "track", "year", "genre", "difficulty", "song_length", "charter_refs", count="exact")
 
     if relation_type == "charter":
         charters = value.split(",")
@@ -107,15 +128,22 @@ def get_related_songs():
             charter_array = "{" + ",".join(f'"{charter}"' for charter in matching_charters) + "}"
             query = query.overlaps("charter_refs", f"{{{charter_array}}}")
     else:
-        query = query.eq(relation_type, value)
+        query = query.ilike(relation_type, value)
+
+    total_count = query.execute().count
 
     if relation_type == "album":
         query = query.order("track", desc=False)
     else:
-        query = query.limit(10)
+        query = query.limit(8)
+
+    query = query.range((page - 1) * per_page, page * per_page - 1)
         
     response = query.execute()
 
     return jsonify({
-        "songs": response.data
+        "songs": response.data,
+        "total": total_count,
+        "page": page,
+        "per_page": per_page
     })

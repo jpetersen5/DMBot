@@ -5,6 +5,7 @@ import LoadingSpinner from "../Loading/LoadingSpinner";
 import CharterName from "./CharterName";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import { Song, msToTime } from "../../utils/song";
+import { Pagination } from "./TableControls";
 import "./SongModal.scss";
 
 interface SongModalProps {
@@ -20,10 +21,19 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
   const [relationType, setRelationType] = useState<"album" | "artist" | "genre" | "charter">("album");
   const [loading, setLoading] = useState(false);
 
+  // related songs pagination
+  const [page, setPage] = useState(1);
+  const [totalRelatedSongs, setTotalRelatedSongs] = useState(0);
+  const [inputPage, setInputPage] = useState("1");
+  const perPage = 10;
+  const totalPages = Math.ceil(totalRelatedSongs / perPage);
+
   useEffect(() => {
     if (initialSong) {
       setCurrentSong(initialSong);
       setPreviousSongs([]);
+      setPage(1);
+      setInputPage("1");
     }
   }, [initialSong]);
 
@@ -31,7 +41,12 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
     if (currentSong) {
       fetchRelatedSongs();
     }
-  }, [currentSong, relationType]);
+  }, [currentSong, relationType, page]);
+
+  useEffect(() => {
+    setPage(1);
+    setInputPage("1");
+  }, [relationType]);
 
   const fetchRelatedSongs = async () => {
     if (!currentSong) return;
@@ -46,10 +61,12 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
       } else {
         url += encodeURIComponent(currentSong[relationType] || `Unknown ${relationType}`);
       }
+      url += `&page=${page}&per_page=${perPage}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch related songs");
       const data = await response.json();
       setRelatedSongs(data.songs);
+      setTotalRelatedSongs(data.total);
     } catch (error) {
       console.error("Error fetching related songs:", error);
     } finally {
@@ -91,28 +108,37 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
     }
 
     return (
-      <table className="related-songs-table">
-        <thead>
-          <tr>
-            {columns.map(col => <th key={col}>{col}</th>)}
-          </tr>
-        </thead>
-        <tbody>
-          {loading && <tr><td colSpan={columns.length}><LoadingSpinner /></td></tr>}
-          {!loading && relatedSongs.map((relatedSong) => (
-            <tr key={relatedSong.id} onClick={() => handleRelatedSongClick(relatedSong)}>
-              {relationType === "album" && <td>{relatedSong.track || "N/A"}</td>}
-              <td>{relatedSong.name}</td>
-              {relationType === "artist" && <td>{relatedSong.album}</td>}
-              {(relationType === "genre" || relationType === "charter") && <td>{relatedSong.artist}</td>}
-              <td>{msToTime(relatedSong.song_length || 0)}</td>
+      <>
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          inputPage={inputPage}
+          setInputPage={setInputPage}
+          setPage={setPage}
+        />
+        <table className="related-songs-table">
+          <thead>
+            <tr>
+              {columns.map(col => <th key={col}>{col}</th>)}
             </tr>
-          ))}
-          {!loading && relatedSongs.length === 0 && (
-            <tr><td colSpan={columns.length}>{`No related songs from ${relationType}`}</td></tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {loading && <tr><td colSpan={columns.length}><LoadingSpinner /></td></tr>}
+            {!loading && relatedSongs.map((relatedSong) => (
+              <tr key={relatedSong.id} onClick={() => handleRelatedSongClick(relatedSong)}>
+                {relationType === "album" && <td>{relatedSong.track || "N/A"}</td>}
+                <td>{relatedSong.name}</td>
+                {relationType === "artist" && <td>{relatedSong.album}</td>}
+                {(relationType === "genre" || relationType === "charter") && <td>{relatedSong.artist}</td>}
+                <td>{msToTime(relatedSong.song_length || 0)}</td>
+              </tr>
+            ))}
+            {!loading && relatedSongs.length === 0 && (
+              <tr><td colSpan={columns.length}>{`No related songs from ${relationType}`}</td></tr>
+            )}
+          </tbody>
+        </table>
+      </>
     );
   };
 
