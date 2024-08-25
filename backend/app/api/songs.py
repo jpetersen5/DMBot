@@ -179,8 +179,8 @@ def get_songs():
 
             if matching_charters:
                 charter_array = "{" + ",".join(f'"{charter}"' for charter in matching_charters) + "}"
-                charter_conditions = f"charter_refs.ov.{{{charter_array}}}"
-                or_conditions.append(charter_conditions)
+                charter_condition = f"charter_refs.ov.{charter_array}"
+                or_conditions.append(charter_condition)
             
             query = query.or_(",".join(or_conditions))
 
