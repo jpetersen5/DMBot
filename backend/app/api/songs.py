@@ -55,7 +55,8 @@ def get_songs():
             
             query = query.or_(",".join(or_conditions))
 
-    total_songs = query.execute().count
+    count_query = supabase.table("songs").select("count(*)")
+    total_songs = count_query.execute().data[0]["count"]
 
     query = query.order(sort_by, desc=(sort_order == "desc"))
     query = query.range((page - 1) * per_page, page * per_page - 1)
