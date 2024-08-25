@@ -38,7 +38,8 @@ def get_songs():
     if sort_by == "charter":
         sort_by = "charter_refs"
 
-    query = supabase.table("songs").select("artist", "name", "album", "track", "year", "genre", "difficulty", "song_length", "charter_refs", count="exact")
+    query = supabase.table("songs").select("artist", "name", "album", "track", "year", "genre", "difficulty", "song_length", "charter_refs")
+    count_query = supabase.table("songs").select("id", count="exact")
 
     if search:
         search = sanitize_input(search)
@@ -52,9 +53,11 @@ def get_songs():
                 if matching_charters:
                     charter_array = "{" + ",".join(f'"{charter}"' for charter in matching_charters) + "}"
                     query = query.overlaps("charter_refs", f"{{{charter_array}}}")
+                    count_query = count_query.overlaps("charter_refs", f"{{{charter_array}}}")
                 
             elif filter in ["name", "artist", "album", "year", "genre"]:
                 query = query.ilike(filter, f"*{search}*")
+                count_query = count_query.ilike(filter, f"*{search}*")
         else:
             search_fields = ["name", "artist", "album", "year", "genre"]
             or_conditions = [f"{field}.ilike.%{search}%" for field in search_fields]
@@ -68,8 +71,9 @@ def get_songs():
                 or_conditions.append(charter_condition)
             
             query = query.or_(",".join(or_conditions))
+            count_query = count_query.or_(",".join(or_conditions))
 
-    total_songs = query.execute().count
+    total_songs = count_query.execute().count
 
     query = query.order(sort_by, desc=(sort_order == "desc"))
     query = query.range((page - 1) * per_page, page * per_page - 1)
@@ -115,7 +119,8 @@ def get_related_songs():
     page = int(request.args.get("page", 1))
     per_page = int(request.args.get("per_page", 8))
 
-    query = supabase.table("songs").select("artist", "name", "album", "track", "year", "genre", "difficulty", "song_length", "charter_refs", count="exact")
+    query = supabase.table("songs").select("artist", "name", "album", "track", "year", "genre", "difficulty", "song_length", "charter_refs")
+    count_query = supabase.table("songs").select("id", count="exact")
 
     if relation_type == "charter":
         charters = value.split(",")
@@ -127,15 +132,17 @@ def get_related_songs():
         if matching_charters:
             charter_array = "{" + ",".join(f'"{charter}"' for charter in matching_charters) + "}"
             query = query.overlaps("charter_refs", f"{{{charter_array}}}")
+            count_query = count_query.overlaps("charter_refs", f"{{{charter_array}}}")
     else:
         query = query.ilike(relation_type, value)
+        count_query = count_query.ilike(relation_type, value)
 
-    total_count = query.execute().count
+    total_count = count_query.execute().count
 
     if relation_type == "album":
         query = query.order("track", desc=False)
     else:
-        query = query.limit(8)
+        query = query.order("name", desc=False)
 
     query = query.range((page - 1) * per_page, page * per_page - 1)
         
