@@ -97,15 +97,15 @@ def get_related_songs():
     query = supabase.table("songs").select("*")
 
     if relation_type == "charter":
-        charter_names = [name.strip() for name in value.split(",")]
-        if len(charter_names) == 1:
-            query = query.contains("charter_refs", [charter_names[0]])
-        else:
-            charter_conditions = [
-                f"charter_refs.cs.{{'{charter_name}'}}"
-                for charter_name in charter_names
-            ]
-            query = query.or_(",".join(charter_conditions))
+        charters = value.split(",")
+        or_conditions = [f"name.ilike.%{charter}%" for charter in charters]
+        charter_query = supabase.table("charters").select("name").or_(",".join(or_conditions))
+        charters_response = charter_query.execute()
+        matching_charters = [charter["name"] for charter in charters_response.data]
+
+        if matching_charters:
+            charter_array = "{" + ",".join(f'"{charter}"' for charter in matching_charters) + "}"
+            query = query.overlaps("charter_refs", f"{{{charter_array}}}")
     else:
         query = query.eq(relation_type, value)
 

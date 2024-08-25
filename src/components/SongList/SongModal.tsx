@@ -42,7 +42,7 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
         currentSong.charter_refs = ["Unknown Author"];
       }
       if (relationType === "charter") {
-        url += encodeURIComponent(currentSong.charter_refs.join(','));
+        url += encodeURIComponent(currentSong.charter_refs.join(","));
       } else {
         url += encodeURIComponent(currentSong[relationType] || `Unknown ${relationType}`);
       }
@@ -101,7 +101,7 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
           {loading && <tr><td colSpan={columns.length}><LoadingSpinner /></td></tr>}
           {!loading && relatedSongs.map((relatedSong) => (
             <tr key={relatedSong.id} onClick={() => handleRelatedSongClick(relatedSong)}>
-              {relationType === "album" && <td>{relatedSong.track || 'N/A'}</td>}
+              {relationType === "album" && <td>{relatedSong.track || "N/A"}</td>}
               <td>{relatedSong.name}</td>
               {relationType === "artist" && <td>{relatedSong.album}</td>}
               {(relationType === "genre" || relationType === "charter") && <td>{relatedSong.artist}</td>}
@@ -115,6 +115,8 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
       </table>
     );
   };
+
+  const numCharters = currentSong.charter_refs?.length || 0;
 
   return (
     <Modal show={show} onHide={onHide} size="xl" dialogClassName="song-modal">
@@ -148,9 +150,11 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
               <Nav.Item>
                 <Nav.Link eventKey="genre">Genre</Nav.Link>
               </Nav.Item>
-              <Nav.Item>
-                <Nav.Link eventKey="charter">Charter</Nav.Link>
-              </Nav.Item>
+              {numCharters > 0 && (
+                <Nav.Item>
+                  <Nav.Link eventKey="charter">{`Charter${numCharters > 1 ? "s" : ""}`}</Nav.Link>
+                </Nav.Item>
+              )}
             </Nav>
             {renderRelatedSongsTable()}
           </div>
