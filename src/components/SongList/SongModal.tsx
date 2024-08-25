@@ -25,7 +25,7 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
   const [page, setPage] = useState(1);
   const [totalRelatedSongs, setTotalRelatedSongs] = useState(0);
   const [inputPage, setInputPage] = useState("1");
-  const perPage = 10;
+  const perPage = 8;
   const totalPages = Math.ceil(totalRelatedSongs / perPage);
 
   useEffect(() => {
