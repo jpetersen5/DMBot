@@ -21,6 +21,8 @@ def get_songs():
 
     if sort_order not in ["asc", "desc"]:
         sort_order = "asc"
+    if sort_by == "charter":
+        sort_by = "charter_refs"
 
     query = supabase.table("songs").select("artist", "name", "album", "track", "year", "genre", "difficulty", "song_length", "charter_refs", count="exact")
 
