@@ -32,6 +32,7 @@ interface PaginationProps {
   totalPages: number;
   setPage: React.Dispatch<React.SetStateAction<number>>;
   setInputPage: React.Dispatch<React.SetStateAction<string>>;
+  size?: "sm" | "lg";
 }
 
 export const Pagination: React.FC<PaginationProps> = ({
@@ -40,6 +41,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   totalPages,
   setPage,
   setInputPage,
+  size = "lg"
 }) => {
   const handlePrevPage = () => {
     if (page > 1) setPage(page - 1);
@@ -74,9 +76,16 @@ export const Pagination: React.FC<PaginationProps> = ({
 
   return (
     <div className="pagination">
-      <button onClick={handlePrevPage} disabled={page === 1}>Previous</button>
-      <span>
-        Page <input 
+      <button
+        onClick={handlePrevPage}
+        disabled={page === 1}
+        className="prev"
+      >
+        {size === "lg" && "Previous"}
+        {size === "sm" && "←"}
+      </button>
+      <span className="pages">
+        {size === "lg" && "Page "} <input
           type="number" 
           value={inputPage} 
           onChange={handlePageInputChange}
@@ -86,7 +95,14 @@ export const Pagination: React.FC<PaginationProps> = ({
           max={totalPages} 
         /> of {totalPages}
       </span>
-      <button onClick={handleNextPage} disabled={page === totalPages}>Next</button>
+      <button
+        onClick={handleNextPage}
+        disabled={page === totalPages}
+        className="next"
+      >
+        {size === "lg" && "Next"}
+        {size === "sm" && "→"}
+      </button>
     </div>
   );
 };

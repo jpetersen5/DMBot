@@ -174,13 +174,16 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
                   </Nav.Item>
                 )}
               </Nav>
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                inputPage={inputPage}
-                setInputPage={setInputPage}
-                setPage={setPage}
-              />
+              <div className="pagination-container">
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  inputPage={inputPage}
+                  setInputPage={setInputPage}
+                  setPage={setPage}
+                  size="sm"
+                />
+              </div>
             </div>
             {renderRelatedSongsTable()}
           </div>
