@@ -47,7 +47,11 @@ def process_and_save_scores(result, user_id):
     username = user_data[0]["username"] if user_data else "Unknown User"
 
     existing_scores = user_data[0].get("scores", []) if user_data else []
-    existing_scores_dict = {score["identifier"]: score for score in existing_scores}
+    existing_scores_dict = {}
+    if existing_scores:
+        existing_scores_dict = {score["identifier"]: score for score in existing_scores}
+    else:
+        logger.info("No existing scores found for user")
     
     for i in range(0, total_songs, batch_size):
         batch = result["songs"][i:i+batch_size]
