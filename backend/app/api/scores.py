@@ -6,6 +6,7 @@ from ..extensions import socketio, redis
 from werkzeug.utils import secure_filename
 import os
 import jwt
+import json
 
 bp = Blueprint("scores", __name__)
 exec(get_process_songs_script())
@@ -132,8 +133,8 @@ def process_and_save_scores(result, user_id):
                 socketio.emit("score_processing_uploading",
                                 {"message": f"Updating leaderboards for songs {i+1}-{i+len(batch)}"},
                                 room=str(user_id))
-                update_data = [{"md5": update["md5"], "leaderboard": update["leaderboard"]} for update in batch]
-                supabase.rpc("update_song_leaderboards", {"updates": update_data}).execute()
+                update_data = [{"md5": update["md5"], "leaderboard": json.dumps(update["leaderboard"])} for update in batch]
+                supabase.rpc("update_song_leaderboards", {"updates": json.dumps(update_data)}).execute()
             
             logger.info("Leaderboard updates completed")
         except Exception as e:
