@@ -51,6 +51,7 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
   }, [relationType]);
 
   const getCacheKey = () => {
+    console.log("related songs", currentSong);
     return `related_${relationType}_${currentSong?.id}_${page}_${perPage}`;
   };
 
