@@ -98,7 +98,7 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
   if (!currentSong) return null;
 
   const handleRelatedSongClick = (song: Song) => {
-    if (currentSong === song) return;
+    if (currentSong.id === song.id) return;
     setPreviousSongs([...previousSongs, currentSong]);
     setCurrentSong(song);
   }
