@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request, current_app, Flask
 from ..services.supabase_service import get_supabase
 from ..utils.helpers import allowed_file, get_process_songs_script
 from ..config import Config
@@ -201,11 +201,12 @@ def upload_scoredata():
             if result["version"] != 20211009:
                 return jsonify({"error": "Score data is outdated"}), 400
             
-            def run_with_app_context():
-                with current_app.app_context():
+            app = current_app._get_current_object()
+            def run_with_app_context(app, result, user_id):
+                with app.app_context():
                     process_and_save_scores(result, user_id)
             
-            socketio.start_background_task(run_with_app_context)
+            socketio.start_background_task(run_with_app_context, app, result, user_id)
             
             return jsonify({"message": "Score processing started", "total_songs": len(result["songs"])}), 202
         except ValueError as e:
