@@ -51,7 +51,11 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
   }, [relationType]);
 
   const getCacheKey = () => {
-    return `related_${relationType}_${currentSong?.id}_${page}_${perPage}`;
+    if (relationType === "album") return `related_${relationType}_${currentSong?.album}_${page}_${perPage}`;
+    if (relationType === "artist") return `related_${relationType}_${currentSong?.artist}_${page}_${perPage}`;
+    if (relationType === "genre") return `related_${relationType}_${currentSong?.genre}_${page}_${perPage}`;
+    if (relationType === "charter") return `related_${relationType}_${currentSong?.charter_refs?.join(",")}_${page}_${perPage}`;
+    return "";
   };
 
   const fetchRelatedSongs = async () => {
