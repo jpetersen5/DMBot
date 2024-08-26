@@ -35,7 +35,6 @@ def process_and_save_scores(result, user_id):
     """
     supabase = get_supabase()
     logger = current_app.logger
-    user_scores = []
     batch_size = 50
     total_songs = len(result["songs"])
     processed_songs = 0
@@ -44,8 +43,11 @@ def process_and_save_scores(result, user_id):
     update_processing_status(user_id, "in_progress", 0, processed_songs, total_songs)
 
     logger.info(f"Fetching user data for user {user_id}")
-    user_data = supabase.table("users").select("username").eq("id", user_id).execute().data
+    user_data = supabase.table("users").select("username, scores").eq("id", user_id).execute().data
     username = user_data[0]["username"] if user_data else "Unknown User"
+
+    existing_scores = user_data[0].get("scores", []) if user_data else []
+    existing_scores_dict = {score["identifier"]: score for score in existing_scores}
     
     for i in range(0, total_songs, batch_size):
         batch = result["songs"][i:i+batch_size]
@@ -62,6 +64,12 @@ def process_and_save_scores(result, user_id):
             if song_info:
                 for score in song["scores"]:
                     if score["instrument"] == 9:  # drums
+                        existing_score = existing_scores_dict.get(song["identifier"])
+                        
+                        if existing_score and score["score"] <= existing_score["score"]:
+                            logger.info(f"Score for song {song['identifier']} doesn't need to be updated. Skipping.")
+                            continue
+
                         score_data = {
                             "identifier": song["identifier"],
                             "song_name": song_info["name"] if song_info else f"Unknown Song: {song['identifier']}",
@@ -71,38 +79,41 @@ def process_and_save_scores(result, user_id):
                             "speed": score["speed"],
                             "score": score["score"]
                         }
-                        user_scores.append(score_data)
-                        
-                        if song_info:
-                            leaderboard = song_info.get("leaderboard", [])
-                            if leaderboard is None:
-                                leaderboard = []
 
-                            leaderboard_entry = {
-                                "user_id": user_id,
-                                "username": username,
-                                "score": score["score"],
-                                "percent": score["percent"],
-                                "is_fc": score["is_fc"],
-                                "speed": score["speed"]
-                            }
-                            
-                            user_entry = next((entry for entry in leaderboard if entry["user_id"] == user_id), None)
-                            if user_entry:
-                                if score["score"] > user_entry["score"]:
-                                    leaderboard.remove(user_entry)
-                                    leaderboard.append(leaderboard_entry)
-                            else:
+                        existing_scores_dict[song["identifier"]] = score_data
+                        
+                        leaderboard = song_info.get("leaderboard", []) or []
+                        leaderboard_entry = {
+                            "user_id": user_id,
+                            "username": username,
+                            "score": score["score"],
+                            "percent": score["percent"],
+                            "is_fc": score["is_fc"],
+                            "speed": score["speed"]
+                        }
+                        
+                        user_entry = next((entry for entry in leaderboard if entry["user_id"] == user_id), None)
+                        if user_entry:
+                            if score["score"] > user_entry["score"]:
+                                leaderboard.remove(user_entry)
                                 leaderboard.append(leaderboard_entry)
-                            
-                            leaderboard.sort(key=lambda x: x["score"], reverse=True)
-                            
-                            leaderboard_updates.append({
-                                "md5": song["identifier"],
-                                "leaderboard": leaderboard
-                            })
+                        else:
+                            leaderboard.append(leaderboard_entry)
+                        
+                        leaderboard.sort(key=lambda x: x["score"], reverse=True)
+                        
+                        leaderboard_updates.append({
+                            "md5": song["identifier"],
+                            "leaderboard": leaderboard
+                        })
             else:
                 logger.info(f"Song with identifier {song['identifier']} not found in database. Skipping.")
+            
+            progress = (processed_songs / total_songs) * 100
+            update_processing_status(user_id, "in_progress", progress, processed_songs, total_songs)
+            socketio.emit("score_processing_progress",
+                            {"progress": progress, "processed": processed_songs, "total": total_songs},
+                            room=str(user_id))
         
         if len(leaderboard_updates) >= 50:
             try:
@@ -112,12 +123,6 @@ def process_and_save_scores(result, user_id):
                 leaderboard_updates = []
             except Exception as e:
                 logger.error(f"Error updating leaderboards: {str(e)}")
-
-        progress = (processed_songs / total_songs) * 100
-        update_processing_status(user_id, "in_progress", progress, processed_songs, total_songs)
-        socketio.emit("score_processing_progress", 
-                      {"progress": progress, "processed": processed_songs, "total": total_songs}, 
-                      room=str(user_id))
     
     if leaderboard_updates:
         try:
@@ -127,23 +132,12 @@ def process_and_save_scores(result, user_id):
             leaderboard_updates = []
         except Exception as e:
             logger.error(f"Error updating leaderboards: {str(e)}")
-
-    existing_scores = supabase.table("users").select("scores").eq("id", user_id).execute().data
-    existing_scores = existing_scores[0]["scores"] if existing_scores and existing_scores[0]["scores"] else []
     
-    for new_score in user_scores:
-        existing_score = next((score for score in existing_scores if score["identifier"] == new_score["identifier"]), None)
-        if existing_score:
-            if new_score["score"] > existing_score["score"]:
-                existing_scores.remove(existing_score)
-                existing_scores.append(new_score)
-        else:
-            existing_scores.append(new_score)
-    
-    existing_scores.sort(key=lambda x: x["score"], reverse=True)
+    updated_scores = list(existing_scores_dict.values())
+    updated_scores.sort(key=lambda x: x["score"], reverse=True)
     
     logger.info(f"Updating scores for user {user_id}")
-    supabase.table("users").update({"scores": existing_scores}).eq("id", user_id).execute()
+    supabase.table("users").update({"scores": updated_scores}).eq("id", user_id).execute()
 
     update_processing_status(user_id, "completed", 100, total_songs, total_songs)
     socketio.emit("score_processing_complete", 
