@@ -38,7 +38,7 @@ def get_songs():
     if sort_by == "charter":
         sort_by = "charter_refs"
 
-    query = supabase.table("songs").select("artist", "name", "album", "track", "year", "genre", "difficulty", "song_length", "charter_refs")
+    query = supabase.table("songs").select("id", "artist", "name", "album", "track", "year", "genre", "difficulty", "song_length", "charter_refs")
     count_query = supabase.table("songs").select("id", count="exact")
 
     if search:
@@ -119,7 +119,7 @@ def get_related_songs():
     page = int(request.args.get("page", 1))
     per_page = int(request.args.get("per_page", 8))
 
-    query = supabase.table("songs").select("artist", "name", "album", "track", "year", "genre", "difficulty", "song_length", "charter_refs")
+    query = supabase.table("songs").select("id", "artist", "name", "album", "track", "year", "genre", "difficulty", "song_length", "charter_refs")
     count_query = supabase.table("songs").select("id", count="exact")
 
     if relation_type == "charter":
