@@ -130,10 +130,10 @@ def process_and_save_scores(result, user_id):
             for i in range(0, len(leaderboard_updates), update_batch_size):
                 batch = leaderboard_updates[i:i+update_batch_size]
                 socketio.emit("score_processing_uploading",
-                                {"message": f"Updating leaderboards for {len(batch)} songs"},
+                                {"message": f"Updating leaderboards for songs {i+1}-{i+len(batch)}"},
                                 room=str(user_id))
-                upsert_data = [{"md5": update["md5"], "leaderboard": update["leaderboard"]} for update in batch]
-                supabase.table("songs").upsert(upsert_data).execute()
+                update_data = [{"md5": update["md5"], "leaderboard": update["leaderboard"]} for update in batch]
+            supabase.rpc("update_song_leaderboards", {"updates": update_data}).execute()
             
             logger.info("Leaderboard updates completed")
         except Exception as e:
