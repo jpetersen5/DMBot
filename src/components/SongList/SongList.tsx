@@ -5,6 +5,7 @@ import SongModal from "./SongModal";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import CharterName from "./CharterName";
 import { useCharterData } from "../../context/CharterContext";
+import { useSongCache } from "../../context/SongContext";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import { Song, SONG_TABLE_HEADERS, msToTime } from "../../utils/song";
 import "./SongList.scss";
@@ -22,6 +23,7 @@ const SongList: React.FC = () => {
   const [filter, setFilter] = useState("");
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const { isLoading: chartersLoading } = useCharterData();
+  const { getCachedResult, setCachedResult } = useSongCache();
 
   const totalPages = Math.ceil(totalSongs / perPage);
 
@@ -29,8 +31,22 @@ const SongList: React.FC = () => {
     fetchSongs();
   }, [page, perPage, sortBy, sortOrder]);
 
+  const getCacheKey = () => {
+    return `songs_${page}_${perPage}_${sortBy}_${sortOrder}_${search}_${filter}`;
+  };
+
   async function fetchSongs() {
     setSongsLoading(true);
+    const cacheKey = getCacheKey();
+    const cachedResult = getCachedResult(cacheKey);
+
+    if (cachedResult) {
+      setSongs(cachedResult.songs);
+      setTotalSongs(cachedResult.total);
+      setSongsLoading(false);
+      return;
+    }
+
     try {
       const queryParams = new URLSearchParams({
         page: page.toString(),
@@ -47,6 +63,7 @@ const SongList: React.FC = () => {
       const data = await response.json();
       setSongs(data.songs);
       setTotalSongs(data.total);
+      setCachedResult(cacheKey, { songs: data.songs, total: data.total, timestamp: Date.now() });
     } catch (error) {
       console.error("Error fetching songs:", error);
     } finally {

@@ -1,6 +1,7 @@
 import React, { ReactNode } from "react";
 import AuthProvider from "./AuthContext";
 import CharterProvider from "./CharterContext";
+import SongCacheProvider from "./SongContext";
 
 interface AppProviderProps {
   children: ReactNode;
@@ -9,9 +10,11 @@ interface AppProviderProps {
 const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   return (
     <AuthProvider>
-      <CharterProvider>
-        {children}
-      </CharterProvider>
+      <SongCacheProvider>
+        <CharterProvider>
+          {children}
+        </CharterProvider>
+      </SongCacheProvider>
     </AuthProvider>
   );
 };

@@ -6,6 +6,7 @@ import CharterName from "./CharterName";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import { Song, msToTime } from "../../utils/song";
 import { Pagination } from "./TableControls";
+import { useSongCache } from "../../context/SongContext";
 import "./SongModal.scss";
 
 interface SongModalProps {
@@ -20,6 +21,7 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
   const [relatedSongs, setRelatedSongs] = useState<Song[]>([]);
   const [relationType, setRelationType] = useState<"album" | "artist" | "genre" | "charter">("album");
   const [loading, setLoading] = useState(false);
+  const { getCachedResult, setCachedResult } = useSongCache();
 
   // related songs pagination
   const [page, setPage] = useState(1);
@@ -48,9 +50,23 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
     setInputPage("1");
   }, [relationType]);
 
+  const getCacheKey = () => {
+    return `related_${relationType}_${currentSong?.id}_${page}_${perPage}`;
+  };
+
   const fetchRelatedSongs = async () => {
     if (!currentSong) return;
     setLoading(true);
+    const cacheKey = getCacheKey();
+    const cachedResult = getCachedResult(cacheKey);
+
+    if (cachedResult) {
+      setRelatedSongs(cachedResult.songs);
+      setTotalRelatedSongs(cachedResult.total);
+      setLoading(false);
+      return;
+    }
+
     try {
       let url = `${API_URL}/api/related-songs?${relationType}=`;
       if (currentSong.charter_refs === null) {
@@ -67,6 +83,7 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
       const data = await response.json();
       setRelatedSongs(data.songs);
       setTotalRelatedSongs(data.total);
+      setCachedResult(cacheKey, { songs: data.songs, total: data.total, timestamp: Date.now() });
     } catch (error) {
       console.error("Error fetching related songs:", error);
     } finally {
