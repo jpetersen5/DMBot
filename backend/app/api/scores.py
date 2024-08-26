@@ -108,6 +108,7 @@ def process_and_save_scores(result, user_id):
                         
                         leaderboard_updates.append({
                             "md5": song["identifier"],
+                            "name": song_info["name"],
                             "leaderboard": leaderboard
                         })
             else:
@@ -123,6 +124,9 @@ def process_and_save_scores(result, user_id):
             try:
                 logger.info(f"Updating leaderboards for {len(leaderboard_updates)} songs")
                 for update in leaderboard_updates:
+                    socketio.emit("score_processing_uploading",
+                                  {"message": f"Updating leaderboards for {update['name']}"},
+                                  room=str(user_id))
                     supabase.table("songs").update({"leaderboard": update["leaderboard"]}).eq("md5", update["md5"]).execute()
                 leaderboard_updates = []
             except Exception as e:
@@ -132,6 +136,9 @@ def process_and_save_scores(result, user_id):
         try:
             logger.info("Updating leaderboards for rest of songs")
             for update in leaderboard_updates:
+                socketio.emit("score_processing_uploading",
+                                {"message": f"Updating leaderboards for {update['name']}"},
+                                room=str(user_id))
                 supabase.table("songs").update({"leaderboard": update["leaderboard"]}).eq("md5", update["md5"]).execute()
             leaderboard_updates = []
         except Exception as e:

@@ -51,6 +51,10 @@ const ScoreUpload: React.FC = () => {
       setMessage(`Processing song ${data.processed} of ${data.total}`);
     });
 
+    newSocket.on("score_processing_uploading", (data) => {
+      setMessage(data.message);
+    });
+
     newSocket.on("score_processing_complete", (data) => {
       setMessage(data.message);
       setIsUploading(false);
