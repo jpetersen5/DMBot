@@ -52,10 +52,16 @@ def process_and_save_scores(result, user_id):
     else:
         logger.info("No existing scores found for user")
 
+    batch_size = 100
+    songs_dict = {}
     song_identifiers = [song["identifier"] for song in result["songs"]]
+
     logger.info(f"Fetching song data for {len(song_identifiers)} songs")
-    songs_info = supabase.table("songs").select("*").in_("md5", song_identifiers).execute().data
-    songs_dict = {song["md5"]: song for song in songs_info}
+    for i in range(0, len(song_identifiers), batch_size):
+        batch = song_identifiers[i:i+batch_size]
+        logger.info(f"Fetching batch of {len(batch)} songs")
+        batch_songs_info = supabase.table("songs").select("*").in_("md5", batch).execute().data
+        songs_dict.update({song["md5"]: song for song in batch_songs_info})
     
     for song in result["songs"]:
         processed_songs += 1
@@ -119,11 +125,16 @@ def process_and_save_scores(result, user_id):
     if leaderboard_updates:
         try:
             logger.info(f"Updating leaderboards for {len(leaderboard_updates)} songs")
-            socketio.emit("score_processing_uploading",
-                          {"message": f"Updating leaderboards for {len(leaderboard_updates)} songs"},
-                          room=str(user_id))
-            upsert_data = [{"md5": update["md5"], "leaderboard": update["leaderboard"]} for update in leaderboard_updates]
-            supabase.table("songs").upsert(upsert_data).execute()
+            
+            update_batch_size = 50
+            for i in range(0, len(leaderboard_updates), update_batch_size):
+                batch = leaderboard_updates[i:i+update_batch_size]
+                socketio.emit("score_processing_uploading",
+                                {"message": f"Updating leaderboards for {len(batch)} songs"},
+                                room=str(user_id))
+                upsert_data = [{"md5": update["md5"], "leaderboard": update["leaderboard"]} for update in batch]
+                supabase.table("songs").upsert(upsert_data).execute()
+            
             logger.info("Leaderboard updates completed")
         except Exception as e:
             logger.error(f"Error updating leaderboards: {str(e)}")
