@@ -1,4 +1,5 @@
-from flask import Blueprint, jsonify, request, current_app, Flask
+from flask import Blueprint, jsonify, request, current_app
+from supabase import create_client, Client
 from ..services.supabase_service import get_supabase
 from ..utils.helpers import allowed_file, get_process_songs_script
 from ..config import Config
@@ -6,10 +7,18 @@ from ..extensions import socketio, redis
 from werkzeug.utils import secure_filename
 import os
 import jwt
+import asyncio
 
 bp = Blueprint("scores", __name__)
 exec(get_process_songs_script())
 MAX_FILE_SIZE = 1024 * 1024 * 1 # 1 MB
+
+async def update_leaderboard(supabase: Client, update):
+    await supabase.table("songs").update({"leaderboard": update["leaderboard"]}).eq("md5", update["md5"]).execute()
+
+async def process_leaderboard_updates(supabase: Client, leaderboard_updates):
+    tasks = [update_leaderboard(supabase, update) for update in leaderboard_updates]
+    await asyncio.gather(*tasks)
 
 def update_processing_status(user_id, status, progress, processed, total):
     """
@@ -125,15 +134,12 @@ def process_and_save_scores(result, user_id):
     if leaderboard_updates:
         try:
             logger.info(f"Updating leaderboards for {len(leaderboard_updates)} songs")
-            
-            update_batch_size = 50
-            for i in range(0, len(leaderboard_updates), update_batch_size):
-                batch = leaderboard_updates[i:i+update_batch_size]
-                socketio.emit("score_processing_uploading",
-                                {"message": f"Updating leaderboards for songs {i+1}-{i+len(batch)}"},
-                                room=str(user_id))
-                update_data = [{"md5": update["md5"], "leaderboard": update["leaderboard"]} for update in batch]
-                supabase.rpc("update_song_leaderboards", {"updates": update_data}).execute()
+            socketio.emit("score_processing_uploading",
+                        {"message": f"Updating leaderboards for {len(leaderboard_updates)} songs"},
+                        room=str(user_id))
+                
+            supabase_async = create_client(Config.SUPABASE_URL, Config.SUPABASE_SERVICE_KEY)
+            asyncio.run(process_leaderboard_updates(supabase_async, leaderboard_updates))
             
             logger.info("Leaderboard updates completed")
         except Exception as e:
