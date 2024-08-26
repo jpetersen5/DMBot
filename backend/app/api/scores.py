@@ -133,7 +133,7 @@ def process_and_save_scores(result, user_id):
                                 {"message": f"Updating leaderboards for songs {i+1}-{i+len(batch)}"},
                                 room=str(user_id))
                 update_data = [{"md5": update["md5"], "leaderboard": update["leaderboard"]} for update in batch]
-            supabase.rpc("update_song_leaderboards", {"updates": update_data}).execute()
+                supabase.rpc("update_song_leaderboards", {"updates": update_data}).execute()
             
             logger.info("Leaderboard updates completed")
         except Exception as e:
