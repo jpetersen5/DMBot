@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import UploadProgress from "./UploadProgress";
 import "./Sidebar.scss";
 
 import HomeIcon from "../../assets//home-icon.svg";
@@ -35,25 +36,28 @@ const Sidebar: React.FC = () => {
   const navItems = user ? [...staticNavItems, profileNavItem] : staticNavItems;
 
   return (
-    <div className={`sidebar ${isOpen ? "open" : ""}`}>
-      <button className="toggle-btn" onClick={toggleSidebar}>
-        {isOpen ? "←" : "→"}
-      </button>
-      <nav className="nav-menu">
-        <ul>
-          {navItems.map((item) => (
-            <Link to={item.path} key={item.path}>
-              <li>
-                  <span className="icon">
-                    <img src={item.icon} alt={item.name} />
-                  </span>
-                  {isOpen && <span className="nav-text">{item.name}</span>}
-              </li>
-            </Link>
-          ))}
-        </ul>
-      </nav>
-    </div>
+    <>
+      <div className={`sidebar ${isOpen ? "open" : ""}`}>
+        <button className="toggle-btn" onClick={toggleSidebar}>
+          {isOpen ? "←" : "→"}
+        </button>
+        <nav className="nav-menu">
+          <ul>
+            {navItems.map((item) => (
+              <Link to={item.path} key={item.path}>
+                <li>
+                    <span className="icon">
+                      <img src={item.icon} alt={item.name} />
+                    </span>
+                    {isOpen && <span className="nav-text">{item.name}</span>}
+                </li>
+              </Link>
+            ))}
+          </ul>
+        </nav>
+      </div>
+      <UploadProgress />
+    </>
   );
 };
 

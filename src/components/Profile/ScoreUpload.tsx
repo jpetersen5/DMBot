@@ -1,76 +1,11 @@
-import React, { useEffect, useState, useRef } from "react";
-import { io, Socket } from "socket.io-client";
+import React, { useState } from "react";
 import { API_URL } from "../../App";
 import "./ScoreUpload.scss";
 
 const ScoreUpload: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState<string>("scoredata.bin can be found at %APPDATA%\\..\\LocalLow\\srylain Inc_\\Clone Hero");
-  const [progress, setProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [isConnected, setIsConnected] = useState<boolean>(false);
-  const socketRef = useRef<Socket | null>(null);
-
-  useEffect(() => {
-    const newSocket = io(API_URL, {
-      transports: ["websocket"],
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
-
-    socketRef.current = newSocket;
-
-    newSocket.on("connect", () => {
-      console.log("Connected to server");
-      setIsConnected(true);
-      setMessage("Connected to server");
-      
-      const userId = localStorage.getItem("user_id");
-      if (userId) {
-        console.log("Joining room:", userId);
-        newSocket.emit("join", userId);
-      } else {
-        console.error("No user ID found in localStorage");
-      }
-    });
-
-    newSocket.on("connect_error", (error) => {
-      console.error("Connection error:", error);
-      setIsConnected(false);
-      setMessage("Connection error. Retrying...");
-    });
-
-    newSocket.on("disconnect", (reason) => {
-      console.log("Disconnected:", reason);
-      setIsConnected(false);
-      setMessage("Disconnected from server. Retrying...");
-    });
-
-    newSocket.on("score_processing_progress", (data) => {
-      setProgress(data.progress);
-      setMessage(`Processing song ${data.processed} of ${data.total}`);
-    });
-
-    newSocket.on("score_processing_uploading", (data) => {
-      setMessage(data.message);
-    });
-
-    newSocket.on("score_processing_complete", (data) => {
-      setMessage(data.message);
-      setIsUploading(false);
-      setProgress(100);
-    });
-
-    newSocket.on("score_processing_error", (data) => {
-      setMessage(data.message);
-      setIsUploading(false);
-      setProgress(0);
-    });
-
-    return () => {
-      newSocket.disconnect();
-    };
-  }, []);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -85,7 +20,6 @@ const ScoreUpload: React.FC = () => {
     }
 
     setIsUploading(true);
-    setProgress(0);
     const formData = new FormData();
     formData.append("file", file);
 
@@ -103,10 +37,6 @@ const ScoreUpload: React.FC = () => {
       if (response.ok) {
         setMessage(`Processing started. Total songs: ${result.total_songs}`);
         setFile(null);
-        const userId = localStorage.getItem("user_id");
-        if (userId && socketRef.current) {
-          socketRef.current.emit("join", userId);
-        }
       } else {
         setMessage(result.error || "An error occurred while processing the file");
         setIsUploading(false);
@@ -117,40 +47,14 @@ const ScoreUpload: React.FC = () => {
     }
   };
 
-  const checkProcessingStatus = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/processing_status`, {
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("auth_token")}`
-        }
-      });
-      const result = await response.json();
-      if (result.status === "completed") {
-        setMessage("Score processing completed");
-        setIsUploading(false);
-        setProgress(100);
-      } else if (result.status === "in_progress") {
-        setProgress(result.progress);
-        setMessage(`Processing song ${result.processed} of ${result.total}`);
-        setTimeout(checkProcessingStatus, 5000); // 5 seconds
-      }
-    } catch (error) {
-      console.error("Error checking processing status:", error);
-    }
-  };
-
   return (
     <div className="score-upload">
       <h2>Upload Score Data</h2>
       <input type="file" onChange={handleFileChange} accept=".bin" disabled={isUploading} />
-      <button onClick={handleUpload} disabled={!file || isUploading || !isConnected}>
+      <button onClick={handleUpload} disabled={!file || isUploading}>
         {isUploading ? 'Processing...' : 'Upload'}
       </button>
       {message && <p>{message}</p>}
-      {isUploading && <progress value={progress} max="100" />}
-      {isUploading && !isConnected && (
-        <button onClick={checkProcessingStatus}>Check Status</button>
-      )}
     </div>
   );
 };
