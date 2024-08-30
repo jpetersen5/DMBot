@@ -42,7 +42,6 @@ const UploadProgress: React.FC = () => {
       setMessage(data.message);
       setIsUploading(false);
       setProgress(100);
-      setTimeout(() => setIsVisible(false), 3000);
     });
 
     socket.on("score_processing_error", (data) => {
