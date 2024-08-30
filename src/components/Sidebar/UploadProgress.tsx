@@ -59,18 +59,6 @@ const UploadProgress: React.FC = () => {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging) return;
-      
-      const dx = e.clientX - position.x;
-      const dy = e.clientY - position.y;
-      
-      if (dragRef.current) {
-        const newLeft = dragRef.current.offsetLeft + dx;
-        const newTop = dragRef.current.offsetTop + dy;
-        
-        dragRef.current.style.left = `${newLeft}px`;
-        dragRef.current.style.top = `${newTop}px`;
-      }
-      
       setPosition({ x: e.clientX, y: e.clientY });
     };
 
@@ -79,15 +67,15 @@ const UploadProgress: React.FC = () => {
     };
 
     if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isDragging, position]);
+  }, [isDragging]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
@@ -105,10 +93,15 @@ const UploadProgress: React.FC = () => {
   return (
     <div 
       ref={dragRef}
-      className={`upload-progress ${isUploading ? '' : 'hidden'}`}
-      onMouseDown={handleMouseDown}
+      className={`upload-progress ${isUploading ? "" : "hidden"}`}
+      style={{
+        left: position.x !== -1 ? `${position.x}px` : "auto",
+        top: position.y !== -1 ? `${position.y}px` : "auto",
+        right: position.x !== -1 ? "auto" : "20px",
+        bottom: position.y !== -1 ? "auto" : "20px",
+      }}
     >
-      <div className="drag-handle">
+      <div className="drag-handle" onMouseDown={handleMouseDown}>
         <h3>Upload Progress</h3>
       </div>
       <p>{message}</p>
