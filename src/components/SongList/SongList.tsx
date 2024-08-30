@@ -29,7 +29,7 @@ const SongList: React.FC = () => {
 
   useEffect(() => {
     fetchSongs();
-  }, [page, perPage, sortBy, sortOrder]);
+  }, [page, perPage, sortBy, sortOrder, filter]);
 
   const getCacheKey = () => {
     return `songs_${page}_${perPage}_${sortBy}_${sortOrder}_${search}_${filter}`;
