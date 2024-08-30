@@ -52,7 +52,7 @@ const ScoreUpload: React.FC = () => {
       <h2>Upload Score Data</h2>
       <input type="file" onChange={handleFileChange} accept=".bin" disabled={isUploading} />
       <button onClick={handleUpload} disabled={!file || isUploading}>
-        {isUploading ? 'Processing...' : 'Upload'}
+        {isUploading ? "Processing..." : "Upload"}
       </button>
       {message && <p>{message}</p>}
     </div>
