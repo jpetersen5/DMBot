@@ -1,10 +1,11 @@
 import os
 from dotenv import load_dotenv
 
-if os.getenv("FLASK_ENV") == "production":
-    load_dotenv("../.env")
+FLASK_ENV = os.getenv("FLASK_ENV", "development")
+if FLASK_ENV == "production":
+    load_dotenv(".env")
 else:
-    load_dotenv("../.env.dev")
+    load_dotenv(".env.dev")
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY")
@@ -21,3 +22,7 @@ class Config:
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
     DISCORD_API_ENDPOINT = "https://discord.com/api/v10"
     REDIS_URL = os.getenv("REDIS_URL")
+
+    @classmethod
+    def init_app(cls, app):
+        app.config.from_object(cls)

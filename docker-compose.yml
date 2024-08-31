@@ -25,6 +25,7 @@ services:
       - FLASK_ENV=development
       - ALLOWED_ORIGINS=http://localhost:3000
       - REDIS_URL=redis://redis:6379
+      - FRONTEND_URL=http://localhost:3000
     env_file:
       - ./backend/.env.dev
     depends_on:

@@ -79,6 +79,7 @@ Docker is a platform that allows users to develop, ship, and run applications in
    DISCORD_CLIENT_ID=1230729896393703425
    DISCORD_CLIENT_SECRET=
    DISCORD_REDIRECT_URI=http://localhost:5000/api/auth/callback
+   FRONTEND_URL=https://jpetersen5.github.io/DMBot
    REDIS_URL=redis://redis:6379
    UPLOAD_FOLDER=uploads
    PROCESS_SONGS_SCRIPT=
