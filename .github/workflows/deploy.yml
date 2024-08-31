@@ -23,6 +23,7 @@ jobs:
         run: npm run build
         env:
           VITE_GITHUB_ACTIONS: ${{ github.actions }}
+          VITE_API_URL: "https://dmbot-kb5j.onrender.com"
       - name: List build directory
         run: ls -R dist
       - name: Deploy

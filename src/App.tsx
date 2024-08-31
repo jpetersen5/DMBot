@@ -10,12 +10,15 @@ import SongList from "./components/SongList/SongList";
 import "./styles.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-export const API_URL = (window as any).VITE_API_URL || "http://localhost:5000";
+const isProduction = import.meta.env.PROD;
+const isGitHubPages = import.meta.env.VITE_GITHUB_ACTIONS === "true";
+
+export const API_URL = isProduction
+  ? "https://dmbot-kb5j.onrender.com"
+  : import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const App: React.FC = () => {
-  const isGitHubPages = import.meta.env.VITE_GITHUB_ACTIONS === "true";
   const basename = isGitHubPages ? "/DMBot" : "/";
-  console.log(API_URL);
 
   return (
     <AppProvider>
