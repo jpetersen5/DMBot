@@ -49,7 +49,7 @@ Docker is a platform that allows users to develop, ship, and run applications in
    ```
    git clone https://github.com/jpetersen5/DMBot.git
    ```
-  - Or if you have GitHub CLI set up:
+   - Or if you have GitHub CLI set up:
    ```
    gh repo clone jpetersen5/DMBot
    ```
