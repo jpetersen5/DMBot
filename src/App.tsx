@@ -13,9 +13,12 @@ import "bootstrap/dist/css/bootstrap.min.css";
 export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const App: React.FC = () => {
+  const isGitHubPages = import.meta.env.VITE_GITHUB_ACTIONS === "true";
+  const basename = isGitHubPages ? "/DMBot" : "/";
+
   return (
     <AppProvider>
-      <Router basename="/DMBot">
+      <Router basename={basename}>
         <div className="app-container">
           <Sidebar />
           <main className="main-content">

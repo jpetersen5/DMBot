@@ -21,6 +21,8 @@ jobs:
           npm ci --verbose
       - name: Build
         run: npm run build
+        env:
+          VITE_GITHUB_ACTIONS: ${{ github.actions }}
       - name: List build directory
         run: ls -R dist
       - name: Deploy
