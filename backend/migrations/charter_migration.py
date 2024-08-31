@@ -49,7 +49,7 @@ def process_color_tags(content: str) -> str:
     """Process color tags to HTML span elements."""
     def replace_color(match):
         color, text = match.groups()
-        if color.startswith('#'):
+        if color.startswith("#"):
             full_color = color if len(color) == 7 else f"#{color[1]*2}{color[2]*2}{color[3]*2}"
         else:
             full_color = COLOR_DICT.get(color.lower(), "#000000")
@@ -59,8 +59,8 @@ def process_color_tags(content: str) -> str:
 
 def split_charters(charter_string: str) -> List[str]:
     """Split charter string into individual charter names, preserving color tags."""
-    char_delimiters = [',', '/', '&']
-    multichar_delimiters = [' - ', ' + ', ' and ']
+    char_delimiters = [",", "/", "&"]
+    multichar_delimiters = [" - ", " + ", " and "]
 
     def is_in_color_tag(pos, text):
         open_tags = [m.start() for m in re.finditer(r'<color=', text[:pos])]
@@ -73,12 +73,12 @@ def split_charters(charter_string: str) -> List[str]:
     while i < len(charter_string):
         if any(charter_string.startswith(delim, i) for delim in multichar_delimiters) and not is_in_color_tag(i, charter_string):
             if current:
-                result.append(''.join(current).strip())
+                result.append("".join(current).strip())
                 current = []
             i += len(next(delim for delim in multichar_delimiters if charter_string.startswith(delim, i)))
         elif charter_string[i] in char_delimiters and not is_in_color_tag(i, charter_string):
             if current:
-                result.append(''.join(current).strip())
+                result.append("".join(current).strip())
                 current = []
             i += 1
         else:
@@ -86,7 +86,7 @@ def split_charters(charter_string: str) -> List[str]:
             i += 1
 
     if current:
-        result.append(''.join(current).strip())
+        result.append("".join(current).strip())
 
     return [charter.strip() for charter in result if charter.strip()]
 
@@ -113,7 +113,7 @@ async def fetch_existing_charters() -> Dict[str, str]:
     """Fetch existing charters from the database."""
     response = await postgrest.from_("charters").select("name", "colorized_name").execute()
     charters = response.data
-    return {charter['name']: charter.get('colorized_name', charter['name']) for charter in charters}
+    return {charter["name"]: charter.get("colorized_name", charter["name"]) for charter in charters}
 
 async def main():
     existing_charters = await fetch_existing_charters()
@@ -126,7 +126,7 @@ async def main():
     print(f"Found {total_songs} songs to process.")
 
     for index, song in enumerate(songs, 1):
-        charter_string = song.get('charter')
+        charter_string = song.get("charter")
         if charter_string:
             charters = split_charters(charter_string)
             charter_refs = []
@@ -134,7 +134,7 @@ async def main():
                 sanitized, colorized = process_charter_name(charter)
                 await upsert_charter(sanitized, colorized, existing_charters)
                 charter_refs.append(sanitized)
-            await postgrest.from_("songs").update({"charter_refs": charter_refs}).eq("id", song['id']).execute()
+            await postgrest.from_("songs").update({"charter_refs": charter_refs}).eq("id", song["id"]).execute()
         if index % 100 == 0:
             print(f"Processed {index}/{total_songs} songs.")
 

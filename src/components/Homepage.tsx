@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { API_URL } from "../App";
 import Auth from "./Auth/Auth";
 import UserGrid from "./UserGrid/UserGrid";
-import './Homepage.scss';
+import "./Homepage.scss";
 
 const Homepage: React.FC = () => {
   const [backendStatus, setBackendStatus] = useState("Not functional");
@@ -13,7 +13,7 @@ const Homepage: React.FC = () => {
       .then(response => response.json())
       .then(data => setBackendStatus(data.message))
       .catch(error => {
-        console.error('Error:', error);
+        console.error("Error:", error);
         setBackendStatus("Error connecting to backend");
       });
 
@@ -21,7 +21,7 @@ const Homepage: React.FC = () => {
       .then(response => response.json())
       .then(data => setDbStatus(data.message))
       .catch(error => {
-        console.error('Error:', error);
+        console.error("Error:", error);
         setDbStatus("Error checking database status");
       });
   }, []);
