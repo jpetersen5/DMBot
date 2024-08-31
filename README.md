@@ -22,6 +22,7 @@ DMBot is a Discord bot and web application designed to track Clone Hero scores f
 ## Prerequisites
 
 This guide is created by me, a Windows user, so it's not universal. Please contribute to this guide if you are experienced in another OS and have successfully set up this project for local development.
+
 It's assumed you have the following installed on your system:
 - Git
 - A text editor of your choice (VSCode, Notepad++, etc.)
@@ -47,6 +48,10 @@ Docker is a platform that allows users to develop, ship, and run applications in
 3. Run the following command:
    ```
    git clone https://github.com/jpetersen5/DMBot.git
+   ```
+   - Or if you have GitHub CLI set up:
+   ```
+   gh repo clone jpetersen5/DMBot
    ```
 4. Navigate into the project directory:
    ```
@@ -80,7 +85,13 @@ Docker is a platform that allows users to develop, ship, and run applications in
    ```
 
    Contact me `@._satan` on Discord for sensitive environment variables.
-   Production secrets aren't necessary for local development, Supabase keys are only necessary for working with the Supabase hosted database, Discord client secret is for me, the bot master, only.
+
+   Production secrets aren't necessary for local development
+
+   Supabase keys are only necessary for working with the Supabase hosted database
+
+   Discord client secret is for me, the bot master, only.
+
    The process songs script decodes Clone Hero's scoredata.bin file, which could be used by unethical players to modify their scores, so in the spirit of fairness to the community I'll only release it to trusted contributers who need it to contribute.
 
 ### Building and Running the App
