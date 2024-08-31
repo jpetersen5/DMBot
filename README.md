@@ -85,7 +85,13 @@ Docker is a platform that allows users to develop, ship, and run applications in
    ```
 
    Contact me `@._satan` on Discord for sensitive environment variables.
-   Production secrets aren't necessary for local development, Supabase keys are only necessary for working with the Supabase hosted database, Discord client secret is for me, the bot master, only.
+
+   Production secrets aren't necessary for local development
+
+   Supabase keys are only necessary for working with the Supabase hosted database
+
+   Discord client secret is for me, the bot master, only.
+
    The process songs script decodes Clone Hero's scoredata.bin file, which could be used by unethical players to modify their scores, so in the spirit of fairness to the community I'll only release it to trusted contributers who need it to contribute.
 
 ### Building and Running the App
