@@ -22,6 +22,7 @@ DMBot is a Discord bot and web application designed to track Clone Hero scores f
 ## Prerequisites
 
 This guide is created by me, a Windows user, so it's not universal. Please contribute to this guide if you are experienced in another OS and have successfully set up this project for local development.
+
 It's assumed you have the following installed on your system:
 - Git
 - A text editor of your choice (VSCode, Notepad++, etc.)
@@ -47,6 +48,10 @@ Docker is a platform that allows users to develop, ship, and run applications in
 3. Run the following command:
    ```
    git clone https://github.com/jpetersen5/DMBot.git
+   ```
+  - Or if you have GitHub CLI set up:
+   ```
+   gh repo clone jpetersen5/DMBot
    ```
 4. Navigate into the project directory:
    ```
