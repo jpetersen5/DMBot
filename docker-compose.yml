@@ -8,9 +8,11 @@ services:
     ports:
       - "3000:80"
     environment:
-      - REACT_APP_API_URL=http://localhost:5000
+      - VITE_API_URL=http://localhost:5000
     depends_on:
       - backend
+    networks:
+      - app-network
 
   backend:
     build:
@@ -27,11 +29,19 @@ services:
       - ./backend/.env.dev
     depends_on:
       - redis
+    networks:
+      - app-network
 
   redis:
     image: redis:alpine
     ports:
       - "6379:6379"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   redis_data:

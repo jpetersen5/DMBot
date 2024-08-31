@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify
 from ..services.supabase_service import get_supabase
+import os
 
 bp = Blueprint("status", __name__)
 
