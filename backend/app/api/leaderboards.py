@@ -41,3 +41,42 @@ def get_leaderboard(song_id):
         "sort_by": sort_by,
         "sort_order": sort_order
     })
+
+@bp.route("/api/user/<string:user_id>/scores", methods=["GET"])
+def get_user_scores(user_id):
+    supabase = get_supabase()
+    
+    page = max(1, int(request.args.get("page", 1)))
+    per_page = max(10, min(100, int(request.args.get("per_page", 10))))
+    sort_by = sanitize_input(request.args.get("sort_by", "score"))
+    sort_order = request.args.get("sort_order", "desc").lower()
+
+    if sort_order not in ["asc", "desc"]:
+        sort_order = "desc"
+
+    query = supabase.table("users").select("scores").eq("id", user_id)
+    result = query.execute()
+
+    if not result.data:
+        return jsonify({"error": "User not found"}), 404
+
+    scores = result.data[0].get("scores", [])
+    if not scores:
+        return jsonify({"error": "No scores found"}), 404
+    
+    total_scores = len(scores)
+
+    scores.sort(key=lambda x: x[sort_by], reverse=(sort_order == "desc"))
+
+    start_index = (page - 1) * per_page
+    end_index = start_index + per_page
+    paginated_scores = scores[start_index:end_index]
+
+    return jsonify({
+        "scores": paginated_scores,
+        "total": total_scores,
+        "page": page,
+        "per_page": per_page,
+        "sort_by": sort_by,
+        "sort_order": sort_order
+    })

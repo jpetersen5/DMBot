@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import ScoreUpload from "./ScoreUpload";
+import UserScores from "./UserScores";
 import { getUserImage } from "../../utils/user";
 import { useAuth } from "../../context/AuthContext";
 import { User } from "../../utils/user";
@@ -60,8 +61,7 @@ const ProfilePage: React.FC = () => {
             </div>
           </div>
           <div className="profile-scores">
-            <h2>Recent Scores</h2>
-            <p>Score data will be displayed here in the future.</p>
+            <UserScores userId={profileUser.id} />
           </div>
           {isOwnProfile ? (
             <ScoreUpload />
