@@ -17,6 +17,7 @@ export const TableControls: React.FC<TableControlsProps> = ({ perPage, setPerPag
       <div>
         <label htmlFor="per-page">Per page:</label>
         <select id="per-page" value={perPage} onChange={handlePerPageChange}>
+          <option value="10">10</option>
           <option value="20">20</option>
           <option value="50">50</option>
           <option value="100">100</option>
