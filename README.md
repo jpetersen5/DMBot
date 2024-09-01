@@ -89,7 +89,7 @@ Docker is a platform that allows users to develop, ship, and run applications in
 
    Production secrets aren't necessary for local development
 
-   Supabase keys are only necessary for working with the Supabase hosted database
+   Supabase keys are only necessary for working with the data in the Supabase hosted database. Contact me for the service role key but be really careful with it!
 
    Discord client secret is for me, the bot master, only.
 
