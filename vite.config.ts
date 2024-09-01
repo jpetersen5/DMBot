@@ -3,8 +3,9 @@ import react from "@vitejs/plugin-react"
 import svgr from "vite-plugin-svgr"
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command }) => {
+export default defineConfig(({ command, mode }) => {
   const isGitHubPages = process.env.GITHUB_ACTIONS === "true"
+  const isProduction = mode === "production"
 
   const config = {
     plugins: [react(), svgr()],
@@ -13,19 +14,18 @@ export default defineConfig(({ command }) => {
       outDir: "dist",
       assetsDir: "assets",
     },
-    server: {}
-  }
-
-  if (command !== "build") {
-    config.server = {
-      proxy: {
-        "/api": {
-          target: "http://localhost:5000",
-          changeOrigin: true,
-          secure: false,
-        }
+    server: {
+      host: true,
+      port: 3000,
+      strictPort: true,
+      watch: {
+        usePolling: true,
       },
-      historyApiFallback: true,
+    },
+    define: {
+      "import.meta.env.VITE_API_URL": isProduction 
+        ? JSON.stringify("https://dmbot-kb5j.onrender.com")
+        : JSON.stringify("http://localhost:5000"),
     }
   }
 

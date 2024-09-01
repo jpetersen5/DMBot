@@ -6,9 +6,16 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:80"
+      - "3000:3000"
     environment:
+      - NODE_ENV=development
       - VITE_API_URL=http://localhost:5000
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./vite.config.ts:/app/vite.config.ts
+      - ./index.html:/app/index.html
+    command: npm run dev
     depends_on:
       - backend
     networks:
@@ -28,6 +35,8 @@ services:
       - FRONTEND_URL=http://localhost:3000
     env_file:
       - ./backend/.env.dev
+    volumes:
+      - ./backend:/app
     depends_on:
       - redis
     networks:
