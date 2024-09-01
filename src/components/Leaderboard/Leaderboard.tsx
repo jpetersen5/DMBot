@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { API_URL } from "../../App";
 import { TableControls, Pagination } from "../SongList/TableControls";
 import LoadingSpinner from "../Loading/LoadingSpinner";
@@ -36,6 +37,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
   const [perPage, setPerPage] = useState(10);
   const [sortBy, setSortBy] = useState("score");
   const [sortOrder, setSortOrder] = useState("desc");
+  const navigate = useNavigate();
 
   const totalPages = Math.ceil(totalEntries / perPage);
 
@@ -86,6 +88,10 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
     }
   };
 
+  const handleRowClick = (userId: string) => {
+    navigate(`/user/${userId}`);
+  };
+
   return (
     <div className="leaderboard">
       <h5>Leaderboard</h5>
@@ -132,6 +138,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
                 key={entry.user_id} 
                 entry={entry}
                 rank={(page - 1) * perPage + index + 1}
+                onClick={() => handleRowClick(entry.user_id)}
               />
             ))
           )}
@@ -167,10 +174,11 @@ const LeaderboardTableHeader: React.FC<LeaderboardTableHeaderProps> = ({ onClick
 interface LeaderboardTableRowProps {
   entry: LeaderboardEntry;
   rank: number;
+  onClick: () => void;
 }
 
-const LeaderboardTableRow: React.FC<LeaderboardTableRowProps> = ({ entry, rank }) => (
-  <tr>
+const LeaderboardTableRow: React.FC<LeaderboardTableRowProps> = ({ entry, rank, onClick }) => (
+  <tr onClick={onClick} style={{ cursor: "pointer" }}>
     <td>{rank}</td>
     <td>{entry.username}</td>
     <td>{entry.score.toLocaleString()}</td>
