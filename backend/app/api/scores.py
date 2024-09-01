@@ -58,6 +58,9 @@ def process_and_save_scores(result, user_id):
     for i in range(0, len(song_identifiers), batch_size):
         batch = song_identifiers[i:i+batch_size]
         logger.info(f"Fetching batch of {len(batch)} songs")
+        socketio.emit("score_processing_fetching_songs",
+                        {"message": f"Fetching user scores for songs {i+1} - {i+len(batch)}"},
+                        room=str(user_id))
         batch_songs_info = supabase.table("songs").select("*").in_("md5", batch).execute().data
         songs_dict.update({song["md5"]: song for song in batch_songs_info})
     

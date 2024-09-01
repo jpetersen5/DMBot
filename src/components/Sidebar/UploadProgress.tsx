@@ -1,68 +1,18 @@
-import React, { useEffect, useState } from "react";
-import { io } from "socket.io-client";
+import React, { useState } from "react";
+import { useUploadProgress } from "../../hooks/useUploadProgress";
 import Draggable from "../../utils/Draggable";
-import { API_URL } from "../../App";
 
 import "./UploadProgress.scss";
 
 const UploadProgress: React.FC = () => {
-  const [progress, setProgress] = useState<number>(0);
-  const [message, setMessage] = useState<string>("");
-  const [isVisible, setIsVisible] = useState<boolean>(false);
-
-  useEffect(() => {
-    const socket = io(API_URL, {
-      transports: ["websocket"],
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
-
-    socket.on("connect", () => {
-      const userId = localStorage.getItem("user_id");
-      if (userId) {
-        socket.emit("join", userId);
-      }
-    });
-
-    socket.on("score_processing_start", () => {
-      setMessage("Processing started");
-      setIsVisible(true);
-    });
-
-    socket.on("score_processing_progress", (data) => {
-      setProgress(data.progress);
-      setMessage(`Processing song ${data.processed} of ${data.total}`);
-    });
-
-    socket.on("score_processing_uploading", (data) => {
-      setMessage(data.message);
-    });
-
-    socket.on("score_processing_updating_progress", (data) => {
-      setProgress(data.progress);
-      setMessage(data.message);
-    });
-
-    socket.on("score_processing_complete", (data) => {
-      setMessage(data.message);
-      setProgress(100);
-    });
-
-    socket.on("score_processing_error", (data) => {
-      setMessage(data.message);
-      setProgress(0);
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
+  const { isProcessing, message, progress } = useUploadProgress();
+  const [isVisible, setIsVisible] = useState<boolean>(true);
 
   const handleClose = () => {
     setIsVisible(false);
   };
 
-  if (!isVisible) {
+  if (!isVisible || !isProcessing) {
     return null;
   }
 

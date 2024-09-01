@@ -1,11 +1,11 @@
 import React, { useState } from "react";
+import { useUploadProgress } from "../../hooks/useUploadProgress";
 import { API_URL } from "../../App";
 import "./ScoreUpload.scss";
 
 const ScoreUpload: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
-  const [message, setMessage] = useState<string>("scoredata.bin can be found at %APPDATA%\\..\\LocalLow\\srylain Inc_\\Clone Hero");
-  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const { isUploading, isProcessing, message, startUpload, finishUpload } = useUploadProgress();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -15,11 +15,11 @@ const ScoreUpload: React.FC = () => {
 
   const handleUpload = async () => {
     if (!file) {
-      setMessage("Please select a file");
+      finishUpload(false, "Please select a file");
       return;
     }
 
-    setIsUploading(true);
+    startUpload();
     const formData = new FormData();
     formData.append("file", file);
 
@@ -35,26 +35,33 @@ const ScoreUpload: React.FC = () => {
       const result = await response.json();
 
       if (response.ok) {
-        setMessage(`Processing started. Total songs: ${result.total_songs}`);
+        finishUpload(true, `Upload complete. Processing started. Total songs: ${result.total_songs}`);
         setFile(null);
       } else {
-        setMessage(result.error || "An error occurred while processing the file");
-        setIsUploading(false);
+        finishUpload(false, result.error || "An error occurred while processing the file");
       }
     } catch (error) {
-      setMessage("An error occurred while uploading the file");
-      setIsUploading(false);
+      finishUpload(false, "An error occurred while uploading the file");
     }
   };
 
   return (
     <div className="score-upload">
       <h2>Upload Score Data</h2>
-      <input type="file" onChange={handleFileChange} accept=".bin" disabled={isUploading} />
-      <button onClick={handleUpload} disabled={!file || isUploading}>
-        {isUploading ? "Processing..." : "Upload"}
+      <input
+        type="file"
+        onChange={handleFileChange}
+        accept=".bin"
+        disabled={isUploading || isProcessing}
+      />
+      <button
+        onClick={handleUpload}
+        disabled={!file || isUploading || isProcessing}
+      >
+        {isUploading ? "Uploading..." : isProcessing ? "Processing..." : "Upload"}
       </button>
       {message && <p>{message}</p>}
+      <p>{"scoredata.bin can be found at %APPDATA%\\..\\LocalLow\\srylain Inc_\\Clone Hero"}</p>
     </div>
   );
 };
