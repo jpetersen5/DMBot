@@ -19,6 +19,7 @@ export const API_URL = isProduction
 
 const App: React.FC = () => {
   const basename = isGitHubPages ? "/DMBot" : "/";
+  console.log("API_URL", API_URL);
 
   return (
     <AppProvider>
