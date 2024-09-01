@@ -42,36 +42,26 @@ def get_songs():
     count_query = supabase.table("songs").select("id", count="exact")
 
     if search:
-        search = sanitize_input(search)
-        if filter:
-            filter = sanitize_input(filter)
-            if filter == "charter":
-                charters_query = (supabase.table("charters").select("name").ilike("name", f"*{search}*"))
-                charters_response = charters_query.execute()
-                matching_charters = [charter["name"] for charter in charters_response.data]
-                
-                if matching_charters:
-                    charter_array = "{" + ",".join(f'"{charter}"' for charter in matching_charters) + "}"
-                    query = query.overlaps("charter_refs", f"{{{charter_array}}}")
-                    count_query = count_query.overlaps("charter_refs", f"{{{charter_array}}}")
-                
-            elif filter in ["name", "artist", "album", "year", "genre"]:
-                query = query.ilike(filter, f"*{search}*")
-                count_query = count_query.ilike(filter, f"*{search}*")
-        else:
-            search_fields = ["name", "artist", "album", "year", "genre"]
-            or_conditions = [f"{field}.ilike.%{search}%" for field in search_fields]
-            charters_query = (supabase.table("charters").select("name").ilike("name", f"*{search}*"))
+        search_terms = sanitize_input(search).split()
+        search_fields = ["name", "artist", "album", "year", "genre"] if not filter else [filter]
+        
+        for term in search_terms:
+            term_filter = None
+            for field in search_fields:
+                if field != "charter":
+                    condition = f"{field}.ilike.%{term}%"
+                    term_filter = condition if term_filter is None else f"{term_filter},{condition}"
+            
+            charters_query = supabase.table("charters").select("name").ilike("name", f"*{term}*")
             charters_response = charters_query.execute()
             matching_charters = [charter["name"] for charter in charters_response.data]
-
             if matching_charters:
-                charter_array = "{" + ",".join(f'"{charter}"' for charter in matching_charters) + "}"
-                charter_condition = f"charter_refs.ov.{charter_array}"
-                or_conditions.append(charter_condition)
+                charter_condition = f"charter_refs.ov.{{{','.join(matching_charters)}}}"
+                term_filter = charter_condition if term_filter is None else f"{term_filter},{charter_condition}"
             
-            query = query.or_(",".join(or_conditions))
-            count_query = count_query.or_(",".join(or_conditions))
+            if term_filter:
+                query = query.or_(term_filter)
+                count_query = count_query.or_(term_filter)
 
     total_songs = count_query.execute().count
 
