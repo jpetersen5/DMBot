@@ -47,6 +47,16 @@
             margin-right: 0.25rem;
           }
         }
+
+        .charter {
+          display: flex;
+          align-items: center;
+          margin-bottom: 1rem;
+
+          p {
+            margin: 0;
+          }
+        }
       }
 
       h5 {

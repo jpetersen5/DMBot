@@ -8,6 +8,7 @@ import { Song, msToTime } from "../../utils/song";
 import { Pagination } from "./TableControls";
 import { useSongCache } from "../../context/SongContext";
 import "./SongModal.scss";
+import Leaderboard from "../Leaderboard/Leaderboard";
 
 interface SongModalProps {
   show: boolean;
@@ -209,10 +210,7 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
             {renderRelatedSongsTable()}
           </div>
         </div>
-        <div className="leaderboard">
-          <h5>Leaderboard</h5>
-          <p>Leaderboard to be implemented in the future.</p>
-        </div>
+        <Leaderboard songId={currentSong.id.toString()} key={currentSong.id.toString()} />
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={onHide}>Close</Button>
@@ -234,7 +232,7 @@ const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
     return <p><strong>{label}:</strong> <code>{value}</code></p>
   }
   else if (label === "Charter") {
-    return <p><strong>{label}:</strong> <CharterName names={value as string} /></p>
+    return <div className="charter"><p><strong>{label}:</strong></p> <CharterName names={value as string} /></div>
   }
   const processedValue = typeof value === "string" 
     ? processColorTags(value)
