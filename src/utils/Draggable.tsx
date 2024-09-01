@@ -15,8 +15,8 @@ const Draggable: React.FC<DraggableProps> = ({ children }) => {
     if (!initialPositionSet.current && dragRef.current) {
       const rect = dragRef.current.getBoundingClientRect();
       setPosition({
-        x: window.innerWidth - rect.width,
-        y: window.innerHeight - rect.height
+        x: (window.innerWidth - rect.width) / 2,
+        y:( window.innerHeight - rect.height) / 2
       });
       initialPositionSet.current = true;
     }

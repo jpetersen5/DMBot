@@ -38,8 +38,6 @@ def process_and_save_scores(result, user_id):
     total_songs = len(result["songs"])
     processed_songs = 0
     leaderboard_updates = []
-    
-    update_processing_status(user_id, "in_progress", 0, processed_songs, total_songs)
 
     logger.info(f"Fetching user data for user {user_id}")
     user_data = supabase.table("users").select("username, scores").eq("id", user_id).execute().data
@@ -130,9 +128,10 @@ def process_and_save_scores(result, user_id):
                         room=str(user_id))
             socketio.sleep(1)
             
-            for update in leaderboard_updates:
-                socketio.emit("score_processing_uploading",
-                            {"message": f"Updating leaderboard for {update['name']}"},
+            for update, i in zip(leaderboard_updates, range(len(leaderboard_updates))):
+                progress = (i / len(leaderboard_updates)) * 100
+                socketio.emit("score_processing_updating_progress",
+                            {"message": f"Updating leaderboard for {i+1} / {len(leaderboard_updates)}: {update['name']}", "progress": progress},
                             room=str(user_id))
                 supabase.table("songs").update({"leaderboard": update["leaderboard"]}).eq("md5", update["md5"]).execute()
             
@@ -199,6 +198,8 @@ def upload_scoredata():
         
         try:
             with open(filepath, "rb") as f:
+                socketio.emit("score_processing_start",
+                                room=str(user_id))
                 # from process_songs.py, encoded and saved in env
                 result = parse_score_data(f) # type: ignore
             

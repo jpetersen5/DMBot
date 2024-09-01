@@ -8,7 +8,6 @@ import "./UploadProgress.scss";
 const UploadProgress: React.FC = () => {
   const [progress, setProgress] = useState<number>(0);
   const [message, setMessage] = useState<string>("");
-  const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isVisible, setIsVisible] = useState<boolean>(false);
 
   useEffect(() => {
@@ -25,26 +24,32 @@ const UploadProgress: React.FC = () => {
       }
     });
 
+    socket.on("score_processing_start", () => {
+      setMessage("Processing started");
+      setIsVisible(true);
+    });
+
     socket.on("score_processing_progress", (data) => {
       setProgress(data.progress);
       setMessage(`Processing song ${data.processed} of ${data.total}`);
-      setIsUploading(true);
-      setIsVisible(true);
     });
 
     socket.on("score_processing_uploading", (data) => {
       setMessage(data.message);
     });
 
+    socket.on("score_processing_updating_progress", (data) => {
+      setProgress(data.progress);
+      setMessage(data.message);
+    });
+
     socket.on("score_processing_complete", (data) => {
       setMessage(data.message);
-      setIsUploading(false);
       setProgress(100);
     });
 
     socket.on("score_processing_error", (data) => {
       setMessage(data.message);
-      setIsUploading(false);
       setProgress(0);
     });
 
@@ -63,7 +68,7 @@ const UploadProgress: React.FC = () => {
 
   return (
     <Draggable>
-      <div className={`upload-progress ${isUploading ? "" : "hidden"}`}>
+      <div className="upload-progress">
         <div className="drag-handle">
           <h3>Upload Progress</h3>
         </div>
