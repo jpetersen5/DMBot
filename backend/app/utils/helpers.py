@@ -32,8 +32,6 @@ def get_process_songs_script():
                 print("This is a dummy implementation of parse_score_data")
                 print("The actual implementation is not available in this environment")
                 return {}
-
-            # Add any other necessary dummy functions here
             """
     return base64.b64decode(encoded_script).decode("utf-8")
 
