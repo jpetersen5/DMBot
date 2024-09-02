@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Modal, Button, Nav } from "react-bootstrap";
 import { API_URL } from "../../App";
 import LoadingSpinner from "../Loading/LoadingSpinner";
@@ -14,14 +15,18 @@ interface SongModalProps {
   show: boolean;
   onHide: () => void;
   initialSong: Song | null;
+  loading: boolean;
 }
 
-const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
+const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong, loading }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [previousSongs, setPreviousSongs] = useState<Song[]>([]);
   const [relatedSongs, setRelatedSongs] = useState<Song[]>([]);
   const [relationType, setRelationType] = useState<"album" | "artist" | "genre" | "charter">("album");
-  const [loading, setLoading] = useState(false);
+  const [relatedLoading, setRelatedLoading] = useState(false);
   const { getCachedResult, setCachedResult } = useSongCache();
 
   // related songs pagination
@@ -35,14 +40,17 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
     if (initialSong) {
       setCurrentSong(initialSong);
       setPreviousSongs([]);
-      setPage(1);
-      setInputPage("1");
+
+      const params = new URLSearchParams(location.search);
+      const initialRelationType = params.get("relation") as "album" | "artist" | "genre" | "charter" || "album";
+      setRelationType(initialRelationType);
     }
-  }, [initialSong]);
+  }, [initialSong, location.search]);
 
   useEffect(() => {
     if (currentSong) {
       fetchRelatedSongs();
+      updateURL();
     }
   }, [currentSong, relationType, page]);
 
@@ -50,6 +58,13 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
     setPage(1);
     setInputPage("1");
   }, [relationType]);
+
+  const updateURL = () => {
+    if (!currentSong) return;
+    const params = new URLSearchParams(location.search);
+    params.set("relation", relationType);
+    navigate(`/songs/${currentSong.id}?${params.toString()}`, { replace: true });
+  };
 
   const getCacheKey = () => {
     if (relationType === "album") return `related_${relationType}_${currentSong?.album}_${page}_${perPage}`;
@@ -61,14 +76,14 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
 
   const fetchRelatedSongs = async () => {
     if (!currentSong) return;
-    setLoading(true);
+    setRelatedLoading(true);
     const cacheKey = getCacheKey();
     const cachedResult = getCachedResult(cacheKey);
 
     if (cachedResult) {
       setRelatedSongs(cachedResult.songs);
       setTotalRelatedSongs(cachedResult.total);
-      setLoading(false);
+      setRelatedLoading(false);
       return;
     }
 
@@ -92,9 +107,19 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
     } catch (error) {
       console.error("Error fetching related songs:", error);
     } finally {
-      setLoading(false);
+      setRelatedLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <Modal show={show} onHide={onHide} size="xl" dialogClassName="song-modal loading">
+        <Modal.Body>
+          <LoadingSpinner message="Loading song details..." />
+        </Modal.Body>
+      </Modal>
+    );
+  }
 
   if (!currentSong) return null;
 
@@ -102,6 +127,8 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
     if (currentSong.id === song.id) return;
     setPreviousSongs([...previousSongs, currentSong]);
     setCurrentSong(song);
+    const params = new URLSearchParams(location.search);
+    navigate(`/songs/${song.id}?${params.toString()}`);
   }
 
   const handleBack = () => {
@@ -109,6 +136,8 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
       const lastSong = previousSongs[previousSongs.length - 1];
       setCurrentSong(lastSong);
       setPreviousSongs(prev => prev.slice(0, -1));
+      const params = new URLSearchParams(location.search);
+      navigate(`/songs/${lastSong.id}?${params.toString()}`);
     } else {
       onHide();
     }
@@ -137,8 +166,8 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
           </tr>
         </thead>
         <tbody>
-          {loading && <tr><td colSpan={columns.length}><LoadingSpinner /></td></tr>}
-          {!loading && relatedSongs.map((relatedSong) => (
+          {relatedLoading && <tr><td colSpan={columns.length}><LoadingSpinner /></td></tr>}
+          {!relatedLoading && relatedSongs.map((relatedSong) => (
             <tr key={relatedSong.id} onClick={() => handleRelatedSongClick(relatedSong)}>
               {relationType === "album" && <td>{relatedSong.track || "N/A"}</td>}
               <td>{relatedSong.name}</td>
@@ -147,7 +176,7 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong }) => {
               <td>{msToTime(relatedSong.song_length || 0)}</td>
             </tr>
           ))}
-          {!loading && relatedSongs.length === 0 && (
+          {!relatedLoading && relatedSongs.length === 0 && (
             <tr><td colSpan={columns.length}>{`No related songs from ${relationType}`}</td></tr>
           )}
         </tbody>

@@ -6,6 +6,29 @@ from ..utils.helpers import sanitize_input
 bp = Blueprint("songs", __name__)
 
 ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "difficulty", "charter", "song_length"}
+ALLOWED_FILTERS = {"name", "artist", "album", "year", "genre", "charter"}
+
+@bp.route("/api/songs/<int:song_id>", methods=["GET"])
+def get_song(song_id):
+    """
+    retrieves a single song from the database by its ID
+
+    params:
+        song_id (int): ID of the song to retrieve
+
+    returns:
+        JSON: song details
+    """
+    supabase = get_supabase()
+    
+    query = supabase.table("songs").select("*").eq("id", song_id)
+    result = query.execute()
+
+    if not result.data:
+        return jsonify({"error": "Song not found"}), 404
+
+    song = result.data[0]
+    return jsonify(song)
 
 @bp.route("/api/songs", methods=["GET"])
 def get_songs():
@@ -35,6 +58,10 @@ def get_songs():
 
     if sort_order not in ["asc", "desc"]:
         sort_order = "asc"
+    if sort_by not in ALLOWED_FIELDS:
+        sort_by = "name"
+    if filter and filter not in ALLOWED_FILTERS:
+        filter = None
     if sort_by == "charter":
         sort_by = "charter_refs"
 

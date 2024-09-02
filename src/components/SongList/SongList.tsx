@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { API_URL } from "../../App";
 import { TableControls, Pagination, Search } from "./TableControls";
 import SongModal from "./SongModal";
@@ -11,17 +12,23 @@ import { Song, SONG_TABLE_HEADERS, msToTime } from "../../utils/song";
 import "./SongList.scss";
 
 const SongList: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { songId } = useParams<{ songId?: string }>();
+  const queryParams = new URLSearchParams(location.search);
+
   const [songs, setSongs] = useState<Song[]>([]);
   const [songsLoading, setSongsLoading] = useState(true);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(parseInt(queryParams.get("page") || "1"));
   const [inputPage, setInputPage] = useState(page.toString());
   const [totalSongs, setTotalSongs] = useState(0);
-  const [perPage, setPerPage] = useState(20);
-  const [sortBy, setSortBy] = useState("name");
-  const [sortOrder, setSortOrder] = useState("asc");
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("");
+  const [perPage, setPerPage] = useState(parseInt(queryParams.get("per_page") || "20"));
+  const [sortBy, setSortBy] = useState(queryParams.get("sort_by") || "name");
+  const [sortOrder, setSortOrder] = useState(queryParams.get("sort_order") || "asc");
+  const [search, setSearch] = useState(queryParams.get("search") || "");
+  const [filter, setFilter] = useState(queryParams.get("filter") || "");
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
+  const [modalLoading, setModalLoading] = useState(false);
   const { isLoading: chartersLoading } = useCharterData();
   const { getCachedResult, setCachedResult } = useSongCache();
 
@@ -29,7 +36,31 @@ const SongList: React.FC = () => {
 
   useEffect(() => {
     fetchSongs();
+  }, [location.search]);
+
+  useEffect(() => {
+    updateURL();
   }, [page, perPage, sortBy, sortOrder, filter]);
+
+  useEffect(() => {
+    if (songId) {
+      fetchSong(songId);
+    } else {
+      setSelectedSong(null);
+    }
+  }, [songId]);
+
+  const updateURL = () => {
+    const params = new URLSearchParams();
+    if (page !== 1) params.set("page", page.toString());
+    if (perPage !== 20) params.set("per_page", perPage.toString());
+    if (sortBy !== "name") params.set("sort_by", sortBy);
+    if (sortOrder !== "asc") params.set("sort_order", sortOrder);
+    if (search) params.set("search", search);
+    if (filter) params.set("filter", filter);
+
+    navigate(`/songs?${params.toString()}`, { replace: true });
+  };
 
   const getCacheKey = () => {
     return `songs_${page}_${perPage}_${sortBy}_${sortOrder}_${search}_${filter}`;
@@ -71,6 +102,21 @@ const SongList: React.FC = () => {
     }
   }
 
+  async function fetchSong(id: string) {
+    setModalLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/songs/${id}`);
+      if (!response.ok) throw new Error("Failed to fetch song");
+      const song = await response.json();
+      setSelectedSong(song);
+    } catch (error) {
+      console.error("Error fetching song:", error);
+      setSelectedSong(null);
+    } finally {
+      setModalLoading(false);
+    }
+  }
+
   const handleSort = (column: string) => {
     if (sortBy === column) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -82,7 +128,7 @@ const SongList: React.FC = () => {
 
   const handleSearchSubmit = () => {
     if (page === 1) {
-      fetchSongs();
+      updateURL();
     } else {
       setPage(1);
     }
@@ -90,6 +136,15 @@ const SongList: React.FC = () => {
 
   const handleRowClick = (song: Song) => {
     setSelectedSong(song);
+    const currentParams = new URLSearchParams(location.search);
+    navigate(`/songs/${song.id}?${currentParams.toString()}`, { replace: true });
+  };
+
+  const handleModalClose = () => {
+    setSelectedSong(null);
+    const currentParams = new URLSearchParams(location.search);
+    currentParams.delete("relation");
+    navigate(`/songs?${currentParams.toString()}`, { replace: true });
   };
 
   const loading = songsLoading || chartersLoading;
@@ -159,11 +214,14 @@ const SongList: React.FC = () => {
         setPage={setPage}
         setInputPage={setInputPage}
       />
-      <SongModal 
-        show={!!selectedSong} 
-        onHide={() => setSelectedSong(null)} 
-        initialSong={selectedSong}
-      />
+      {(selectedSong || modalLoading) && (
+        <SongModal 
+          show={true}
+          onHide={handleModalClose} 
+          initialSong={selectedSong}
+          loading={modalLoading}
+        />
+      )}
     </div>
   );
 };

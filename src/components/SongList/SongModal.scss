@@ -1,4 +1,15 @@
 .song-modal {
+
+  &.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .modal-content {
+      height: 800px;
+    }
+  }
+
   .modal-dialog {
     max-width: 80%;
   }
@@ -114,6 +125,7 @@
             input[type="number"] {
               width: 40px;
               padding: 0.25rem;
+              margin-right: 0.25rem;
               text-align: center;
               border: 1px solid #ccc;
               border-radius: 3px;

@@ -29,6 +29,7 @@ const App: React.FC = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/auth" element={<AuthHandler />} />
               <Route path="/songs" element={<SongList />} />
+              <Route path="/songs/:songId" element={<SongList />} />
             </Routes>
           </main>
         </div>
