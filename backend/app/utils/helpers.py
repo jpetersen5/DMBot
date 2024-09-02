@@ -28,11 +28,11 @@ def get_process_songs_script():
     encoded_script = os.getenv("PROCESS_SONGS_SCRIPT")
     if not encoded_script:
         return """
-            def parse_score_data(file_object):
-                print("This is a dummy implementation of parse_score_data")
-                print("The actual implementation is not available in this environment")
-                return {}
-            """
+def parse_score_data(file_object):
+    print("This is a dummy implementation of parse_score_data")
+    print("The actual implementation is not available in this environment")
+    return {}
+"""
     return base64.b64decode(encoded_script).decode("utf-8")
 
 def allowed_file(filename: str) -> bool:
