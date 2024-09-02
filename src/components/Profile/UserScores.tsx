@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { TableControls, Pagination } from "../SongList/TableControls";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import { API_URL } from "../../App";
@@ -28,6 +29,8 @@ const SCORE_TABLE_HEADERS = {
 };
 
 const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
+  const navigate = useNavigate();
+
   const [scores, setScores] = useState<Score[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -75,6 +78,10 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
     }
   };
 
+  const handleRowClick = (score: Score) => {
+    navigate(`/songs/${score.identifier}`);
+  };
+
   return (
     <div className="user-scores">
       <h2>User Scores</h2>
@@ -120,6 +127,7 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
               <ScoreTableRow 
                 key={index} 
                 score={score}
+                onClick={() => handleRowClick(score)}
               />
             ))
           )}
@@ -154,12 +162,13 @@ const ScoreTableHeader: React.FC<ScoreTableHeaderProps> = ({ onClick, content, s
 
 interface ScoreTableRowProps {
   score: Score;
+  onClick: () => void;
 }
 
-const ScoreTableRow: React.FC<ScoreTableRowProps> = ({ score }) => {
+const ScoreTableRow: React.FC<ScoreTableRowProps> = ({ score, onClick }) => {
   console.log("Score identifier:", score.identifier);
   return (
-    <tr>
+    <tr onClick={onClick} style={{ cursor: "pointer" }}>
       <td>{score.song_name}</td>
       <td>{score.artist}</td>
       <td>{score.score.toLocaleString()}</td>

@@ -8,20 +8,23 @@ bp = Blueprint("songs", __name__)
 ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "difficulty", "charter", "song_length"}
 ALLOWED_FILTERS = {"name", "artist", "album", "year", "genre", "charter"}
 
-@bp.route("/api/songs/<int:song_id>", methods=["GET"])
-def get_song(song_id):
+@bp.route("/api/songs/<string:identifier>", methods=["GET"])
+def get_song(identifier):
     """
-    retrieves a single song from the database by its ID
+    retrieves a single song from the database by its ID or MD5 identifier
 
     params:
-        song_id (int): ID of the song to retrieve
+        identifier (str): ID or MD5 of the song to retrieve
 
     returns:
         JSON: song details
     """
     supabase = get_supabase()
     
-    query = supabase.table("songs").select("*").eq("id", song_id)
+    if identifier.isdigit():
+        query = supabase.table("songs").select("*").eq("id", int(identifier))
+    else:
+        query = supabase.table("songs").select("*").eq("md5", identifier)
     result = query.execute()
 
     if not result.data:
