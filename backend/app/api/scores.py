@@ -206,6 +206,9 @@ def upload_scoredata():
                 # from process_songs.py, encoded and saved in env
                 result = parse_score_data(f) # type: ignore
             
+            if not result:
+                return jsonify({"error": "Invalid score data"}), 400
+
             if result["version"] != 20211009:
                 return jsonify({"error": "Score data is outdated"}), 400
             
