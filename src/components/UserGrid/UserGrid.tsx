@@ -22,7 +22,7 @@ const UserGrid: React.FC = () => {
 
   return (
     <div className="user-grid">
-      <h2>Authenticated Users</h2>
+      <h2>{`Authenticated Users (${users.length})`}</h2>
       <div className="user-list">
         {users.map(user => (
           <Link to={`/user/${user.id}`} className="user-grid-avatar">
