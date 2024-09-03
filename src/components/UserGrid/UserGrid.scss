@@ -18,11 +18,48 @@
 
       &:hover {
         transform: scale(1.1);
+        z-index: 1;
+
+        .tooltip {
+          opacity: 1;
+          visibility: visible;
+        }
       }
 
       img {
         border-radius: 50%;
         object-fit: cover;
+        width: 32px;
+        height: 32px;
+        vertical-align: middle;
+      }
+
+      .tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 5px 10px;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s, visibility 0.2s;
+        pointer-events: none;
+  
+        &::after {
+          content: '';
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          margin-left: -5px;
+          border-width: 5px;
+          border-style: solid;
+          border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
+        }
       }
     }
   }
