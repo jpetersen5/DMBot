@@ -30,6 +30,9 @@ const Homepage: React.FC = () => {
     <div className="homepage">
       <h1>DMBot Webapp and Leaderboards</h1>
       <p className="subtitle">Give us a minute, we're under construction.</p>
+      <p className="subtitle bold">
+        Request a new feature <a href="https://forms.gle/ceJxzyYEwbDLn6TGA" target="_blank" rel="noopener noreferrer">here</a>!
+      </p>
       <p className="status">Backend status: {backendStatus}</p>
       <p className="status">Database status: {dbStatus}</p>
       <Auth />
