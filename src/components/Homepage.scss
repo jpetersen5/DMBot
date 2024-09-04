@@ -15,20 +15,47 @@
   .subtitle {
     font-size: 1.2rem;
     color: #6c757d;
+    margin-bottom: 1.5rem;
+  }
 
-    &.bold {
-      font-weight: bold;
-    }
+  .action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
 
-    a {
-      font-size: 1.4rem;
-      color: #007bff;
-      text-decoration: none;
+    .icon-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      background-color: #202020;
+      border-radius: 50%;
+      color: white;
+      transition: background-color 0.2s, transform 0.2s;
+
+      &:hover {
+        background-color: #404040;
+        transform: scale(1.1);
+      }
+
+      img {
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
+      }
     }
   }
 
   .status {
+    display: inline-flex;
+    align-items: center;
     font-size: 1rem;
     color: #495057;
+
+    p {
+      margin-right: 0.5rem;
+    }
   }
 }

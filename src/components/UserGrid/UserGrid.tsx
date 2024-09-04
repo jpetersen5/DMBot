@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { API_URL } from "../../App";
 import "./UserGrid.scss";
+import Tooltip from "../../utils/Tooltip/Tooltip";
 import { getUserImage } from "../../utils/user";
 
 interface User {
@@ -25,15 +26,16 @@ const UserGrid: React.FC = () => {
       <h2>{`Authenticated Users (${users.length})`}</h2>
       <div className="user-list">
         {users.map(user => (
-          <Link to={`/user/${user.id}`} className="user-grid-avatar">
-            <img 
-              src={getUserImage(user)} 
-              alt={user.username.charAt(0).toUpperCase()}
-              width="32"
-              height="32"
-            />
-            <span className="tooltip">{user.username}</span>
-          </Link>
+          <Tooltip key={user.id} text={user.username}>
+            <Link to={`/user/${user.id}`} className="user-grid-avatar">
+              <img 
+                src={getUserImage(user)} 
+                alt={user.username.charAt(0).toUpperCase()}
+                width="32"
+                height="32"
+              />
+            </Link>
+          </Tooltip>
         ))}
       </div>
     </div>
