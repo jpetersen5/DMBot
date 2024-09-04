@@ -38,48 +38,62 @@ const Homepage: React.FC = () => {
     <div className="homepage">
       <h1>DMBot Webapp and Leaderboards</h1>
       <p className="subtitle">Give us a minute, we're under construction.</p>
-      <div className="action-buttons">
-        <Tooltip text="Request a new feature">
-          <a href="https://forms.gle/ceJxzyYEwbDLn6TGA" target="_blank" rel="noopener noreferrer" className="icon-button">
-            <img src={FeatureIcon} alt="Request feature" />
-          </a>
-        </Tooltip>
-        <Tooltip text="Report a bug">
-          <a href="https://github.com/jpetersen5/DMBot/issues" target="_blank" rel="noopener noreferrer" className="icon-button">
-            <img src={BugIcon} alt="Report bug" />
-          </a>
-        </Tooltip>
-        <Tooltip text="Contribute to the project">
-          <a href="https://github.com/jpetersen5/DMBot" target="_blank" rel="noopener noreferrer" className="icon-button">
-            <img src={ContributeIcon} alt="Contribute" />
-          </a>
-        </Tooltip>
-        <Tooltip text="Join the Drummer's Monthly Discord">
-          <a href="https://discord.gg/Eh8RgrzYbb" target="_blank" rel="noopener noreferrer" className="icon-button">
-            <img src={DiscordIcon} alt="Discord" />
-          </a>
-        </Tooltip>
-      </div>
-      <div className="status">
-        <p>Backend status:</p>
-        {backendStatus === null ? (
-          <LoadingSpinner timeout={0} />
-        ) : (
-          <p>{backendStatus}</p>
-        )}
-      </div>
-      <div className="status">
-        <p>Database status:</p>
-        {dbStatus === null ? (
-          <LoadingSpinner timeout={0} />
-        ) : (
-          <p>{dbStatus}</p>
-        )}
+      <ActionButtons />
+      <div className="status-container">
+        <Status label="Backend" value={backendStatus} />
+        <Status label="Database" value={dbStatus} />
       </div>
       <Auth />
       <UserGrid />
     </div>
   );
 };
+
+const ActionButtons: React.FC = () => {
+  return (
+    <div className="action-buttons">
+      <Tooltip text="Request a new feature">
+        <a href="https://forms.gle/ceJxzyYEwbDLn6TGA" target="_blank" rel="noopener noreferrer" className="icon-button">
+          <img src={FeatureIcon} alt="Request feature" />
+        </a>
+      </Tooltip>
+      <Tooltip text="Report a bug">
+        <a href="https://github.com/jpetersen5/DMBot/issues" target="_blank" rel="noopener noreferrer" className="icon-button">
+          <img src={BugIcon} alt="Report bug" />
+        </a>
+      </Tooltip>
+      <Tooltip text="Contribute to the project">
+        <a href="https://github.com/jpetersen5/DMBot" target="_blank" rel="noopener noreferrer" className="icon-button">
+          <img src={ContributeIcon} alt="Contribute" />
+        </a>
+      </Tooltip>
+      <Tooltip text="Join the Drummer's Monthly Discord">
+        <a href="https://discord.gg/Eh8RgrzYbb" target="_blank" rel="noopener noreferrer" className="icon-button">
+          <img src={DiscordIcon} alt="Discord" />
+        </a>
+      </Tooltip>
+    </div>
+  );
+};
+
+interface StatusProps {
+  label: string;
+  value: string | null;
+}
+
+const Status: React.FC<StatusProps> = ({ label, value }) => {
+  return (
+    <div className="status">
+      <span className="status-label">{label}:</span>
+      {value === null ? (
+        <LoadingSpinner message={""} timeout={0} />
+      ) : (
+        <span className={`status-value ${value.toLowerCase().includes("error") ? "error" : "success"}`}>
+          {value}
+        </span>
+      )}
+    </div>
+  );
+}
 
 export default Homepage;

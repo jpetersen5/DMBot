@@ -25,7 +25,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   return (
     <div className="loading-spinner">
       <img src={spinnerGif} alt="Loading" className="spinner-icon" />
-      <p className="loading-message">{message}</p>
+      {message && <p className="loading-message">{message}</p>}
       {showTimeoutMessage && (
         <p className="timeout-message">
           We're using free services, so please be patient. It could take up to a minute.
