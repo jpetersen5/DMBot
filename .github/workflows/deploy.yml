@@ -19,11 +19,14 @@ jobs:
           npm --version
           node --version
           npm ci --verbose
+      - name: Set commit date
+        run: echo "VITE_COMMIT_DATE=$(git log -1 --format=%cd --date=format:'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
       - name: Build
         run: npm run build
         env:
           VITE_GITHUB_ACTIONS: "true"
           VITE_API_URL: "https://dmbot-kb5j.onrender.com"
+          VITE_COMMIT_DATE: ${{ env.VITE_COMMIT_DATE }}
       - name: List build directory
         run: ls -R dist
       - name: Deploy

@@ -71,6 +71,19 @@
       }
     }
   }
+
+  .tooltip-container {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    .version {
+      font-size: 16px;
+      color: #808080;
+      cursor: help;
+    }
+  }
+
   &.open {
     .nav-menu {
       ul {

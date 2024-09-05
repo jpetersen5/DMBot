@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
 import UploadProgress from "./UploadProgress";
+import { useAuth } from "../../context/AuthContext";
+import Tooltip from "../../utils/Tooltip/Tooltip";
 import "./Sidebar.scss";
 
 import HomeIcon from "../../assets//home-icon.svg";
@@ -35,6 +36,9 @@ const Sidebar: React.FC = () => {
 
   const navItems = user ? [...staticNavItems, profileNavItem] : staticNavItems;
 
+  const version = "v1.1.0";
+  const commitDate = import.meta.env.REACT_APP_COMMIT_DATE || "Unknown";
+
   return (
     <>
       <div className={`sidebar ${isOpen ? "open" : ""}`}>
@@ -55,6 +59,11 @@ const Sidebar: React.FC = () => {
             ))}
           </ul>
         </nav>
+        {isOpen && (
+          <Tooltip text={`Last updated: ${commitDate}`}>
+            <div className="version">{version}</div>
+          </Tooltip>
+        )}
       </div>
       <UploadProgress />
     </>
