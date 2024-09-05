@@ -43,7 +43,7 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   const [inputPage, setInputPage] = useState(page.toString());
   const [totalScores, setTotalScores] = useState(0);
   const [perPage, setPerPage] = useState(10);
-  const [sortBy, setSortBy] = useState("score");
+  const [sortBy, setSortBy] = useState("posted");
   const [sortOrder, setSortOrder] = useState("desc");
 
   const totalPages = Math.ceil(totalScores / perPage);

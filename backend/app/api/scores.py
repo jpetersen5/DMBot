@@ -101,7 +101,8 @@ def process_and_save_scores(result, user_id):
                         "percent": score["percent"],
                         "is_fc": score["is_fc"],
                         "speed": score["speed"],
-                        "play_count": play_count
+                        "play_count": play_count,
+                        "posted": score_data["posted"]
                     }
                     
                     user_entry = next((entry for entry in leaderboard if entry["user_id"] == user_id), None)

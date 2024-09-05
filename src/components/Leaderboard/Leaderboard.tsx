@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { API_URL } from "../../App";
 import { TableControls, Pagination } from "../SongList/TableControls";
 import LoadingSpinner from "../Loading/LoadingSpinner";
+import { formatExactTime, formatTimeDifference } from "../../utils/song";
+import Tooltip from "../../utils/Tooltip/Tooltip";
 import "./Leaderboard.scss";
 
 interface LeaderboardEntry {
@@ -12,6 +14,8 @@ interface LeaderboardEntry {
   percent: number;
   user_id: string;
   username: string;
+  play_count: number;
+  posted: string;
 }
 
 interface LeaderboardProps {
@@ -25,7 +29,9 @@ const LEADERBOARD_TABLE_HEADERS = {
   score: "Score",
   percent: "Percent",
   speed: "Speed",
-  is_fc: "FC"
+  is_fc: "FC",
+  play_count: "Plays",
+  posted: "Posted",
 };
 
 const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
@@ -185,6 +191,12 @@ const LeaderboardTableRow: React.FC<LeaderboardTableRowProps> = ({ entry, rank, 
     <td>{entry.percent}%</td>
     <td>{entry.speed}%</td>
     <td>{entry.is_fc ? "Yes" : "No"}</td>
+    <td>{entry.play_count}</td>
+    <td>
+      <Tooltip text={formatExactTime(entry.posted)}>
+        {formatTimeDifference(entry.posted)}
+      </Tooltip>
+    </td>
   </tr>
 );
 
