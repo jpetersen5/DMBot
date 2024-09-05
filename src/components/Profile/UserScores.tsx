@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { TableControls, Pagination } from "../SongList/TableControls";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import { API_URL } from "../../App";
+import { formatExactTime, formatTimeDifference } from "../../utils/song";
+import Tooltip from "../../utils/Tooltip/Tooltip";
 import "./UserScores.scss";
 
 interface Score {
@@ -13,6 +15,8 @@ interface Score {
   percent: number;
   song_name: string;
   identifier: string;
+  play_count: number;
+  posted: string;
 }
 
 interface UserScoresProps {
@@ -25,7 +29,9 @@ const SCORE_TABLE_HEADERS = {
   score: "Score",
   percent: "Percent",
   speed: "Speed",
-  is_fc: "FC"
+  is_fc: "FC",
+  play_count: "Plays",
+  posted: "Posted"
 };
 
 const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
@@ -175,6 +181,12 @@ const ScoreTableRow: React.FC<ScoreTableRowProps> = ({ score, onClick }) => {
       <td>{score.percent}%</td>
       <td>{score.speed}%</td>
       <td>{score.is_fc ? "Yes" : "No"}</td>
+      <td>{score.play_count}</td>
+      <td>
+        <Tooltip text={formatExactTime(score.posted)}>
+          {formatTimeDifference(score.posted)}
+        </Tooltip>
+      </td>
     </tr>
   );
 };

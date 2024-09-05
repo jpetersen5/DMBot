@@ -48,7 +48,7 @@ def get_user_scores(user_id):
     
     page = max(1, int(request.args.get("page", 1)))
     per_page = max(10, min(100, int(request.args.get("per_page", 10))))
-    sort_by = sanitize_input(request.args.get("sort_by", "score"))
+    sort_by = sanitize_input(request.args.get("sort_by", "posted"))
     sort_order = request.args.get("sort_order", "desc").lower()
 
     if sort_order not in ["asc", "desc"]:
