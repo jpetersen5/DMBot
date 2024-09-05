@@ -64,19 +64,9 @@ def process_and_save_scores(result, user_id):
                         room=str(user_id))
         batch_songs_info = supabase.table("songs").select("*").in_("md5", batch).execute().data
         songs_dict.update({song["md5"]: song for song in batch_songs_info})
-    
-    total_scores = 0
-    total_fcs = 0
-    total_score = 0
-    total_percent = 0
 
-    combined_scores = []
-    for score in existing_scores:
-        if score["identifier"] not in [s["identifier"] for s in result["songs"]]:
-            combined_scores.append(score)
     for song in result["songs"]:
-        if song["identifier"] not in [s["identifier"] for s in existing_scores]:
-            combined_scores.append(song)
+        processed_songs += 1
         song_info = songs_dict.get(song["identifier"])
     
         if song_info:
@@ -138,20 +128,6 @@ def process_and_save_scores(result, user_id):
         socketio.emit("score_processing_progress",
                         {"progress": progress, "processed": processed_songs, "total": total_songs},
                         room=str(user_id))
-    
-    for score in combined_scores:
-        total_scores += 1
-        total_fcs += 1 if score["is_fc"] else 0
-        total_score += score["score"]
-        total_percent += score["percent"]
-
-    avg_percent = total_percent / total_scores if total_scores > 0 else 0
-    user_stats = {
-        "total_scores": total_scores,
-        "total_fcs": total_fcs,
-        "total_score": total_score,
-        "avg_percent": avg_percent
-    }
 
     if leaderboard_updates:
         try:
@@ -177,6 +153,25 @@ def process_and_save_scores(result, user_id):
     
     updated_scores = list(existing_scores_dict.values())
     updated_scores.sort(key=lambda x: x["score"], reverse=True)
+
+    total_scores = 0
+    total_fcs = 0
+    total_score = 0
+    total_percent = 0
+
+    for score in updated_scores:
+        total_scores += 1
+        total_fcs += 1 if score["is_fc"] else 0
+        total_score += score["score"]
+        total_percent += score["percent"]
+    
+    avg_percent = total_percent / total_scores if total_scores > 0 else 0
+    user_stats = {
+        "total_scores": total_scores,
+        "total_fcs": total_fcs,
+        "total_score": total_score,
+        "avg_percent": avg_percent
+    }
     
     logger.info(f"Updating scores for user {user_id}")
     socketio.emit("score_processing_uploading",
