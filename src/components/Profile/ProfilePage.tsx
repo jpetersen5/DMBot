@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import ScoreUpload from "./ScoreUpload";
 import UserScores from "./UserScores";
+import ProfileStats from "./ProfileStats";
 import { getUserImage } from "../../utils/user";
 import { useAuth } from "../../context/AuthContext";
 import { User } from "../../utils/user";
@@ -53,12 +54,15 @@ const ProfilePage: React.FC = () => {
       {!profileUser && !loading && <p>User not found.</p>}
       {profileUser && !loading &&
         <>
-          <div className="profile-info">
-            <img src={getUserImage(profileUser)} alt={profileUser.username} className="profile-avatar" />
-            <div className="profile-details">
-              <p><strong>Username:</strong> {profileUser.username}</p>
-              <p><strong>Discord ID:</strong> {profileUser.id}</p>
+          <div className="profile-header">
+            <div className="profile-info">
+              <img src={getUserImage(profileUser)} alt={profileUser.username} className="profile-avatar" />
+              <div className="profile-details">
+                <p><strong>Username:</strong> {profileUser.username}</p>
+                <p><strong>Discord ID:</strong> {profileUser.id}</p>
+              </div>
             </div>
+            <ProfileStats userId={profileUser.id} />
           </div>
           <div className="profile-scores">
             <UserScores userId={profileUser.id} />
