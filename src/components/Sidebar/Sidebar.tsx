@@ -37,7 +37,7 @@ const Sidebar: React.FC = () => {
   const navItems = user ? [...staticNavItems, profileNavItem] : staticNavItems;
 
   const version = "v1.1.0";
-  const commitDate = import.meta.env.REACT_APP_COMMIT_DATE || "Unknown";
+  const commitDate = import.meta.env.VITE_APP_COMMIT_DATE || "Unknown";
 
   return (
     <>
