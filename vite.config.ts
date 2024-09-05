@@ -26,6 +26,7 @@ export default defineConfig(({ command, mode }) => {
       "import.meta.env.VITE_API_URL": isProduction 
         ? JSON.stringify("https://dmbot-kb5j.onrender.com")
         : JSON.stringify("http://localhost:5000"),
+      "import.meta.env.VITE_COMMIT_DATE": JSON.stringify(process.env.VITE_COMMIT_DATE),
     }
   }
 
