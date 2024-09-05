@@ -7,8 +7,9 @@ import LoadingSpinner from "../Loading/LoadingSpinner";
 import CharterName from "./CharterName";
 import { useCharterData } from "../../context/CharterContext";
 import { useSongCache } from "../../context/SongContext";
+import Tooltip from "../../utils/Tooltip/Tooltip";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
-import { Song, SONG_TABLE_HEADERS, msToTime } from "../../utils/song";
+import { Song, SONG_TABLE_HEADERS, msToTime, formatExactTime, formatTimeDifference } from "../../utils/song";
 import "./SongList.scss";
 
 const SongList: React.FC = () => {
@@ -23,8 +24,8 @@ const SongList: React.FC = () => {
   const [inputPage, setInputPage] = useState(page.toString());
   const [totalSongs, setTotalSongs] = useState(0);
   const [perPage, setPerPage] = useState(parseInt(queryParams.get("per_page") || "20"));
-  const [sortBy, setSortBy] = useState(queryParams.get("sort_by") || "name");
-  const [sortOrder, setSortOrder] = useState(queryParams.get("sort_order") || "asc");
+  const [sortBy, setSortBy] = useState(queryParams.get("sort_by") || "last_update");
+  const [sortOrder, setSortOrder] = useState(queryParams.get("sort_order") || "desc");
   const [search, setSearch] = useState(queryParams.get("search") || "");
   const [filter, setFilter] = useState(queryParams.get("filter") || "");
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
@@ -244,15 +245,22 @@ const SongTableHeader: React.FC<SongTableHeaderProps> = ({ onClick, content, sor
 
 interface SongTableCellProps {
   content: string | null | undefined;
-  charter?: boolean;
+  special?: "charter" | "last_update";
 }
 
-const SongTableCell: React.FC<SongTableCellProps> = ({ content, charter }) => {
+const SongTableCell: React.FC<SongTableCellProps> = ({ content, special }) => {
   if (content == null) {
     return <td></td>;
   }
-  if (charter) {
-    return <td><CharterName names={content} /></td>;
+  switch (special) {
+    case "last_update":
+      return <td>
+        <Tooltip text={formatExactTime(content)}>
+          {formatTimeDifference(content)}
+        </Tooltip>
+      </td>;
+    case "charter":
+      return <td><CharterName names={content} /></td>;
   }
 
   const processedContent = typeof content === "string" 
@@ -276,7 +284,8 @@ const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick }) => (
     <SongTableCell content={song.genre} />
     <SongTableCell content={song.difficulty || "?"} />
     <SongTableCell content={song.song_length != null ? msToTime(song.song_length) : "??:??:??"} />
-    <SongTableCell content={song.charter_refs ? song.charter_refs.join(", ") : "Unknown Author"} charter />
+    <SongTableCell content={song.charter_refs ? song.charter_refs.join(", ") : "Unknown Author"} special="charter" />
+    <SongTableCell content={song.last_update} special="last_update" />
   </tr>
 );
 
