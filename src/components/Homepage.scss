@@ -6,10 +6,22 @@
   padding: 2rem;
   background-color: #f8f9fa;
 
-  h1 {
-    font-size: 2.5rem;
-    color: #007bff;
-    margin-bottom: 1rem;
+  .banner-container {
+    display: flex;
+    justify-content: center;
+    gap: 4rem;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 2rem;
+    padding: 0 1rem;
+    box-sizing: border-box;
+
+    .banner-image {
+      max-width: 45%;
+      max-height: 200px;
+      height: auto;
+      object-fit: contain;
+    }
   }
 
   .subtitle {
@@ -88,6 +100,19 @@
 
       .loading-spinner {
         margin-left: 0.5rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .homepage {
+    .banner-container {
+      flex-direction: column;
+
+      .banner-image {
+        max-width: 90%;
+        margin-bottom: 1rem;
       }
     }
   }

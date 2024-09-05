@@ -9,6 +9,8 @@ import FeatureIcon from "../assets/feature-icon.svg";
 import BugIcon from "../assets/bug-icon.svg";
 import ContributeIcon from "../assets/contribute-icon.svg";
 import DiscordIcon from "../assets/discord-icon.svg";
+import BannerImage1 from "../assets/dmbotbanner1.png";
+import BannerImage2 from "../assets/dmbotbanner2.png";
 
 import "./Homepage.scss";
 
@@ -36,13 +38,16 @@ const Homepage: React.FC = () => {
 
   return (
     <div className="homepage">
-      <h1>DMBot Webapp and Leaderboards</h1>
+      <div className="banner-container">
+        <img src={BannerImage1} alt="DMBot Banner Pt 1" className="banner-image" />
+        <img src={BannerImage2} alt="DMBot Banner Pt 2" className="banner-image" />
+      </div>
       <p className="subtitle">Give us a minute, we're under construction.</p>
-      <ActionButtons />
       <div className="status-container">
         <Status label="Backend" value={backendStatus} />
         <Status label="Database" value={dbStatus} />
       </div>
+      <ActionButtons />
       <Auth />
       <UserGrid />
     </div>
