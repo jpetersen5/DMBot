@@ -4,6 +4,7 @@ from ..utils.helpers import allowed_file, get_process_songs_script
 from ..config import Config
 from ..extensions import socketio, redis
 from werkzeug.utils import secure_filename
+import datetime
 import os
 import jwt
 
@@ -64,6 +65,11 @@ def process_and_save_scores(result, user_id):
         batch_songs_info = supabase.table("songs").select("*").in_("md5", batch).execute().data
         songs_dict.update({song["md5"]: song for song in batch_songs_info})
     
+    total_scores = 0
+    total_fcs = 0
+    total_score = 0
+    total_percent = 0
+
     for song in result["songs"]:
         processed_songs += 1
         song_info = songs_dict.get(song["identifier"])
@@ -72,8 +78,9 @@ def process_and_save_scores(result, user_id):
             for score in song["scores"]:
                 if score["instrument"] == 9:  # drums
                     existing_score = existing_scores_dict.get(song["identifier"])
+                    play_count = song["play_count"]
                     
-                    if existing_score and score["score"] <= existing_score["score"]:
+                    if existing_score and score["score"] <= existing_score["score"] and play_count <= existing_score.get("play_count", 0):
                         logger.info(f"Score for song {song['identifier']} doesn't need to be updated. Skipping.")
                         continue
 
@@ -84,7 +91,8 @@ def process_and_save_scores(result, user_id):
                         "percent": score["percent"],
                         "is_fc": score["is_fc"],
                         "speed": score["speed"],
-                        "score": score["score"]
+                        "score": score["score"],
+                        "play_count": play_count
                     }
 
                     existing_scores_dict[song["identifier"]] = score_data
@@ -96,12 +104,13 @@ def process_and_save_scores(result, user_id):
                         "score": score["score"],
                         "percent": score["percent"],
                         "is_fc": score["is_fc"],
-                        "speed": score["speed"]
+                        "speed": score["speed"],
+                        "play_count": play_count
                     }
                     
                     user_entry = next((entry for entry in leaderboard if entry["user_id"] == user_id), None)
                     if user_entry:
-                        if score["score"] > user_entry["score"]:
+                        if score["score"] > user_entry["score"] or play_count > user_entry.get("play_count", 0):
                             leaderboard.remove(user_entry)
                             leaderboard.append(leaderboard_entry)
                     else:
@@ -112,8 +121,14 @@ def process_and_save_scores(result, user_id):
                     leaderboard_updates.append({
                         "md5": song["identifier"],
                         "name": song_info["name"],
-                        "leaderboard": leaderboard
+                        "leaderboard": leaderboard,
+                        "last_update": datetime.datetime.now(datetime.UTC).isoformat()
                     })
+                    
+                    total_scores += 1
+                    total_fcs += 1 if score["is_fc"] else 0
+                    total_score += score["score"]
+                    total_percent += score["percent"]
         else:
             logger.info(f"Song with identifier {song['identifier']} not found in database. Skipping.")
         
@@ -122,7 +137,15 @@ def process_and_save_scores(result, user_id):
         socketio.emit("score_processing_progress",
                         {"progress": progress, "processed": processed_songs, "total": total_songs},
                         room=str(user_id))
-        
+    
+    avg_percent = total_percent / total_scores if total_scores > 0 else 0
+    user_stats = {
+        "total_scores": total_scores,
+        "total_fcs": total_fcs,
+        "total_score": total_score,
+        "avg_percent": avg_percent
+    }
+
     if leaderboard_updates:
         try:
             logger.info(f"Updating leaderboards for {len(leaderboard_updates)} songs")
@@ -136,7 +159,10 @@ def process_and_save_scores(result, user_id):
                 socketio.emit("score_processing_updating_progress",
                             {"message": f"Updating leaderboard for {i+1} / {len(leaderboard_updates)}: {update['name']}", "progress": progress},
                             room=str(user_id))
-                supabase.table("songs").update({"leaderboard": update["leaderboard"]}).eq("md5", update["md5"]).execute()
+                supabase.table("songs").update({
+                    "leaderboard": update["leaderboard"],
+                    "last_update": update["last_update"]
+                }).eq("md5", update["md5"]).execute()
             
             logger.info("Leaderboard updates completed")
         except Exception as e:
@@ -149,7 +175,10 @@ def process_and_save_scores(result, user_id):
     socketio.emit("score_processing_uploading",
                   {"message": f"Updating scores for user {username}"},
                   room=str(user_id))
-    supabase.table("users").update({"scores": updated_scores}).eq("id", user_id).execute()
+    supabase.table("users").update({
+        "scores": updated_scores,
+        "stats": user_stats
+    }).eq("id", user_id).execute()
 
     update_processing_status(user_id, "completed", 100, total_songs, total_songs)
     socketio.emit("score_processing_complete", 
