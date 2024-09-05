@@ -70,8 +70,13 @@ def process_and_save_scores(result, user_id):
     total_score = 0
     total_percent = 0
 
+    combined_scores = []
+    for score in existing_scores:
+        if score["identifier"] not in [s["identifier"] for s in result["songs"]]:
+            combined_scores.append(score)
     for song in result["songs"]:
-        processed_songs += 1
+        if song["identifier"] not in [s["identifier"] for s in existing_scores]:
+            combined_scores.append(song)
         song_info = songs_dict.get(song["identifier"])
     
         if song_info:
@@ -92,7 +97,8 @@ def process_and_save_scores(result, user_id):
                         "is_fc": score["is_fc"],
                         "speed": score["speed"],
                         "score": score["score"],
-                        "play_count": play_count
+                        "play_count": play_count,
+                        "posted": datetime.datetime.now(datetime.UTC).isoformat()
                     }
 
                     existing_scores_dict[song["identifier"]] = score_data
@@ -124,11 +130,6 @@ def process_and_save_scores(result, user_id):
                         "leaderboard": leaderboard,
                         "last_update": datetime.datetime.now(datetime.UTC).isoformat()
                     })
-                    
-                    total_scores += 1
-                    total_fcs += 1 if score["is_fc"] else 0
-                    total_score += score["score"]
-                    total_percent += score["percent"]
         else:
             logger.info(f"Song with identifier {song['identifier']} not found in database. Skipping.")
         
@@ -138,6 +139,12 @@ def process_and_save_scores(result, user_id):
                         {"progress": progress, "processed": processed_songs, "total": total_songs},
                         room=str(user_id))
     
+    for score in combined_scores:
+        total_scores += 1
+        total_fcs += 1 if score["is_fc"] else 0
+        total_score += score["score"]
+        total_percent += score["percent"]
+
     avg_percent = total_percent / total_scores if total_scores > 0 else 0
     user_stats = {
         "total_scores": total_scores,
