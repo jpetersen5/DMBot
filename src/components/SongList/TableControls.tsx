@@ -164,11 +164,11 @@ export const Search: React.FC<SearchProps> = ({
       />
       <select value={filter} onChange={handleFilterChange}>
         <option value="">All fields</option>
-        <option value="name">Name</option>
+        {/* <option value="name">Name</option>
         <option value="artist">Artist</option>
         <option value="album">Album</option>
         <option value="year">Year</option>
-        <option value="genre">Genre</option>
+        <option value="genre">Genre</option> */}
         <option value="charter">Charter</option>
       </select>
     </div>
