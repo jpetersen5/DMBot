@@ -73,14 +73,18 @@ def get_user_scores(user_id):
     scores = result.data[0].get("scores", [])
     if not scores:
         return jsonify({"error": "No scores found"}), 404
-    
-    total_scores = len(scores)
 
-    scores.sort(key=lambda x: x[sort_by], reverse=(sort_order == "desc"))
+    if sort_by == "posted":
+        sorted_scores = sorted(scores, key=lambda x: x.get("posted", ""), reverse=(sort_order == "desc"))
+    elif sort_by == "play_count":
+        sorted_scores = sorted(scores, key=lambda x: x.get("play_count", 0), reverse=(sort_order == "desc"))
+    else:
+        sorted_scores = sorted(scores, key=lambda x: x[sort_by], reverse=(sort_order == "desc"))
 
+    total_scores = len(sorted_scores)
     start_index = (page - 1) * per_page
     end_index = start_index + per_page
-    paginated_scores = scores[start_index:end_index]
+    paginated_scores = sorted_scores[start_index:end_index]
 
     return jsonify({
         "scores": paginated_scores,

@@ -181,11 +181,15 @@ const ScoreTableRow: React.FC<ScoreTableRowProps> = ({ score, onClick }) => {
       <td>{score.percent}%</td>
       <td>{score.speed}%</td>
       <td>{score.is_fc ? "Yes" : "No"}</td>
-      <td>{score.play_count}</td>
+      <td>{score.play_count ? score.play_count : "N/A"}</td>
       <td>
-        <Tooltip text={formatExactTime(score.posted)}>
-          {formatTimeDifference(score.posted)}
-        </Tooltip>
+        {score.posted ? (
+          <Tooltip text={formatExactTime(score.posted)}>
+            {formatTimeDifference(score.posted)}
+          </Tooltip>
+        ) : (
+          "N/A"
+        )}
       </td>
     </tr>
   );
