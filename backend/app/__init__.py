@@ -4,6 +4,7 @@ from .extensions import Session, socketio, redis, setup_logging
 from .config import Config
 from .api import auth, users, songs, charters, scores, status, leaderboards
 from .services.supabase_service import init_supabase
+# from .migrations.update_leaderboard_rankings import update_leaderboards
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -21,6 +22,10 @@ def create_app(config_class=Config):
     redis.init_app(app)
 
     init_supabase(app)
+
+    # Uncomment when running migrations
+    # with app.app_context():
+    #     update_leaderboards()
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(users.bp)
