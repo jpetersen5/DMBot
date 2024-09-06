@@ -15,7 +15,7 @@ interface LeaderboardEntry {
   user_id: string;
   username: string;
   play_count: number;
-  posted: string;
+  posted: string | null;
 }
 
 interface LeaderboardProps {
@@ -193,9 +193,13 @@ const LeaderboardTableRow: React.FC<LeaderboardTableRowProps> = ({ entry, rank, 
     <td>{entry.is_fc ? "Yes" : "No"}</td>
     <td>{entry.play_count}</td>
     <td>
-      <Tooltip text={formatExactTime(entry.posted)}>
-        {formatTimeDifference(entry.posted)}
-      </Tooltip>
+      {entry.posted ? (
+        <Tooltip text={formatExactTime(entry.posted)}>
+          {formatTimeDifference(entry.posted)}
+        </Tooltip>
+      ) : (
+        "N/A"
+      )}
     </td>
   </tr>
 );

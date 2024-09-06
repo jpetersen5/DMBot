@@ -27,7 +27,10 @@ def get_leaderboard(song_id):
         return jsonify({"error": "Leaderboard is empty"}), 404
     total_entries = len(leaderboard)
 
-    leaderboard.sort(key=lambda x: x[sort_by], reverse=(sort_order == "desc"))
+    if sort_by == "posted":
+        leaderboard.sort(key=lambda x: x.get("posted", ""), reverse=(sort_order == "desc"))
+    else:
+        leaderboard.sort(key=lambda x: x[sort_by], reverse=(sort_order == "desc"))
 
     start_index = (page - 1) * per_page
     end_index = start_index + per_page
