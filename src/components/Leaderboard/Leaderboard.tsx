@@ -41,9 +41,9 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
   const [page, setPage] = useState(1);
   const [inputPage, setInputPage] = useState(page.toString());
   const [totalEntries, setTotalEntries] = useState(0);
-  const [perPage, setPerPage] = useState(10);
-  const [sortBy, setSortBy] = useState("score");
-  const [sortOrder, setSortOrder] = useState("desc");
+  const [perPage, setPerPage] = useState(50);
+  const [sortBy, setSortBy] = useState("rank");
+  const [sortOrder, setSortOrder] = useState("asc");
   const navigate = useNavigate();
 
   const totalPages = Math.ceil(totalEntries / perPage);
@@ -76,21 +76,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
         setEntries([]);
         setTotalEntries(0);
       } else {
-        const rankedEntries = data.entries
-          .sort((a: LeaderboardEntry, b: LeaderboardEntry) => b.score - a.score)
-          .map((entry: LeaderboardEntry, index: number) => ({ ...entry, rank: index + 1 + (page - 1) * perPage }));
-        
-        const sortedEntries = rankedEntries.sort((a: LeaderboardEntry, b: LeaderboardEntry) => {
-          const aValue = a[sortBy as keyof LeaderboardEntry];
-          const bValue = b[sortBy as keyof LeaderboardEntry];
-          if (aValue !== null && bValue !== null) {
-            if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
-            if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
-          }
-          return 0;
-        });
-        
-        setEntries(sortedEntries);
+        setEntries(data.entries);
         setTotalEntries(data.total);
       }
     } catch (error) {
@@ -204,7 +190,7 @@ const LeaderboardTableRow: React.FC<LeaderboardTableRowProps> = ({ entry, onClic
     <td>{entry.percent}%</td>
     <td>{entry.speed}%</td>
     <td>{entry.is_fc ? "Yes" : "No"}</td>
-    <td>{entry.play_count}</td>
+    <td>{entry.play_count ? entry.play_count : "N/A"}</td>
     <td>
       {entry.posted ? (
         <Tooltip text={formatExactTime(entry.posted)}>

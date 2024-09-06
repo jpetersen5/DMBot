@@ -10,11 +10,11 @@ def get_leaderboard(song_id):
     
     page = max(1, int(request.args.get("page", 1)))
     per_page = max(10, min(100, int(request.args.get("per_page", 10))))
-    sort_by = sanitize_input(request.args.get("sort_by", "score"))
-    sort_order = request.args.get("sort_order", "desc").lower()
+    sort_by = sanitize_input(request.args.get("sort_by", "rank"))
+    sort_order = request.args.get("sort_order", "asc").lower()
 
     if sort_order not in ["asc", "desc"]:
-        sort_order = "desc"
+        sort_order = "asc"
 
     query = supabase.table("songs").select("leaderboard").eq("id", song_id)
     result = query.execute()
@@ -25,16 +25,23 @@ def get_leaderboard(song_id):
     leaderboard = result.data[0].get("leaderboard", [])
     if not leaderboard:
         return jsonify({"error": "Leaderboard is empty"}), 404
-    total_entries = len(leaderboard)
 
     if sort_by == "posted":
-        leaderboard.sort(key=lambda x: x.get("posted", ""), reverse=(sort_order == "desc"))
+        sorted_leaderboard = sorted(leaderboard, key=lambda x: x.get("posted", ""), reverse=(sort_order == "desc"))
+    elif sort_by == "play_count":
+        sorted_leaderboard = sorted(leaderboard, key=lambda x: x.get("play_count", 0), reverse=(sort_order == "desc"))
+    elif sort_by == "rank":
+        if "rank" not in leaderboard[0]:
+            sorted_leaderboard = sorted(leaderboard, key=lambda x: x["score"], reverse=(sort_order == "desc"))
+        else:
+            sorted_leaderboard = sorted(leaderboard, key=lambda x: x["rank"], reverse=(sort_order == "desc"))
     else:
-        leaderboard.sort(key=lambda x: x[sort_by], reverse=(sort_order == "desc"))
+        sorted_leaderboard = sorted(leaderboard, key=lambda x: x[sort_by], reverse=(sort_order == "desc"))
 
+    total_entries = len(sorted_leaderboard)
     start_index = (page - 1) * per_page
     end_index = start_index + per_page
-    paginated_leaderboard = leaderboard[start_index:end_index]
+    paginated_leaderboard = sorted_leaderboard[start_index:end_index]
 
     return jsonify({
         "entries": paginated_leaderboard,

@@ -4,7 +4,7 @@ from ..utils.helpers import allowed_file, get_process_songs_script
 from ..config import Config
 from ..extensions import socketio, redis
 from werkzeug.utils import secure_filename
-import datetime
+from datetime import datetime, UTC
 import os
 import jwt
 
@@ -22,6 +22,41 @@ def update_processing_status(user_id, status, progress, processed, total):
         "processed": processed,
         "total": total
     })
+
+def sort_and_rank_leaderboard(leaderboard):
+    """
+    sorts and ranks the leaderboard
+
+    params:
+        leaderboard (list): list of leaderboard entries
+    
+    returns:
+        list: sorted and ranked leaderboard
+    """
+    def sort_key(entry):
+        speed = entry.get("speed", 0)
+        score = entry.get("score", 0)
+        posted = entry.get("posted", "")
+        
+        if posted:
+            try:
+                posted_date = datetime.fromisoformat(posted)
+            except ValueError:
+                posted_date = datetime.now(UTC)
+        else:
+            posted_date = datetime.now(UTC)
+
+        if speed < 100:
+            return (0, speed, score, -posted_date.timestamp())
+        else:
+            return (1, score, speed, -posted_date.timestamp())
+
+    sorted_leaderboard = sorted(leaderboard, key=sort_key, reverse=True)
+    
+    for i, entry in enumerate(sorted_leaderboard, 1):
+        entry["rank"] = i
+    
+    return sorted_leaderboard
 
 def process_and_save_scores(result, user_id):
     """
@@ -88,7 +123,7 @@ def process_and_save_scores(result, user_id):
                         "speed": score["speed"],
                         "score": score["score"],
                         "play_count": play_count,
-                        "posted": datetime.datetime.now(datetime.UTC).isoformat()
+                        "posted": datetime.now(UTC).isoformat()
                     }
 
                     existing_scores_dict[song["identifier"]] = score_data
@@ -115,13 +150,13 @@ def process_and_save_scores(result, user_id):
                     else:
                         leaderboard.append(leaderboard_entry)
                     
-                    leaderboard.sort(key=lambda x: x["score"], reverse=True)
+                    leaderboard = sort_and_rank_leaderboard(leaderboard)
                     
                     leaderboard_updates.append({
                         "md5": song["identifier"],
                         "name": song_info["name"],
                         "leaderboard": leaderboard,
-                        "last_update": datetime.datetime.now(datetime.UTC).isoformat()
+                        "last_update": datetime.now(UTC).isoformat()
                     })
         else:
             logger.info(f"Song with identifier {song['identifier']} not found in database. Skipping.")
