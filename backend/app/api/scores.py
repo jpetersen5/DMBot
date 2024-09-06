@@ -107,7 +107,9 @@ def process_and_save_scores(result, user_id):
                     
                     user_entry = next((entry for entry in leaderboard if entry["user_id"] == user_id), None)
                     if user_entry:
-                        if score["score"] > user_entry["score"] or play_count > user_entry.get("play_count", 0):
+                        if score["score"] < user_entry["score"]:
+                            continue
+                        elif score["score"] > user_entry["score"] or play_count > user_entry.get("play_count", 0) or user_entry.get("posted", "") == "":
                             leaderboard.remove(user_entry)
                             leaderboard.append(leaderboard_entry)
                     else:
