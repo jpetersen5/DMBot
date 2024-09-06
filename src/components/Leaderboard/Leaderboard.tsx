@@ -16,6 +16,7 @@ interface LeaderboardEntry {
   username: string;
   play_count: number;
   posted: string | null;
+  rank: number;
 }
 
 interface LeaderboardProps {
@@ -75,7 +76,21 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
         setEntries([]);
         setTotalEntries(0);
       } else {
-        setEntries(data.entries);
+        const rankedEntries = data.entries
+          .sort((a: LeaderboardEntry, b: LeaderboardEntry) => b.score - a.score)
+          .map((entry: LeaderboardEntry, index: number) => ({ ...entry, rank: index + 1 + (page - 1) * perPage }));
+        
+        const sortedEntries = rankedEntries.sort((a: LeaderboardEntry, b: LeaderboardEntry) => {
+          const aValue = a[sortBy as keyof LeaderboardEntry];
+          const bValue = b[sortBy as keyof LeaderboardEntry];
+          if (aValue !== null && bValue !== null) {
+            if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+            if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+          }
+          return 0;
+        });
+        
+        setEntries(sortedEntries);
         setTotalEntries(data.total);
       }
     } catch (error) {
@@ -139,11 +154,10 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
             </tr>
           )}
           {!loading && entries.length > 0 && (
-            entries.map((entry, index) => (
+            entries.map((entry) => (
               <LeaderboardTableRow 
                 key={entry.user_id} 
                 entry={entry}
-                rank={(page - 1) * perPage + index + 1}
                 onClick={() => handleRowClick(entry.user_id)}
               />
             ))
@@ -179,13 +193,12 @@ const LeaderboardTableHeader: React.FC<LeaderboardTableHeaderProps> = ({ onClick
 
 interface LeaderboardTableRowProps {
   entry: LeaderboardEntry;
-  rank: number;
   onClick: () => void;
 }
 
-const LeaderboardTableRow: React.FC<LeaderboardTableRowProps> = ({ entry, rank, onClick }) => (
+const LeaderboardTableRow: React.FC<LeaderboardTableRowProps> = ({ entry, onClick }) => (
   <tr onClick={onClick} style={{ cursor: "pointer" }}>
-    <td>{rank}</td>
+    <td>{entry.rank}</td>
     <td>{entry.username}</td>
     <td>{entry.score.toLocaleString()}</td>
     <td>{entry.percent}%</td>
