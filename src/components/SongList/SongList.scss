@@ -1,11 +1,14 @@
+@import '../../styles/themes';
+@import '../../styles/mixins';
+
 .song-list {
   padding: 2rem;
-  background-color: #f0f0f0;
+  @include theme('background', 'color-background');
 
   h1 {
     font-size: 2rem;
-    color: #202020;
     margin-bottom: 1.5rem;
+    @include theme('color', 'color-text');
   }
 
   .control-bar {
@@ -17,6 +20,7 @@
     .table-controls, .search-controls {
       display: flex;
       align-items: center;
+      @include theme('color', 'color-text');
       
       label, select, input {
         margin-right: 0.5rem;
@@ -130,19 +134,21 @@
   table {
     width: 100%;
     border-collapse: collapse;
-    background-color: #fff;
+    @include theme('background', 'color-table-background-2');
+    @include theme('color', 'color-table-text');
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-bottom: 1rem;
 
     th, td {
       padding: 0.75rem;
       text-align: left;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid;
+      @include theme('border-color', 'color-table-div');
     }
 
     th {
-      background-color: #202020;
-      color: #fff;
+      @include theme('background', 'color-table-header');
+      @include theme('color', 'color-table-header-text');
       font-weight: bold;
       cursor: pointer;
       user-select: none;
@@ -157,16 +163,16 @@
       }
 
       &:hover {
-        background-color: #404040;
+        @include theme('background', 'color-table-header-hover');
       }
     }
 
     tr:nth-child(even) {
-      background-color: #f8f8f8;
+      @include theme('background', 'color-table-background-1');
     }
 
     tr:hover {
-      background-color: #e8e8e8;
+      @include theme('background', 'color-table-hover');
     }
   }
 
@@ -177,8 +183,8 @@
     margin: 1rem 0;
 
     button {
-      background-color: #202020;
-      color: #fff;
+      @include theme('background', 'color-button');
+      @include theme('color', 'color-button-text');
       border: none;
       padding: 0.5rem 1rem;
       margin: 0 0.5rem;
@@ -186,11 +192,11 @@
       transition: background-color 0.3s;
 
       &:hover {
-        background-color: #404040;
+        @include theme('background', 'color-button-hover');
       }
 
       &:disabled {
-        background-color: #888;
+        @include theme('background', 'color-button-disabled');
         cursor: not-allowed;
       }
     }

@@ -1,0 +1,60 @@
+$black: #000;
+$white: #FFF;
+$dark-red: #721c24;
+$light-red: #f8d7da;
+$dark-green: #155724;
+$light-green: #d4edda;
+$off-white: #f8f9fa;
+$dark-grey-1: #202124;
+$dark-grey-2: #353638;
+$dark-grey-3: #454648;
+$light-grey-1: #6a6a6a;
+$light-grey-2: #858585;
+$light-grey-3: #b8b9ba;
+
+$themes: (
+  dark: (
+    color-background: $dark-grey-1,
+    color-box: $dark-grey-3,
+    color-button: $dark-grey-3,
+    color-button-text: $white,
+    color-button-hover: $light-grey-1,
+    color-button-disabled: $light-grey-3,
+    color-text: $white,
+    color-text-secondary: $light-grey-3,
+    color-sidebar: $dark-grey-2,
+    color-sidebar-text: $white,
+    color-sidebar-hover: $dark-grey-3,
+    color-icon: $white,
+    color-table-text: $white,
+    color-table-header: $dark-grey-3,
+    color-table-header-text: $white,
+    color-table-header-hover: $light-grey-1,
+    color-table-background-1: $light-grey-2,
+    color-table-background-2: $light-grey-1,
+    color-table-hover: $light-grey-3,
+    color-table-div: $dark-grey-3,
+  ),
+  light: (
+    color-background: $off-white,
+    color-box: $white,
+    color-button: $dark-grey-1,
+    color-button-text: $white,
+    color-button-hover: $dark-grey-3,
+    color-button-disabled: $light-grey-3,
+    color-text: $black,
+    color-text-secondary: $dark-grey-3,
+    color-sidebar: $dark-grey-2,
+    color-sidebar-text: $white,
+    color-sidebar-hover: $dark-grey-3,
+    color-icon: $white,
+    color-table-text: $black,
+    color-table-header: $dark-grey-2,
+    color-table-header-text: $white,
+    color-table-header-hover: $light-grey-1,
+    color-table-background-1: $white,
+    color-table-background-2: $off-white,
+    color-table-hover: $light-grey-3,
+    color-table-div: $dark-grey-3,
+  ),
+);
