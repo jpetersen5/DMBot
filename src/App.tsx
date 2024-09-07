@@ -7,8 +7,8 @@ import AppProvider from "./context/AppContext";
 import Login from "./components/Login/Login";
 import Sidebar from "./components/Sidebar/Sidebar";
 import SongList from "./components/SongList/SongList";
-import "./styles.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "./styles/styles.scss";
 
 const isGitHubPages = import.meta.env.VITE_GITHUB_ACTIONS === "true";
 

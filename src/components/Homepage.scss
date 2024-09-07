@@ -1,10 +1,14 @@
+@import '../styles/themes';
+@import '../styles/mixins';
+
 .homepage {
   display: flex;
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
   padding: 2rem;
-  background-color: #f8f9fa;
+  @include theme('background', 'color-background');
+  @include theme('color', 'color-text');
 
   .banner-container {
     display: flex;
@@ -26,7 +30,6 @@
 
   .subtitle {
     font-size: 1.2rem;
-    color: #6c757d;
     margin-bottom: 1.5rem;
   }
 
@@ -42,13 +45,13 @@
       justify-content: center;
       width: 48px;
       height: 48px;
-      background-color: #202020;
+      @include theme('background', 'color-button');
+      @include theme('color', 'color-icon');
       border-radius: 50%;
-      color: white;
       transition: background-color 0.2s, transform 0.2s;
 
       &:hover {
-        background-color: #404040;
+        @include theme('background', 'color-button-hover');
         transform: scale(1.1);
       }
 
@@ -66,7 +69,7 @@
     gap: 2rem;
     height: 64px;
     margin-bottom: 2rem;
-    background-color: #ffffff;
+    @include theme('background', 'color-box');
     padding: 1rem 2rem;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -75,7 +78,7 @@
       display: flex;
       align-items: center;
       font-size: 1rem;
-      color: #495057;
+      @include theme('color', 'color-text-secondary');
 
       .status-label {
         font-weight: bold;
@@ -88,13 +91,13 @@
         font-weight: 500;
 
         &.success {
-          background-color: #d4edda;
-          color: #155724;
+          background-color: $light-green;
+          color: $dark-green;
         }
 
         &.error {
-          background-color: #f8d7da;
-          color: #721c24;
+          background-color: $light-red;
+          color: $dark-red;
         }
       }
 
