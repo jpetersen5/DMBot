@@ -57,23 +57,22 @@ def get_songs():
     sort_by: str = sanitize_input(request.args.get("sort_by", "last_update").lower())
     sort_order: str = request.args.get("sort_order", "desc").lower()
     search: Optional[str] = request.args.get("search")
-    filter: Optional[str] = request.args.get("filter")
+    filters: List[str] = request.args.get("filter", "").split(",")
 
+    filters = [filter for filter in filters if filter in ALLOWED_FILTERS]
     if sort_order not in ["asc", "desc"]:
         sort_order = "desc"
     if sort_by not in ALLOWED_FIELDS:
         sort_by = "last_update"
-    if filter and filter not in ALLOWED_FILTERS:
-        filter = None
     if sort_by == "charter":
         sort_by = "charter_refs"
 
-    query = supabase.table("songs").select("id", "artist", "name", "album", "track", "year", "genre", "difficulty", "song_length", "charter_refs", "last_update")
+    query = supabase.table("songs").select("*")
     count_query = supabase.table("songs").select("id", count="exact")
 
     if search:
         search_terms = sanitize_input(search).split()
-        search_fields = ["name", "artist", "album", "year", "genre", "charter"] if not filter else [filter]
+        search_fields = filters if filters else ["name", "artist", "album", "year", "genre", "charter"]
         
         for term in search_terms:
             term_filter = []
@@ -91,9 +90,8 @@ def get_songs():
                     term_filter.append(charter_condition)
             
             if term_filter:
-                for condition in term_filter:
-                    query = query.or_(condition)
-                    count_query = count_query.or_(condition)
+                query = query.or_(",".join(term_filter))
+                count_query = count_query.or_(",".join(term_filter))
 
     total_songs = count_query.execute().count
 

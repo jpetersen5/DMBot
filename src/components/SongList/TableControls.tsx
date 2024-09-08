@@ -1,4 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { useClickOutside } from "../../utils/handleClickOutside";
+
+import FilterIcon from "../../assets/filter.svg";
 
 interface TableControlsProps {
   perPage: number;
@@ -110,35 +113,42 @@ export const Pagination: React.FC<PaginationProps> = ({
 
 interface SearchProps {
   search: string;
-  filter: string;
+  filters: string[];
+  filterOptions: { value: string; label: string }[];
   setSearch: React.Dispatch<React.SetStateAction<string>>;
-  setFilter: React.Dispatch<React.SetStateAction<string>>;
+  setFilters: React.Dispatch<React.SetStateAction<string[]>>;
   submitSearch: () => void;
 }
 
 export const Search: React.FC<SearchProps> = ({
   search,
-  filter,
+  filters,
+  filterOptions,
   setSearch,
-  setFilter,
+  setFilters,
   submitSearch
 }) => {
-  const [previousSearch, setPreviousSearch] = useState(search);
-
-  useEffect(() => {
-    setPreviousSearch(search);
-  }, [search]);
+  const [filtersToSet, setFiltersToSet] = useState<string[]>(filters);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
   };
 
-  const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFilter(e.target.value);
-    if (search.trim() !== "") {
-      submitSearch();
-    }
-  }
+  const handleFilterToggle = (filter: string) => {
+    setFiltersToSet(prevFilters => 
+      prevFilters.includes(filter)
+        ? prevFilters.filter(f => f !== filter)
+        : [...prevFilters, filter]
+    );
+  };
+
+  const handleClearFilters = () => {
+    setFiltersToSet([]);
+    setFilters([]);
+    setIsDropdownOpen(false);
+  };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -146,31 +156,54 @@ export const Search: React.FC<SearchProps> = ({
     }
   };
 
-  const handleBlur = () => {
-    if (search !== previousSearch) {
-      submitSearch();
-    }
+  const handleSearchClick = () => {
+    submitSearch();
   };
+
+  const handleDropdownClose = () => {
+    setFilters(filtersToSet);
+    setIsDropdownOpen(false);
+  };
+
+  useClickOutside(dropdownRef, handleDropdownClose);
 
   return (
     <div className="search-controls">
-      <input
-        type="text"
-        value={search}
-        onChange={handleSearchChange}
-        onBlur={handleBlur}
-        onKeyDown={handleKeyPress}
-        placeholder="Search..."
-      />
-      <select value={filter} onChange={handleFilterChange}>
-        <option value="">All fields</option>
-        <option value="name">Name</option>
-        <option value="artist">Artist</option>
-        <option value="album">Album</option>
-        <option value="year">Year</option>
-        <option value="genre">Genre</option>
-        <option value="charter">Charter</option>
-      </select>
+      <div className="search-input-container">
+        <input
+          type="text"
+          value={search}
+          onChange={handleSearchChange}
+          onKeyDown={handleKeyPress}
+          placeholder="Search..."
+        />
+        <button 
+          className="filter-button"
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+        >
+          <img src={FilterIcon} alt="Filter" />
+        </button>
+        {isDropdownOpen && (
+          <div className="filter-dropdown" ref={dropdownRef}>
+            {filterOptions.map(option => (
+              <label key={option.value} className="filter-option">
+                <input
+                  type="checkbox"
+                  checked={filtersToSet.includes(option.value)}
+                  onChange={() => handleFilterToggle(option.value)}
+                />
+                {option.label}
+              </label>
+            ))}
+            <button onClick={handleClearFilters} className="clear-filters-button">
+              Clear filters
+            </button>
+          </div>
+        )}
+      </div>
+      <button onClick={handleSearchClick} className="search-button">
+        Search
+      </button>
     </div>
   );
 };

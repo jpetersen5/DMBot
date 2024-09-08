@@ -12,6 +12,15 @@ import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import { Song, SONG_TABLE_HEADERS, msToTime, formatExactTime, formatTimeDifference } from "../../utils/song";
 import "./SongList.scss";
 
+const filterOptions = [
+  { value: "name", label: "Name" },
+  { value: "artist", label: "Artist" },
+  { value: "album", label: "Album" },
+  { value: "year", label: "Year" },
+  { value: "genre", label: "Genre" },
+  { value: "charter", label: "Charter" }
+];
+
 const SongList: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -27,7 +36,8 @@ const SongList: React.FC = () => {
   const [sortBy, setSortBy] = useState(queryParams.get("sort_by") || "last_update");
   const [sortOrder, setSortOrder] = useState(queryParams.get("sort_order") || "desc");
   const [search, setSearch] = useState(queryParams.get("search") || "");
-  const [filter, setFilter] = useState(queryParams.get("filter") || "");
+  const [filters, setFilters] = useState<string[]>(queryParams.getAll("filter") || []);
+  const commaSeparatedFilters = filters.sort().join(",");
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
   const { isLoading: chartersLoading } = useCharterData();
@@ -41,7 +51,7 @@ const SongList: React.FC = () => {
 
   useEffect(() => {
     updateURL();
-  }, [page, perPage, sortBy, sortOrder, filter]);
+  }, [page, perPage, sortBy, sortOrder, filters]);
 
   useEffect(() => {
     if (songId) {
@@ -58,13 +68,13 @@ const SongList: React.FC = () => {
     if (sortBy !== "name") params.set("sort_by", sortBy);
     if (sortOrder !== "asc") params.set("sort_order", sortOrder);
     if (search) params.set("search", search);
-    if (filter) params.set("filter", filter);
+    if (filters.length > 0) params.set("filter", commaSeparatedFilters);
 
     navigate(`/songs?${params.toString()}`, { replace: true });
   };
 
   const getCacheKey = () => {
-    return `songs_${page}_${perPage}_${sortBy}_${sortOrder}_${search}_${filter}`;
+    return `songs_${page}_${perPage}_${sortBy}_${sortOrder}_${search}_${commaSeparatedFilters}`;
   };
 
   async function fetchSongs() {
@@ -86,7 +96,7 @@ const SongList: React.FC = () => {
         sort_by: sortBy,
         sort_order: sortOrder,
         search,
-        filter,
+        filter: commaSeparatedFilters,
       });
       const response = await fetch(`${API_URL}/api/songs?${queryParams}`);
       if (!response.ok) {
@@ -164,9 +174,10 @@ const SongList: React.FC = () => {
         />
         <Search
           search={search}
-          filter={filter}
+          filters={filters}
+          filterOptions={filterOptions}
           setSearch={setSearch}
-          setFilter={setFilter}
+          setFilters={setFilters}
           submitSearch={handleSearchSubmit}
         />
       </div>
