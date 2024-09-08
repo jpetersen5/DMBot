@@ -76,23 +76,24 @@ def get_songs():
         search_fields = ["name", "artist", "album", "year", "genre", "charter"] if not filter else [filter]
         
         for term in search_terms:
-            term_filter = None
+            term_filter = []
             for field in search_fields:
                 if field != "charter":
                     condition = f"{field}.ilike.%{term}%"
-                    term_filter = condition if term_filter is None else f"{term_filter},{condition}"
-            
+                    term_filter.append(condition)
+
             if search_fields.count("charter") > 0:
                 charters_query = supabase.table("charters").select("name").ilike("name", f"*{term}*")
                 charters_response = charters_query.execute()
                 matching_charters = [charter["name"] for charter in charters_response.data]
                 if matching_charters:
                     charter_condition = f"charter_refs.ov.{{{','.join(matching_charters)}}}"
-                    term_filter = charter_condition if term_filter is None else f"{term_filter},{charter_condition}"
-                
-                if term_filter:
-                    query = query.or_(term_filter)
-                    count_query = count_query.or_(term_filter)
+                    term_filter.append(charter_condition)
+            
+            if term_filter:
+                for condition in term_filter:
+                    query = query.or_(condition)
+                    count_query = count_query.or_(condition)
 
     total_songs = count_query.execute().count
 
