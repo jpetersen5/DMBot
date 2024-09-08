@@ -5,7 +5,7 @@ from ..utils.helpers import sanitize_input
 
 bp = Blueprint("songs", __name__)
 
-ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "difficulty", "charter", "song_length", "last_update"}
+ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "difficulty", "charter", "song_length", "last_update", "scores_count"}
 ALLOWED_FILTERS = {"name", "artist", "album", "year", "genre", "charter"}
 
 @bp.route("/api/songs/<string:identifier>", methods=["GET"])
@@ -64,7 +64,7 @@ def get_songs():
         sort_order = "desc"
     if sort_by not in ALLOWED_FIELDS:
         sort_by = "last_update"
-    if sort_by == "charter":
+    elif sort_by == "charter":
         sort_by = "charter_refs"
 
     query = supabase.table("songs").select("*")

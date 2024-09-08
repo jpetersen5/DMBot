@@ -10,6 +10,7 @@ export interface Song {
   difficulty: string | null;
   song_length: number | null;
   charter_refs: string[] | null;
+  scores_count: number | null;
   last_update: string;
 }
 
@@ -22,6 +23,7 @@ export const SONG_TABLE_HEADERS = {
   difficulty: "Difficulty",
   song_length: "Length",
   charter: "Charter",
+  scores_count: "Scores",
   last_update: "Last Update",
 };
 
