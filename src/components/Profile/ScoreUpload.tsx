@@ -1,11 +1,17 @@
 import React, { useState } from "react";
 import { useUploadProgress } from "../../hooks/useUploadProgress";
+import Tooltip from "../../utils/Tooltip/Tooltip";
 import { API_URL } from "../../App";
 import "./ScoreUpload.scss";
 
+import CopyIcon from "../../assets/copy.svg";
+
 const ScoreUpload: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
+  const [copied, setCopied] = useState(false);
   const { isUploading, isProcessing, message, startUpload, finishUpload } = useUploadProgress();
+
+  const filepath = "%APPDATA%\\..\\LocalLow\\srylain Inc_\\Clone Hero";
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -61,7 +67,22 @@ const ScoreUpload: React.FC = () => {
         {isUploading ? "Uploading..." : isProcessing ? "Processing..." : "Upload"}
       </button>
       {message && <p>{message}</p>}
-      <p>{"scoredata.bin can be found at %APPDATA%\\..\\LocalLow\\srylain Inc_\\Clone Hero"}</p>
+      <div className="filepath-section">
+        Locate the scoredata.bin file at
+        <img src={CopyIcon} alt="Copy" className="copy-icon" />
+        <Tooltip text={copied ? "Copied to clipboard!" : "Copy to clipboard"}>
+          <span
+            className="filepath-text"
+            onClick={() => {
+              navigator.clipboard.writeText(filepath);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }}
+          >
+            {filepath}
+          </span>
+        </Tooltip>
+      </div>
     </div>
   );
 };

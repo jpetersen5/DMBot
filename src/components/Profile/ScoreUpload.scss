@@ -50,6 +50,35 @@
     color: #666;
     font-style: italic;
   }
+  
+  .filepath-section {
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+
+    .copy-icon {
+      width: 20px;
+      height: 20px;
+      margin-left: 0.25rem;
+    }
+
+    .filepath-text {
+      font-family: monospace;
+      font-size: 14px;
+      color: #404040;
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 0.25rem;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s;
+
+      &:hover {
+        background-color: #e0e0e0;
+      }
+    }
+  }
 }
 
 @media (max-width: 600px) {
