@@ -1,12 +1,15 @@
+@import '../../styles/themes';
+@import '../../styles/mixins';
+
 .profile-page {
   margin: 0 auto;
   padding: 2rem;
-  background-color: #f0f0f0;
-  color: #333;
+  @include theme('background', 'color-background');
+  @include theme('color', 'color-text');
 
   h1 {
     font-size: 2rem;
-    color: #202020;
+    @include theme('color', 'color-text');
     margin-bottom: 1.5rem;
     border-bottom: 2px solid #202020;
     padding-bottom: 0.5rem;
@@ -28,7 +31,7 @@
       display: flex;
       align-items: center;
       margin-bottom: 2rem;
-      background-color: #fff;
+      @include theme('background', 'color-box');
       padding: 1.5rem;
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -48,7 +51,7 @@
           font-size: 1.1rem;
 
           strong {
-            color: #202020;
+            @include theme('color', 'color-text');
             margin-right: 0.5rem;
           }
         }
@@ -57,7 +60,7 @@
   }
 
   .profile-scores {
-    background-color: #fff;
+    @include theme('background', 'color-box');
     padding: 1.5rem;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
