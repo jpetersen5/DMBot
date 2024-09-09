@@ -1,21 +1,27 @@
-$black: #000;
-$white: #FFF;
+$black: #000000;
+$white: #FFFFFF;
+$red: #F04747;
+$grey-red: #D03636;
 $dark-red: #721c24;
-$light-red: #f8d7da;
+$light-red: #F8D7DA;
 $dark-green: #155724;
-$light-green: #d4edda;
-$off-white: #f8f9fa;
+$light-green: #D4EDDA;
+$discord-blue: #7289DA;
+$discord-blue-dark: #5A6EB8;
+$off-white: #F8F9FA;
 $dark-grey-1: #202124;
 $dark-grey-2: #353638;
 $dark-grey-3: #454648;
-$light-grey-1: #6a6a6a;
+$light-grey-1: #6A6A6A;
 $light-grey-2: #858585;
-$light-grey-3: #b8b9ba;
+$light-grey-3: #B8B9Ba;
+$very-light-grey-1: #CACACA;
+$very-light-grey-2: #E7E7E7;
 
 $themes: (
   dark: (
     color-background: $dark-grey-1,
-    color-box: $dark-grey-3,
+    color-box: $dark-grey-2,
     color-button: $dark-grey-3,
     color-button-text: $white,
     color-button-hover: $light-grey-1,
@@ -34,6 +40,7 @@ $themes: (
     color-table-background-2: $light-grey-1,
     color-table-hover: $light-grey-3,
     color-table-div: $dark-grey-3,
+    color-charter-hover: $light-grey-2,
   ),
   light: (
     color-background: $off-white,
@@ -51,10 +58,11 @@ $themes: (
     color-table-text: $black,
     color-table-header: $dark-grey-2,
     color-table-header-text: $white,
-    color-table-header-hover: $light-grey-1,
+    color-table-header-hover: $very-light-grey-1,
     color-table-background-1: $white,
-    color-table-background-2: $off-white,
+    color-table-background-2: $very-light-grey-2,
     color-table-hover: $light-grey-3,
     color-table-div: $dark-grey-3,
+    color-charter-hover: $light-grey-2,
   ),
 );

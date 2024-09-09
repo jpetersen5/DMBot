@@ -10,9 +10,10 @@
     cursor: pointer;
     transition: background-color 0.3s;
     transition: transform 0.3s;
+    @include theme('color', 'color-text');
 
     &:hover {
-      background-color: #d0d0d0;
+      @include theme('background', 'color-charter-hover');
     }
 
     &.active {

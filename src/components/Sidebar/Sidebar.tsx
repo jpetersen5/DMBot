@@ -79,7 +79,7 @@ const Sidebar: React.FC = () => {
               <li>
                 <span className="icon">
                   <img src={ThemesIcon} alt="Themes" />
-                  {isOpen && <span className="nav-text">Themes</span>}
+                  {isOpen && <span className="nav-text">&ensp;Themes</span>}
                 </span>
               </li>
             </a>
