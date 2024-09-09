@@ -42,7 +42,7 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ userId }) => {
     <div className="profile-stats">
       <h2>User Stats</h2>
       {loading && <LoadingSpinner />}
-      {!loading && !stats && <p>No stats available.</p>}
+      {!loading && !stats && <p>No stats available. If you have scores, reupload your scoredata.bin file to update!</p>}
       {stats && !loading && (
         <div className="stats-grid">
           <StatItem label="Total FCs" value={stats.total_fcs} />

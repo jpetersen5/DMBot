@@ -15,7 +15,8 @@ interface LeaderboardEntry {
   user_id: string;
   username: string;
   play_count: number;
-  posted: string;
+  posted: string | null;
+  rank: number;
 }
 
 interface LeaderboardProps {
@@ -40,9 +41,9 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
   const [page, setPage] = useState(1);
   const [inputPage, setInputPage] = useState(page.toString());
   const [totalEntries, setTotalEntries] = useState(0);
-  const [perPage, setPerPage] = useState(10);
-  const [sortBy, setSortBy] = useState("score");
-  const [sortOrder, setSortOrder] = useState("desc");
+  const [perPage, setPerPage] = useState(50);
+  const [sortBy, setSortBy] = useState("rank");
+  const [sortOrder, setSortOrder] = useState("asc");
   const navigate = useNavigate();
 
   const totalPages = Math.ceil(totalEntries / perPage);
@@ -139,11 +140,10 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
             </tr>
           )}
           {!loading && entries.length > 0 && (
-            entries.map((entry, index) => (
+            entries.map((entry) => (
               <LeaderboardTableRow 
                 key={entry.user_id} 
                 entry={entry}
-                rank={(page - 1) * perPage + index + 1}
                 onClick={() => handleRowClick(entry.user_id)}
               />
             ))
@@ -179,23 +179,26 @@ const LeaderboardTableHeader: React.FC<LeaderboardTableHeaderProps> = ({ onClick
 
 interface LeaderboardTableRowProps {
   entry: LeaderboardEntry;
-  rank: number;
   onClick: () => void;
 }
 
-const LeaderboardTableRow: React.FC<LeaderboardTableRowProps> = ({ entry, rank, onClick }) => (
+const LeaderboardTableRow: React.FC<LeaderboardTableRowProps> = ({ entry, onClick }) => (
   <tr onClick={onClick} style={{ cursor: "pointer" }}>
-    <td>{rank}</td>
+    <td>{entry.rank}</td>
     <td>{entry.username}</td>
     <td>{entry.score.toLocaleString()}</td>
     <td>{entry.percent}%</td>
     <td>{entry.speed}%</td>
     <td>{entry.is_fc ? "Yes" : "No"}</td>
-    <td>{entry.play_count}</td>
+    <td>{entry.play_count ? entry.play_count : "N/A"}</td>
     <td>
-      <Tooltip text={formatExactTime(entry.posted)}>
-        {formatTimeDifference(entry.posted)}
-      </Tooltip>
+      {entry.posted ? (
+        <Tooltip text={formatExactTime(entry.posted)}>
+          {formatTimeDifference(entry.posted)}
+        </Tooltip>
+      ) : (
+        "N/A"
+      )}
     </td>
   </tr>
 );

@@ -61,7 +61,8 @@ const Draggable: React.FC<DraggableProps> = ({ children }) => {
         left: `${position.x}px`,
         top: `${position.y}px`,
         cursor: isDragging ? "grabbing" : "grab",
-        userSelect: "none"
+        userSelect: "none",
+        zIndex: 1000
       }}
       onMouseDown={handleMouseDown}
     >

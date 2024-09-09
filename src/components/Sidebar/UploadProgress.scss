@@ -1,7 +1,5 @@
 .upload-progress {
   position: relative;
-  top: 20%;
-  left: 20%;
   background-color: #fff;
   padding: 1rem;
   border-radius: 8px;
@@ -77,14 +75,5 @@
     &:hover {
       color: #202020;
     }
-  }
-}
-
-@media (max-width: 600px) {
-  .upload-progress {
-    bottom: 10px;
-    right: 10px;
-    left: 10px;
-    max-width: none;
   }
 }
