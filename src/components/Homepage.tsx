@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { API_URL } from "../App";
 import LoadingSpinner from "./Loading/LoadingSpinner";
 import Auth from "./Auth/Auth";
 import UserGrid from "./UserGrid/UserGrid";
 import Tooltip from "../utils/Tooltip/Tooltip";
+import { useAuth } from "../context/AuthContext";
 
 import FeatureIcon from "../assets/feature-icon.svg";
 import BugIcon from "../assets/bug-icon.svg";
@@ -49,8 +51,62 @@ const Homepage: React.FC = () => {
       </div>
       <ActionButtons />
       <Auth />
+      <RedirectButton />
       <UserGrid />
     </div>
+  );
+};
+
+const RedirectButton: React.FC = () => {
+  const [hasScores, setHasScores] = useState<boolean | null>(null);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      fetch(`${API_URL}/api/user/${user.id}/has-scores`, {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("auth_token")}`
+        }
+      })
+        .then(response => response.json())
+        .then(data => setHasScores(data.has_scores))
+        .catch(error => {
+          console.error("Error checking user scores:", error);
+          setHasScores(null);
+        });
+    }
+  }, [user]);
+
+  const handleButtonClick = () => {
+    if (!user) {
+      return;
+    }
+    if (hasScores) {
+      navigate("/songs");
+    } else {
+      navigate(`/user/${user.id}`);
+    }
+  };
+
+  return (
+    <>
+      {user ? (
+        <button onClick={handleButtonClick} className="main-action-button">
+          {hasScores === null ? (
+            <LoadingSpinner message="" timeout={0} />
+          ) : hasScores ? (
+            "Check leaderboards here!"
+          ) : (
+            "Upload scores here!"
+          )}
+        </button>
+      ) : (
+        <button onClick={handleButtonClick} className="main-action-button">
+          Check songs here!
+        </button>
+      )}
+    </>
   );
 };
 

@@ -57,6 +57,19 @@ def get_user_by_id(user_id):
             return jsonify({"error": "User not found"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@bp.route("/api/user/<string:user_id>/has-scores", methods=["GET"])
+def user_has_scores(user_id):
+    supabase = get_supabase()
+    
+    query = supabase.table("users").select("scores").eq("id", user_id)
+    result = query.execute()
+
+    if not result.data:
+        return jsonify({"error": "User not found"}), 404
+
+    has_scores = result.data[0].get("scores") is not None
+    return jsonify({"has_scores": has_scores})
 
 @bp.route("/api/users")
 def get_users():
