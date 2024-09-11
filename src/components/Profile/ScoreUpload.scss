@@ -1,9 +1,9 @@
-@import '../../styles/themes';
-@import '../../styles/mixins';
+@import "../../styles/themes";
+@import "../../styles/mixins";
 
 .score-upload {
-  @include theme('background', 'color-box');
-  @include theme('color', 'color-text');
+  @include theme("background", "color-box");
+  @include theme("color", "color-text");
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -11,10 +11,10 @@
 
   h2 {
     font-size: 1.5rem;
-    @include theme('color', 'color-text');
+    @include theme("color", "color-text");
     margin-bottom: 1rem;
     border-bottom: 1px solid;
-    @include theme('border-color', 'color-text');
+    @include theme("border-color", "color-text");
     padding-bottom: 0.5rem;
   }
 
@@ -27,14 +27,14 @@
       flex-grow: 1;
       padding: 0.5rem;
       border: 1px solid;
-      @include theme('border-color', 'color-text');
+      @include theme("border-color", "color-text");
       border-radius: 4px;
     }
   }
 
   button {
-    @include theme('background', 'color-button');
-    @include theme('color', 'color-button-text');
+    @include theme("background", "color-button");
+    @include theme("color", "color-button-text");
     border: none;
     padding: 0.5rem 1rem;
     border-radius: 4px;
@@ -42,18 +42,18 @@
     transition: background-color 0.3s;
 
     &:hover {
-      @include theme('background', 'color-button-hover');
+      @include theme("background", "color-button-hover");
     }
 
     &:disabled {
-      @include theme('background', 'color-button-disabled');
+      @include theme("background", "color-button-disabled");
       cursor: not-allowed;
     }
   }
 
   p {
     margin-top: 1rem;
-    @include theme('color', 'color-text-secondary');
+    @include theme("color", "color-text-secondary");
     font-style: italic;
   }
   

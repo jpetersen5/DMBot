@@ -1,18 +1,18 @@
-@import '../../styles/themes';
-@import '../../styles/mixins';
+@import "../../styles/themes";
+@import "../../styles/mixins";
 
 .login-page {
   max-width: 400px;
   margin: 2rem auto;
   padding: 2rem;
-  @include theme('background', 'color-box');
-  @include theme('color', 'color-text');
+  @include theme("background", "color-box");
+  @include theme("color", "color-text");
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   h1 {
     font-size: 2rem;
-    @include theme('color', 'color-text');
+    @include theme("color", "color-text");
     margin-bottom: 1.5rem;
     border-bottom: 2px solid #202020;
     padding-bottom: 0.5rem;
@@ -20,15 +20,15 @@
 
   p {
     margin-bottom: 2rem;
-    @include theme('color', 'color-text-secondary');
+    @include theme("color", "color-text-secondary");
   }
 
   .auth-button {
     display: block;
     width: 100%;
     padding: 1rem;
-    @include theme('background', 'color-button');
-    @include theme('color', 'color-button-text');
+    @include theme("background", "color-button");
+    @include theme("color", "color-button-text");
     border: none;
     border-radius: 4px;
     font-size: 1.1rem;
@@ -36,7 +36,7 @@
     transition: background-color 0.3s;
 
     &:hover {
-      @include theme('background', 'color-button-hover');
+      @include theme("background", "color-button-hover");
     }
 
     &:focus {
