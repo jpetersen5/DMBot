@@ -11,7 +11,9 @@
   }
 
   .modal-dialog {
+    position: relative;
     max-width: 80%;
+    margin: 1.75rem auto;
   }
 
   .modal-content {
@@ -24,16 +26,15 @@
 
     .back-button {
       position: absolute;
-      right: 0;
-      margin: 0.5rem;
+      right: 1rem;
       background-color: transparent;
       border: none;
       color: #fff;
       font-size: 1.5rem;
-      transition: background-color 0.3s;
+      transition: color 0.3s;
 
       &:hover {
-        background-color: #404040;
+        color: #e0e0e0;
       }
     }
   }
@@ -176,13 +177,59 @@
   .modal-footer {
     background-color: #f0f0f0;
 
-    button {
+    .close-button {
       background-color: #202020;
+      color: #fff;
       border: none;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
 
       &:hover {
         background-color: #404040;
       }
+    }
+  }
+
+  .nav-button {
+    position: absolute;
+    top: 50vh;
+    transform: translateY(-50%);
+    background-color: rgba(32, 32, 32, 1);
+    color: #fff;
+    border: none;
+    font-size: 2rem;
+    width: 40px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    z-index: 1060;
+    padding: 0;
+    line-height: 1;
+
+    &:hover {
+      background-color: rgba(64, 64, 64, 1);
+    }
+
+    &:disabled {
+      display: none;
+    }
+
+    &.prev-button {
+      left: -40px;
+      border-top-left-radius: 40px;
+      border-bottom-left-radius: 40px;
+    }
+
+    &.next-button {
+      right: -40px;
+      border-top-right-radius: 40px;
+      border-bottom-right-radius: 40px;
     }
   }
 }

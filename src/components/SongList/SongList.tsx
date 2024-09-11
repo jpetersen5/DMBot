@@ -9,7 +9,14 @@ import { useCharterData } from "../../context/CharterContext";
 import { useSongCache } from "../../context/SongContext";
 import Tooltip from "../../utils/Tooltip/Tooltip";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
-import { Song, SONG_TABLE_HEADERS, msToTime, formatExactTime, formatTimeDifference } from "../../utils/song";
+import {
+  Song,
+  SONG_TABLE_HEADERS,
+  msToTime,
+  formatExactTime,
+  formatTimeDifference,
+  getSurroundingSongIds
+} from "../../utils/song";
 import "./SongList.scss";
 
 const filterOptions = [
@@ -232,6 +239,8 @@ const SongList: React.FC = () => {
           onHide={handleModalClose} 
           initialSong={selectedSong}
           loading={modalLoading}
+          previousSongIds={getSurroundingSongIds(songs, selectedSong?.id.toString() || "", perPage).prevSongIds}
+          nextSongIds={getSurroundingSongIds(songs, selectedSong?.id.toString() || "", perPage).nextSongIds}
         />
       )}
     </div>

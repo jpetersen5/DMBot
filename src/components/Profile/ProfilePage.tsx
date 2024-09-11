@@ -4,9 +4,8 @@ import LoadingSpinner from "../Loading/LoadingSpinner";
 import ScoreUpload from "./ScoreUpload";
 import UserScores from "./UserScores";
 import ProfileStats from "./ProfileStats";
-import { getUserImage } from "../../utils/user";
+import { getUserImage, User } from "../../utils/user";
 import { useAuth } from "../../context/AuthContext";
-import { User } from "../../utils/user";
 import { API_URL } from "../../App";
 import "./ProfilePage.scss";
 
@@ -56,7 +55,11 @@ const ProfilePage: React.FC = () => {
         <>
           <div className="profile-header">
             <div className="profile-info">
-              <img src={getUserImage(profileUser)} alt={profileUser.username} className="profile-avatar" />
+              <img
+                src={getUserImage(profileUser)}
+                alt={profileUser.username}
+                className="profile-avatar"
+              />
               <div className="profile-details">
                 <p><strong>Username:</strong> {profileUser.username}</p>
                 <p><strong>Discord ID:</strong> {profileUser.id}</p>

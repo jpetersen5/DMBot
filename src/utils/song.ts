@@ -65,3 +65,11 @@ export const formatExactTime = (lastUpdate: string) => {
     hour12: false,
   });
 };
+
+export const getSurroundingSongIds = (songs: Song[], currentSongId: string, pageSize: number) => {
+  const currentIndex = songs.findIndex(song => song.id.toString() === currentSongId);
+  if (currentIndex === -1) return { prevSongIds: [], nextSongIds: [] };
+  const prevSongIds = songs.slice(Math.max(0, currentIndex - pageSize), currentIndex).map(song => song.id.toString());
+  const nextSongIds = songs.slice(currentIndex + 1, currentIndex + pageSize).map(song => song.id.toString());
+  return { prevSongIds, nextSongIds };
+};
