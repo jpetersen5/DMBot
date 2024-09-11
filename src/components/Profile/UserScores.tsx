@@ -8,6 +8,8 @@ import { formatExactTime, formatTimeDifference, Song } from "../../utils/song";
 import Tooltip from "../../utils/Tooltip/Tooltip";
 import "./UserScores.scss";
 
+import fcIcon from "../../assets/crown.png";
+
 interface Score {
   is_fc: boolean;
   score: number;
@@ -228,7 +230,13 @@ const ScoreTableRow: React.FC<ScoreTableRowProps> = ({ score, onClick }) => {
       <td>{score.song_name}</td>
       <td>{score.artist}</td>
       <td>{score.score.toLocaleString()}</td>
-      <td>{score.percent}%</td>
+      <td>
+        {score.is_fc ? (
+          <img src={fcIcon} alt="FC" className="fc-crown" />
+        ) : (
+          <span>{score.percent}%</span>
+        )}
+      </td>
       <td>{score.speed}%</td>
       <td>{score.is_fc ? "Yes" : "No"}</td>
       <td>{score.play_count ? score.play_count : "N/A"}</td>
