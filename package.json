@@ -15,10 +15,12 @@
   "dependencies": {
     "@types/dompurify": "^3.0.5",
     "bootstrap": "^5.3.3",
+    "chart.js": "^4.4.4",
     "dompurify": "^3.1.6",
     "nodejs": "^0.0.0",
     "react": "^18.3.1",
     "react-bootstrap": "^2.10.4",
+    "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.24.0",
     "socket.io-client": "^4.7.5",
