@@ -89,24 +89,20 @@ const RedirectButton: React.FC = () => {
     }
   };
 
+  if (!user) {
+    return null;
+  }
+
   return (
-    <>
-      {user ? (
-        <button onClick={handleButtonClick} className="main-action-button">
-          {hasScores === null ? (
-            <LoadingSpinner message="" timeout={0} />
-          ) : hasScores ? (
-            "Check leaderboards here!"
-          ) : (
-            "Upload scores here!"
-          )}
-        </button>
+    <button onClick={handleButtonClick} className="main-action-button">
+      {hasScores === null ? (
+        <LoadingSpinner message="" timeout={0} />
+      ) : hasScores ? (
+        "Check leaderboards here!"
       ) : (
-        <button onClick={handleButtonClick} className="main-action-button">
-          Check songs here!
-        </button>
+        "Upload scores here!"
       )}
-    </>
+    </button>
   );
 };
 

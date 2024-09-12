@@ -105,6 +105,10 @@
   }
 
   .main-action-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-height: 60px;
     margin-top: 2rem;
     padding: 1rem 2rem;
     font-size: 1.2rem;
@@ -114,9 +118,14 @@
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
     &:hover {
       background-color: #404040;
+    }
+
+    .loading-spinner {
+      filter: invert(1);
     }
   }
 }
