@@ -54,3 +54,28 @@ def get_charters_colors():
     except Exception as e:
         logger.error(f"Error fetching charter data: {str(e)}")
         return jsonify({"error": "An error occurred while fetching charter data"}), 500
+
+@bp.route("/api/user/<string:user_id>/charter", methods=["GET"])
+def is_user_charter(user_id):
+    """
+    retrieves charter data for a user 
+
+    params:
+        user_id (str): The Discord ID of the user
+
+    returns:
+        JSON: charter data for the user
+    """
+    supabase = get_supabase()
+    logger = current_app.logger
+    try:
+        query = supabase.table("charters").select("*").eq("user_id", user_id)
+        response = query.execute()
+        
+        if response.data:
+            return jsonify(response.data[0]), 200
+        else:
+            return jsonify({"error": "User is not a charter"}), 404
+    except Exception as e:
+        logger.error(f"Error fetching charter data: {str(e)}")
+        return jsonify({"error": "An error occurred while fetching charter data"}), 500
