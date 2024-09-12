@@ -79,6 +79,35 @@
       }
     }
   }
+
+  .os-selection {
+    margin-top: 1rem;
+  
+    p {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  
+    button {
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      color: #202020;
+      padding: 0.25rem 0.5rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+  
+      &:hover {
+        background-color: #e0e0e0;
+      }
+  
+      &.active {
+        background-color: #202020;
+        color: white;
+      }
+    }
+  }
 }
 
 @media (max-width: 600px) {
