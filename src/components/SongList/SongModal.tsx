@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Modal, Button, Nav } from "react-bootstrap";
+import { Modal, Nav } from "react-bootstrap";
 import { API_URL } from "../../App";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import CharterName from "./CharterName";
@@ -16,9 +16,18 @@ interface SongModalProps {
   onHide: () => void;
   initialSong: Song | null;
   loading: boolean;
+  previousSongIds: string[];
+  nextSongIds: string[];
 }
 
-const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong, loading }) => {
+const SongModal: React.FC<SongModalProps> = ({ 
+  show, 
+  onHide, 
+  initialSong, 
+  loading, 
+  previousSongIds, 
+  nextSongIds 
+}) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -39,13 +48,31 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong, loadin
   useEffect(() => {
     if (initialSong) {
       setCurrentSong(initialSong);
-      setPreviousSongs([]);
 
       const params = new URLSearchParams(location.search);
       const initialRelationType = params.get("relation") as "album" | "artist" | "genre" | "charter" || "album";
       setRelationType(initialRelationType);
     }
   }, [initialSong, location.search]);
+
+  const navigateToSong = (songId: number | string) => {
+    const params = new URLSearchParams(location.search);
+    navigate(`${location.pathname.split("/").slice(0, -1).join("/")}/${songId}?${params.toString()}`);
+  }
+
+  const handlePrevSong = () => {
+    if (previousSongIds.length > 0) {
+      const prevSongId = previousSongIds[previousSongIds.length - 1];
+      navigateToSong(prevSongId);
+    }
+  };
+
+  const handleNextSong = () => {
+    if (nextSongIds.length > 0) {
+      const nextSongId = nextSongIds[0];
+      navigateToSong(nextSongId);
+    }
+  };
 
   useEffect(() => {
     if (currentSong) {
@@ -63,7 +90,7 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong, loadin
     if (!currentSong) return;
     const params = new URLSearchParams(location.search);
     params.set("relation", relationType);
-    navigate(`/songs/${currentSong.id}?${params.toString()}`, { replace: true });
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
   };
 
   const getCacheKey = () => {
@@ -114,6 +141,12 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong, loadin
   if (loading) {
     return (
       <Modal show={show} onHide={onHide} size="xl" dialogClassName="song-modal loading">
+        <Modal.Header>
+          <button onClick={onHide} className="back-button">
+            &times;
+          </button>
+          <Modal.Title>{"Loading..."}</Modal.Title>
+        </Modal.Header>
         <Modal.Body>
           <LoadingSpinner message="Loading song details..." />
         </Modal.Body>
@@ -127,8 +160,7 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong, loadin
     if (currentSong.id === song.id) return;
     setPreviousSongs([...previousSongs, currentSong]);
     setCurrentSong(song);
-    const params = new URLSearchParams(location.search);
-    navigate(`/songs/${song.id}?${params.toString()}`);
+    navigateToSong(song.id);
   }
 
   const handleBack = () => {
@@ -136,10 +168,10 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong, loadin
       const lastSong = previousSongs[previousSongs.length - 1];
       setCurrentSong(lastSong);
       setPreviousSongs(prev => prev.slice(0, -1));
-      const params = new URLSearchParams(location.search);
-      navigate(`/songs/${lastSong.id}?${params.toString()}`);
+      navigateToSong(lastSong.id);
     } else {
       onHide();
+      setPreviousSongs([]);
     }
   };
 
@@ -189,9 +221,9 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong, loadin
   return (
     <Modal show={show} onHide={onHide} size="xl" dialogClassName="song-modal">
       <Modal.Header>
-        <Button onClick={handleBack} className="back-button">
-          {previousSongs.length > 0 ? "←" : "X"}
-        </Button>
+        <button onClick={handleBack} className="back-button">
+          {previousSongs.length > 0 ? "←" : "×"}
+        </button>
         <Modal.Title>{currentSong.name}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
@@ -242,8 +274,22 @@ const SongModal: React.FC<SongModalProps> = ({ show, onHide, initialSong, loadin
         <Leaderboard songId={currentSong.id.toString()} key={currentSong.id.toString()} />
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={onHide}>Close</Button>
+        <button className="close-button" onClick={onHide}>Close</button>
       </Modal.Footer>
+      <button
+        onClick={handlePrevSong}
+        disabled={previousSongIds.length === 0}
+        className="nav-button prev-button"
+      >
+        {"<"}
+      </button>
+      <button
+        onClick={handleNextSong}
+        disabled={nextSongIds.length === 0}
+        className="nav-button next-button"
+      >
+        {">"}
+      </button>
     </Modal>
   );
 };

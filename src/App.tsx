@@ -26,6 +26,7 @@ const App: React.FC = () => {
             <Routes>
               <Route path="/" element={<Homepage />} />
               <Route path="/user/:userId" element={<ProfilePage />} />
+              <Route path="/user/:userId/:songId" element={<ProfilePage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/auth" element={<AuthHandler />} />
               <Route path="/songs" element={<SongList />} />

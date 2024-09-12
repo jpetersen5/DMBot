@@ -10,6 +10,7 @@ export interface Song {
   difficulty: string | null;
   song_length: number | null;
   charter_refs: string[] | null;
+  scores_count: number | null;
   last_update: string;
 }
 
@@ -22,6 +23,7 @@ export const SONG_TABLE_HEADERS = {
   difficulty: "Difficulty",
   song_length: "Length",
   charter: "Charter",
+  scores_count: "Scores",
   last_update: "Last Update",
 };
 
@@ -62,4 +64,12 @@ export const formatExactTime = (lastUpdate: string) => {
     second: "2-digit",
     hour12: false,
   });
+};
+
+export const getSurroundingSongIds = (songs: Song[], currentSongId: string, pageSize: number) => {
+  const currentIndex = songs.findIndex(song => song.id.toString() === currentSongId);
+  if (currentIndex === -1) return { prevSongIds: [], nextSongIds: [] };
+  const prevSongIds = songs.slice(Math.max(0, currentIndex - pageSize), currentIndex).map(song => song.id.toString());
+  const nextSongIds = songs.slice(currentIndex + 1, currentIndex + pageSize).map(song => song.id.toString());
+  return { prevSongIds, nextSongIds };
 };

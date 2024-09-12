@@ -7,6 +7,8 @@ import { formatExactTime, formatTimeDifference } from "../../utils/song";
 import Tooltip from "../../utils/Tooltip/Tooltip";
 import "./Leaderboard.scss";
 
+import fcIcon from "../../assets/crown.png";
+
 interface LeaderboardEntry {
   is_fc: boolean;
   score: number;
@@ -187,7 +189,13 @@ const LeaderboardTableRow: React.FC<LeaderboardTableRowProps> = ({ entry, onClic
     <td>{entry.rank}</td>
     <td>{entry.username}</td>
     <td>{entry.score.toLocaleString()}</td>
-    <td>{entry.percent}%</td>
+    <td>
+      {entry.is_fc ? (
+        <img src={fcIcon} alt="FC" className="fc-crown" />
+      ) : (
+        <span>{entry.percent}%</span>
+      )}
+    </td>
     <td>{entry.speed}%</td>
     <td>{entry.is_fc ? "Yes" : "No"}</td>
     <td>{entry.play_count ? entry.play_count : "N/A"}</td>

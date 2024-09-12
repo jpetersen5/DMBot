@@ -5,7 +5,7 @@ from ..utils.helpers import sanitize_input
 
 bp = Blueprint("songs", __name__)
 
-ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "difficulty", "charter", "song_length", "last_update"}
+ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "difficulty", "charter", "song_length", "last_update", "scores_count"}
 ALLOWED_FILTERS = {"name", "artist", "album", "year", "genre", "charter"}
 
 @bp.route("/api/songs/<string:identifier>", methods=["GET"])
@@ -57,42 +57,41 @@ def get_songs():
     sort_by: str = sanitize_input(request.args.get("sort_by", "last_update").lower())
     sort_order: str = request.args.get("sort_order", "desc").lower()
     search: Optional[str] = request.args.get("search")
-    filter: Optional[str] = request.args.get("filter")
+    filters: List[str] = request.args.get("filter", "").split(",")
 
+    filters = [filter for filter in filters if filter in ALLOWED_FILTERS]
     if sort_order not in ["asc", "desc"]:
         sort_order = "desc"
     if sort_by not in ALLOWED_FIELDS:
         sort_by = "last_update"
-    if filter and filter not in ALLOWED_FILTERS:
-        filter = None
-    if sort_by == "charter":
+    elif sort_by == "charter":
         sort_by = "charter_refs"
 
-    query = supabase.table("songs").select("id", "artist", "name", "album", "track", "year", "genre", "difficulty", "song_length", "charter_refs", "last_update")
+    query = supabase.table("songs").select("*")
     count_query = supabase.table("songs").select("id", count="exact")
 
     if search:
         search_terms = sanitize_input(search).split()
-        search_fields = ["name", "artist", "album", "year", "genre", "charter"] if not filter else [filter]
+        search_fields = filters if filters else ["name", "artist", "album", "year", "genre", "charter"]
         
         for term in search_terms:
-            term_filter = None
+            term_filter = []
             for field in search_fields:
                 if field != "charter":
                     condition = f"{field}.ilike.%{term}%"
-                    term_filter = condition if term_filter is None else f"{term_filter},{condition}"
-            
+                    term_filter.append(condition)
+
             if search_fields.count("charter") > 0:
                 charters_query = supabase.table("charters").select("name").ilike("name", f"*{term}*")
                 charters_response = charters_query.execute()
                 matching_charters = [charter["name"] for charter in charters_response.data]
                 if matching_charters:
                     charter_condition = f"charter_refs.ov.{{{','.join(matching_charters)}}}"
-                    term_filter = charter_condition if term_filter is None else f"{term_filter},{charter_condition}"
-                
-                if term_filter:
-                    query = query.or_(term_filter)
-                    count_query = count_query.or_(term_filter)
+                    term_filter.append(charter_condition)
+            
+            if term_filter:
+                query = query.or_(",".join(term_filter))
+                count_query = count_query.or_(",".join(term_filter))
 
     total_songs = count_query.execute().count
 

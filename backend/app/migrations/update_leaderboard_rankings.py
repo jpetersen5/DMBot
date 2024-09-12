@@ -44,7 +44,7 @@ def update_leaderboards():
 
     while True:
         response = supabase.table("songs") \
-            .select("id", "leaderboard") \
+            .select("id", "name", "leaderboard") \
             .not_.is_("leaderboard", "null") \
             .range(page * page_size, (page + 1) * page_size - 1) \
             .execute()
@@ -59,9 +59,13 @@ def update_leaderboards():
         for i, song in enumerate(songs, 1):
             leaderboard = song["leaderboard"]
             if leaderboard:
+                if all("rank" in entry for entry in leaderboard):
+                    print(f"Skipping {song['name']} (ID: {song['id']}) - all entries already ranked")
+                    continue
+
                 updated_leaderboard = sort_and_rank_leaderboard(leaderboard)
                 
-                print(f"Updating song {total_updated + i}/{total_updated + len(songs)} (ID: {song['id']})...")
+                print(f"Updating {song['name']} {total_updated + i}/{total_updated + len(songs)} (ID: {song['id']})...")
                 supabase.table("songs").update({"leaderboard": updated_leaderboard}).eq("id", song["id"]).execute()
 
         total_updated += len(songs)

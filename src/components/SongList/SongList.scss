@@ -1,14 +1,14 @@
-@import '../../styles/themes';
-@import '../../styles/mixins';
+@import "../../styles/themes";
+@import "../../styles/mixins";
 
 .song-list {
   padding: 2rem;
-  @include theme('background', 'color-background');
+  @include theme("background", "color-background");
 
   h1 {
     font-size: 2rem;
     margin-bottom: 1.5rem;
-    @include theme('color', 'color-text');
+    @include theme("color", "color-text");
   }
 
   .control-bar {
@@ -20,7 +20,7 @@
     .table-controls, .search-controls {
       display: flex;
       align-items: center;
-      @include theme('color', 'color-text');
+      @include theme("color", "color-text");
       
       label, select, input {
         margin-right: 0.5rem;
@@ -30,10 +30,104 @@
     .pagination {
       display: flex;
       align-items: center;
-      @include theme('color', 'color-text');
+      @include theme("color", "color-text");
       
       button, input {
         margin: 0 0.25rem;
+      }
+    }
+
+    .search-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      .search-input-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+
+        input[type="text"] {
+          padding: 0.5rem;
+          padding-right: 2.5rem;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          font-size: 1rem;
+          width: 250px;
+        }
+
+        .filter-button {
+          position: absolute;
+          right: 0.5rem;
+          background: none;
+          border: none;
+          cursor: pointer;
+
+          img {
+            width: 20px;
+            height: 20px;
+          }
+        }
+
+        .filter-dropdown {
+          position: absolute;
+          top: 100%;
+          right: 0;
+          width: 200px;
+          background-color: white;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          padding: 0.5rem;
+          z-index: 10;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+
+          .filter-option {
+            display: block;
+            padding: 0.25rem;
+            cursor: pointer;
+
+            &:hover {
+              background-color: #f0f0f0;
+            }
+
+            input {
+              margin-right: 0.5rem;
+            }
+          }
+
+          .clear-filters-button {
+            display: block;
+            width: 100%;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            background-color: #f0f0f0;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #202020;
+            cursor: pointer;
+            transition: background-color 0.3s;
+
+            &:hover {
+              background-color: #e0e0e0;
+            }
+          }
+        }
+      }
+
+      .search-button {
+        padding: 0.5rem 1rem;
+        background-color: #202020;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s;
+
+        &:hover {
+          background-color: #404040;
+        }
       }
     }
   }
@@ -41,8 +135,8 @@
   table {
     width: 100%;
     border-collapse: collapse;
-    @include theme('background', 'color-table-background-2');
-    @include theme('color', 'color-table-text');
+    @include theme("background", "color-table-background-2");
+    @include theme("color", "color-table-text");
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-bottom: 1rem;
 
@@ -53,8 +147,8 @@
     }
 
     th {
-      @include theme('background', 'color-table-header');
-      @include theme('color', 'color-table-header-text');
+      @include theme("background", "color-table-header");
+      @include theme("color", "color-table-header-text");
       font-weight: bold;
       cursor: pointer;
       user-select: none;
@@ -69,16 +163,16 @@
       }
 
       &:hover {
-        @include theme('background', 'color-table-header-hover');
+        @include theme("background", "color-table-header-hover");
       }
     }
 
     tr:nth-child(even) {
-      @include theme('background', 'color-table-background-1');
+      @include theme("background", "color-table-background-1");
     }
 
     tr:hover {
-      @include theme('background', 'color-table-hover');
+      @include theme("background", "color-table-hover");
       cursor: pointer;
     }
   }
@@ -88,11 +182,11 @@
     justify-content: center;
     align-items: center;
     margin: 1rem 0;
-    @include theme('color', 'color-text');
+    @include theme("color", "color-text");
 
     button {
-      @include theme('background', 'color-button');
-      @include theme('color', 'color-button-text');
+      @include theme("background", "color-button");
+      @include theme("color", "color-button-text");
       border: none;
       padding: 0.5rem 1rem;
       margin: 0 0.5rem;
@@ -100,11 +194,11 @@
       transition: background-color 0.3s;
 
       &:hover {
-        @include theme('background', 'color-button-hover');
+        @include theme("background", "color-button-hover");
       }
 
       &:disabled {
-        @include theme('background', 'color-button-disabled');
+        @include theme("background", "color-button-disabled");
         cursor: not-allowed;
       }
     }
