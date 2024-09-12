@@ -1,4 +1,5 @@
 import React, { memo } from "react";
+import { Link } from "react-router-dom";
 import { useCharterData } from "../../context/CharterContext";
 import { renderSafeHTML } from "../../utils/safeHTML";
 import "./CharterName.scss";
@@ -12,24 +13,26 @@ const CharterName: React.FC<CharterNameProps> = memo(({ names }) => {
   const { charterCache } = useCharterData();
   const charters = names.split(",").map(name => name.trim());
 
-  const onClick = (name: string) => {
-    console.log("Charter name clicked:", name);
-  };
-
   return (
     <div className="charter-name">
-      {charters.map((name, i) => (
-        <React.Fragment key={i}>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onClick(name);
-            }}
-            dangerouslySetInnerHTML={renderSafeHTML(charterCache[name] || name)}
-          />
-          {i < charters.length - 1 && ", "}
-        </React.Fragment>
-      ))}
+      {charters.map((name, i) => {
+        const charterData = charterCache[name];
+
+        return (
+          <React.Fragment key={i}>
+            {charterData?.userId ? (
+              <Link
+                to={`/user/${charterData.userId}`}
+                onClick={(e) => e.stopPropagation()}
+                dangerouslySetInnerHTML={renderSafeHTML(charterData.name)}
+              />
+            ) : (
+              <span dangerouslySetInnerHTML={renderSafeHTML(charterData.name)} />
+            )}
+            {i < charters.length - 1 && ", "}
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 });

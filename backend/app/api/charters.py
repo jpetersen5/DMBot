@@ -4,21 +4,24 @@ from ..utils.helpers import sanitize_input
 
 bp = Blueprint("charters", __name__)
 
-@bp.route("/api/all-charter-colors", methods=["GET"])
-def get_all_charters_colors():
+@bp.route("/api/all-charter-data", methods=["GET"])
+def get_all_charters_data():
     """
-    retrieves all charters with colorized names
+    retrieves all charters with colorized names and user ids
 
     returns:
-        JSON: list of charters with their colorized names
+        JSON: list of charters with their colorized names and user ids
     """
     supabase = get_supabase()
     logger = current_app.logger
     try:
-        query = supabase.table("charters").select("name", "colorized_name").not_.is_("colorized_name", "null")
+        query = supabase.table("charters").select("name", "colorized_name", "user_id")
         response = query.execute()
         
-        charters_data = {charter["name"]: charter["colorized_name"] for charter in response.data}
+        charters_data = {charter["name"]: {
+            "name": charter["colorized_name"] or charter["name"],
+            "userId": str(charter["user_id"]) if charter["user_id"] else None
+        } for charter in response.data}
         
         return jsonify(charters_data), 200
     except Exception as e:
