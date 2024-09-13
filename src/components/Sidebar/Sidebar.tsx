@@ -46,7 +46,7 @@ const Sidebar: React.FC = () => {
   
   document.documentElement.classList.add(`theme-${theme}`);
 
-  const dialog = document.getElementById("themeDialog");
+  const dialog: HTMLDialogElement = document.getElementById("themeDialog") as HTMLDialogElement;
   let themeDialogOpen = dialog?.open;
 
   const toggleThemeDialog = () => {
