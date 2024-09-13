@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import ScoreUpload from "./ScoreUpload";
 import UserScores from "./UserScores";
@@ -79,11 +79,14 @@ const ProfilePage: React.FC = () => {
                 <p><strong>Username:</strong> {profileUser.username}</p>
                 <p><strong>Discord ID:</strong> {profileUser.id}</p>
                 {charter && (
-                  <p>
+                  <p className="charter-info">
                     <strong>Charter Name:</strong>
                     <span
                       dangerouslySetInnerHTML={renderSafeHTML(charter.colorized_name || charter.name)}
                     />
+                    <Link to={`/charter/${charter.id}`} className="charter-link">
+                      <span className="arrow-icon">&#8594;</span>
+                    </Link>
                   </p>
                 )}
               </div>
