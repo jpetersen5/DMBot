@@ -16,12 +16,13 @@ const CharterStats: React.FC<CharterStatsProps> = ({ stats }) => {
   return (
     <div className="charter-stats">
       <h2>Charter Stats</h2>
-      <p>{"(Updated "}
+      <div className="last-updated">
+        {"(Updated "}
         <TooltipWrapper text={formatExactTime(stats.last_updated)}>
           {formatTimeDifference(stats.last_updated)}
         </TooltipWrapper>
         {")"}
-        </p>
+      </div>
       <div className="stats-grid">
         <StatItem label="Total Songs Charted" value={stats.total_songs} />
         <StatItem label="Total Charts Length" value={msToHourMinSec(stats.total_length)} />

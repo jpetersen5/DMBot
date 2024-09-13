@@ -101,7 +101,7 @@ def is_user_charter(user_id):
         response = query.execute()
         
         if response.data:
-            return jsonify(response.data[0]), 200
+            return jsonify(response.data), 200
         else:
             return jsonify({"error": "User is not a charter"}), 404
     except Exception as e:
