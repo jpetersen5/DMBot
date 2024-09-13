@@ -17,18 +17,15 @@ const CharterName: React.FC<CharterNameProps> = memo(({ names }) => {
     <div className="charter-name">
       {charters.map((name, i) => {
         const charterData = charterCache[name];
+        const charterLink = charterData.userId ? `/user/${charterData.userId}` : `/charter/${charterData.id}`;
 
         return (
           <React.Fragment key={i}>
-            {charterData?.userId ? (
-              <Link
-                to={`/user/${charterData.userId}`}
-                onClick={(e) => e.stopPropagation()}
-                dangerouslySetInnerHTML={renderSafeHTML(charterData.name)}
-              />
-            ) : (
-              <span dangerouslySetInnerHTML={renderSafeHTML(charterData.name)} />
-            )}
+            <Link
+              to={charterLink}
+              onClick={(e) => e.stopPropagation()}
+              dangerouslySetInnerHTML={renderSafeHTML(charterData.name)}
+            />
             {i < charters.length - 1 && ", "}
           </React.Fragment>
         );

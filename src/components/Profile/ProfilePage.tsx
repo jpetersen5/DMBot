@@ -4,7 +4,7 @@ import LoadingSpinner from "../Loading/LoadingSpinner";
 import ScoreUpload from "./ScoreUpload";
 import UserScores from "./UserScores";
 import ProfileStats from "./ProfileStats";
-import CharterStats from "./CharterStats";
+import CharterStats from "./Charter/CharterStats";
 import { Charter } from "../../utils/charter";
 import { renderSafeHTML } from "../../utils/safeHTML";
 import { getUserImage, User } from "../../utils/user";

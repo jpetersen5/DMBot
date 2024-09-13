@@ -4,6 +4,30 @@ from ..utils.helpers import sanitize_input
 
 bp = Blueprint("charters", __name__)
 
+@bp.route("/api/charter/<string:charter_id>", methods=["GET"])
+def get_charter_by_id(charter_id):
+    """
+    retrieves charter data by ID
+
+    params:
+        charter_id (str): The ID of the charter
+
+    returns:
+        JSON: charter data for the given ID
+    """
+    supabase = get_supabase()
+    logger = current_app.logger
+    try:
+        query = supabase.table("charters").select("*").eq("id", charter_id)
+        response = query.execute()
+        if response.data:
+            return jsonify(response.data[0]), 200
+        else:
+            return jsonify({"error": "Charter not found"}), 404
+    except Exception as e:
+        logger.error(f"Error fetching charter data: {str(e)}")
+        return jsonify({"error": "An error occurred while fetching charter data"}), 500
+
 @bp.route("/api/all-charter-data", methods=["GET"])
 def get_all_charters_data():
     """
@@ -15,10 +39,11 @@ def get_all_charters_data():
     supabase = get_supabase()
     logger = current_app.logger
     try:
-        query = supabase.table("charters").select("name", "colorized_name", "user_id")
+        query = supabase.table("charters").select("id", "name", "colorized_name", "user_id")
         response = query.execute()
         
         charters_data = {charter["name"]: {
+            "id": str(charter["id"]),
             "name": charter["colorized_name"] or charter["name"],
             "userId": str(charter["user_id"]) if charter["user_id"] else None
         } for charter in response.data}

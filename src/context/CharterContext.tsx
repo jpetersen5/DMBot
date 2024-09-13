@@ -5,6 +5,7 @@ interface CharterCache {
   [key: string]: {
     name: string;
     userId: string | null;
+    id: string;
   };
 }
 

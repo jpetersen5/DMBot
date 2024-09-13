@@ -1,8 +1,8 @@
 import React from "react";
 import { Bar, Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
-import { CharterStatsData } from "../../utils/charter";
-import { msToHourMinSec } from "../../utils/song";
+import { CharterStatsData } from "../../../utils/charter";
+import { msToHourMinSec } from "../../../utils/song";
 import "./CharterStats.scss";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend);

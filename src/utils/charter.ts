@@ -1,4 +1,5 @@
 export interface Charter {
+    id: string;
     name: string;
     colorized_name: string | null;
     user_id: string | null;
