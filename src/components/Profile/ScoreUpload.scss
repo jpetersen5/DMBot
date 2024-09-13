@@ -27,7 +27,7 @@
       flex-grow: 1;
       padding: 0.5rem;
       border: 1px solid;
-      @include theme("border-color", "color-text");
+      @include theme("border-color", "color-border");
       border-radius: 4px;
     }
   }
@@ -73,7 +73,8 @@
       font-size: 14px;
       color: #404040;
       background-color: #f0f0f0;
-      border: 1px solid #ccc;
+      border: 1px solid;
+      @include theme("border-color", "color-border");
       border-radius: 4px;
       padding: 0.25rem;
       cursor: pointer;

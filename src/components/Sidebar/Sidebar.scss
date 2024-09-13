@@ -105,6 +105,23 @@
     background-color: DodgerBlue;
     cursor: pointer;
   }
+
+  #themeDialog {
+    @include theme("background", "color-dropdown");
+    @include theme("color", "color-dropdown-text");
+    border: 1px solid;
+    @include theme("border-color", "color-text");
+    width: 95%;
+    padding: 0;
+
+    .themeOption {
+      padding: 0.1rem;
+    }
+
+    .themeOption:hover {
+      @include theme("background", "color-dropdown-highlight");
+    }
+  }
 }
 
 .main-content {

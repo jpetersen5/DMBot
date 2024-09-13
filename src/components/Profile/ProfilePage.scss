@@ -11,7 +11,8 @@
     font-size: 2rem;
     @include theme("color", "color-text");
     margin-bottom: 1.5rem;
-    border-bottom: 2px solid #202020;
+    border-bottom: 2px solid;
+    @include theme("border-color", "color-text");
     padding-bottom: 0.5rem;
   }
 
@@ -42,7 +43,8 @@
         border-radius: 50%;
         object-fit: cover;
         margin-right: 2rem;
-        border: 3px solid #202020;
+        border: 3px solid;
+        @include theme("border-color", "color-text");
       }
 
       .profile-details {

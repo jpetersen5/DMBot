@@ -22,10 +22,13 @@ const staticNavItems: NavItem[] = [
 ];
 
 const themes = ["light", "dark"];
+let theme = themes[1];
 
-//TODO: store user theme in database or cookies?
-const defaultTheme = themes[1];
-let theme = defaultTheme;
+const toCapitalCase = (str: string) => {
+  return (
+    str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+  );
+};
 
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,12 +38,36 @@ const Sidebar: React.FC = () => {
     setIsOpen(!isOpen);
   };
 
-  const toggleThemeSwitcher = () => {
-    theme = theme == themes[0] ? themes[1] : themes[0];
-    //theme = e.target.value;
+  const storedTheme = localStorage.getItem("theme");
+
+  if(storedTheme != null) {
+    theme = themes[parseInt(storedTheme)];
+  }
+  
+  document.documentElement.classList.add(`theme-${theme}`);
+
+  const dialog = document.getElementById("themeDialog");
+  let themeDialogOpen = dialog?.open;
+
+  const toggleThemeDialog = () => {
+    themeDialogOpen = !themeDialogOpen;
+
+    if(themeDialogOpen) {
+      dialog?.show();
+    } else {
+      dialog?.close();
+    }
+    
+    return true;
+  }
+
+  const selectTheme = (i: number) => {
+    theme = themes[i];
+    localStorage.setItem("theme", i.toString());
 
     document.documentElement.className = "";
     document.documentElement.classList.add(`theme-${theme}`);
+
     return true;
   }
 
@@ -54,8 +81,6 @@ const Sidebar: React.FC = () => {
 
   const version = "v1.3.0";
   const commitDate = import.meta.env.VITE_COMMIT_DATE || "Unknown";
-
-  document.documentElement.classList.add(`theme-${defaultTheme}`);
 
   return (
     <>
@@ -75,7 +100,7 @@ const Sidebar: React.FC = () => {
                 </li>
               </Link>
             ))}
-            <a onClick={toggleThemeSwitcher}>
+            <a onClick={toggleThemeDialog}>
               <li>
                 <span className="icon">
                   <img src={ThemesIcon} alt="Themes" />
@@ -84,6 +109,17 @@ const Sidebar: React.FC = () => {
               </li>
             </a>
           </ul>
+          <dialog id="themeDialog">
+            <ul>
+              {themes.map((theme, index) => {
+                return (
+                  <li key={index} className="themeOption" onClick={() => selectTheme(index)}>
+                    {toCapitalCase(theme)}
+                  </li>
+                );
+              })}
+            </ul>
+          </dialog>
         </nav>
         {isOpen && (
           <Tooltip text={`Last updated: ${commitDate}`}>

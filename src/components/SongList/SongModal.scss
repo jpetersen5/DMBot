@@ -30,6 +30,7 @@
     @include theme("color", "color-sidebar-text");
     .back-button {
       @include theme("background", "color-button");
+      @include theme("color", "color-button-text");
       position: absolute;
       right: 1rem;
       background-color: transparent;
@@ -137,7 +138,8 @@
               padding: 0.25rem;
               margin-right: 0.25rem;
               text-align: center;
-              border: 1px solid #ccc;
+              border: 1px solid;
+              @include theme("border-color", "color-border");
               border-radius: 3px;
             }
           }

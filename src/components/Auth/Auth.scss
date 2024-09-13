@@ -38,7 +38,7 @@
 
 .login-button {
   background-color: $discord-blue;
-  color: white;
+  color: $white;
 
   &:hover {
     background-color: $discord-blue-dark;
@@ -47,7 +47,7 @@
 
 .logout-button {
   background-color: $red;
-  color: white;
+  color: $white;
 
   &:hover {
     background-color: $grey-red;

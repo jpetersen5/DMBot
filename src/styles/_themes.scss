@@ -41,6 +41,10 @@ $themes: (
     color-table-hover: $light-grey-3,
     color-table-div: $dark-grey-3,
     color-charter-hover: $light-grey-2,
+    color-dropdown: $dark-grey-2,
+    color-dropdown-highlight: $light-grey-1,
+    color-dropdown-text: $white,
+    color-border: $dark-grey-2,
   ),
   light: (
     color-background: $off-white,
@@ -64,5 +68,9 @@ $themes: (
     color-table-hover: $light-grey-3,
     color-table-div: $dark-grey-3,
     color-charter-hover: $light-grey-2,
+    color-dropdown: $off-white,
+    color-dropdown-highlight: $very-light-grey-1,
+    color-dropdown-text: $black,
+    color-border: $very-light-grey-1,
   ),
 );
