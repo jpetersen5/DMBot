@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Homepage from "./components/Homepage";
 import ProfilePage from "./components/Profile/ProfilePage";
+import CharterPage from "./components/Profile/Charter/CharterPage";
 import AuthHandler from "./components/Auth/AuthHandler";
 import AppProvider from "./context/AppContext";
 import Login from "./components/Login/Login";
@@ -27,6 +28,8 @@ const App: React.FC = () => {
               <Route path="/" element={<Homepage />} />
               <Route path="/user/:userId" element={<ProfilePage />} />
               <Route path="/user/:userId/:songId" element={<ProfilePage />} />
+              <Route path="/charter/:charterId" element={<CharterPage />} />
+              <Route path="/charter/:charterId/:songId" element={<CharterPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/auth" element={<AuthHandler />} />
               <Route path="/songs" element={<SongList />} />

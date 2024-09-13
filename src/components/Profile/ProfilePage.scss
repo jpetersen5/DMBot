@@ -57,6 +57,34 @@
             margin-right: 0.5rem;
           }
         }
+
+        .charter-info {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+
+          .charter-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background-color: #202020;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+            color: #fff;
+
+            &:hover {
+              background-color: #404040;
+            }
+
+            .arrow-icon {
+              width: 16px;
+              fill: #ffffff;
+            }
+          }
+        }
       }
     }
   }

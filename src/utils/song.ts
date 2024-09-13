@@ -31,6 +31,15 @@ export const msToTime = (duration: number) => {
   return new Date(duration).toISOString().substring(11, 19);
 }
 
+export const msToHourMinSec = (duration: number) => {
+  const hours = Math.floor(duration / 3600000);
+  const minutes = Math.floor((duration % 3600000) / 60000);
+  const seconds = Math.floor((duration % 60000) / 1000);
+  if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
+  if (minutes > 0) return `${minutes}m ${seconds}s`;
+  return `${seconds}s`;
+}
+
 export const formatTimeDifference = (lastUpdate: string) => {
   const now = new Date();
   const updateTime = new Date(lastUpdate);

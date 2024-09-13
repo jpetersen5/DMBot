@@ -2,7 +2,11 @@ import React, { createContext, useState, useEffect, useContext, ReactNode } from
 import { API_URL } from "../App";
 
 interface CharterCache {
-  [key: string]: string;
+  [key: string]: {
+    name: string;
+    userId: string | null;
+    id: string;
+  };
 }
 
 interface CharterContextType {
@@ -20,14 +24,14 @@ const CharterProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const fetchAllCharterColors = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`${API_URL}/api/all-charter-colors`);
+        const response = await fetch(`${API_URL}/api/all-charter-data`);
         if (!response.ok) {
-          throw new Error("Failed to fetch charter colors");
+          throw new Error("Failed to fetch charter data");
         }
         const data: CharterCache = await response.json();
         setCharterCache(data);
       } catch (error) {
-        console.error("Error fetching charter colors:", error);
+        console.error("Error fetching charter data:", error);
       } finally {
         setIsLoading(false);
       }
