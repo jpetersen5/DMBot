@@ -16,4 +16,5 @@ export interface CharterStatsData {
   genre_distribution: { [key: string]: number };
   year_distribution: { [key: string]: number };
   most_common_artist: string;
+  last_updated: string;
 }

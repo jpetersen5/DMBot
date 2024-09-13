@@ -1,8 +1,9 @@
 import React from "react";
 import { Bar, Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
+import TooltipWrapper from "../../../utils/Tooltip/Tooltip";
 import { CharterStatsData } from "../../../utils/charter";
-import { msToHourMinSec } from "../../../utils/song";
+import { msToHourMinSec, formatTimeDifference, formatExactTime } from "../../../utils/song";
 import "./CharterStats.scss";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend);
@@ -15,6 +16,12 @@ const CharterStats: React.FC<CharterStatsProps> = ({ stats }) => {
   return (
     <div className="charter-stats">
       <h2>Charter Stats</h2>
+      <p>{"(Updated "}
+        <TooltipWrapper text={formatExactTime(stats.last_updated)}>
+          {formatTimeDifference(stats.last_updated)}
+        </TooltipWrapper>
+        {")"}
+        </p>
       <div className="stats-grid">
         <StatItem label="Total Songs Charted" value={stats.total_songs} />
         <StatItem label="Total Charts Length" value={msToHourMinSec(stats.total_length)} />
