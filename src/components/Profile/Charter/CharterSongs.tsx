@@ -45,7 +45,7 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
 
   useEffect(() => {
     fetchSongs();
-  }, [page, perPage, sortBy, sortOrder]);
+  }, [page, perPage, sortBy, sortOrder, charterId, charterSongIds]);
 
   const getCacheKey = () => {
     return `charter_songs_${charterId}_${page}_${perPage}_${sortBy}_${sortOrder}`;
