@@ -1,0 +1,107 @@
+.charter-songs {
+  margin-top: 2rem;
+  background-color: #f0f0f0;
+  padding: 1rem;
+  border-radius: 4px;
+
+  h2 {
+    font-size: 1.5rem;
+    color: #202020;
+    margin-bottom: 1rem;
+  }
+
+  .control-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    
+    .table-controls {
+      display: flex;
+      align-items: center;
+      
+      label, select {
+        margin-right: 0.5rem;
+      }
+    }
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    th {
+      background-color: #202020;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      position: relative;
+      padding-right: 20px;
+
+      .header-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      &:hover {
+        background-color: #404040;
+      }
+    }
+
+    tr:nth-child(even) {
+      background-color: #f8f8f8;
+    }
+
+    tr:hover {
+      background-color: #e8e8e8;
+    }
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+
+    button {
+      background-color: #202020;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      margin: 0 0.5rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+
+      &:hover {
+        background-color: #404040;
+      }
+
+      &:disabled {
+        background-color: #888;
+        cursor: not-allowed;
+      }
+    }
+
+    span {
+      margin: 0 1rem;
+
+      input[type="number"] {
+        width: 50px;
+        padding: 0.25rem;
+        text-align: center;
+      }
+    }
+  }
+}

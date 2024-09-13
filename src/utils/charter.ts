@@ -4,6 +4,7 @@ export interface Charter {
     colorized_name: string | null;
     user_id: string | null;
     charter_stats: CharterStatsData;
+    charter_songs: number[];
 }
 
 export interface CharterStatsData {

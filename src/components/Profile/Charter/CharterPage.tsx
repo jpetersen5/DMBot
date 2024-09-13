@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import LoadingSpinner from "../../Loading/LoadingSpinner";
 import CharterStats from "./CharterStats";
+import CharterSongs from "./CharterSongs";
 import { Charter } from "../../../utils/charter";
 import { renderSafeHTML } from "../../../utils/safeHTML";
 import { API_URL } from "../../../App";
@@ -49,6 +50,7 @@ const CharterPage: React.FC = () => {
             </h2>
           </div>
           <CharterStats stats={charter.charter_stats} />
+          <CharterSongs charterId={charterId!} charterSongIds={charter.charter_songs} />
         </>
       )}
     </div>
