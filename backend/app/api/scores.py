@@ -86,6 +86,13 @@ def process_and_save_scores(result, user_id):
     else:
         logger.info("No existing scores found for user")
 
+    existing_unknown_scores = user_data[0].get("unknown_scores", []) if user_data else []
+    existing_unknown_scores_dict = {}
+    if existing_unknown_scores:
+        existing_unknown_scores_dict = {score["identifier"]: score for score in existing_unknown_scores}
+    else:
+        logger.info("No existing unknown scores found for user")
+
     batch_size = 100
     songs_dict = {}
     song_identifiers = [song["identifier"] for song in result["songs"]]
@@ -102,32 +109,34 @@ def process_and_save_scores(result, user_id):
 
     for song in result["songs"]:
         processed_songs += 1
-        song_info = songs_dict.get(song["identifier"])
+        song_info = songs_dict.get(song["identifier"], None)
     
-        if song_info:
-            for score in song["scores"]:
-                if score["instrument"] == 9:  # drums
-                    existing_score = existing_scores_dict.get(song["identifier"])
-                    play_count = song["play_count"]
-                    
-                    if existing_score and score["score"] <= existing_score["score"] and play_count <= existing_score.get("play_count", 0):
+        for score in song["scores"]:
+            if score["instrument"] == 9:  # drums
+                play_count = song["play_count"]
+                score_data = {
+                    "identifier": song["identifier"],
+                    "song_name": song_info["name"] if song_info else f"Unknown Song: {song['identifier']}",
+                    "artist": song_info["artist"] if song_info else "Unknown Artist",
+                    "percent": score["percent"],
+                    "is_fc": score["is_fc"],
+                    "speed": score["speed"],
+                    "score": score["score"],
+                    "play_count": play_count,
+                    "posted": datetime.now(UTC).isoformat()
+                }
+
+                if song_info:
+                    existing_score = existing_scores_dict.get(song["identifier"], None)
+                    if existing_score and score["score"] < existing_score["score"]:
+                        logger.info(f"Score for song {song['identifier']} doesn't need to be updated. Skipping.")
+                        continue
+                    elif existing_score and score["score"] == existing_score["score"] and play_count <= existing_score.get("play_count", 0):
                         logger.info(f"Score for song {song['identifier']} doesn't need to be updated. Skipping.")
                         continue
 
-                    score_data = {
-                        "identifier": song["identifier"],
-                        "song_name": song_info["name"] if song_info else f"Unknown Song: {song['identifier']}",
-                        "artist": song_info["artist"] if song_info else "Unknown Artist",
-                        "percent": score["percent"],
-                        "is_fc": score["is_fc"],
-                        "speed": score["speed"],
-                        "score": score["score"],
-                        "play_count": play_count,
-                        "posted": datetime.now(UTC).isoformat()
-                    }
-
                     existing_scores_dict[song["identifier"]] = score_data
-                    
+                
                     leaderboard = song_info.get("leaderboard", []) or []
                     leaderboard_entry = {
                         "user_id": user_id,
@@ -158,8 +167,16 @@ def process_and_save_scores(result, user_id):
                         "leaderboard": leaderboard,
                         "last_update": datetime.now(UTC).isoformat()
                     })
-        else:
-            logger.info(f"Song with identifier {song['identifier']} not found in database. Skipping.")
+                else:
+                    existing_unknown_score = existing_unknown_scores_dict.get(song["identifier"], None)
+                    if existing_unknown_score and score["score"] <= existing_unknown_score["score"]:
+                        logger.info(f"Score for unknown song {song['identifier']} doesn't need to be updated. Skipping.")
+                        continue
+                    elif existing_unknown_score and score["score"] == existing_unknown_score["score"] and play_count <= existing_unknown_score.get("play_count", 0):
+                        logger.info(f"Score for unknown song {song['identifier']} doesn't need to be updated. Skipping.")
+                        continue
+
+                    existing_unknown_scores_dict[song["identifier"]] = score_data
         
         progress = (processed_songs / total_songs) * 100
         update_processing_status(user_id, "in_progress", progress, processed_songs, total_songs)
@@ -192,16 +209,13 @@ def process_and_save_scores(result, user_id):
     updated_scores = list(existing_scores_dict.values())
     updated_scores.sort(key=lambda x: x["score"], reverse=True)
 
-    total_scores = 0
-    total_fcs = 0
-    total_score = 0
-    total_percent = 0
+    updated_unknown_scores = list(existing_unknown_scores_dict.values())
+    updated_unknown_scores.sort(key=lambda x: x["score"], reverse=True)
 
-    for score in updated_scores:
-        total_scores += 1
-        total_fcs += 1 if score["is_fc"] else 0
-        total_score += score["score"]
-        total_percent += score["percent"]
+    total_scores = len(updated_scores) + len(updated_unknown_scores)
+    total_fcs = sum(1 for score in updated_scores if score["is_fc"]) + sum(1 for score in updated_unknown_scores if score["is_fc"])
+    total_score = sum(score["score"] for score in updated_scores) + sum(score["score"] for score in updated_unknown_scores)
+    total_percent = sum(score["percent"] for score in updated_scores) + sum(score["percent"] for score in updated_unknown_scores)
     
     avg_percent = total_percent / total_scores if total_scores > 0 else 0
     user_stats = {
@@ -217,6 +231,7 @@ def process_and_save_scores(result, user_id):
                   room=str(user_id))
     supabase.table("users").update({
         "scores": updated_scores,
+        "unknown_scores": updated_unknown_scores,
         "stats": user_stats
     }).eq("id", user_id).execute()
 
