@@ -62,6 +62,21 @@
           display: flex;
           align-items: center;
           gap: 0.5rem;
+        
+          .charter-select {
+            padding: 0.25rem;
+            border-radius: 4px;
+            border: 1px solid #202020;
+            background-color: #fff;
+            color: #202020;
+            font-size: 1rem;
+            cursor: pointer;
+        
+            &:focus {
+              outline: none;
+              box-shadow: 0 0 0 2px rgba(32, 32, 32, 0.2);
+            }
+          }
 
           .charter-link {
             display: flex;
@@ -74,11 +89,11 @@
             transition: background-color 0.3s ease;
             text-decoration: none;
             color: #fff;
-
+            
             &:hover {
               background-color: #404040;
             }
-
+            
             .arrow-icon {
               width: 16px;
               fill: #ffffff;

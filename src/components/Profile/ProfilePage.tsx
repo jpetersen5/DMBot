@@ -17,7 +17,8 @@ const ProfilePage: React.FC = () => {
   const { user: currentUser, loading: authLoading } = useAuth();
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [charter, setCharter] = useState<Charter | null>(null);
+  const [charters, setCharters] = useState<Charter[]>([]);
+  const [selectedCharterId, setSelectedCharterId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,8 +43,11 @@ const ProfilePage: React.FC = () => {
           }
 
           if (charterResponse.ok) {
-            const charterData: Charter = await charterResponse.json();
-            setCharter(charterData);
+            const charterData: Charter[] = await charterResponse.json();
+            setCharters(charterData);
+            if (charterData.length > 0) {
+              setSelectedCharterId(charterData[0].id);
+            }
           } else {
             console.error("Error checking if user is charter:", charterResponse.statusText);
           }
@@ -60,6 +64,7 @@ const ProfilePage: React.FC = () => {
   }, [userId, currentUser, authLoading, navigate]);
 
   const isOwnProfile = currentUser && currentUser.id === profileUser?.id;
+  const selectedCharter = charters.find(charter => charter.id.toString() === selectedCharterId?.toString());
 
   return (
     <div className="profile-page">
@@ -78,13 +83,25 @@ const ProfilePage: React.FC = () => {
               <div className="profile-details">
                 <p><strong>Username:</strong> {profileUser.username}</p>
                 <p><strong>Discord ID:</strong> {profileUser.id}</p>
-                {charter && (
+                {charters.length > 0 && (
                   <p className="charter-info">
-                    <strong>Charter Name:</strong>
-                    <span
-                      dangerouslySetInnerHTML={renderSafeHTML(charter.colorized_name || charter.name)}
-                    />
-                    <Link to={`/charter/${charter.id}`} className="charter-link">
+                    <strong>Charter Name{charters.length > 1 ? "s" : ""}:</strong>
+                    {charters.length > 1 ? (
+                      <select
+                        value={selectedCharterId || ""}
+                        onChange={(e) => setSelectedCharterId(e.target.value)}
+                        className="charter-select"
+                      >
+                        {charters.map((charter) => (
+                          <option key={charter.id} value={charter.id}>
+                            {charter.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span dangerouslySetInnerHTML={renderSafeHTML(charters[0].colorized_name || charters[0].name)} />
+                    )}
+                    <Link to={`/charter/${selectedCharterId}`} className="charter-link">
                       <span className="arrow-icon">&#8594;</span>
                     </Link>
                   </p>
@@ -93,7 +110,7 @@ const ProfilePage: React.FC = () => {
             </div>
             <ProfileStats userId={profileUser.id} />
           </div>
-          {charter && <CharterStats stats={charter.charter_stats} />}
+          {selectedCharter && <CharterStats stats={selectedCharter.charter_stats} />}
           <div className="profile-scores">
             <UserScores userId={profileUser.id} />
           </div>
