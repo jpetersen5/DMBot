@@ -2,20 +2,20 @@
 @import "../../styles/mixins";
 
 .profile-stats {
-  @include theme("background", "color-box");
-  @include theme("color", "color-text");
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
+  @include theme("background", "color-box");
+  @include theme("color", "color-text");
 
   h2 {
     font-size: 1.5rem;
-    @include theme("color", "color-text");
     margin-bottom: 1rem;
     border-bottom: 2px solid;
-    @include theme("border-color", "color-text");
     padding-bottom: 0.5rem;
+    @include theme("color", "color-text");
+    @include theme("border-color", "color-text");
   }
 
   .stats-grid {
@@ -26,14 +26,14 @@
     .stat-item {
       display: flex;
       flex-direction: column;
-      @include theme("background", "color-box");
       padding: 1rem;
       border-radius: 4px;
+      @include theme("background", "color-box");
 
       .stat-label {
         font-weight: bold;
-        @include theme("color", "color-text");
         margin-bottom: 0.5rem;
+        @include theme("color", "color-text");
       }
 
       .stat-value {

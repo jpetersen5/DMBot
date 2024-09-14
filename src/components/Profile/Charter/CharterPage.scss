@@ -9,25 +9,25 @@
 
   h1 {
     font-size: 2rem;
-    @include theme("color", "color-text");
     margin-bottom: 1.5rem;
     border-bottom: 2px solid;
-    @include theme("border-color", "color-text");
     padding-bottom: 0.5rem;
+    @include theme("color", "color-text");
+    @include theme("border-color", "color-text");
   }
 
   .charter-header {
-    @include theme("background", "color-box");
     padding: 1.5rem;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-bottom: 2rem;
+    @include theme("background", "color-box");
 
     h2 {
       font-size: 1.8rem;
-      @include theme("color", "color-text");
       margin: 0;
       text-align: center;
+      @include theme("color", "color-text");
     }
   }
 }

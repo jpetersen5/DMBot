@@ -29,14 +29,14 @@
     @include theme("background", "color-sidebar");
     @include theme("color", "color-sidebar-text");
     .back-button {
-      @include theme("background", "color-button");
-      @include theme("color", "color-button-text");
       position: absolute;
       right: 1rem;
       background-color: transparent;
       border: none;
       font-size: 1.5rem;
       transition: color 0.3s;
+      @include theme("background", "color-button");
+      @include theme("color", "color-button-text");
 
       &:hover {
         @include theme("background", "color-button-hover");
@@ -77,8 +77,8 @@
       }
 
       h5 {
-        @include theme("color", "color-text");
         margin-bottom: 1rem;
+        @include theme("color", "color-text");
       }
     }
 
@@ -112,21 +112,21 @@
           }
           .prev, .next {
             background-color: transparent;
-            @include theme("background", "color-button");
-            @include theme("color", "color-button-text");
             border: none;
             padding: 0.25rem 0.5rem;
             font-size: 1rem;
             cursor: pointer;
             transition: background-color 0.3s;
+            @include theme("background", "color-button");
+            @include theme("color", "color-button-text");
 
             &:hover {
               @include theme("background", "color-button-hover");
             }
 
             &:disabled {
-              @include theme("background", "color-button-disabled");
               cursor: not-allowed;
+              @include theme("background", "color-button-disabled");
             }
           }
 
@@ -139,8 +139,8 @@
               margin-right: 0.25rem;
               text-align: center;
               border: 1px solid;
-              @include theme("border-color", "color-border");
               border-radius: 3px;
+              @include theme("border-color", "color-border");
             }
           }
         }
@@ -150,15 +150,15 @@
     .related-songs-table {
       width: 100%;
       border-collapse: collapse;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       @include theme("background", "color-table-background-2");
       @include theme("color", "color-table-text");
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
       th {
-        @include theme("background", "color-table-header");
-        @include theme("color", "color-table-header-text");
         font-weight: bold;
         cursor: default;
+        @include theme("background", "color-table-header");
+        @include theme("color", "color-table-header-text");
       }
 
       th, td {
@@ -167,13 +167,17 @@
         border: none;
       }
 
-      tr:nth-child(even) {
+      tr {
         @include theme("background", "color-table-background-1");
       }
 
+      tr:nth-child(even) {
+        @include theme("background", "color-table-background-2");
+      }
+
       tr:hover {
-        @include theme("background", "color-table-hover");
         cursor: pointer;
+        @include theme("background", "color-table-hover");
       }
     }
 
@@ -183,8 +187,8 @@
       @include theme("color", "color-text");
 
       h5 {
-        @include theme("color", "color-text");
         margin-bottom: 1rem;
+        @include theme("color", "color-text");
       }
 
       th, td {
@@ -194,23 +198,27 @@
       }
 
       th {
-        @include theme("background", "color-table-header");
-        @include theme("color", "color-table-header-text");
         font-weight: bold;
         cursor: default;
+        @include theme("background", "color-table-header");
+        @include theme("color", "color-table-header-text");
+
+        &:hover {
+          @include theme("background", "color-table-header-hover");
+        }
       }
 
       tr {
-        @include theme("background", "color-table-background-2");
-      }
-
-      tr:nth-child(even) {
         @include theme("background", "color-table-background-1");
       }
 
+      tr:nth-child(even) {
+        @include theme("background", "color-table-background-2");
+      }
+
       tr:hover {
-        @include theme("background", "color-table-hover");
         cursor: pointer;
+        @include theme("background", "color-table-hover");
       }
     }
   }
@@ -220,15 +228,15 @@
     @include theme("background", "color-sidebar");
 
     .close-button {
-      @include theme("background", "color-button");
-      color: #fff;
       border: none;
       padding: 0.5rem 1rem;
       font-size: 1rem;
       border-radius: 4px;
       cursor: pointer;
       transition: background-color 0.3s;
-
+      @include theme("background", "color-button");
+      @include theme("color", "color-button-text");
+      
       &:hover {
         @include theme("background", "color-button-hover");
       }
@@ -239,8 +247,6 @@
     position: absolute;
     top: 50vh;
     transform: translateY(-50%);
-    background-color: rgba(32, 32, 32, 1);
-    color: #fff;
     border: none;
     font-size: 2rem;
     width: 40px;
@@ -253,9 +259,11 @@
     z-index: 1060;
     padding: 0;
     line-height: 1;
+    @include theme("background", "color-button");
+    @include theme("color", "color-button-text");
 
     &:hover {
-      background-color: rgba(64, 64, 64, 1);
+      @include theme("background", "color-button-hover");
     }
 
     &:disabled {

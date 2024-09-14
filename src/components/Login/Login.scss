@@ -5,17 +5,17 @@
   max-width: 400px;
   margin: 2rem auto;
   padding: 2rem;
-  @include theme("background", "color-box");
-  @include theme("color", "color-text");
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  @include theme("background", "color-box");
+  @include theme("color", "color-text");
 
   h1 {
     font-size: 2rem;
-    @include theme("color", "color-text");
     margin-bottom: 1.5rem;
     border-bottom: 2px solid #202020;
     padding-bottom: 0.5rem;
+    @include theme("color", "color-text");
   }
 
   p {
@@ -27,13 +27,13 @@
     display: block;
     width: 100%;
     padding: 1rem;
-    @include theme("background", "color-button");
-    @include theme("color", "color-button-text");
     border: none;
     border-radius: 4px;
     font-size: 1.1rem;
     cursor: pointer;
     transition: background-color 0.3s;
+    @include theme("background", "color-button");
+    @include theme("color", "color-button-text");
 
     &:hover {
       @include theme("background", "color-button-hover");

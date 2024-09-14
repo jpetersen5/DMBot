@@ -1,6 +1,8 @@
+@import "../../styles/themes";
+@import "../../styles/mixins";
+
 .upload-progress {
   position: relative;
-  background-color: #fff;
   padding: 1rem;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -9,6 +11,8 @@
   max-height: fit-content;
   min-height: fit-content;
   z-index: 1000;
+  @include theme("background", "color-box");
+  @include theme("color", "color-text");
 
   &.hidden {
     opacity: 0;
@@ -28,15 +32,15 @@
 
   h3 {
     font-size: 1.2rem;
-    color: #202020;
     margin: 0;
     user-select: none;
+    @include theme("color", "color-text");
   }
 
   p {
     margin: 0.5rem 0;
-    color: #666;
     font-size: 0.9rem;
+    @include theme("color", "color-text-secondary");
   }
 
   progress {
@@ -68,12 +72,8 @@
     background: none;
     border: none;
     font-size: 1rem;
-    color: #666;
     cursor: pointer;
     padding: 2px;
-
-    &:hover {
-      color: #202020;
-    }
+    @include theme("color", "color-text");
   }
 }

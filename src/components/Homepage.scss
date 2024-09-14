@@ -45,14 +45,14 @@
       justify-content: center;
       width: 48px;
       height: 48px;
-      @include theme("background", "color-button");
-      @include theme("color", "color-icon");
       border-radius: 50%;
       transition: background-color 0.2s, transform 0.2s;
+      @include theme("background", "color-button");
+      @include theme("color", "color-icon");
 
       &:hover {
-        @include theme("background", "color-button-hover");
         transform: scale(1.1);
+        @include theme("background", "color-button-hover");
       }
 
       img {
@@ -69,10 +69,10 @@
     gap: 2rem;
     height: 64px;
     margin-bottom: 2rem;
-    @include theme("background", "color-box");
     padding: 1rem 2rem;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    @include theme("background", "color-box");
 
     .status {
       display: flex;
@@ -115,13 +115,13 @@
     margin-top: 2rem;
     padding: 1rem 2rem;
     font-size: 1.2rem;
-    @include theme("background", "color-button");
-    @include theme("color", "color-button-text");
     border: none;
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.2s;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    @include theme("background", "color-button");
+    @include theme("color", "color-button-text");
 
     &:hover {
       @include theme("background", "color-button-hover");

@@ -2,20 +2,20 @@
 @import "../../styles/mixins";
 
 .score-upload {
-  @include theme("background", "color-box");
-  @include theme("color", "color-text");
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-top: 2rem;
+  @include theme("background", "color-box");
+  @include theme("color", "color-text");
 
   h2 {
     font-size: 1.5rem;
-    @include theme("color", "color-text");
     margin-bottom: 1rem;
     border-bottom: 1px solid;
-    @include theme("border-color", "color-text");
     padding-bottom: 0.5rem;
+    @include theme("color", "color-text");
+    @include theme("border-color", "color-text");
   }
 
   .file-input-wrapper {
@@ -27,34 +27,34 @@
       flex-grow: 1;
       padding: 0.5rem;
       border: 1px solid;
-      @include theme("border-color", "color-border");
       border-radius: 4px;
+      @include theme("border-color", "color-border");
     }
   }
 
   button {
-    @include theme("background", "color-button");
-    @include theme("color", "color-button-text");
     border: none;
     padding: 0.5rem 1rem;
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s;
+    @include theme("background", "color-button");
+    @include theme("color", "color-button-text");
 
     &:hover {
       @include theme("background", "color-button-hover");
     }
 
     &:disabled {
-      @include theme("background", "color-button-disabled");
       cursor: not-allowed;
+      @include theme("background", "color-button-disabled");
     }
   }
 
   p {
     margin-top: 1rem;
-    @include theme("color", "color-text-secondary");
     font-style: italic;
+    @include theme("color", "color-text-secondary");
   }
   
   .filepath-section {
@@ -71,18 +71,18 @@
     .filepath-text {
       font-family: monospace;
       font-size: 14px;
-      color: #404040;
-      background-color: #f0f0f0;
       border: 1px solid;
-      @include theme("border-color", "color-border");
       border-radius: 4px;
       padding: 0.25rem;
       cursor: pointer;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       transition: background-color 0.3s;
+      @include theme("color", "color-button-secondary-text");
+      @include theme("background", "color-button-secondary");
+      @include theme("border-color", "color-border");
 
       &:hover {
-        background-color: #e0e0e0;
+        @include theme("background", "color-button-secondary-hover");
       }
     }
   }
@@ -97,21 +97,22 @@
     }
   
     button {
-      background-color: #f0f0f0;
-      border: 1px solid #ccc;
+      border: 1px solid;
       border-radius: 4px;
-      color: #202020;
       padding: 0.25rem 0.5rem;
       cursor: pointer;
       transition: background-color 0.3s;
+      @include theme("border-color", "color-border");
+      @include theme("color", "color-button-secondary-text");
+      @include theme("background", "color-button-secondary");
   
       &:hover {
-        background-color: #e0e0e0;
+        @include theme("background", "color-button-secondary-hover");
       }
   
       &.active {
-        background-color: #202020;
-        color: white;
+        @include theme("background", "color-button");
+        @include theme("background", "color-button-text");
       }
     }
   }

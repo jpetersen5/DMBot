@@ -6,10 +6,10 @@
   top: 0;
   left: 0;
   height: 100vh;
-  @include theme("background", "color-sidebar");
   transition: width 0.3s ease;
   width: 44px;
   overflow-x: hidden;
+  @include theme("background", "color-sidebar");
 
   &.open {
     width: 200px;
@@ -21,9 +21,9 @@
     right: 10px;
     background: none;
     border: none;
-    @include theme("color", "color-icon");
     font-size: 20px;
     cursor: pointer;
+    @include theme("color", "color-icon");
   }
 
   .nav-menu {
@@ -37,10 +37,10 @@
       a {
         display: flex;
         align-items: center;
-        @include theme("color", "color-sidebar-text");
         text-decoration: none;
         padding: 10px;
         cursor: pointer;
+        @include theme("color", "color-sidebar-text");
 
         li {
           display: flex;
@@ -101,21 +101,17 @@
     }
   }
 
-  select {
-    background-color: DodgerBlue;
-    cursor: pointer;
-  }
-
   #themeDialog {
-    @include theme("background", "color-dropdown");
-    @include theme("color", "color-dropdown-text");
     border: 1px solid;
-    @include theme("border-color", "color-text");
     width: 95%;
     padding: 0;
+    @include theme("background", "color-dropdown");
+    @include theme("color", "color-dropdown-text");
+    @include theme("border-color", "color-text");
 
     .themeOption {
       padding: 0.1rem;
+      cursor: pointer;
     }
 
     .themeOption:hover {

@@ -4,8 +4,8 @@
 .user-scores {
   h2 {
     font-size: 1.5rem;
-    @include theme("color", "color-text");
     margin-bottom: 1rem;
+    @include theme("color", "color-text");
   }
 
   .control-bar {
@@ -27,10 +27,10 @@
   table {
     width: 100%;
     border-collapse: collapse;
-    @include theme("background", "color-table-background-2");
-    @include theme("color", "color-table-text");
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-bottom: 1rem;
+    @include theme("background", "color-table-background-2");
+    @include theme("color", "color-table-text");
 
     th, td {
       padding: 0.75rem;
@@ -45,14 +45,14 @@
     }
 
     th {
-      @include theme("background", "color-table-header");
-      @include theme("color", "color-table-header-text");
       font-weight: bold;
       cursor: pointer;
       user-select: none;
       white-space: nowrap;
       position: relative;
       padding-right: 20px;
+      @include theme("background", "color-table-header");
+      @include theme("color", "color-table-header-text");
 
       .header-content {
         display: flex;
@@ -65,13 +65,17 @@
       }
     }
 
-    tr:nth-child(even) {
+    tr {
       @include theme("background", "color-table-background-1");
     }
 
+    tr:nth-child(even) {
+      @include theme("background", "color-table-background-2");
+    }
+
     tr:hover {
-      @include theme("background", "color-table-hover");
       cursor: pointer;
+      @include theme("background", "color-table-hover");
     }
   }
 
@@ -83,21 +87,21 @@
     @include theme("color", "color-text");
 
     button {
-      @include theme("background", "color-button");
-      @include theme("color", "color-button-text");
       border: none;
       padding: 0.5rem 1rem;
       margin: 0 0.5rem;
       cursor: pointer;
       transition: background-color 0.3s;
+      @include theme("background", "color-button");
+      @include theme("color", "color-button-text");
 
       &:hover {
         @include theme("background", "color-button-hover");
       }
 
       &:disabled {
-        @include theme("background", "color-button-disabled");
         cursor: not-allowed;
+        @include theme("background", "color-button-disabled");
       }
     }
 

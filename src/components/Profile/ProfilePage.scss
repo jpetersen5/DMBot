@@ -9,17 +9,17 @@
 
   h1 {
     font-size: 2rem;
-    @include theme("color", "color-text");
     margin-bottom: 1.5rem;
     border-bottom: 2px solid;
-    @include theme("border-color", "color-text");
     padding-bottom: 0.5rem;
+    @include theme("color", "color-text");
+    @include theme("border-color", "color-text");
   }
 
   .profile-loading {
     text-align: center;
     font-style: italic;
-    color: #666;
+    color: $light-grey-1;
   }
 
   .profile-header {
@@ -32,10 +32,10 @@
       display: flex;
       align-items: center;
       margin-bottom: 2rem;
-      @include theme("background", "color-box");
       padding: 1.5rem;
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      @include theme("background", "color-box");
 
       .profile-avatar {
         width: 120px;
@@ -53,8 +53,8 @@
           font-size: 1.1rem;
 
           strong {
-            @include theme("color", "color-text");
             margin-right: 0.5rem;
+            @include theme("color", "color-text");
           }
         }
 
@@ -65,12 +65,24 @@
         
           .charter-select {
             padding: 0.25rem;
+            border: 1px solid;
             border-radius: 4px;
-            border: 1px solid #202020;
-            background-color: #fff;
-            color: #202020;
             font-size: 1rem;
             cursor: pointer;
+            @include theme("background", "color-dropdown");
+            @include theme("border-color", "color-text");
+            @include theme("color", "color-text");
+
+            .charter-option {
+              cursor: pointer;
+              @include theme("background", "color-dropdown");
+              @include theme("color", "color-dropdown-text");
+
+              /* TODO: This isn't working for some reason */
+              &:hover {
+                @include theme("background", "color-dropdown-highlight");
+              }
+            }
         
             &:focus {
               outline: none;
@@ -84,19 +96,19 @@
             justify-content: center;
             width: 24px;
             height: 24px;
-            background-color: #202020;
             border-radius: 4px;
             transition: background-color 0.3s ease;
             text-decoration: none;
-            color: #fff;
+            @include theme("background", "color-button");
+            @include theme("color", "color-button-text");
             
             &:hover {
-              background-color: #404040;
+              @include theme("background", "color-button-hover");
             }
             
             .arrow-icon {
               width: 16px;
-              fill: #ffffff;
+              @include theme("color", "color-button-text");
             }
           }
         }
@@ -105,10 +117,10 @@
   }
 
   .profile-scores {
-    @include theme("background", "color-box");
     padding: 1.5rem;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    @include theme("background", "color-box");
   }
 }
 
