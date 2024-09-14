@@ -64,14 +64,19 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
     }
 
     try {
-      const queryParams = new URLSearchParams({
-        ids: charterSongIds.join(","),
-        page: page.toString(),
-        per_page: perPage.toString(),
-        sort_by: sortBy,
-        sort_order: sortOrder,
+      const response = await fetch(`${API_URL}/api/songs-by-ids`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ids: charterSongIds,
+          page: page,
+          per_page: perPage,
+          sort_by: sortBy,
+          sort_order: sortOrder,
+        }),
       });
-      const response = await fetch(`${API_URL}/api/songs-by-ids?${queryParams}`);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }

@@ -173,7 +173,7 @@ def get_related_songs():
         "per_page": per_page
     })
 
-@bp.route("/api/songs-by-ids", methods=["GET"])
+@bp.route("/api/songs-by-ids", methods=["POST"])
 def get_songs_by_ids():
     """
     retrieves songs from the database by their IDs
@@ -191,11 +191,12 @@ def get_songs_by_ids():
     supabase = get_supabase()
     logger = current_app.logger
     
-    ids = request.args.get("ids", "").split(",")
-    page = max(1, int(request.args.get("page", 1)))
-    per_page = max(10, min(100, int(request.args.get("per_page", 20))))
-    sort_by = sanitize_input(request.args.get("sort_by", "last_update").lower())
-    sort_order = request.args.get("sort_order", "desc").lower()
+    data = request.json
+    ids = data.get("ids", [])
+    page = max(1, int(data.get("page", 1)))
+    per_page = max(10, min(100, int(data.get("per_page", 20))))
+    sort_by = sanitize_input(data.get("sort_by", "last_update").lower())
+    sort_order = data.get("sort_order", "desc").lower()
 
     if sort_order not in ["asc", "desc"]:
         sort_order = "desc"
