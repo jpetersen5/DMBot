@@ -115,8 +115,8 @@
     margin-top: 2rem;
     padding: 1rem 2rem;
     font-size: 1.2rem;
-    background-color: #202020;
-    color: white;
+    @include theme("background", "color-button");
+    @include theme("color", "color-button-text");
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -124,7 +124,7 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
     &:hover {
-      background-color: #404040;
+      @include theme("background", "color-button-hover");
     }
 
     .loading-spinner {

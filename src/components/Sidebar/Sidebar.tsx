@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import UploadProgress from "./UploadProgress";
 import { useAuth } from "../../context/AuthContext";
 import Tooltip from "../../utils/Tooltip/Tooltip";
+import { Chart as ChartJS } from "chart.js";
 import "./Sidebar.scss";
 
 import HomeIcon from "../../assets//home-icon.svg";

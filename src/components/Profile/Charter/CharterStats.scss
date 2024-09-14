@@ -1,14 +1,18 @@
+@import "../../../styles/themes";
+@import "../../../styles/mixins";
+
 .charter-stats {
-  background-color: #fff;
+  @include theme("background", "color-box");
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
 
   h2, h3 {
-    color: #202020;
+    @include theme("color", "color-text");
     margin-bottom: 1rem;
-    border-bottom: 2px solid #202020;
+    border-bottom: 2px solid;
+    @include theme("border-color", "color-text");
     padding-bottom: 0.5rem;
   }
 
@@ -29,20 +33,20 @@
   }
 
   .stat-item {
-    background-color: #f0f0f0;
+    @include theme("background", "color-box-secondary");
     padding: 1rem;
     border-radius: 4px;
 
     .stat-label {
       font-weight: bold;
-      color: #202020;
+      @include theme("color", "color-text");
       margin-bottom: 0.5rem;
       display: block;
     }
 
     .stat-value {
       font-size: 1.2rem;
-      color: #404040;
+      @include theme("color", "color-text-secondary");
     }
   }
 
@@ -56,8 +60,8 @@
   .distribution-block {
     flex: 1;
     min-width: 300px;
-    height: 300px;
-    background-color: #f0f0f0;
+    height: 320px;
+    @include theme("background", "color-box-secondary");
     padding: 1rem;
     border-radius: 4px;
     display: flex;
@@ -98,8 +102,8 @@
           left: 0;
           top: 50%;
           transform: translateY(-50%);
-          background-color: #202020;
-          color: #fff;
+          @include theme("background", "color-tooltip");
+          @include theme("color", "color-tooltip-text");
           font-weight: bold;
           font-size: 0.8rem;
           padding: 2px 6px;
@@ -123,7 +127,7 @@
 
       .bar-container {
         flex-grow: 1;
-        background-color: #e0e0e0;
+        @include theme("background", "color-box");
         height: 15px;
         border-radius: 7px;
         overflow: hidden;
@@ -131,7 +135,7 @@
 
       .bar {
         height: 100%;
-        background-color: #202020;
+        @include theme("background", "color-text");
         transition: width 0.3s ease;
       }
 

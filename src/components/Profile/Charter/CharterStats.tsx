@@ -12,6 +12,8 @@ interface CharterStatsProps {
   stats: CharterStatsData;
 }
 
+ChartJS.defaults.color = "#858585";
+
 const CharterStats: React.FC<CharterStatsProps> = ({ stats }) => {
   return (
     <div className="charter-stats">
@@ -101,8 +103,8 @@ const DifficultyChart: React.FC<DistributionChartProps> = ({ data }) => {
   const options = {
     scales: {
       y: {
-        beginAtZero: true,
-      },
+        beginAtZero: true
+      }
     },
   };
 
@@ -127,8 +129,8 @@ const YearChart: React.FC<DistributionChartProps> = ({ data }) => {
   const options = {
     scales: {
       y: {
-        beginAtZero: true,
-      },
+        beginAtZero: true
+      }
     },
   };
 

@@ -22,6 +22,7 @@ $themes: (
   dark: (
     color-background: $dark-grey-1,
     color-box: $dark-grey-2,
+    color-box-secondary: $dark-grey-3,
     color-button: $dark-grey-3,
     color-button-text: $white,
     color-button-hover: $light-grey-1,
@@ -45,10 +46,13 @@ $themes: (
     color-dropdown-highlight: $light-grey-1,
     color-dropdown-text: $white,
     color-border: $dark-grey-2,
+    color-tooltip: $dark-grey-2,
+    color-tooltip-text: $white,
   ),
   light: (
     color-background: $off-white,
     color-box: $white,
+    color-box-secondary: $very-light-grey-2,
     color-button: $dark-grey-1,
     color-button-text: $white,
     color-button-hover: $dark-grey-3,
@@ -72,5 +76,7 @@ $themes: (
     color-dropdown-highlight: $very-light-grey-1,
     color-dropdown-text: $black,
     color-border: $very-light-grey-1,
+    color-tooltip: $dark-grey-1,
+    color-tooltip-text: $white,
   ),
 );
