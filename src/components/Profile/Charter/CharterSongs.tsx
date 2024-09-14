@@ -125,7 +125,7 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
 
   const handleRowClick = (song: Song) => {
     setSelectedSong(song);
-    navigate(`/songs/${song.id}`);
+    navigate(`/charter/${charterId}/${song.id}`);
   };
 
   const handleModalClose = () => {
