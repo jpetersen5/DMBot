@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useUploadProgress } from "../../hooks/useUploadProgress";
-import Tooltip from "../../utils/Tooltip/Tooltip";
-import { API_URL } from "../../App";
+import { useUploadProgress } from "../../../hooks/useUploadProgress";
+import Tooltip from "../../../utils/Tooltip/Tooltip";
+import { API_URL } from "../../../App";
 import "./ScoreUpload.scss";
 
-import CopyIcon from "../../assets/copy.svg";
+import CopyIcon from "../../../assets/copy.svg";
 
 const ScoreUpload: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);

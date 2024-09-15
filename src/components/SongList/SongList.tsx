@@ -19,6 +19,8 @@ import {
 } from "../../utils/song";
 import "./SongList.scss";
 
+import fcIcon from "../../assets/crown.png";
+
 const filterOptions = [
   { value: "name", label: "Name" },
   { value: "artist", label: "Artist" },
@@ -254,7 +256,7 @@ interface SongTableHeaderProps {
   sortOrder: string;
 }
 
-const SongTableHeader: React.FC<SongTableHeaderProps> = ({ onClick, content, sort, sortOrder }) => (
+export const SongTableHeader: React.FC<SongTableHeaderProps> = ({ onClick, content, sort, sortOrder }) => (
   <th onClick={onClick}>
     <div className="header-content">
       <span className="header-text">{content}</span>
@@ -265,14 +267,20 @@ const SongTableHeader: React.FC<SongTableHeaderProps> = ({ onClick, content, sor
 
 interface SongTableCellProps {
   content: string | null | undefined;
-  special?: "charter" | "last_update";
+  special?: "charter" | "last_update" | "fc_percent" | "percent";
 }
 
-const SongTableCell: React.FC<SongTableCellProps> = ({ content, special }) => {
+export const SongTableCell: React.FC<SongTableCellProps> = ({ content, special }) => {
   if (content == null) {
-    return <td></td>;
+    return <td>{"N/A"}</td>;
   }
   switch (special) {
+    case "percent":
+      return <td>{content + "%"}</td>;
+    case "fc_percent":
+      return <td>
+        <img src={fcIcon} alt="FC" className="fc-crown" />
+      </td>;
     case "last_update":
       return <td>
         <Tooltip text={formatExactTime(content)}>
@@ -295,7 +303,7 @@ interface SongTableRowProps {
   onClick: () => void;
 }
 
-const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick }) => (
+export const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick }) => (
   <tr onClick={onClick} style={{ cursor: "pointer" }}>
     <SongTableCell content={song.name} />
     <SongTableCell content={song.artist} />

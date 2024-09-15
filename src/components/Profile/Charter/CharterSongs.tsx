@@ -3,18 +3,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import { API_URL } from "../../../App";
 import { TableControls, Pagination } from "../../SongList/TableControls";
 import SongModal from "../../SongList/SongModal";
+import { SongTableHeader, SongTableRow } from "../../SongList/SongList";
 import LoadingSpinner from "../../Loading/LoadingSpinner";
-import CharterName from "../../SongList/CharterName";
 import { useCharterData } from "../../../context/CharterContext";
 import { useSongCache } from "../../../context/SongContext";
-import Tooltip from "../../../utils/Tooltip/Tooltip";
-import { renderSafeHTML, processColorTags } from "../../../utils/safeHTML";
 import {
   Song,
   SONG_TABLE_HEADERS,
-  msToTime,
-  formatExactTime,
-  formatTimeDifference,
   getSurroundingSongIds
 } from "../../../utils/song";
 import "./CharterSongs.scss";
@@ -64,14 +59,19 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
     }
 
     try {
-      const queryParams = new URLSearchParams({
-        ids: charterSongIds.join(","),
-        page: page.toString(),
-        per_page: perPage.toString(),
-        sort_by: sortBy,
-        sort_order: sortOrder,
+      const response = await fetch(`${API_URL}/api/songs-by-ids`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ids: charterSongIds,
+          page: page,
+          per_page: perPage,
+          sort_by: sortBy,
+          sort_order: sortOrder,
+        }),
       });
-      const response = await fetch(`${API_URL}/api/songs-by-ids?${queryParams}`);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -120,7 +120,7 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
 
   const handleRowClick = (song: Song) => {
     setSelectedSong(song);
-    navigate(`/songs/${song.id}`);
+    navigate(`/charter/${charterId}/${song.id}`);
   };
 
   const handleModalClose = () => {
@@ -201,68 +201,5 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
     </div>
   );
 };
-
-interface SongTableHeaderProps {
-  onClick: () => void;
-  content: string;
-  sort: boolean;
-  sortOrder: string;
-}
-
-const SongTableHeader: React.FC<SongTableHeaderProps> = ({ onClick, content, sort, sortOrder }) => (
-  <th onClick={onClick}>
-    <div className="header-content">
-      <span className="header-text">{content}</span>
-      {sort && <span className="sort-arrow">{sortOrder === "asc" ? "▲" : "▼"}</span>}
-    </div>
-  </th>
-);
-
-interface SongTableCellProps {
-  content: string | null | undefined;
-  special?: "charter" | "last_update";
-}
-
-const SongTableCell: React.FC<SongTableCellProps> = ({ content, special }) => {
-  if (content == null) {
-    return <td></td>;
-  }
-  switch (special) {
-    case "last_update":
-      return <td>
-        <Tooltip text={formatExactTime(content)}>
-          {formatTimeDifference(content)}
-        </Tooltip>
-      </td>;
-    case "charter":
-      return <td><CharterName names={content} /></td>;
-  }
-
-  const processedContent = typeof content === "string" 
-    ? processColorTags(content)
-    : String(content);
-
-  return <td dangerouslySetInnerHTML={renderSafeHTML(processedContent)} />;
-};
-
-interface SongTableRowProps {
-  song: Song;
-  onClick: () => void;
-}
-
-const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick }) => (
-  <tr onClick={onClick} style={{ cursor: "pointer" }}>
-    <SongTableCell content={song.name} />
-    <SongTableCell content={song.artist} />
-    <SongTableCell content={song.album} />
-    <SongTableCell content={song.year} />
-    <SongTableCell content={song.genre} />
-    <SongTableCell content={song.difficulty || "?"} />
-    <SongTableCell content={song.song_length != null ? msToTime(song.song_length) : "??:??:??"} />
-    <SongTableCell content={song.charter_refs ? song.charter_refs.join(", ") : "Unknown Author"} special="charter" />
-    <SongTableCell content={song.scores_count?.toString() || "0"} />
-    <SongTableCell content={song.last_update} special="last_update" />
-  </tr>
-);
 
 export default CharterSongs;

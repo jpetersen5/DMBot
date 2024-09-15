@@ -4,9 +4,11 @@ import { Modal, Nav } from "react-bootstrap";
 import { API_URL } from "../../App";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import CharterName from "./CharterName";
+import { SongTableCell } from "./SongList";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import { Song, msToTime } from "../../utils/song";
 import { Pagination } from "./TableControls";
+import { useAuth } from "../../context/AuthContext";
 import { useSongCache } from "../../context/SongContext";
 import "./SongModal.scss";
 import Leaderboard from "../Leaderboard/Leaderboard";
@@ -161,7 +163,11 @@ const SongModal: React.FC<SongModalProps> = ({
     setPreviousSongs([...previousSongs, currentSong]);
     setCurrentSong(song);
     navigateToSong(song.id);
-  }
+  };
+
+  const handleSongUpdate = (song: Song) => {
+    setCurrentSong(song);
+  };
 
   const handleBack = () => {
     if (previousSongs.length > 0) {
@@ -201,11 +207,11 @@ const SongModal: React.FC<SongModalProps> = ({
           {relatedLoading && <tr><td colSpan={columns.length}><LoadingSpinner /></td></tr>}
           {!relatedLoading && relatedSongs.map((relatedSong) => (
             <tr key={relatedSong.id} onClick={() => handleRelatedSongClick(relatedSong)}>
-              {relationType === "album" && <td>{relatedSong.track || "N/A"}</td>}
-              <td>{relatedSong.name}</td>
-              {relationType === "artist" && <td>{relatedSong.album}</td>}
-              {(relationType === "genre" || relationType === "charter") && <td>{relatedSong.artist}</td>}
-              <td>{msToTime(relatedSong.song_length || 0)}</td>
+              {relationType === "album" && <SongTableCell content={relatedSong.track || "N/A"} />}
+              <SongTableCell content={relatedSong.name} />
+              {relationType === "artist" && <SongTableCell content={relatedSong.album} />}
+              {(relationType === "genre" || relationType === "charter") && <SongTableCell content={relatedSong.artist} />}
+              <SongTableCell content={msToTime(relatedSong.song_length || 0)} />
             </tr>
           ))}
           {!relatedLoading && relatedSongs.length === 0 && (
@@ -224,9 +230,12 @@ const SongModal: React.FC<SongModalProps> = ({
         <button onClick={handleBack} className="back-button">
           {previousSongs.length > 0 ? "←" : "×"}
         </button>
-        <Modal.Title>{currentSong.name}</Modal.Title>
+        <Modal.Title>
+          <span dangerouslySetInnerHTML={renderSafeHTML(currentSong.name || "")} />
+        </Modal.Title>
       </Modal.Header>
       <Modal.Body>
+        <AdminControls currentSong={currentSong} onSongUpdate={handleSongUpdate} onHide={onHide} />
         <div className="song-details">
           <div className="artist-info">
             <SongInfoLine label="Artist" value={currentSong.artist} />
@@ -314,6 +323,70 @@ const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
     : String(value);
   return (
     <p><strong>{label}:</strong> <span dangerouslySetInnerHTML={renderSafeHTML(processedValue)} /></p>
+  );
+};
+
+interface AdminControlsProps {
+  currentSong: Song;
+  onSongUpdate: (song: Song) => void;
+  onHide: () => void;
+}
+
+const AdminControls: React.FC<AdminControlsProps> = ({ currentSong, onSongUpdate, onHide }) => {
+  const { isAdmin } = useAuth();
+  const isUnverified = currentSong.name?.includes("(Unverified)") || false;
+
+  if (!isAdmin) return null;
+
+  const handleAdminAction = async (action: "verify" | "remove") => {
+    try {
+      const response = await fetch(`${API_URL}/api/songs/${currentSong.id}/admin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("auth_token")}`
+        },
+        body: JSON.stringify({ action })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to perform admin action");
+      }
+
+      const result = await response.json();
+
+      if (action === "verify") {
+        const updatedSong: Song = {
+          ...currentSong,
+          name: currentSong.name?.replace(" (Unverified)", "") || ""
+        };
+        onSongUpdate(updatedSong);
+      } else if (action === "remove") {
+        onHide();
+      }
+
+      alert(result.message);
+    } catch (error) {
+      console.error("Error performing admin action:", error);
+      alert("An error occurred while performing the action");
+    }
+  };
+
+  return (
+    <div className="admin-controls">
+      {isUnverified && (
+        <button className="verify-button" onClick={() => handleAdminAction("verify")}>
+          Verify
+        </button>
+      )}
+      <button className="remove-button" onClick={() => {
+        if (window.confirm("Are you sure you want to remove this song?")) {
+          handleAdminAction("remove");
+        }
+      }}>
+        Remove
+      </button>
+    </div>
   );
 };
 

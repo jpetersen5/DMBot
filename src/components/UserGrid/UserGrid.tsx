@@ -3,13 +3,7 @@ import { Link } from "react-router-dom";
 import { API_URL } from "../../App";
 import "./UserGrid.scss";
 import Tooltip from "../../utils/Tooltip/Tooltip";
-import { getUserImage } from "../../utils/user";
-
-interface User {
-  id: string;
-  username: string;
-  avatar: string;
-}
+import { getUserImage, User } from "../../utils/user";
 
 const UserGrid: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);

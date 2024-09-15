@@ -60,17 +60,22 @@ def get_user_scores(user_id):
     per_page = max(10, min(100, int(request.args.get("per_page", 10))))
     sort_by = sanitize_input(request.args.get("sort_by", "posted"))
     sort_order = request.args.get("sort_order", "desc").lower()
+    show_unknown = request.args.get("unknown", "false").lower() == "true"
 
     if sort_order not in ["asc", "desc"]:
         sort_order = "desc"
 
-    query = supabase.table("users").select("scores").eq("id", user_id)
+    query = supabase.table("users").select("scores, unknown_scores").eq("id", user_id)
     result = query.execute()
 
     if not result.data:
         return jsonify({"error": "User not found"}), 404
 
-    scores = result.data[0].get("scores", [])
+    if show_unknown:
+        scores = result.data[0].get("unknown_scores", [])
+    else:
+        scores = result.data[0].get("scores", [])
+
     if not scores:
         return jsonify({"error": "No scores found"}), 404
 
