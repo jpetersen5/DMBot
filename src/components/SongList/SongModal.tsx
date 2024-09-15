@@ -4,6 +4,7 @@ import { Modal, Nav } from "react-bootstrap";
 import { API_URL } from "../../App";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import CharterName from "./CharterName";
+import { SongTableCell } from "./SongList";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import { Song, msToTime } from "../../utils/song";
 import { Pagination } from "./TableControls";
@@ -206,11 +207,11 @@ const SongModal: React.FC<SongModalProps> = ({
           {relatedLoading && <tr><td colSpan={columns.length}><LoadingSpinner /></td></tr>}
           {!relatedLoading && relatedSongs.map((relatedSong) => (
             <tr key={relatedSong.id} onClick={() => handleRelatedSongClick(relatedSong)}>
-              {relationType === "album" && <td>{relatedSong.track || "N/A"}</td>}
-              <td>{relatedSong.name}</td>
-              {relationType === "artist" && <td>{relatedSong.album}</td>}
-              {(relationType === "genre" || relationType === "charter") && <td>{relatedSong.artist}</td>}
-              <td>{msToTime(relatedSong.song_length || 0)}</td>
+              {relationType === "album" && <SongTableCell content={relatedSong.track || "N/A"} />}
+              <SongTableCell content={relatedSong.name} />
+              {relationType === "artist" && <SongTableCell content={relatedSong.album} />}
+              {(relationType === "genre" || relationType === "charter") && <SongTableCell content={relatedSong.artist} />}
+              <SongTableCell content={msToTime(relatedSong.song_length || 0)} />
             </tr>
           ))}
           {!relatedLoading && relatedSongs.length === 0 && (
@@ -229,7 +230,9 @@ const SongModal: React.FC<SongModalProps> = ({
         <button onClick={handleBack} className="back-button">
           {previousSongs.length > 0 ? "←" : "×"}
         </button>
-        <Modal.Title>{currentSong.name}</Modal.Title>
+        <Modal.Title>
+          <span dangerouslySetInnerHTML={renderSafeHTML(currentSong.name || "")} />
+        </Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <AdminControls currentSong={currentSong} onSongUpdate={handleSongUpdate} onHide={onHide} />

@@ -4,12 +4,10 @@ import { TableControls, Pagination } from "../../SongList/TableControls";
 import SongModal from "../../SongList/SongModal";
 import LoadingSpinner from "../../Loading/LoadingSpinner";
 import UnknownSongModal from "./UnknownSongModal";
+import { SongTableCell } from "../../SongList/SongList";
 import { API_URL } from "../../../App";
-import { formatExactTime, formatTimeDifference, Song } from "../../../utils/song";
-import Tooltip from "../../../utils/Tooltip/Tooltip";
+import { Song } from "../../../utils/song";
 import "./UserScores.scss";
-
-import fcIcon from "../../../assets/crown.png";
 
 export interface Score {
   is_fc: boolean;
@@ -276,28 +274,14 @@ interface ScoreTableRowProps {
 const ScoreTableRow: React.FC<ScoreTableRowProps> = ({ score, onClick }) => {
   return (
     <tr onClick={onClick} style={{ cursor: "pointer" }}>
-      <td>{score.song_name}</td>
-      <td>{score.artist}</td>
-      <td>{score.score.toLocaleString()}</td>
-      <td>
-        {score.is_fc ? (
-          <img src={fcIcon} alt="FC" className="fc-crown" />
-        ) : (
-          <span>{score.percent}%</span>
-        )}
-      </td>
-      <td>{score.speed}%</td>
-      <td>{score.is_fc ? "Yes" : "No"}</td>
-      <td>{score.play_count ? score.play_count : "N/A"}</td>
-      <td>
-        {score.posted ? (
-          <Tooltip text={formatExactTime(score.posted)}>
-            {formatTimeDifference(score.posted)}
-          </Tooltip>
-        ) : (
-          "N/A"
-        )}
-      </td>
+      <SongTableCell content={score.song_name} />
+      <SongTableCell content={score.artist} />
+      <SongTableCell content={score.score.toLocaleString()} />
+      <SongTableCell content={score.percent.toString()} special={score.is_fc ? "fc_percent" : "percent"} />
+      <SongTableCell content={score.speed.toString()} special="percent" />
+      <SongTableCell content={score.is_fc ? "Yes" : "No"} />
+      <SongTableCell content={score.play_count.toString()} />
+      <SongTableCell content={score.posted} special="last_update" />
     </tr>
   );
 };

@@ -2,12 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../../App";
 import { TableControls, Pagination } from "../SongList/TableControls";
+import { SongTableCell } from "../SongList/SongList";
 import LoadingSpinner from "../Loading/LoadingSpinner";
-import { formatExactTime, formatTimeDifference } from "../../utils/song";
-import Tooltip from "../../utils/Tooltip/Tooltip";
 import "./Leaderboard.scss";
-
-import fcIcon from "../../assets/crown.png";
 
 interface LeaderboardEntry {
   is_fc: boolean;
@@ -186,28 +183,14 @@ interface LeaderboardTableRowProps {
 
 const LeaderboardTableRow: React.FC<LeaderboardTableRowProps> = ({ entry, onClick }) => (
   <tr onClick={onClick} style={{ cursor: "pointer" }}>
-    <td>{entry.rank}</td>
-    <td>{entry.username}</td>
-    <td>{entry.score.toLocaleString()}</td>
-    <td>
-      {entry.is_fc ? (
-        <img src={fcIcon} alt="FC" className="fc-crown" />
-      ) : (
-        <span>{entry.percent}%</span>
-      )}
-    </td>
-    <td>{entry.speed}%</td>
-    <td>{entry.is_fc ? "Yes" : "No"}</td>
-    <td>{entry.play_count ? entry.play_count : "N/A"}</td>
-    <td>
-      {entry.posted ? (
-        <Tooltip text={formatExactTime(entry.posted)}>
-          {formatTimeDifference(entry.posted)}
-        </Tooltip>
-      ) : (
-        "N/A"
-      )}
-    </td>
+    <SongTableCell content={entry.rank.toString()} />
+    <SongTableCell content={entry.username} />
+    <SongTableCell content={entry.score.toLocaleString()} />
+    <SongTableCell content={entry.percent.toString()} special={entry.is_fc ? "fc_percent" : "percent"} />
+    <SongTableCell content={entry.speed.toString()} special="percent" />
+    <SongTableCell content={entry.is_fc ? "Yes" : "No"} />
+    <SongTableCell content={entry.play_count.toString()} />
+    <SongTableCell content={entry.posted} special="last_update" />
   </tr>
 );
 
