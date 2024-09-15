@@ -1,7 +1,12 @@
+import os
+import re
+from datetime import datetime, UTC
 from flask import Blueprint, jsonify, request, current_app
 from typing import Any, Dict, List, Optional
+from ..config import Config
 from ..services.supabase_service import get_supabase
-from ..utils.helpers import sanitize_input
+from ..utils.helpers import sanitize_input, allowed_file
+from werkzeug.utils import secure_filename
 
 bp = Blueprint("songs", __name__)
 
@@ -225,3 +230,132 @@ def get_songs_by_ids():
         "sort_by": sort_by,
         "sort_order": sort_order
     })
+
+def strip_color_tags(text: str) -> str:
+    return re.sub(r'<color=[^>]+>(.*?)</color>', r'\1', text)
+
+def strip_tags(text: str) -> str:
+    return re.sub(r'</?b>', '', text)
+
+def process_charter_name(charter: str) -> str:
+    return strip_tags(strip_color_tags(charter.strip())).strip()
+
+def split_charters(charter_string: str) -> List[str]:
+    char_delimiters = [",", "/", "&"]
+    multichar_delimiters = [" - ", " + ", " and "]
+
+    def is_in_color_tag(pos, text):
+        open_tags = [m.start() for m in re.finditer(r'<color=', text[:pos])]
+        close_tags = [m.start() for m in re.finditer(r'color>', text[:pos])]
+        return len(open_tags) > len(close_tags)
+
+    result = []
+    current = []
+    i = 0
+    while i < len(charter_string):
+        if any(charter_string.startswith(delim, i) for delim in multichar_delimiters) and not is_in_color_tag(i, charter_string):
+            if current:
+                result.append("".join(current).strip())
+                current = []
+            i += len(next(delim for delim in multichar_delimiters if charter_string.startswith(delim, i)))
+        elif charter_string[i] in char_delimiters and not is_in_color_tag(i, charter_string):
+            if current:
+                result.append("".join(current).strip())
+                current = []
+            i += 1
+        else:
+            current.append(charter_string[i])
+            i += 1
+
+    if current:
+        result.append("".join(current).strip())
+
+    return [charter.strip() for charter in result if charter.strip()]
+
+def parse_ini_file(ini_path):
+    """
+    Parse the song.ini file to extract required fields, attempting to handle different encodings.
+    """
+    logger = current_app.logger
+    data = {}
+    required_fields = [
+        "artist", "name", "album", "track", "year",
+        "genre", "diff_drums", "song_length", "charter"
+    ]
+    try:
+        with open(ini_path, "r", encoding="utf-8") as file:
+            lines = file.readlines()
+    except UnicodeDecodeError:
+        try:
+            with open(ini_path, "r", encoding="cp1252") as file:
+                lines = file.readlines()
+        except UnicodeDecodeError:
+            logger.error(f"Failed to decode {ini_path}. Skipping.")
+            return data
+
+    for line in lines:
+        key, _, value = line.partition("=")
+        key = key.strip().lower()
+        value = value.strip()
+        if key in required_fields:
+            data[key] = value
+    return data
+
+@bp.route("/api/songs/upload_ini", methods=["POST"])
+def upload_song_ini():
+    if "file" not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files["file"]
+    identifier = request.form.get("identifier")
+    
+    if file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
+    
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(Config.UPLOAD_FOLDER, filename)
+        file.save(filepath)
+        
+        try:
+            song_data = parse_ini_file(filepath)
+            song_data["md5"] = identifier
+            
+            supabase = get_supabase()
+            
+            existing_song = supabase.table("songs").select("id").eq("md5", identifier).execute()
+            if existing_song.data:
+                return jsonify({"error": "Song already exists in the database"}), 400
+            
+            charter_string = song_data.get("charter", "")
+            charters = split_charters(charter_string)
+            charter_refs = [process_charter_name(charter) for charter in charters]
+            
+            new_song = {
+                "md5": identifier,
+                "artist": song_data.get("artist", ""),
+                "name": song_data.get("name", "") + " (Unverified)",
+                "album": song_data.get("album", ""),
+                "genre": song_data.get("genre", ""),
+                "track": int(song_data.get("track", "0")) if song_data.get("track", "").isdigit() else None,
+                "year": song_data.get("year", ""),
+                "difficulty": int(song_data.get("diff_drums", "0")) if song_data.get("diff_drums", "").isdigit() else None,
+                "song_length": int(song_data.get("song_length", "0")) if song_data.get("song_length", "").isdigit() else None,
+                "charter_refs": charter_refs,
+                "last_update": datetime.now(UTC).isoformat()
+            }
+            
+            response = supabase.table("songs").insert(new_song).execute()
+            
+            if response.data:
+                return jsonify({"message": "Song added successfully"}), 200
+            else:
+                return jsonify({"error": "Failed to add song to database"}), 500
+            
+        except Exception as e:
+            current_app.logger.error(f"Error processing song.ini: {str(e)}")
+            return jsonify({"error": str(e)}), 500
+        finally:
+            if os.path.exists(filepath):
+                os.remove(filepath)
+    
+    return jsonify({"error": "Invalid file"}), 400

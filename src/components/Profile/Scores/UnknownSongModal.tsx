@@ -14,7 +14,8 @@ interface UnknownSongModalProps {
 }
 
 const UnknownSongModal: React.FC<UnknownSongModalProps> = ({ show, onHide, score }) => {
-  const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingCache, setIsUploadingCache] = useState(false);
+  const [isUploadingIni, setIsUploadingIni] = useState(false);
 
   const handleSongcacheUpload = async () => {
     const input = document.createElement("input");
@@ -27,7 +28,7 @@ const UnknownSongModal: React.FC<UnknownSongModalProps> = ({ show, onHide, score
         formData.append("file", file);
   
         try {
-          setIsUploading(true);
+          setIsUploadingCache(true);
           const response = await fetch(`${API_URL}/api/upload_songcache`, {
             method: "POST",
             body: formData,
@@ -47,7 +48,46 @@ const UnknownSongModal: React.FC<UnknownSongModalProps> = ({ show, onHide, score
         } catch (error) {
           alert("An error occurred while uploading the songcache");
         } finally {
-          setIsUploading(false);
+          setIsUploadingCache(false);
+        }
+      }
+    };
+    input.click();
+  };
+
+  const handleSongIniUpload = async () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".ini";
+    input.onchange = async (e: Event) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("identifier", score.identifier);
+
+        try {
+          setIsUploadingIni(true);
+          const response = await fetch(`${API_URL}/api/songs/upload_ini`, {
+            method: "POST",
+            body: formData,
+            headers: {
+              "Authorization": `Bearer ${localStorage.getItem("auth_token")}`
+            }
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+            alert(`Song.ini processed successfully. New song added to the database.`);
+            onHide();
+          } else {
+            alert(result.error || "An error occurred while processing the song.ini");
+          }
+        } catch (error) {
+          alert("An error occurred while uploading the song.ini");
+        } finally {
+          setIsUploadingIni(false);
         }
       }
     };
@@ -77,12 +117,12 @@ const UnknownSongModal: React.FC<UnknownSongModalProps> = ({ show, onHide, score
         </div>
         <div className="unknown-song-actions">
           {!score.filepath && (
-            <button className="action-button" onClick={handleSongcacheUpload} disabled={isUploading}>
-              {isUploading ? <LoadingSpinner message="Processing..." timeout={0} /> : "Upload songcache.bin to find this song's filepath"}
+            <button className="action-button" onClick={handleSongcacheUpload} disabled={isUploadingCache}>
+              {isUploadingCache ? <LoadingSpinner message="Processing..." timeout={0} /> : "Upload songcache.bin to find this song's filepath"}
             </button>
           )}
-          <button className="action-button" onClick={() => console.log("Upload song.ini")}>
-            Know this song? Upload its song.ini!
+          <button className="action-button" onClick={handleSongIniUpload} disabled={isUploadingIni}>
+            {isUploadingIni ? <LoadingSpinner message="Processing..." timeout={0} /> : "Know this song? Upload its song.ini!"}
           </button>
         </div>
       </Modal.Body>
