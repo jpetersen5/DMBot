@@ -17,6 +17,7 @@ const CharterName: React.FC<CharterNameProps> = memo(({ names }) => {
     <div className="charter-name">
       {charters.map((name, i) => {
         const charterData = charterCache[name];
+        if (!charterData) return <span key={i} dangerouslySetInnerHTML={renderSafeHTML(name)} />;
         const charterLink = charterData.userId ? `/user/${charterData.userId}` : `/charter/${charterData.id}`;
 
         return (

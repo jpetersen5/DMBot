@@ -273,6 +273,10 @@ def split_charters(charter_string: str) -> List[str]:
 
     return [charter.strip() for charter in result if charter.strip()]
 
+def fetch_existing_charters(supabase):
+    response = supabase.table("charters").select("id", "name").execute()
+    return {charter["name"]: charter["id"] for charter in response.data}
+
 def parse_ini_file(ini_path):
     """
     Parse the song.ini file to extract required fields, attempting to handle different encodings.
@@ -322,14 +326,31 @@ def upload_song_ini():
             song_data["md5"] = identifier
             
             supabase = get_supabase()
+            logger = current_app.logger
             
             existing_song = supabase.table("songs").select("id").eq("md5", identifier).execute()
             if existing_song.data:
                 return jsonify({"error": "Song already exists in the database"}), 400
             
+            existing_charters = fetch_existing_charters(supabase)
+            
             charter_string = song_data.get("charter", "")
             charters = split_charters(charter_string)
-            charter_refs = [process_charter_name(charter) for charter in charters]
+            charter_refs = []
+            new_charters = []
+            
+            for charter in charters:
+                processed_name = process_charter_name(charter)
+                charter_refs.append(processed_name)
+                if processed_name not in existing_charters and processed_name not in new_charters:
+                    new_charters.append({"name": processed_name})
+                    
+            if new_charters:
+                new_charters_response = supabase.table("charters").insert(new_charters).execute()
+                if new_charters_response.data:
+                    logger.info(f"Inserted {len(new_charters)} new charters.")
+                else:
+                    return jsonify({"error": "Failed to add charters to database"}), 500
             
             new_song = {
                 "md5": identifier,
