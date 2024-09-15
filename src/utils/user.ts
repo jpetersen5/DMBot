@@ -2,6 +2,7 @@ export interface User {
   id: string;
   username: string;
   avatar: string | null;
+  permissions: "user" | "admin";
 }
 
 const getColorFromId = (id: string): string => {

@@ -51,7 +51,8 @@ def get_user_by_id(user_id):
             return jsonify({
                 "id": str(user["id"]),
                 "username": user["username"],
-                "avatar": user["avatar"]
+                "avatar": user["avatar"],
+                "permissions": user["permissions"]
             })
         else:
             return jsonify({"error": "User not found"}), 404

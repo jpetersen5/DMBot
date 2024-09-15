@@ -7,6 +7,7 @@ import CharterName from "./CharterName";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import { Song, msToTime } from "../../utils/song";
 import { Pagination } from "./TableControls";
+import { useAuth } from "../../context/AuthContext";
 import { useSongCache } from "../../context/SongContext";
 import "./SongModal.scss";
 import Leaderboard from "../Leaderboard/Leaderboard";
@@ -161,7 +162,11 @@ const SongModal: React.FC<SongModalProps> = ({
     setPreviousSongs([...previousSongs, currentSong]);
     setCurrentSong(song);
     navigateToSong(song.id);
-  }
+  };
+
+  const handleSongUpdate = (song: Song) => {
+    setCurrentSong(song);
+  };
 
   const handleBack = () => {
     if (previousSongs.length > 0) {
@@ -227,6 +232,7 @@ const SongModal: React.FC<SongModalProps> = ({
         <Modal.Title>{currentSong.name}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
+        <AdminControls currentSong={currentSong} onSongUpdate={handleSongUpdate} onHide={onHide} />
         <div className="song-details">
           <div className="artist-info">
             <SongInfoLine label="Artist" value={currentSong.artist} />
@@ -314,6 +320,70 @@ const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
     : String(value);
   return (
     <p><strong>{label}:</strong> <span dangerouslySetInnerHTML={renderSafeHTML(processedValue)} /></p>
+  );
+};
+
+interface AdminControlsProps {
+  currentSong: Song;
+  onSongUpdate: (song: Song) => void;
+  onHide: () => void;
+}
+
+const AdminControls: React.FC<AdminControlsProps> = ({ currentSong, onSongUpdate, onHide }) => {
+  const { isAdmin } = useAuth();
+  const isUnverified = currentSong.name?.includes("(Unverified)") || false;
+
+  if (!isAdmin) return null;
+
+  const handleAdminAction = async (action: "verify" | "remove") => {
+    try {
+      const response = await fetch(`${API_URL}/api/songs/${currentSong.id}/admin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("auth_token")}`
+        },
+        body: JSON.stringify({ action })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to perform admin action");
+      }
+
+      const result = await response.json();
+
+      if (action === "verify") {
+        const updatedSong: Song = {
+          ...currentSong,
+          name: currentSong.name?.replace(" (Unverified)", "") || ""
+        };
+        onSongUpdate(updatedSong);
+      } else if (action === "remove") {
+        onHide();
+      }
+
+      alert(result.message);
+    } catch (error) {
+      console.error("Error performing admin action:", error);
+      alert("An error occurred while performing the action");
+    }
+  };
+
+  return (
+    <div className="admin-controls">
+      {isUnverified && (
+        <button className="verify-button" onClick={() => handleAdminAction("verify")}>
+          Verify
+        </button>
+      )}
+      <button className="remove-button" onClick={() => {
+        if (window.confirm("Are you sure you want to remove this song?")) {
+          handleAdminAction("remove");
+        }
+      }}>
+        Remove
+      </button>
+    </div>
   );
 };
 

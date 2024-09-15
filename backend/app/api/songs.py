@@ -1,5 +1,6 @@
 import os
 import re
+import jwt
 from datetime import datetime, UTC
 from flask import Blueprint, jsonify, request, current_app
 from typing import Any, Dict, List, Optional
@@ -10,7 +11,7 @@ from werkzeug.utils import secure_filename
 
 bp = Blueprint("songs", __name__)
 
-ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "difficulty", "charter", "song_length", "last_update", "scores_count"}
+ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "difficulty", "charter", "song_length", "last_update", "scores_count", "md5"}
 ALLOWED_FILTERS = {"name", "artist", "album", "year", "genre", "charter"}
 
 @bp.route("/api/songs/<string:identifier>", methods=["GET"])
@@ -359,3 +360,58 @@ def upload_song_ini():
                 os.remove(filepath)
     
     return jsonify({"error": "Invalid file"}), 400
+
+@bp.route("/api/songs/<int:song_id>/admin", methods=["POST"])
+def admin_song_action(song_id):
+    """
+    Handles admin actions for songs (verify or remove)
+
+    params:
+        song_id (int): ID of the song to perform action on
+        action (str): 'verify' or 'remove'
+
+    returns:
+        JSON: result of the action
+    """
+    supabase = get_supabase()
+    logger = current_app.logger
+
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        return jsonify({"error": "No token provided"}), 401
+    try:
+        token = auth_header.split(" ")[1]
+        payload = jwt.decode(token, Config.JWT_SECRET, algorithms=["HS256"])
+        user_id = payload["user_id"]
+        user_response = supabase.table("users").select("permissions").eq("id", user_id).execute()
+        if not user_response.data or user_response.data[0]["permissions"] != "admin":
+            return jsonify({"error": "Unauthorized"}), 403
+    except Exception as e:
+        logger.error(f"Error checking user permissions: {str(e)}")
+        return jsonify({"error": "Unauthorized"}), 403
+
+    action = request.json.get("action")
+    if action not in ["verify", "remove"]:
+        return jsonify({"error": "Invalid action"}), 400
+
+    try:
+        if action == "verify":
+            song_query = supabase.table("songs").select("name").eq("id", song_id).execute()
+            if not song_query.data:
+                return jsonify({"error": "Song not found"}), 404
+            current_name = song_query.data[0]["name"]
+            new_name = current_name.replace(" (Unverified)", "")
+            update_response = supabase.table("songs").update({"name": new_name}).eq("id", song_id).execute()
+            if update_response.data:
+                return jsonify({"message": "Song verified successfully"}), 200
+            else:
+                return jsonify({"error": "Failed to verify song"}), 500
+        elif action == "remove":
+            delete_response = supabase.table("songs").delete().eq("id", song_id).execute()
+            if delete_response.data:
+                return jsonify({"message": "Song removed successfully"}), 200
+            else:
+                return jsonify({"error": "Failed to remove song"}), 500
+    except Exception as e:
+        logger.error(f"Error performing admin action: {str(e)}")
+        return jsonify({"error": "An error occurred while performing the action"}), 500
