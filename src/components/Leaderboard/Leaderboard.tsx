@@ -189,7 +189,7 @@ const LeaderboardTableRow: React.FC<LeaderboardTableRowProps> = ({ entry, onClic
     <SongTableCell content={entry.percent.toString()} special={entry.is_fc ? "fc_percent" : "percent"} />
     <SongTableCell content={entry.speed.toString()} special="percent" />
     <SongTableCell content={entry.is_fc ? "Yes" : "No"} />
-    <SongTableCell content={entry.play_count.toString()} />
+    <SongTableCell content={entry.play_count ? entry.play_count.toString() : "N/A"} />
     <SongTableCell content={entry.posted} special="last_update" />
   </tr>
 );
