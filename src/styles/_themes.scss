@@ -3,9 +3,11 @@ $white: #FFFFFF;
 $red: #F04747;
 $grey-red: #D03636;
 $dark-red: #721c24;
-$light-red: #F8D7DA;
+$very-light-red: #F8D7DA;
+$green: #28a745;
+$grey-green: #218838;
 $dark-green: #155724;
-$light-green: #D4EDDA;
+$very-light-green: #D4EDDA;
 $discord-blue: #7289DA;
 $discord-blue-dark: #5A6EB8;
 $off-white: #F8F9FA;
@@ -51,6 +53,9 @@ $themes: (
     color-border: $dark-grey-2,
     color-tooltip: $dark-grey-2,
     color-tooltip-text: $white,
+    color-toggle-handle: $white,
+    color-toggle-off: $light-grey-3,
+    color-toggle-on: $light-grey-1,
   ),
   light: (
     color-background: $off-white,
@@ -84,5 +89,8 @@ $themes: (
     color-border: $very-light-grey-1,
     color-tooltip: $dark-grey-1,
     color-tooltip-text: $white,
+    color-toggle-handle: $white,
+    color-toggle-off: $light-grey-3,
+    color-toggle-on: $dark-grey-3,
   ),
 );
