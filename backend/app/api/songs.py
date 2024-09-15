@@ -1,11 +1,17 @@
+import os
+import re
+import jwt
+from datetime import datetime, UTC
 from flask import Blueprint, jsonify, request, current_app
 from typing import Any, Dict, List, Optional
+from ..config import Config
 from ..services.supabase_service import get_supabase
-from ..utils.helpers import sanitize_input
+from ..utils.helpers import sanitize_input, allowed_file
+from werkzeug.utils import secure_filename
 
 bp = Blueprint("songs", __name__)
 
-ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "difficulty", "charter", "song_length", "last_update", "scores_count"}
+ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "difficulty", "charter", "song_length", "last_update", "scores_count", "md5"}
 ALLOWED_FILTERS = {"name", "artist", "album", "year", "genre", "charter"}
 
 @bp.route("/api/songs/<string:identifier>", methods=["GET"])
@@ -173,7 +179,7 @@ def get_related_songs():
         "per_page": per_page
     })
 
-@bp.route("/api/songs-by-ids", methods=["GET"])
+@bp.route("/api/songs-by-ids", methods=["POST"])
 def get_songs_by_ids():
     """
     retrieves songs from the database by their IDs
@@ -191,11 +197,12 @@ def get_songs_by_ids():
     supabase = get_supabase()
     logger = current_app.logger
     
-    ids = request.args.get("ids", "").split(",")
-    page = max(1, int(request.args.get("page", 1)))
-    per_page = max(10, min(100, int(request.args.get("per_page", 20))))
-    sort_by = sanitize_input(request.args.get("sort_by", "last_update").lower())
-    sort_order = request.args.get("sort_order", "desc").lower()
+    data = request.json
+    ids = data.get("ids", [])
+    page = max(1, int(data.get("page", 1)))
+    per_page = max(10, min(100, int(data.get("per_page", 20))))
+    sort_by = sanitize_input(data.get("sort_by", "last_update").lower())
+    sort_order = data.get("sort_order", "desc").lower()
 
     if sort_order not in ["asc", "desc"]:
         sort_order = "desc"
@@ -224,3 +231,208 @@ def get_songs_by_ids():
         "sort_by": sort_by,
         "sort_order": sort_order
     })
+
+def strip_color_tags(text: str) -> str:
+    return re.sub(r'<color=[^>]+>(.*?)</color>', r'\1', text)
+
+def strip_tags(text: str) -> str:
+    return re.sub(r'</?b>', '', text)
+
+def process_charter_name(charter: str) -> str:
+    return strip_tags(strip_color_tags(charter.strip())).strip()
+
+def split_charters(charter_string: str) -> List[str]:
+    char_delimiters = [",", "/", "&"]
+    multichar_delimiters = [" - ", " + ", " and "]
+
+    def is_in_color_tag(pos, text):
+        open_tags = [m.start() for m in re.finditer(r'<color=', text[:pos])]
+        close_tags = [m.start() for m in re.finditer(r'color>', text[:pos])]
+        return len(open_tags) > len(close_tags)
+
+    result = []
+    current = []
+    i = 0
+    while i < len(charter_string):
+        if any(charter_string.startswith(delim, i) for delim in multichar_delimiters) and not is_in_color_tag(i, charter_string):
+            if current:
+                result.append("".join(current).strip())
+                current = []
+            i += len(next(delim for delim in multichar_delimiters if charter_string.startswith(delim, i)))
+        elif charter_string[i] in char_delimiters and not is_in_color_tag(i, charter_string):
+            if current:
+                result.append("".join(current).strip())
+                current = []
+            i += 1
+        else:
+            current.append(charter_string[i])
+            i += 1
+
+    if current:
+        result.append("".join(current).strip())
+
+    return [charter.strip() for charter in result if charter.strip()]
+
+def fetch_existing_charters(supabase):
+    response = supabase.table("charters").select("id", "name").execute()
+    return {charter["name"]: charter["id"] for charter in response.data}
+
+def parse_ini_file(ini_path):
+    """
+    Parse the song.ini file to extract required fields, attempting to handle different encodings.
+    """
+    logger = current_app.logger
+    data = {}
+    required_fields = [
+        "artist", "name", "album", "track", "year",
+        "genre", "diff_drums", "song_length", "charter"
+    ]
+    try:
+        with open(ini_path, "r", encoding="utf-8") as file:
+            lines = file.readlines()
+    except UnicodeDecodeError:
+        try:
+            with open(ini_path, "r", encoding="cp1252") as file:
+                lines = file.readlines()
+        except UnicodeDecodeError:
+            logger.error(f"Failed to decode {ini_path}. Skipping.")
+            return data
+
+    for line in lines:
+        key, _, value = line.partition("=")
+        key = key.strip().lower()
+        value = value.strip()
+        if key in required_fields:
+            data[key] = value
+    return data
+
+@bp.route("/api/songs/upload_ini", methods=["POST"])
+def upload_song_ini():
+    if "file" not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files["file"]
+    identifier = request.form.get("identifier")
+    
+    if file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
+    
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(Config.UPLOAD_FOLDER, filename)
+        file.save(filepath)
+        
+        try:
+            song_data = parse_ini_file(filepath)
+            song_data["md5"] = identifier
+            
+            supabase = get_supabase()
+            logger = current_app.logger
+            
+            existing_song = supabase.table("songs").select("id").eq("md5", identifier).execute()
+            if existing_song.data:
+                return jsonify({"error": "Song already exists in the database"}), 400
+            
+            existing_charters = fetch_existing_charters(supabase)
+            
+            charter_string = song_data.get("charter", "")
+            charters = split_charters(charter_string)
+            charter_refs = []
+            new_charters = []
+            
+            for charter in charters:
+                processed_name = process_charter_name(charter)
+                charter_refs.append(processed_name)
+                if processed_name not in existing_charters and processed_name not in new_charters:
+                    new_charters.append({"name": processed_name})
+                    
+            if new_charters:
+                new_charters_response = supabase.table("charters").insert(new_charters).execute()
+                if new_charters_response.data:
+                    logger.info(f"Inserted {len(new_charters)} new charters.")
+                else:
+                    return jsonify({"error": "Failed to add charters to database"}), 500
+            
+            new_song = {
+                "md5": identifier,
+                "artist": song_data.get("artist", ""),
+                "name": song_data.get("name", "") + " (Unverified)",
+                "album": song_data.get("album", ""),
+                "genre": song_data.get("genre", ""),
+                "track": int(song_data.get("track", "0")) if song_data.get("track", "").isdigit() else None,
+                "year": song_data.get("year", ""),
+                "difficulty": int(song_data.get("diff_drums", "0")) if song_data.get("diff_drums", "").isdigit() else None,
+                "song_length": int(song_data.get("song_length", "0")) if song_data.get("song_length", "").isdigit() else None,
+                "charter_refs": charter_refs,
+                "last_update": datetime.now(UTC).isoformat()
+            }
+            
+            response = supabase.table("songs").insert(new_song).execute()
+            
+            if response.data:
+                return jsonify({"message": "Song added successfully"}), 200
+            else:
+                return jsonify({"error": "Failed to add song to database"}), 500
+            
+        except Exception as e:
+            current_app.logger.error(f"Error processing song.ini: {str(e)}")
+            return jsonify({"error": str(e)}), 500
+        finally:
+            if os.path.exists(filepath):
+                os.remove(filepath)
+    
+    return jsonify({"error": "Invalid file"}), 400
+
+@bp.route("/api/songs/<int:song_id>/admin", methods=["POST"])
+def admin_song_action(song_id):
+    """
+    Handles admin actions for songs (verify or remove)
+
+    params:
+        song_id (int): ID of the song to perform action on
+        action (str): 'verify' or 'remove'
+
+    returns:
+        JSON: result of the action
+    """
+    supabase = get_supabase()
+    logger = current_app.logger
+
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        return jsonify({"error": "No token provided"}), 401
+    try:
+        token = auth_header.split(" ")[1]
+        payload = jwt.decode(token, Config.JWT_SECRET, algorithms=["HS256"])
+        user_id = payload["user_id"]
+        user_response = supabase.table("users").select("permissions").eq("id", user_id).execute()
+        if not user_response.data or user_response.data[0]["permissions"] != "admin":
+            return jsonify({"error": "Unauthorized"}), 403
+    except Exception as e:
+        logger.error(f"Error checking user permissions: {str(e)}")
+        return jsonify({"error": "Unauthorized"}), 403
+
+    action = request.json.get("action")
+    if action not in ["verify", "remove"]:
+        return jsonify({"error": "Invalid action"}), 400
+
+    try:
+        if action == "verify":
+            song_query = supabase.table("songs").select("name").eq("id", song_id).execute()
+            if not song_query.data:
+                return jsonify({"error": "Song not found"}), 404
+            current_name = song_query.data[0]["name"]
+            new_name = current_name.replace(" (Unverified)", "")
+            update_response = supabase.table("songs").update({"name": new_name}).eq("id", song_id).execute()
+            if update_response.data:
+                return jsonify({"message": "Song verified successfully"}), 200
+            else:
+                return jsonify({"error": "Failed to verify song"}), 500
+        elif action == "remove":
+            delete_response = supabase.table("songs").delete().eq("id", song_id).execute()
+            if delete_response.data:
+                return jsonify({"message": "Song removed successfully"}), 200
+            else:
+                return jsonify({"error": "Failed to remove song"}), 500
+    except Exception as e:
+        logger.error(f"Error performing admin action: {str(e)}")
+        return jsonify({"error": "An error occurred while performing the action"}), 500

@@ -15,6 +15,14 @@ interface CharterStatsProps {
 ChartJS.defaults.color = "#858585";
 
 const CharterStats: React.FC<CharterStatsProps> = ({ stats }) => {
+  if (!stats) return (
+    <div className="charter-stats">
+      <h2>Charter Stats</h2>
+      <div className="last-updated">
+        {"Something went wrong. Check back later."}
+      </div>
+    </div>
+  )
   return (
     <div className="charter-stats">
       <h2>Charter Stats</h2>

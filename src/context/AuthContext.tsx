@@ -5,6 +5,7 @@ import { API_URL } from "../App";
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isAdmin: boolean;
   login: () => void;
   logout: () => void;
 }
@@ -13,6 +14,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -29,6 +31,7 @@ const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
             const userData: User = await response.json();
             localStorage.setItem("user_id", userData.id);
             setUser(userData);
+            setIsAdmin(userData.permissions === "admin");
           } else {
             console.error("Invalid token:", response.statusText);
             localStorage.removeItem("auth_token");
@@ -57,7 +60,7 @@ const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

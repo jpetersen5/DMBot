@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { TableControls, Pagination } from "../SongList/TableControls";
-import SongModal from "../SongList/SongModal";
-import LoadingSpinner from "../Loading/LoadingSpinner";
-import { API_URL } from "../../App";
-import { formatExactTime, formatTimeDifference, Song } from "../../utils/song";
-import Tooltip from "../../utils/Tooltip/Tooltip";
+import { TableControls, Pagination } from "../../SongList/TableControls";
+import SongModal from "../../SongList/SongModal";
+import LoadingSpinner from "../../Loading/LoadingSpinner";
+import UnknownSongModal from "./UnknownSongModal";
+import { SongTableCell } from "../../SongList/SongList";
+import { API_URL } from "../../../App";
+import { Song } from "../../../utils/song";
 import "./UserScores.scss";
 
-import fcIcon from "../../assets/crown.png";
-
-interface Score {
+export interface Score {
   is_fc: boolean;
   score: number;
   speed: number;
@@ -20,6 +19,10 @@ interface Score {
   identifier: string;
   play_count: number;
   posted: string;
+}
+
+interface UnknownScore extends Score {
+  filepath: string | null;
 }
 
 interface UserScoresProps {
@@ -39,6 +42,8 @@ const SCORE_TABLE_HEADERS = {
 
 const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   const { songId } = useParams<{ songId: string }>();
+  const navigate = useNavigate();
+
   const [scores, setScores] = useState<Score[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -47,15 +52,18 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   const [perPage, setPerPage] = useState(10);
   const [sortBy, setSortBy] = useState("posted");
   const [sortOrder, setSortOrder] = useState("desc");
+
+  const [showUnknown, setShowUnknown] = useState(false);
+  const [selectedUnknownScore, setSelectedUnknownScore] = useState<UnknownScore | null>(null);
+
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
-  const navigate = useNavigate();
 
   const totalPages = Math.ceil(totalScores / perPage);
 
   useEffect(() => {
     fetchScores();
-  }, [userId, page, perPage, sortBy, sortOrder]);
+  }, [userId, page, perPage, sortBy, sortOrder, showUnknown]);
 
   async function fetchScores() {
     setLoading(true);
@@ -65,6 +73,7 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
         per_page: perPage.toString(),
         sort_by: sortBy,
         sort_order: sortOrder,
+        unknown: showUnknown.toString()
       });
       const response = await fetch(`${API_URL}/api/user/${userId}/scores?${queryParams}`);
       if (!response.ok) {
@@ -87,6 +96,14 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
       setSortBy(column);
       setSortOrder("desc");
     }
+  };
+
+  const handleToggleUnknown = () => {
+    setShowUnknown(prev => !prev);
+    setPage(1);
+    setInputPage("1");
+    setSortBy("posted");
+    setSortOrder("desc");
   };
 
   useEffect(() => {
@@ -117,6 +134,10 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
     navigate(`/user/${userId}`);
   };
 
+  const handleUnknownModalClose = () => {
+    setSelectedUnknownScore(null);
+  };
+
   const getSurroundingSongIds = () => {
     const currentScoreIndex = scores.findIndex(score => score.identifier === songId);
     if (currentScoreIndex === -1) return { prevSongIds: [], nextSongIds: [] };
@@ -125,8 +146,12 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
     return { prevSongIds, nextSongIds };
   };
 
-  const handleRowClick = (score: Score) => {
-    navigate(`/user/${userId}/${score.identifier}`);
+  const handleRowClick = (score: Score | UnknownScore) => {
+    if (showUnknown) {
+      setSelectedUnknownScore(score as UnknownScore);
+    } else {
+      navigate(`/user/${userId}/${score.identifier}`);
+    }
   };
 
   return (
@@ -142,6 +167,21 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
             setPage={setPage}
             setInputPage={setInputPage}
           />
+          <div className="toggle-container">
+            <label htmlFor="show-unknown" className="toggle-label" onClick={handleToggleUnknown}>
+              Show Unknown Scores
+            </label>
+            <div className="toggle-switch" onClick={handleToggleUnknown}>
+              <input
+                id="show-unknown"
+                type="checkbox"
+                checked={showUnknown}
+                onChange={handleToggleUnknown}
+                className="toggle-input"
+              />
+              <span className="toggle-slider"></span>
+            </div>
+          </div>
         </div>
         <table>
           <thead>
@@ -199,6 +239,13 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
           nextSongIds={getSurroundingSongIds().nextSongIds}
         />
       )}
+      {selectedUnknownScore && showUnknown && (
+        <UnknownSongModal
+          show={true}
+          onHide={handleUnknownModalClose}
+          score={selectedUnknownScore}
+        />
+      )}
     </>
   );
 };
@@ -227,28 +274,14 @@ interface ScoreTableRowProps {
 const ScoreTableRow: React.FC<ScoreTableRowProps> = ({ score, onClick }) => {
   return (
     <tr onClick={onClick} style={{ cursor: "pointer" }}>
-      <td>{score.song_name}</td>
-      <td>{score.artist}</td>
-      <td>{score.score.toLocaleString()}</td>
-      <td>
-        {score.is_fc ? (
-          <img src={fcIcon} alt="FC" className="fc-crown" />
-        ) : (
-          <span>{score.percent}%</span>
-        )}
-      </td>
-      <td>{score.speed}%</td>
-      <td>{score.is_fc ? "Yes" : "No"}</td>
-      <td>{score.play_count ? score.play_count : "N/A"}</td>
-      <td>
-        {score.posted ? (
-          <Tooltip text={formatExactTime(score.posted)}>
-            {formatTimeDifference(score.posted)}
-          </Tooltip>
-        ) : (
-          "N/A"
-        )}
-      </td>
+      <SongTableCell content={score.song_name} />
+      <SongTableCell content={score.artist} />
+      <SongTableCell content={score.score.toLocaleString()} />
+      <SongTableCell content={score.percent.toString()} special={score.is_fc ? "fc_percent" : "percent"} />
+      <SongTableCell content={score.speed.toString()} special="percent" />
+      <SongTableCell content={score.is_fc ? "Yes" : "No"} />
+      <SongTableCell content={score.play_count.toString()} />
+      <SongTableCell content={score.posted} special="last_update" />
     </tr>
   );
 };

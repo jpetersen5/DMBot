@@ -5,6 +5,7 @@ from .config import Config
 from .api import auth, users, songs, charters, scores, status, leaderboards
 from .services.supabase_service import init_supabase
 # from .migrations.update_leaderboard_rankings import update_leaderboards
+# from .migrations.upload_new_songs import upload_new_songs
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -25,7 +26,8 @@ def create_app(config_class=Config):
 
     # Uncomment when running migrations
     # with app.app_context():
-    #     update_leaderboards()
+        # update_leaderboards()
+        # upload_new_songs()
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(users.bp)

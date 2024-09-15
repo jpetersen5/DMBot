@@ -6,11 +6,13 @@ from ..extensions import socketio, redis
 from werkzeug.utils import secure_filename
 from datetime import datetime, UTC
 import os
+import re
 import jwt
 
 bp = Blueprint("scores", __name__)
 exec(get_process_songs_script())
-MAX_FILE_SIZE = 1024 * 1024 * 1 # 1 MB
+MAX_SCOREDATA_FILE_SIZE = 1024 * 1024 * 1 # 1 MB
+MAX_SONGCACHE_FILE_SIZE = 1024 * 1024 * 10 # 10 MB
 
 def update_processing_status(user_id, status, progress, processed, total):
     """
@@ -86,6 +88,13 @@ def process_and_save_scores(result, user_id):
     else:
         logger.info("No existing scores found for user")
 
+    existing_unknown_scores = user_data[0].get("unknown_scores", []) if user_data else []
+    existing_unknown_scores_dict = {}
+    if existing_unknown_scores:
+        existing_unknown_scores_dict = {score["identifier"]: score for score in existing_unknown_scores}
+    else:
+        logger.info("No existing unknown scores found for user")
+
     batch_size = 100
     songs_dict = {}
     song_identifiers = [song["identifier"] for song in result["songs"]]
@@ -100,34 +109,84 @@ def process_and_save_scores(result, user_id):
         batch_songs_info = supabase.table("songs").select("*").in_("md5", batch).execute().data
         songs_dict.update({song["md5"]: song for song in batch_songs_info})
 
+    newly_known_scores = []
+    remaining_unknown_scores = []
+
+    for unknown_score in existing_unknown_scores:
+        song_info = songs_dict.get(unknown_score["identifier"])
+        if song_info:
+            score_data = {
+                "identifier": unknown_score["identifier"],
+                "song_name": song_info["name"],
+                "artist": song_info["artist"],
+                "percent": unknown_score["percent"],
+                "is_fc": unknown_score["is_fc"],
+                "speed": unknown_score["speed"],
+                "score": unknown_score["score"],
+                "play_count": unknown_score["play_count"],
+                "posted": datetime.now(UTC).isoformat()
+            }
+            newly_known_scores.append(score_data)
+            
+            leaderboard_entry = {
+                "user_id": user_id,
+                "username": username,
+                "score": unknown_score["score"],
+                "percent": unknown_score["percent"],
+                "is_fc": unknown_score["is_fc"],
+                "speed": unknown_score["speed"],
+                "play_count": unknown_score["play_count"],
+                "posted": datetime.now(UTC).isoformat()
+            }
+            leaderboard = song_info.get("leaderboard", []) or []
+            leaderboard.append(leaderboard_entry)
+            leaderboard = sort_and_rank_leaderboard(leaderboard)
+            
+            leaderboard_updates.append({
+                "md5": unknown_score["identifier"],
+                "name": song_info["name"],
+                "leaderboard": leaderboard,
+                "last_update": datetime.now(UTC).isoformat()
+            })
+        else:
+            remaining_unknown_scores.append(unknown_score)
+
+    existing_scores.extend(newly_known_scores)
+    existing_unknown_scores = remaining_unknown_scores
+
+    existing_scores_dict = {score["identifier"]: score for score in existing_scores}
+    existing_unknown_scores_dict = {score["identifier"]: score for score in existing_unknown_scores}
+
     for song in result["songs"]:
         processed_songs += 1
-        song_info = songs_dict.get(song["identifier"])
+        song_info = songs_dict.get(song["identifier"], None)
     
-        if song_info:
-            for score in song["scores"]:
-                if score["instrument"] == 9:  # drums
-                    existing_score = existing_scores_dict.get(song["identifier"])
-                    play_count = song["play_count"]
-                    
-                    if existing_score and score["score"] <= existing_score["score"] and play_count <= existing_score.get("play_count", 0):
+        for score in song["scores"]:
+            if score["instrument"] == 9:  # drums
+                play_count = song["play_count"]
+                score_data = {
+                    "identifier": song["identifier"],
+                    "song_name": song_info["name"] if song_info else f"Unknown Song: {song['identifier']}",
+                    "artist": song_info["artist"] if song_info else "Unknown Artist",
+                    "percent": score["percent"],
+                    "is_fc": score["is_fc"],
+                    "speed": score["speed"],
+                    "score": score["score"],
+                    "play_count": play_count,
+                    "posted": datetime.now(UTC).isoformat()
+                }
+
+                if song_info:
+                    existing_score = existing_scores_dict.get(song["identifier"], None)
+                    if existing_score and score["score"] < existing_score["score"]:
+                        logger.info(f"Score for song {song['identifier']} doesn't need to be updated. Skipping.")
+                        continue
+                    elif existing_score and score["score"] == existing_score["score"] and play_count <= existing_score.get("play_count", 0):
                         logger.info(f"Score for song {song['identifier']} doesn't need to be updated. Skipping.")
                         continue
 
-                    score_data = {
-                        "identifier": song["identifier"],
-                        "song_name": song_info["name"] if song_info else f"Unknown Song: {song['identifier']}",
-                        "artist": song_info["artist"] if song_info else "Unknown Artist",
-                        "percent": score["percent"],
-                        "is_fc": score["is_fc"],
-                        "speed": score["speed"],
-                        "score": score["score"],
-                        "play_count": play_count,
-                        "posted": datetime.now(UTC).isoformat()
-                    }
-
                     existing_scores_dict[song["identifier"]] = score_data
-                    
+                
                     leaderboard = song_info.get("leaderboard", []) or []
                     leaderboard_entry = {
                         "user_id": user_id,
@@ -158,8 +217,16 @@ def process_and_save_scores(result, user_id):
                         "leaderboard": leaderboard,
                         "last_update": datetime.now(UTC).isoformat()
                     })
-        else:
-            logger.info(f"Song with identifier {song['identifier']} not found in database. Skipping.")
+                else:
+                    existing_unknown_score = existing_unknown_scores_dict.get(song["identifier"], None)
+                    if existing_unknown_score and score["score"] <= existing_unknown_score["score"]:
+                        logger.info(f"Score for unknown song {song['identifier']} doesn't need to be updated. Skipping.")
+                        continue
+                    elif existing_unknown_score and score["score"] == existing_unknown_score["score"] and play_count <= existing_unknown_score.get("play_count", 0):
+                        logger.info(f"Score for unknown song {song['identifier']} doesn't need to be updated. Skipping.")
+                        continue
+
+                    existing_unknown_scores_dict[song["identifier"]] = score_data
         
         progress = (processed_songs / total_songs) * 100
         update_processing_status(user_id, "in_progress", progress, processed_songs, total_songs)
@@ -192,16 +259,13 @@ def process_and_save_scores(result, user_id):
     updated_scores = list(existing_scores_dict.values())
     updated_scores.sort(key=lambda x: x["score"], reverse=True)
 
-    total_scores = 0
-    total_fcs = 0
-    total_score = 0
-    total_percent = 0
+    updated_unknown_scores = list(existing_unknown_scores_dict.values())
+    updated_unknown_scores.sort(key=lambda x: x["score"], reverse=True)
 
-    for score in updated_scores:
-        total_scores += 1
-        total_fcs += 1 if score["is_fc"] else 0
-        total_score += score["score"]
-        total_percent += score["percent"]
+    total_scores = len(updated_scores) + len(updated_unknown_scores)
+    total_fcs = sum(1 for score in updated_scores if score["is_fc"]) + sum(1 for score in updated_unknown_scores if score["is_fc"])
+    total_score = sum(score["score"] for score in updated_scores) + sum(score["score"] for score in updated_unknown_scores)
+    total_percent = sum(score["percent"] for score in updated_scores) + sum(score["percent"] for score in updated_unknown_scores)
     
     avg_percent = total_percent / total_scores if total_scores > 0 else 0
     user_stats = {
@@ -217,6 +281,7 @@ def process_and_save_scores(result, user_id):
                   room=str(user_id))
     supabase.table("users").update({
         "scores": updated_scores,
+        "unknown_scores": updated_unknown_scores,
         "stats": user_stats
     }).eq("id", user_id).execute()
 
@@ -258,7 +323,7 @@ def upload_scoredata():
     if file and allowed_file(file.filename):
         if file.filename != "scoredata.bin":
             return jsonify({"error": "File must be named scoredata.bin"}), 400
-        if int(request.headers.get("Content-Length", 0)) > MAX_FILE_SIZE:
+        if int(request.headers.get("Content-Length", 0)) > MAX_SCOREDATA_FILE_SIZE:
             return jsonify({"error": "File size exceeds 1 MB limit"}), 400
         
         filename = secure_filename(file.filename)
@@ -332,3 +397,96 @@ def processing_status():
         }), 200
     else:
         return jsonify({"status": "no_active_processing"}), 404
+
+def find_file_path_for_md5(file_content, md5_hex, search_back=1024):
+    """
+    Searches for the specified MD5 hash in the binary file and extracts the relevant file path.
+    """
+    md5_bytes = bytes.fromhex(md5_hex)
+    start = 0
+    while True:
+        index = file_content.find(md5_bytes, start)
+        if index == -1:
+            return None  # No more occurrences found
+
+        start_search = max(index - search_back, 0)
+        pre_data = file_content[start_search:index]
+
+        decoded_string = pre_data.decode("utf-8", errors="ignore")
+
+        paths = [m.start() for m in re.finditer(r":\\", decoded_string, re.IGNORECASE)]
+        notes_mid_matches = [m.start() for m in re.finditer("notes.", decoded_string)]
+
+        if paths and notes_mid_matches:
+            last_path_start = paths[-1]
+            last_notes_mid_index = notes_mid_matches[-1]
+
+            path_end_index = last_notes_mid_index - 17
+            if path_end_index < last_path_start:
+                return None
+
+            file_path = decoded_string[last_path_start:path_end_index]
+            return file_path
+
+        start = index + len(md5_bytes)
+
+@bp.route("/api/upload_songcache", methods=["POST"])
+def upload_songcache():
+    auth_header = request.headers.get("Authorization")
+    logger = current_app.logger
+    if not auth_header:
+        return jsonify({"error": "No token provided"}), 401
+    try:
+        token = auth_header.split(" ")[1]
+        payload = jwt.decode(token, Config.JWT_SECRET, algorithms=["HS256"])
+        user_id = payload["user_id"]
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token has expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
+    
+    if "file" not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
+    if file and allowed_file(file.filename):
+        if file.filename != "songcache.bin":
+            return jsonify({"error": "File must be named songcache.bin"}), 400
+        if int(request.headers.get("Content-Length", 0)) > MAX_SONGCACHE_FILE_SIZE:
+            return jsonify({"error": "File size exceeds 10 MB limit"}), 400
+        
+        filename = secure_filename(file.filename)
+        upload_folder = Config.UPLOAD_FOLDER
+        if not os.path.exists(upload_folder):
+            os.makedirs(upload_folder)
+        filepath = os.path.join(upload_folder, filename)
+        file.save(filepath)
+        
+        try:
+            supabase = get_supabase()
+            user_data = supabase.table("users").select("unknown_scores").eq("id", user_id).execute().data
+            unknown_scores = user_data[0].get("unknown_scores", []) if user_data else []
+            
+            with open(filepath, "rb") as f:
+                file_content = f.read()
+            
+            updated_scores = []
+            for score in unknown_scores:
+                file_path = find_file_path_for_md5(file_content, score["identifier"])
+                if file_path:
+                    score["filepath"] = file_path
+                updated_scores.append(score)
+            
+            supabase.table("users").update({"unknown_scores": updated_scores}).eq("id", user_id).execute()
+            
+            return jsonify({"message": "Songcache processed successfully", "updated_scores": len(updated_scores)}), 200
+        except Exception as e:
+            logger.error(f"Error processing songcache: {str(e)}", exc_info=True)
+            return jsonify({"error": str(e)}), 500
+        finally:
+            if os.path.exists(filepath):
+                os.remove(filepath)
+    
+    logger.warning("Invalid file in upload request")
+    return jsonify({"error": "Invalid file"}), 400
