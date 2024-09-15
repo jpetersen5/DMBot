@@ -107,6 +107,54 @@ def process_and_save_scores(result, user_id):
         batch_songs_info = supabase.table("songs").select("*").in_("md5", batch).execute().data
         songs_dict.update({song["md5"]: song for song in batch_songs_info})
 
+    newly_known_scores = []
+    remaining_unknown_scores = []
+
+    for unknown_score in existing_unknown_scores:
+        song_info = songs_dict.get(unknown_score["identifier"])
+        if song_info:
+            score_data = {
+                "identifier": unknown_score["identifier"],
+                "song_name": song_info["name"],
+                "artist": song_info["artist"],
+                "percent": unknown_score["percent"],
+                "is_fc": unknown_score["is_fc"],
+                "speed": unknown_score["speed"],
+                "score": unknown_score["score"],
+                "play_count": unknown_score["play_count"],
+                "posted": datetime.now(UTC).isoformat()
+            }
+            newly_known_scores.append(score_data)
+            
+            leaderboard_entry = {
+                "user_id": user_id,
+                "username": username,
+                "score": unknown_score["score"],
+                "percent": unknown_score["percent"],
+                "is_fc": unknown_score["is_fc"],
+                "speed": unknown_score["speed"],
+                "play_count": unknown_score["play_count"],
+                "posted": datetime.now(UTC).isoformat()
+            }
+            leaderboard = song_info.get("leaderboard", []) or []
+            leaderboard.append(leaderboard_entry)
+            leaderboard = sort_and_rank_leaderboard(leaderboard)
+            
+            leaderboard_updates.append({
+                "md5": unknown_score["identifier"],
+                "name": song_info["name"],
+                "leaderboard": leaderboard,
+                "last_update": datetime.now(UTC).isoformat()
+            })
+        else:
+            remaining_unknown_scores.append(unknown_score)
+
+    existing_scores.extend(newly_known_scores)
+    existing_unknown_scores = remaining_unknown_scores
+
+    existing_scores_dict = {score["identifier"]: score for score in existing_scores}
+    existing_unknown_scores_dict = {score["identifier"]: score for score in existing_unknown_scores}
+
     for song in result["songs"]:
         processed_songs += 1
         song_info = songs_dict.get(song["identifier"], None)
