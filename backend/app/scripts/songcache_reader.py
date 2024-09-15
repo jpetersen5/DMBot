@@ -123,7 +123,7 @@ def find_md5_for_path(file_content, path):
         
         # Extract the MD5 hash (first 32 characters of the last 36 characters)
         if len(data_chunk) >= 36:
-            if data_chunk[-18] == 0:
+            if data_chunk[-18] == 0 or data_chunk[-18] == 107:
                 md5_hex = data_chunk[-17:-1].hex()
             else:
                 md5_hex = data_chunk[-18:-2].hex()
