@@ -15,7 +15,8 @@
     @include theme("color", "color-text");
 
     &:hover {
-      @include theme("background", "color-charter-hover");
+      @include theme("color", "color-button-text");
+      @include theme("background", "color-button-hover");
     }
 
     &.active {
