@@ -6,11 +6,13 @@ from ..extensions import socketio, redis
 from werkzeug.utils import secure_filename
 from datetime import datetime, UTC
 import os
+import re
 import jwt
 
 bp = Blueprint("scores", __name__)
 exec(get_process_songs_script())
-MAX_FILE_SIZE = 1024 * 1024 * 1 # 1 MB
+MAX_SCOREDATA_FILE_SIZE = 1024 * 1024 * 1 # 1 MB
+MAX_SONGCACHE_FILE_SIZE = 1024 * 1024 * 10 # 10 MB
 
 def update_processing_status(user_id, status, progress, processed, total):
     """
@@ -321,7 +323,7 @@ def upload_scoredata():
     if file and allowed_file(file.filename):
         if file.filename != "scoredata.bin":
             return jsonify({"error": "File must be named scoredata.bin"}), 400
-        if int(request.headers.get("Content-Length", 0)) > MAX_FILE_SIZE:
+        if int(request.headers.get("Content-Length", 0)) > MAX_SCOREDATA_FILE_SIZE:
             return jsonify({"error": "File size exceeds 1 MB limit"}), 400
         
         filename = secure_filename(file.filename)
@@ -395,3 +397,96 @@ def processing_status():
         }), 200
     else:
         return jsonify({"status": "no_active_processing"}), 404
+
+def find_file_path_for_md5(file_content, md5_hex, search_back=1024):
+    """
+    Searches for the specified MD5 hash in the binary file and extracts the relevant file path.
+    """
+    md5_bytes = bytes.fromhex(md5_hex)
+    start = 0
+    while True:
+        index = file_content.find(md5_bytes, start)
+        if index == -1:
+            return None  # No more occurrences found
+
+        start_search = max(index - search_back, 0)
+        pre_data = file_content[start_search:index]
+
+        decoded_string = pre_data.decode("utf-8", errors="ignore")
+
+        paths = [m.start() for m in re.finditer(r":\\", decoded_string, re.IGNORECASE)]
+        notes_mid_matches = [m.start() for m in re.finditer("notes.", decoded_string)]
+
+        if paths and notes_mid_matches:
+            last_path_start = paths[-1]
+            last_notes_mid_index = notes_mid_matches[-1]
+
+            path_end_index = last_notes_mid_index - 17
+            if path_end_index < last_path_start:
+                return None
+
+            file_path = decoded_string[last_path_start:path_end_index]
+            return file_path
+
+        start = index + len(md5_bytes)
+
+@bp.route("/api/upload_songcache", methods=["POST"])
+def upload_songcache():
+    auth_header = request.headers.get("Authorization")
+    logger = current_app.logger
+    if not auth_header:
+        return jsonify({"error": "No token provided"}), 401
+    try:
+        token = auth_header.split(" ")[1]
+        payload = jwt.decode(token, Config.JWT_SECRET, algorithms=["HS256"])
+        user_id = payload["user_id"]
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token has expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
+    
+    if "file" not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
+    if file and allowed_file(file.filename):
+        if file.filename != "songcache.bin":
+            return jsonify({"error": "File must be named songcache.bin"}), 400
+        if int(request.headers.get("Content-Length", 0)) > MAX_SONGCACHE_FILE_SIZE:
+            return jsonify({"error": "File size exceeds 10 MB limit"}), 400
+        
+        filename = secure_filename(file.filename)
+        upload_folder = Config.UPLOAD_FOLDER
+        if not os.path.exists(upload_folder):
+            os.makedirs(upload_folder)
+        filepath = os.path.join(upload_folder, filename)
+        file.save(filepath)
+        
+        try:
+            supabase = get_supabase()
+            user_data = supabase.table("users").select("unknown_scores").eq("id", user_id).execute().data
+            unknown_scores = user_data[0].get("unknown_scores", []) if user_data else []
+            
+            with open(filepath, "rb") as f:
+                file_content = f.read()
+            
+            updated_scores = []
+            for score in unknown_scores:
+                file_path = find_file_path_for_md5(file_content, score["identifier"])
+                if file_path:
+                    score["filepath"] = file_path
+                updated_scores.append(score)
+            
+            supabase.table("users").update({"unknown_scores": updated_scores}).eq("id", user_id).execute()
+            
+            return jsonify({"message": "Songcache processed successfully", "updated_scores": len(updated_scores)}), 200
+        except Exception as e:
+            logger.error(f"Error processing songcache: {str(e)}", exc_info=True)
+            return jsonify({"error": str(e)}), 500
+        finally:
+            if os.path.exists(filepath):
+                os.remove(filepath)
+    
+    logger.warning("Invalid file in upload request")
+    return jsonify({"error": "Invalid file"}), 400

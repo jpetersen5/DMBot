@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import LoadingSpinner from "../Loading/LoadingSpinner";
-import ScoreUpload from "./ScoreUpload";
-import UserScores from "./UserScores";
+import ScoreUpload from "./Scores/ScoreUpload";
+import UserScores from "./Scores/UserScores";
 import ProfileStats from "./ProfileStats";
 import CharterStats from "./Charter/CharterStats";
 import { Charter } from "../../utils/charter";
