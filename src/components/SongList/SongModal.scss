@@ -29,11 +29,17 @@
     @include theme("background", "color-sidebar");
     @include theme("color", "color-sidebar-text");
     .back-button {
+      display: flex;
+      align-items: center;
       position: absolute;
+      height: 30px;
+      width: 30px;
       right: 1rem;
       background-color: transparent;
       border: none;
+      border-radius: 4px;
       font-size: 1.5rem;
+      line-height: 1;
       transition: color 0.3s;
       @include theme("background", "color-button");
       @include theme("color", "color-button-text");

@@ -22,7 +22,7 @@
       font-weight: bold;
     }
 
-    .close {
+    .btn-close {
       opacity: 0.8;
       transition: opacity 0.3s;
       @include theme("color", "color-sidebar-text");
