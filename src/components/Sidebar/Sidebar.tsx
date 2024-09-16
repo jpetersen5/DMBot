@@ -21,8 +21,11 @@ const staticNavItems: NavItem[] = [
   { path: "/songs", name: "Songs", icon: SongsIcon },
 ];
 
-const themes = ["light", "dark"];
-let theme = themes[1];
+const themes = {
+  light: "light",
+  dark: "dark",
+}
+let theme = themes.dark;
 
 const toCapitalCase = (str: string) => {
   return (
@@ -41,7 +44,7 @@ const Sidebar: React.FC = () => {
   const storedTheme = localStorage.getItem("theme");
 
   if(storedTheme != null) {
-    theme = themes[parseInt(storedTheme)];
+    theme = storedTheme;
   }
   
   document.documentElement.classList.add(`theme-${theme}`);
@@ -61,9 +64,8 @@ const Sidebar: React.FC = () => {
     return true;
   }
 
-  const selectTheme = (i: number) => {
-    theme = themes[i];
-    localStorage.setItem("theme", i.toString());
+  const selectTheme = (theme: string) => {
+    localStorage.setItem("theme", theme);
 
     document.documentElement.className = "";
     document.documentElement.classList.add(`theme-${theme}`);
@@ -111,9 +113,9 @@ const Sidebar: React.FC = () => {
           </ul>
           <dialog id="themeDialog">
             <ul>
-              {themes.map((theme, index) => {
+              {Object.keys(themes).map((theme, index) => {
                 return (
-                  <li key={index} className="themeOption" onClick={() => selectTheme(index)}>
+                  <li key={index} className="themeOption" onClick={() => selectTheme(theme)}>
                     {toCapitalCase(theme)}
                   </li>
                 );

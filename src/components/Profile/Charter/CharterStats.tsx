@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Bar, Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
 import TooltipWrapper from "../../../utils/Tooltip/Tooltip";
@@ -15,6 +15,18 @@ interface CharterStatsProps {
 ChartJS.defaults.color = "#858585";
 
 const CharterStats: React.FC<CharterStatsProps> = ({ stats }) => {
+  const [chartColor, setChartColor] = useState("rgba(255, 255, 255, 0.6)");
+  const [chartBorderColor, setChartBorderColor] = useState("rgba(255, 255, 255, 1)");
+
+  useEffect(() => {
+    const updateColors = () => {
+      const theme = localStorage.getItem("theme") || "light";
+      setChartColor(theme === "light" ? "rgba(32, 32, 32, 0.6)" : "rgba(255, 255, 255, 0.6)");
+      setChartBorderColor(theme === "light" ? "rgba(32, 32, 32, 1)" : "rgba(255, 255, 255, 1)");
+    };
+    updateColors();
+  }, []);
+
   if (!stats) return (
     <div className="charter-stats">
       <h2>Charter Stats</h2>
@@ -44,7 +56,11 @@ const CharterStats: React.FC<CharterStatsProps> = ({ stats }) => {
       <div className="distributions">
         <div className="distribution-block">
           <h3>Difficulty Distribution</h3>
-          <DifficultyChart data={stats.difficulty_distribution} />
+          <DifficultyChart
+            data={stats.difficulty_distribution}
+            chartColor={chartColor}
+            chartBorderColor={chartBorderColor}
+          />
         </div>
         <div className="distribution-block">
           <h3>Genre Distribution</h3>
@@ -52,7 +68,10 @@ const CharterStats: React.FC<CharterStatsProps> = ({ stats }) => {
         </div>
         <div className="distribution-block">
           <h3>Year Distribution</h3>
-          <YearChart data={stats.year_distribution} />
+          <YearChart
+            data={stats.year_distribution}
+            chartBorderColor={chartBorderColor}
+          />
         </div>
       </div>
     </div>
@@ -73,6 +92,8 @@ const StatItem: React.FC<StatItemProps> = ({ label, value }) => (
 
 interface DistributionChartProps {
   data: { [key: string]: number };
+  chartColor?: string;
+  chartBorderColor?: string;
 }
 
 const DistributionChart: React.FC<DistributionChartProps> = ({ data }) => {
@@ -94,7 +115,7 @@ const DistributionChart: React.FC<DistributionChartProps> = ({ data }) => {
   );
 };
 
-const DifficultyChart: React.FC<DistributionChartProps> = ({ data }) => {
+const DifficultyChart: React.FC<DistributionChartProps> = ({ data, chartColor, chartBorderColor }) => {
   const sortedData = Object.entries(data).sort((a, b) => Number(a[0]) - Number(b[0]));
   const chartData = {
     labels: sortedData.map(([key]) => key),
@@ -102,8 +123,8 @@ const DifficultyChart: React.FC<DistributionChartProps> = ({ data }) => {
       {
         label: "Number of Charts",
         data: sortedData.map(([, value]) => value),
-        backgroundColor: "rgba(32, 32, 32, 0.6)",
-        borderColor: "rgba(32, 32, 32, 1)",
+        backgroundColor: chartColor,
+        borderColor: chartBorderColor,
         borderWidth: 1,
       },
     ],
@@ -120,7 +141,7 @@ const DifficultyChart: React.FC<DistributionChartProps> = ({ data }) => {
   return <Bar data={chartData} options={options} />;
 };
 
-const YearChart: React.FC<DistributionChartProps> = ({ data }) => {
+const YearChart: React.FC<DistributionChartProps> = ({ data, chartBorderColor }) => {
   const sortedData = Object.entries(data).sort((a, b) => Number(a[0]) - Number(b[0]));
   const chartData = {
     labels: sortedData.map(([key]) => key),
@@ -129,7 +150,7 @@ const YearChart: React.FC<DistributionChartProps> = ({ data }) => {
         label: "Number of Charts",
         data: sortedData.map(([, value]) => value),
         fill: false,
-        borderColor: "rgb(32, 32, 32)",
+        borderColor: chartBorderColor,
         tension: 0.1,
       },
     ],

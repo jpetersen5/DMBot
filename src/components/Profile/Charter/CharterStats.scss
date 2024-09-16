@@ -53,7 +53,7 @@
 
     .stat-value {
       font-size: 1.2rem;
-      @include theme("color", "color-text-secondary");
+      @include theme("color", "color-text");
     }
   }
 
