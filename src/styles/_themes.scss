@@ -60,7 +60,7 @@ $themes: (
     color-toggle-handle: $white,
     color-toggle-off: $light-grey-3,
     color-toggle-on: $light-grey-1,
-    filter-invert: 1,
+    filter-invert: invert(1),
   ),
   light: (
     color-background: $off-white,
@@ -97,6 +97,6 @@ $themes: (
     color-toggle-handle: $white,
     color-toggle-off: $light-grey-3,
     color-toggle-on: $dark-grey-3,
-    filter-invert: 0,
+    filter-invert: invert(0),
   ),
 );
