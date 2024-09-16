@@ -1,11 +1,16 @@
+@import "../../../styles/themes";
+@import "../../../styles/mixins";
+
 .unknown-song-modal {
   .modal-content {
-    background-color: #f0f0f0;
+    @include theme("background", "color-background");
+    @include theme("color", "color-text");
   }
 
   .modal-header {
-    background-color: #202020;
-    color: #fff;
+    border: none;
+    @include theme("background", "color-sidebar");
+    @include theme("color", "color-sidebar-text");
   }
 
   .modal-body {
@@ -25,17 +30,17 @@
       gap: 1rem;
 
       .action-button {
-        background-color: #202020;
-        color: #fff;
         border: none;
         padding: 0.5rem 1rem;
         font-size: 1rem;
         border-radius: 4px;
         cursor: pointer;
         transition: background-color 0.3s;
+        @include theme("background", "color-button");
+        @include theme("color", "color-button-text");
 
         &:hover {
-          background-color: #404040;
+          @include theme("background", "color-button-hover");
         }
 
         .loading-spinner {

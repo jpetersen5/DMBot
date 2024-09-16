@@ -33,8 +33,8 @@
     .toggle-label {
       margin-right: 0.5rem;
       font-size: 0.9rem;
-      color: #202020;
       user-select: none;
+      @include theme("color", "color-text");
     }
 
     .toggle-switch {
@@ -49,7 +49,7 @@
       height: 0;
 
       &:checked + .toggle-slider {
-        background-color: #202020;
+        @include theme("background", "color-toggle-on");
       }
 
       &:checked + .toggle-slider:before {
@@ -64,9 +64,9 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: #ccc;
       transition: 0.4s;
       border-radius: 20px;
+      @include theme("background", "color-toggle-off");
 
       &:before {
         position: absolute;
@@ -75,9 +75,9 @@
         width: 16px;
         left: 2px;
         bottom: 2px;
-        background-color: white;
         transition: 0.4s;
         border-radius: 50%;
+        @include theme("background", "color-toggle-handle");
       }
     }
   }

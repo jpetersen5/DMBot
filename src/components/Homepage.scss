@@ -91,12 +91,12 @@
         font-weight: 500;
 
         &.success {
-          background-color: $light-green;
+          background-color: $very-light-green;
           color: $dark-green;
         }
 
         &.error {
-          background-color: $light-red;
+          background-color: $very-light-red;
           color: $dark-red;
         }
       }
