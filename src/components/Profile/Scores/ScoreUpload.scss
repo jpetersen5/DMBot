@@ -112,7 +112,7 @@
   
       &.active {
         @include theme("background", "color-button");
-        @include theme("background", "color-button-text");
+        @include theme("color", "color-button-text");
       }
     }
   }

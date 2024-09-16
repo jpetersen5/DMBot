@@ -121,11 +121,15 @@
         .nav-link {
           border: none;
           @include theme("color", "color-text");
-          @include theme("background", "color-background");
 
           &.active {
-            @include theme("background", "color-button-hover");
             @include theme("color", "color-button-text");
+            @include theme("background", "color-button");
+          }
+
+          &:hover {
+            @include theme("color", "color-button-text");
+            @include theme("background", "color-button-hover");
           }
         }
       }
@@ -145,6 +149,7 @@
           .prev, .next {
             background-color: transparent;
             border: none;
+            border-radius: 4px;
             padding: 0.25rem 0.5rem;
             font-size: 1rem;
             cursor: pointer;
@@ -257,7 +262,6 @@
 
   .modal-footer {
     border: none;
-    @include theme("background", "color-sidebar");
 
     .close-button {
       border: none;
