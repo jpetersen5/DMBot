@@ -1,13 +1,16 @@
+@import "../../../styles/themes";
+@import "../../../styles/mixins";
+
 .charter-songs {
   margin-top: 2rem;
-  background-color: #f0f0f0;
   padding: 1rem;
   border-radius: 4px;
+  @include theme("background", "color-box");
 
   h2 {
     font-size: 1.5rem;
-    color: #202020;
     margin-bottom: 1rem;
+    @include theme("color", "color-text");
   }
 
   .control-bar {
@@ -29,25 +32,26 @@
   table {
     width: 100%;
     border-collapse: collapse;
-    background-color: #fff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-bottom: 1rem;
+    @include theme("background", "color-table-background-2");
+    @include theme("color", "color-table-text");
 
     th, td {
       padding: 0.75rem;
       text-align: left;
-      border-bottom: 1px solid #e0e0e0;
+      border: none;
     }
 
     th {
-      background-color: #202020;
-      color: #fff;
       font-weight: bold;
       cursor: pointer;
       user-select: none;
       white-space: nowrap;
       position: relative;
       padding-right: 20px;
+      @include theme("background", "color-table-header");
+      @include theme("color", "color-table-header-text");
 
       .header-content {
         display: flex;
@@ -56,52 +60,21 @@
       }
 
       &:hover {
-        background-color: #404040;
+        @include theme("background", "color-table-header-hover");
       }
+    }
+
+    tr {
+      @include theme("background", "color-table-background-1");
     }
 
     tr:nth-child(even) {
-      background-color: #f8f8f8;
+      @include theme("background", "color-table-background-2");
     }
 
     tr:hover {
-      background-color: #e8e8e8;
-    }
-  }
-
-  .pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 1rem;
-
-    button {
-      background-color: #202020;
-      color: #fff;
-      border: none;
-      padding: 0.5rem 1rem;
-      margin: 0 0.5rem;
       cursor: pointer;
-      transition: background-color 0.3s;
-
-      &:hover {
-        background-color: #404040;
-      }
-
-      &:disabled {
-        background-color: #888;
-        cursor: not-allowed;
-      }
-    }
-
-    span {
-      margin: 0 1rem;
-
-      input[type="number"] {
-        width: 50px;
-        padding: 0.25rem;
-        text-align: center;
-      }
+      @include theme("background", "color-table-hover");
     }
   }
 }

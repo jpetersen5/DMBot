@@ -6,7 +6,7 @@ export interface User {
 }
 
 const getColorFromId = (id: string): string => {
-  const hash = id.split('').reduce((acc, char) => {
+  const hash = id.split("").reduce((acc, char) => {
     acc = ((acc << 5) - acc) + char.charCodeAt(0);
     return acc & acc;
   }, 0);

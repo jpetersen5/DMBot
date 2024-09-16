@@ -1,15 +1,19 @@
+@import "../../../styles/themes";
+@import "../../../styles/mixins";
+
 .charter-stats {
-  background-color: #fff;
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
+  @include theme("background", "color-box");
 
   h2, h3 {
-    color: #202020;
     margin-bottom: 1rem;
-    border-bottom: 2px solid #202020;
+    border-bottom: 2px solid;
     padding-bottom: 0.5rem;
+    @include theme("color", "color-text");
+    @include theme("border-color", "color-text");
   }
 
   h2 {
@@ -18,9 +22,9 @@
 
   .last-updated {
     font-size: 0.8rem;
-    color: #404040;
     font-style: italic;
     margin-bottom: 1rem;
+    @include theme("color", "color-text-secondary");
   }
 
   h3 {
@@ -36,20 +40,20 @@
   }
 
   .stat-item {
-    background-color: #f0f0f0;
     padding: 1rem;
     border-radius: 4px;
+    @include theme("background", "color-box-secondary");
 
     .stat-label {
       font-weight: bold;
-      color: #202020;
       margin-bottom: 0.5rem;
       display: block;
+      @include theme("color", "color-text");
     }
 
     .stat-value {
       font-size: 1.2rem;
-      color: #404040;
+      @include theme("color", "color-text");
     }
   }
 
@@ -63,12 +67,12 @@
   .distribution-block {
     flex: 1;
     min-width: 300px;
-    height: 300px;
-    background-color: #f0f0f0;
+    height: 320px;
     padding: 1rem;
     border-radius: 4px;
     display: flex;
     flex-direction: column;
+    @include theme("background", "color-box-secondary");
   
     h3 {
       font-size: 1rem;
@@ -105,14 +109,14 @@
           left: 0;
           top: 50%;
           transform: translateY(-50%);
-          background-color: #202020;
-          color: #fff;
           font-weight: bold;
           font-size: 0.8rem;
           padding: 2px 6px;
           border-radius: 3px;
           white-space: nowrap;
           z-index: 1001;
+          @include theme("background", "color-tooltip");
+          @include theme("color", "color-tooltip-text");
         }
       }
 
@@ -130,16 +134,16 @@
 
       .bar-container {
         flex-grow: 1;
-        background-color: #e0e0e0;
         height: 15px;
         border-radius: 7px;
         overflow: hidden;
+        @include theme("background", "color-box");
       }
 
       .bar {
         height: 100%;
-        background-color: #202020;
         transition: width 0.3s ease;
+        @include theme("background", "color-text");
       }
 
       .bar-value {

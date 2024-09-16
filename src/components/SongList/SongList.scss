@@ -1,11 +1,14 @@
+@import "../../styles/themes";
+@import "../../styles/mixins";
+
 .song-list {
   padding: 2rem;
-  background-color: #f0f0f0;
+  @include theme("background", "color-background");
 
   h1 {
     font-size: 2rem;
-    color: #202020;
     margin-bottom: 1.5rem;
+    @include theme("color", "color-text");
   }
 
   .control-bar {
@@ -13,142 +16,31 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
-    
-    .table-controls, .search-controls {
-      display: flex;
-      align-items: center;
-      
-      label, select, input {
-        margin-right: 0.5rem;
-      }
-    }
-    
-    .pagination {
-      display: flex;
-      align-items: center;
-      
-      button, input {
-        margin: 0 0.25rem;
-      }
-    }
-
-    .search-controls {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-
-      .search-input-container {
-        position: relative;
-        display: flex;
-        align-items: center;
-
-        input[type="text"] {
-          padding: 0.5rem;
-          padding-right: 2.5rem;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-          font-size: 1rem;
-          width: 250px;
-        }
-
-        .filter-button {
-          position: absolute;
-          right: 0.5rem;
-          background: none;
-          border: none;
-          cursor: pointer;
-
-          img {
-            width: 20px;
-            height: 20px;
-          }
-        }
-
-        .filter-dropdown {
-          position: absolute;
-          top: 100%;
-          right: 0;
-          width: 200px;
-          background-color: white;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-          padding: 0.5rem;
-          z-index: 10;
-          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-
-          .filter-option {
-            display: block;
-            padding: 0.25rem;
-            cursor: pointer;
-
-            &:hover {
-              background-color: #f0f0f0;
-            }
-
-            input {
-              margin-right: 0.5rem;
-            }
-          }
-
-          .clear-filters-button {
-            display: block;
-            width: 100%;
-            padding: 0.5rem;
-            margin-top: 0.5rem;
-            background-color: #f0f0f0;
-            border: none;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            color: #202020;
-            cursor: pointer;
-            transition: background-color 0.3s;
-
-            &:hover {
-              background-color: #e0e0e0;
-            }
-          }
-        }
-      }
-
-      .search-button {
-        padding: 0.5rem 1rem;
-        background-color: #202020;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: background-color 0.3s;
-
-        &:hover {
-          background-color: #404040;
-        }
-      }
-    }
   }
   
   table {
     width: 100%;
     border-collapse: collapse;
-    background-color: #fff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-bottom: 1rem;
+    @include theme("background", "color-table-background-2");
+    @include theme("color", "color-table-text");
 
     th, td {
       padding: 0.75rem;
       text-align: left;
-      border-bottom: 1px solid #e0e0e0;
+      border: none;
     }
 
     th {
-      background-color: #202020;
-      color: #fff;
       font-weight: bold;
       cursor: pointer;
       user-select: none;
       white-space: nowrap;
       position: relative;
       padding-right: 20px;
+      @include theme("background", "color-table-header");
+      @include theme("color", "color-table-header-text");
 
       .header-content {
         display: flex;
@@ -157,53 +49,21 @@
       }
 
       &:hover {
-        background-color: #404040;
+        @include theme("background", "color-table-header-hover");
       }
+    }
+    
+    tr {
+      @include theme("background", "color-table-background-1");
     }
 
     tr:nth-child(even) {
-      background-color: #f8f8f8;
+      @include theme("background", "color-table-background-2");
     }
 
     tr:hover {
-      background-color: #e8e8e8;
-    }
-  }
-
-  .pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 1rem 0;
-
-    button {
-      background-color: #202020;
-      color: #fff;
-      border: none;
-      padding: 0.5rem 1rem;
-      margin: 0 0.5rem;
       cursor: pointer;
-      transition: background-color 0.3s;
-
-      &:hover {
-        background-color: #404040;
-      }
-
-      &:disabled {
-        background-color: #888;
-        cursor: not-allowed;
-      }
-    }
-
-    span {
-      margin: 0 1rem;
-
-      input[type="number"] {
-        width: 50px;
-        margin-right: 0.25rem;
-        padding: 0.25rem;
-        text-align: center;
-      }
+      @include theme("background", "color-table-hover");
     }
   }
 }

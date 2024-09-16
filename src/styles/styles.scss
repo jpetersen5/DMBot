@@ -1,0 +1,16 @@
+@import "../styles/themes";
+@import "../styles/mixins";
+
+@import "../components/Homepage.scss";
+@import "../components/Auth/Auth.scss";
+@import "../components/Profile/ProfilePage.scss";
+@import "../components/Sidebar/Sidebar.scss";
+@import "../components/SongList/SongList.scss";
+@import "../components/SongList/SongModal.scss";
+@import "../components/UserGrid/UserGrid.scss";
+
+.app-container {
+  display: flex;
+}
+
+@include master-theme("background", "color-background");

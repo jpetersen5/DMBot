@@ -93,7 +93,7 @@ const ProfilePage: React.FC = () => {
                         className="charter-select"
                       >
                         {charters.map((charter) => (
-                          <option key={charter.id} value={charter.id}>
+                          <option className="charter-option" key={charter.id} value={charter.id}>
                             {charter.name}
                           </option>
                         ))}

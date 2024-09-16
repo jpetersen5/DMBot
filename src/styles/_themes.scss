@@ -1,0 +1,102 @@
+$black: #000000;
+$white: #FFFFFF;
+$red: #F04747;
+$grey-red: #D03636;
+$dark-red: #721c24;
+$very-light-red: #F8D7DA;
+$green: #28a745;
+$grey-green: #218838;
+$dark-green: #155724;
+$very-light-green: #D4EDDA;
+$discord-blue: #7289DA;
+$discord-blue-dark: #5A6EB8;
+$off-white: #F8F9FA;
+
+// dark mode
+$dark-grey-0: #121212;
+$dark-grey-1: #1E1E1E;
+$dark-grey-2: #2D2D2D;
+$dark-grey-3: #3D3D3D;
+$dark-grey-4: #4D4D4D;
+$light-grey-1: #9E9E9E;
+$light-grey-2: #BDBDBD;
+$light-grey-3: #E0E0E0;
+$very-light-grey-1: #EEEEEE;
+$very-light-grey-2: #F5F5F5;
+
+$themes: (
+  dark: (
+    color-background: $dark-grey-0,
+    color-box: $dark-grey-2,
+    color-box-secondary: $dark-grey-3,
+    color-button: $dark-grey-4,
+    color-button-text: $white,
+    color-button-hover: $light-grey-1,
+    color-button-disabled: $light-grey-1,
+    color-button-secondary: $dark-grey-3,
+    color-button-secondary-text: $light-grey-2,
+    color-button-secondary-hover: $dark-grey-4,
+    color-text: $light-grey-3,
+    color-text-secondary: $light-grey-2,
+    color-sidebar: $dark-grey-2,
+    color-sidebar-text: $light-grey-3,
+    color-sidebar-hover: $dark-grey-3,
+    color-icon: $light-grey-2,
+    color-table-text: $light-grey-3,
+    color-table-header: $dark-grey-1,
+    color-table-header-text: $white,
+    color-table-header-hover: $dark-grey-2,
+    color-table-background-1: $dark-grey-3,
+    color-table-background-2: $dark-grey-4,
+    color-table-hover: $dark-grey-4,
+    color-table-div: $dark-grey-4,
+    color-charter-hover: $dark-grey-4,
+    color-dropdown: $dark-grey-2,
+    color-dropdown-highlight: $dark-grey-3,
+    color-dropdown-text: $light-grey-2,
+    color-border: $dark-grey-3,
+    color-tooltip: $dark-grey-2,
+    color-tooltip-text: $white,
+    color-toggle-handle: $white,
+    color-toggle-off: $light-grey-3,
+    color-toggle-on: $light-grey-1,
+    filter-invert: invert(1),
+  ),
+  light: (
+    color-background: $off-white,
+    color-box: $white,
+    color-box-secondary: $very-light-grey-2,
+    color-button: $dark-grey-2,
+    color-button-text: $white,
+    color-button-hover: $dark-grey-3,
+    color-button-disabled: $light-grey-2,
+    color-button-secondary: $off-white,
+    color-button-secondary-text: $dark-grey-4,
+    color-button-secondary-hover: $very-light-grey-2,
+    color-text: $dark-grey-2,
+    color-text-secondary: $dark-grey-3,
+    color-sidebar: $dark-grey-2,
+    color-sidebar-text: $white,
+    color-sidebar-hover: $dark-grey-3,
+    color-icon: $white,
+    color-table-text: $dark-grey-4,
+    color-table-header: $dark-grey-2,
+    color-table-header-text: $white,
+    color-table-header-hover: $dark-grey-3,
+    color-table-background-1: $white,
+    color-table-background-2: $very-light-grey-2,
+    color-table-hover: $light-grey-3,
+    color-table-div: $light-grey-2,
+    color-charter-hover: $dark-grey-3,
+    color-dropdown: $white,
+    color-dropdown-highlight: $very-light-grey-2,
+    color-dropdown-text: $dark-grey-4,
+    color-border: $light-grey-2,
+    color-tooltip: $dark-grey-3,
+    color-tooltip-text: $white,
+    color-toggle-handle: $white,
+    color-toggle-off: $light-grey-3,
+    color-toggle-on: $dark-grey-3,
+    filter-invert: invert(0),
+  ),
+);

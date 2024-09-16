@@ -1,39 +1,42 @@
+@import "../../styles/themes";
+@import "../../styles/mixins";
+
 .login-page {
   max-width: 400px;
   margin: 2rem auto;
   padding: 2rem;
-  background-color: #f0f0f0;
-  color: #333;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  @include theme("background", "color-box");
+  @include theme("color", "color-text");
 
   h1 {
     font-size: 2rem;
-    color: #202020;
     margin-bottom: 1.5rem;
     border-bottom: 2px solid #202020;
     padding-bottom: 0.5rem;
+    @include theme("color", "color-text");
   }
 
   p {
     margin-bottom: 2rem;
-    color: #666;
+    @include theme("color", "color-text-secondary");
   }
 
   .auth-button {
     display: block;
     width: 100%;
     padding: 1rem;
-    background-color: #202020;
-    color: #fff;
     border: none;
     border-radius: 4px;
     font-size: 1.1rem;
     cursor: pointer;
     transition: background-color 0.3s;
+    @include theme("background", "color-button");
+    @include theme("color", "color-button-text");
 
     &:hover {
-      background-color: #404040;
+      @include theme("background", "color-button-hover");
     }
 
     &:focus {

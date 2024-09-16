@@ -1,3 +1,6 @@
+@import "../../styles/themes";
+@import "../../styles/mixins";
+
 .auth-container {
   display: flex;
   flex-direction: column;
@@ -34,25 +37,25 @@
 }
 
 .login-button {
-  background-color: #7289DA;
-  color: white;
+  background-color: $discord-blue;
+  color: $white;
 
   &:hover {
-    background-color: #5a6eb8;
+    background-color: $discord-blue-dark;
   }
 }
 
 .logout-button {
-  background-color: #f04747;
-  color: white;
+  background-color: $red;
+  color: $white;
 
   &:hover {
-    background-color: #d03636;
+    background-color: $grey-red;
   }
 }
 
 .auth-loading {
   text-align: center;
   font-style: italic;
-  color: #777;
+  color: $light-grey-1;
 }

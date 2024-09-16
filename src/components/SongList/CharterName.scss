@@ -1,3 +1,6 @@
+@import "../../styles/themes";
+@import "../../styles/mixins";
+
 .charter-name {
   a {
     text-decoration: none;
@@ -9,9 +12,11 @@
     cursor: pointer;
     transition: background-color 0.3s;
     transition: transform 0.3s;
+    @include theme("color", "color-text");
 
     &:hover {
-      background-color: #d0d0d0;
+      @include theme("color", "color-button-text");
+      @include theme("background", "color-button-hover");
     }
 
     &.active {

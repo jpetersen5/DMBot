@@ -1,16 +1,21 @@
+@import "../../styles/themes";
+@import "../../styles/mixins";
+
 .profile-stats {
-  background-color: #fff;
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
+  @include theme("background", "color-box");
+  @include theme("color", "color-text");
 
   h2 {
     font-size: 1.5rem;
-    color: #202020;
     margin-bottom: 1rem;
-    border-bottom: 2px solid #202020;
+    border-bottom: 2px solid;
     padding-bottom: 0.5rem;
+    @include theme("color", "color-text");
+    @include theme("border-color", "color-text");
   }
 
   .stats-grid {
@@ -21,19 +26,19 @@
     .stat-item {
       display: flex;
       flex-direction: column;
-      background-color: #f0f0f0;
       padding: 1rem;
       border-radius: 4px;
+      @include theme("background", "color-box");
 
       .stat-label {
         font-weight: bold;
-        color: #202020;
         margin-bottom: 0.5rem;
+        @include theme("color", "color-text");
       }
 
       .stat-value {
         font-size: 1.2rem;
-        color: #404040;
+        @include theme("color", "color-text-secondary");
       }
     }
   }

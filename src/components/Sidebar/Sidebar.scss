@@ -1,13 +1,15 @@
+@import "../../styles/themes";
+@import "../../styles/mixins";
+
 .sidebar {
   position: fixed;
   top: 0;
   left: 0;
   height: 100vh;
-  background-color: #202020;
-  color: white;
   transition: width 0.3s ease;
   width: 44px;
   overflow-x: hidden;
+  @include theme("background", "color-sidebar");
 
   &.open {
     width: 200px;
@@ -19,9 +21,9 @@
     right: 10px;
     background: none;
     border: none;
-    color: white;
     font-size: 20px;
     cursor: pointer;
+    @include theme("color", "color-icon");
   }
 
   .nav-menu {
@@ -35,13 +37,14 @@
       a {
         display: flex;
         align-items: center;
-        color: white;
         text-decoration: none;
         padding: 10px;
+        cursor: pointer;
+        @include theme("color", "color-sidebar-text");
 
         li {
           display: flex;
-          
+
           .icon {
             flex: 0 0 24px;
             height: 24px;
@@ -66,7 +69,7 @@
         }
 
         &:hover {
-          background-color: #404040;
+          @include theme("background", "color-sidebar-hover");
         }
       }
     }
@@ -79,7 +82,7 @@
     transform: translateX(-50%);
     .version {
       font-size: 16px;
-      color: #808080;
+      color: $light-grey-2;
       cursor: help;
     }
   }
