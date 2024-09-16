@@ -104,7 +104,7 @@
       img {
         width: 20px;
         height: 20px;
-        @include theme("filter", "invert(1)");
+        @include theme("filter", "filter-invert");
       }
     }
   }
@@ -135,6 +135,7 @@
   padding: 0.5rem;
   z-index: 10;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  @include theme("color", "color-text");
   @include theme("background", "color-dropdown");
   @include theme("border-color", "color-border");
 

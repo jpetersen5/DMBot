@@ -119,6 +119,8 @@
       display: flex;
 
       .nav-tabs {
+        border: none;
+        
         .nav-link {
           border: none;
           @include theme("color", "color-text");

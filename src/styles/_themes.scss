@@ -13,6 +13,7 @@ $discord-blue-dark: #5A6EB8;
 $off-white: #F8F9FA;
 
 // dark mode
+$dark-grey-0: #121212;
 $dark-grey-1: #1E1E1E;
 $dark-grey-2: #2D2D2D;
 $dark-grey-3: #3D3D3D;
@@ -25,13 +26,13 @@ $very-light-grey-2: #F5F5F5;
 
 $themes: (
   dark: (
-    color-background: $dark-grey-1,
+    color-background: $dark-grey-0,
     color-box: $dark-grey-2,
     color-box-secondary: $dark-grey-3,
     color-button: $dark-grey-4,
     color-button-text: $white,
     color-button-hover: $light-grey-1,
-    color-button-disabled: $dark-grey-3,
+    color-button-disabled: $light-grey-1,
     color-button-secondary: $dark-grey-3,
     color-button-secondary-text: $light-grey-2,
     color-button-secondary-hover: $dark-grey-4,
@@ -42,11 +43,11 @@ $themes: (
     color-sidebar-hover: $dark-grey-3,
     color-icon: $light-grey-2,
     color-table-text: $light-grey-3,
-    color-table-header: $dark-grey-3,
+    color-table-header: $dark-grey-1,
     color-table-header-text: $white,
-    color-table-header-hover: $dark-grey-4,
-    color-table-background-1: $dark-grey-2,
-    color-table-background-2: $dark-grey-3,
+    color-table-header-hover: $dark-grey-2,
+    color-table-background-1: $dark-grey-3,
+    color-table-background-2: $dark-grey-4,
     color-table-hover: $dark-grey-4,
     color-table-div: $dark-grey-4,
     color-charter-hover: $dark-grey-4,
@@ -59,6 +60,7 @@ $themes: (
     color-toggle-handle: $white,
     color-toggle-off: $light-grey-3,
     color-toggle-on: $light-grey-1,
+    filter-invert: 1,
   ),
   light: (
     color-background: $off-white,
@@ -95,5 +97,6 @@ $themes: (
     color-toggle-handle: $white,
     color-toggle-off: $light-grey-3,
     color-toggle-on: $dark-grey-3,
+    filter-invert: 0,
   ),
 );
