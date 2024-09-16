@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import UploadProgress from "./UploadProgress";
+import ThemeModal from "./Themes/ThemeModal";
 import { useAuth } from "../../context/AuthContext";
 import Tooltip from "../../utils/Tooltip/Tooltip";
 import "./Sidebar.scss";
@@ -16,62 +17,38 @@ interface NavItem {
   icon: string;
 }
 
+const themes = {
+  dark: "dark",
+  light: "light",
+};
+
 const staticNavItems: NavItem[] = [
   { path: "/", name: "Home", icon: HomeIcon },
   { path: "/songs", name: "Songs", icon: SongsIcon },
 ];
 
-const themes = {
-  light: "light",
-  dark: "dark",
-}
-let theme = themes.dark;
-
-const toCapitalCase = (str: string) => {
-  return (
-    str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
-  );
-};
-
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
   const { user } = useAuth();
+
+  const storedTheme = localStorage.getItem("theme") || "light";
+  useEffect(() => {
+    document.documentElement.className = "";
+    document.documentElement.classList.add(`theme-${storedTheme}`);
+  }, [storedTheme]);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
 
-  const storedTheme = localStorage.getItem("theme");
+  const openThemeModal = () => {
+    setIsThemeModalOpen(true);
+  };
 
-  if(storedTheme != null) {
-    theme = storedTheme;
-  }
-  
-  document.documentElement.classList.add(`theme-${theme}`);
-
-  const dialog: HTMLDialogElement = document.getElementById("themeDialog") as HTMLDialogElement;
-  let themeDialogOpen = dialog?.open;
-
-  const toggleThemeDialog = () => {
-    themeDialogOpen = !themeDialogOpen;
-
-    if(themeDialogOpen) {
-      dialog?.show();
-    } else {
-      dialog?.close();
-    }
-    
-    return true;
-  }
-
-  const selectTheme = (theme: string) => {
-    localStorage.setItem("theme", theme);
-
-    document.documentElement.className = "";
-    document.documentElement.classList.add(`theme-${theme}`);
-
-    return true;
-  }
+  const closeThemeModal = () => {
+    setIsThemeModalOpen(false);
+  };
 
   const profileNavItem: NavItem = {
     path: user ? `/user/${user.id}` : "/login",
@@ -102,7 +79,7 @@ const Sidebar: React.FC = () => {
                 </li>
               </Link>
             ))}
-            <a onClick={toggleThemeDialog}>
+            <a onClick={openThemeModal}>
               <li>
                 <span className="icon">
                   <img src={ThemesIcon} alt="Themes" />
@@ -111,17 +88,6 @@ const Sidebar: React.FC = () => {
               </li>
             </a>
           </ul>
-          <dialog id="themeDialog">
-            <ul>
-              {Object.keys(themes).map((theme, index) => {
-                return (
-                  <li key={index} className="themeOption" onClick={() => selectTheme(theme)}>
-                    {toCapitalCase(theme)}
-                  </li>
-                );
-              })}
-            </ul>
-          </dialog>
         </nav>
         {isOpen && (
           <Tooltip text={`Last updated: ${commitDate}`}>
@@ -129,6 +95,11 @@ const Sidebar: React.FC = () => {
           </Tooltip>
         )}
       </div>
+      <ThemeModal
+        isOpen={isThemeModalOpen}
+        onClose={closeThemeModal}
+        themes={themes}
+      />
       <UploadProgress />
     </>
   );

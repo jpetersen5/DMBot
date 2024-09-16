@@ -1,0 +1,75 @@
+@import "../../../styles/themes";
+@import "../../../styles/mixins";
+
+.theme-modal {
+  .modal-content {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    @include theme("background", "color-background");
+    @include theme("color", "color-text");
+  }
+
+  .modal-header {
+    border-bottom: none;
+    padding: 1rem 1.5rem;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    @include theme("background", "color-sidebar");
+    @include theme("color", "color-sidebar-text");
+
+    .modal-title {
+      font-weight: bold;
+    }
+
+    .close {
+      opacity: 0.8;
+      transition: opacity 0.3s;
+      @include theme("color", "color-sidebar-text");
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+  }
+
+  .theme-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .theme-option {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+    @include theme("background", "color-box");
+    @include theme("color", "color-text");
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      @include theme("background", "color-dropdown-highlight");
+    }
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    .theme-icon {
+      width: 24px;
+      height: 24px;
+      margin-right: 0.75rem;
+      @include theme("filter", "filter-invert");
+    }
+  }
+}

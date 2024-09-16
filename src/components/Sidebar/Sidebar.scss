@@ -100,24 +100,6 @@
       }
     }
   }
-
-  #themeDialog {
-    border: 1px solid;
-    width: 95%;
-    padding: 0;
-    @include theme("background", "color-dropdown");
-    @include theme("color", "color-dropdown-text");
-    @include theme("border-color", "color-text");
-
-    .themeOption {
-      padding: 0.1rem;
-      cursor: pointer;
-    }
-
-    .themeOption:hover {
-      @include theme("background", "color-dropdown-highlight");
-    }
-  }
 }
 
 .main-content {
