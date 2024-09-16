@@ -136,42 +136,4 @@
       @include theme("background", "color-table-hover");
     }
   }
-
-  .pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 1rem;
-    @include theme("color", "color-text");
-
-    button {
-      border: none;
-      padding: 0.5rem 1rem;
-      margin: 0 0.5rem;
-      cursor: pointer;
-      transition: background-color 0.3s;
-      @include theme("background", "color-button");
-      @include theme("color", "color-button-text");
-
-      &:hover {
-        @include theme("background", "color-button-hover");
-      }
-
-      &:disabled {
-        cursor: not-allowed;
-        @include theme("background", "color-button-disabled");
-      }
-    }
-
-    span {
-      margin: 0 1rem;
-
-      input[type="number"] {
-        width: 50px;
-        padding: 0.25rem;
-        margin-right: 0.25rem;
-        text-align: center;
-      }
-    }
-  }
 }

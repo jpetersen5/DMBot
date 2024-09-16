@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useClickOutside } from "../../utils/handleClickOutside";
+import "./TableControls.scss";
 
 import FilterIcon from "../../assets/filter.svg";
 

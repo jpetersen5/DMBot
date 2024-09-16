@@ -1,0 +1,173 @@
+@import "../../styles/themes";
+@import "../../styles/mixins";
+
+.table-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  @include theme("color", "color-text");
+
+  label {
+    margin-right: 0.5rem;
+  }
+
+  select {
+    padding: 0.5rem;
+    border: 1px solid;
+    border-radius: 4px;
+    font-size: 1rem;
+    @include theme("border-color", "color-border");
+    @include theme("background", "color-dropdown");
+    @include theme("color", "color-dropdown-text");
+
+    &:hover {
+      @include theme("background", "color-dropdown-highlight");
+    }
+  }
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  @include theme("color", "color-text");
+
+  button {
+    border: none;
+    padding: 0.5rem 1rem;
+    margin: 0 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    border-radius: 4px;
+    @include theme("background", "color-button");
+    @include theme("color", "color-button-text");
+
+    &:hover {
+      @include theme("background", "color-button-hover");
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      @include theme("background", "color-button-disabled");
+    }
+  }
+
+  .pages {
+    display: flex;
+    align-items: center;
+    margin: 0 1rem;
+
+    input[type="number"] {
+      width: 50px;
+      padding: 0.25rem;
+      margin: 0 0.5rem;
+      text-align: center;
+      border: 1px solid;
+      border-radius: 4px;
+      @include theme("border-color", "color-border");
+      @include theme("background", "color-dropdown");
+      @include theme("color", "color-dropdown-text");
+    }
+  }
+}
+
+.search-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  .search-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    input[type="text"] {
+      padding: 0.5rem;
+      padding-right: 2.5rem;
+      border: 1px solid;
+      border-radius: 4px;
+      font-size: 1rem;
+      width: 250px;
+      @include theme("border-color", "color-border");
+      @include theme("background", "color-dropdown");
+      @include theme("color", "color-dropdown-text");
+    }
+
+    .filter-button {
+      position: absolute;
+      right: 0.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+
+      img {
+        width: 20px;
+        height: 20px;
+        @include theme("filter", "invert(1)");
+      }
+    }
+  }
+
+  .search-button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    @include theme("background", "color-button");
+    @include theme("color", "color-button-text");
+
+    &:hover {
+      @include theme("background", "color-button-hover");
+    }
+  }
+}
+
+.filter-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 200px;
+  border: 1px solid;
+  border-radius: 4px;
+  padding: 0.5rem;
+  z-index: 10;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  @include theme("background", "color-dropdown");
+  @include theme("border-color", "color-border");
+
+  .filter-option {
+    display: block;
+    padding: 0.25rem;
+    cursor: pointer;
+
+    &:hover {
+      @include theme("background", "color-dropdown-highlight");
+    }
+
+    input {
+      margin-right: 0.5rem;
+      cursor: pointer;
+    }
+  }
+
+  .clear-filters-button {
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    @include theme("background", "color-button");
+    @include theme("color", "color-button-text");
+
+    &:hover {
+      @include theme("background", "color-button-hover");
+    }
+  }
+}
