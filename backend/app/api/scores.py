@@ -86,6 +86,7 @@ def process_and_save_scores(result, user_id):
     if existing_scores:
         existing_scores_dict = {score["identifier"]: score for score in existing_scores}
     else:
+        existing_scores = []
         logger.info("No existing scores found for user")
 
     existing_unknown_scores = user_data[0].get("unknown_scores", []) if user_data else []
@@ -93,6 +94,7 @@ def process_and_save_scores(result, user_id):
     if existing_unknown_scores:
         existing_unknown_scores_dict = {score["identifier"]: score for score in existing_unknown_scores}
     else:
+        existing_unknown_scores = []
         logger.info("No existing unknown scores found for user")
 
     batch_size = 100
@@ -151,11 +153,20 @@ def process_and_save_scores(result, user_id):
         else:
             remaining_unknown_scores.append(unknown_score)
 
-    existing_scores.extend(newly_known_scores)
+    if existing_scores:
+        existing_scores.extend(newly_known_scores)
+    else:
+        existing_scores = newly_known_scores
     existing_unknown_scores = remaining_unknown_scores
 
-    existing_scores_dict = {score["identifier"]: score for score in existing_scores}
-    existing_unknown_scores_dict = {score["identifier"]: score for score in existing_unknown_scores}
+    if existing_scores:
+        existing_scores_dict = {score["identifier"]: score for score in existing_scores}
+    else:
+        existing_scores_dict = {}
+    if existing_unknown_scores:
+        existing_unknown_scores_dict = {score["identifier"]: score for score in existing_unknown_scores}
+    else:
+        existing_unknown_scores_dict = {}
 
     for song in result["songs"]:
         processed_songs += 1
