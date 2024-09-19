@@ -280,7 +280,7 @@ const ScoreTableRow: React.FC<ScoreTableRowProps> = ({ score, onClick }) => {
       <SongTableCell content={score.percent.toString()} special={score.is_fc ? "fc_percent" : "percent"} />
       <SongTableCell content={score.speed.toString()} special="percent" />
       <SongTableCell content={score.is_fc ? "Yes" : "No"} />
-      <SongTableCell content={score.play_count.toString()} />
+      <SongTableCell content={score.play_count ? score.play_count.toString() : "N/A"} />
       <SongTableCell content={score.posted} special="last_update" />
     </tr>
   );
