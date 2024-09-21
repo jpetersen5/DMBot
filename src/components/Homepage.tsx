@@ -44,7 +44,6 @@ const Homepage: React.FC = () => {
         <img src={BannerImage1} alt="DMBot Banner Pt 1" className="banner-image" />
         <img src={BannerImage2} alt="DMBot Banner Pt 2" className="banner-image" />
       </div>
-      <p className="subtitle">Give us a minute, we're under construction.</p>
       <div className="status-container">
         <Status label="Backend" value={backendStatus} />
         <Status label="Database" value={dbStatus} />
