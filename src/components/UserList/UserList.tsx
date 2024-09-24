@@ -54,7 +54,7 @@ const UserList: React.FC = () => {
     let result = [...users];
 
     if (filter === "has-stats") {
-      result = result.filter(user => user.stats);
+      result = result.filter(user => user.stats && Object.values(user.stats).some(value => value !== 0));
     }
 
     result.sort((a, b) => {
