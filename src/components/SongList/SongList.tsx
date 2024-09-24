@@ -79,7 +79,7 @@ const SongList: React.FC = () => {
     if (search) params.set("search", search);
     if (filters.length > 0) params.set("filter", commaSeparatedFilters);
 
-    navigate(`/songs?${params.toString()}`, { replace: true });
+    navigate(`/songs${songId ? `/${songId}` : ""}?${params.toString()}`, { replace: true });
   };
 
   const getCacheKey = () => {
