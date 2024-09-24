@@ -100,6 +100,10 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
   };
 
   const renderComparisonResults = () => {
+    if (!comparisonResults && !comparisonError && !isLoading) {
+      return null;
+    }
+
     return (
       <div className="comparison-results">
         <h4>Comparison Results</h4>
