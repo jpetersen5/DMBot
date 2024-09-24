@@ -1,0 +1,133 @@
+@import "../../styles/themes";
+@import "../../styles/mixins";
+
+.user-compare-modal {
+  .modal-content {
+    @include theme("background", "color-background");
+    @include theme("color", "color-text");
+  }
+
+  .modal-header {
+    @include theme("background", "color-sidebar");
+    @include theme("color", "color-sidebar-text");
+  }
+
+  .user-compare-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .user-compare-side {
+    width: 45%;
+  }
+
+  .vs {
+    font-size: 2rem;
+    font-weight: bold;
+    align-self: center;
+  }
+
+  .selected-user {
+    text-align: center;
+
+    .user-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      margin-bottom: 1rem;
+    }
+
+    .user-name {
+      margin-bottom: 1rem;
+      cursor: pointer;
+      transition: color 0.3s;
+
+      &:hover {
+        @include theme("color", "color-button-hover");
+      }
+
+      // display down arrow next to user name
+      &::after {
+        content: "▼";
+        font-size: 1.2rem;
+        display: inline-block;
+        margin-left: 0.5rem;
+      }
+    }
+
+    .user-stats {
+      text-align: left;
+
+      &.left {
+        .stat-row {
+          flex-direction: row;
+          .stat-label { text-align: left; }
+          .stat-value { text-align: right; }
+        }
+      }
+
+      &.right {
+        .stat-row {
+          flex-direction: row-reverse;
+          .stat-label { text-align: right; }
+          .stat-value { text-align: left; }
+        }
+      }
+
+      .stat-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+
+        .stat-label, .stat-value {
+          width: 50%;
+        }
+
+        .stat-label {
+          font-weight: bold;
+        }
+      }
+    }
+  }
+
+  .user-select {
+    input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid;
+      border-radius: 4px;
+      @include theme("background", "color-dropdown");
+      @include theme("color", "color-dropdown-text");
+      @include theme("border-color", "color-border");
+    }
+
+    .user-dropdown {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid;
+      border-radius: 4px;
+      @include theme("background", "color-dropdown");
+      @include theme("border-color", "color-border");
+    }
+
+    .user-option {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem;
+      cursor: pointer;
+
+      &:hover {
+        @include theme("background", "color-dropdown-highlight");
+      }
+
+      .user-avatar-small {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+      }
+    }
+  }
+}

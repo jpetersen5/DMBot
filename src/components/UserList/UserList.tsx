@@ -2,9 +2,10 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { API_URL } from "../../App";
 import { Search } from "../SongList/TableControls";
+import LoadingSpinner from "../Loading/LoadingSpinner";
+import UserCompareModal from "./UserCompareModal";
 import { User, getUserImageSrc, getFallbackImage } from "../../utils/user";
 import { useAuth } from "../../context/AuthContext";
-import LoadingSpinner from "../Loading/LoadingSpinner";
 import "./UserList.scss";
 
 export const UserAvatar: React.FC<{ user: User }> = ({ user }) => {
@@ -22,14 +23,15 @@ export const UserAvatar: React.FC<{ user: User }> = ({ user }) => {
 };
 
 const UserList: React.FC = () => {
+  const { user } = useAuth();
+  const currentUserId = user?.id;
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [sortBy, setSortBy] = useState("username");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const { user } = useAuth();
-  const currentUserId = user?.id;
+  const [showCompareModal, setShowCompareModal] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -95,22 +97,23 @@ const UserList: React.FC = () => {
     <div className="user-list">
       <h1>User List</h1>
       <div className="user-list-controls">
-        <div className="controls-left">
-          <div className="sort-controls">
-            <label>
-              Sort by:
-              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-                <option value="username">Username</option>
-                <option value="stats_total_score">Total Score</option>
-                <option value="stats_total_scores">Number of Scores</option>
-                <option value="stats_total_fcs">Total FCs</option>
-                <option value="stats_avg_percent">Average Percent</option>
-              </select>
-            </label>
-            <button onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}>
-              {sortOrder === "asc" ? "▲" : "▼"}
-            </button>
-          </div>
+        <div className="sort-controls">
+          <label>
+            Sort by:
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+              <option value="username">Username</option>
+              <option value="stats_total_score">Total Score</option>
+              <option value="stats_total_scores">Number of Scores</option>
+              <option value="stats_total_fcs">Total FCs</option>
+              <option value="stats_avg_percent">Average Percent</option>
+            </select>
+          </label>
+          <button onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}>
+            {sortOrder === "asc" ? "▲" : "▼"}
+          </button>
+        </div>
+        <div className="compare-users">
+          <button onClick={() => setShowCompareModal(true)}>Compare Users</button>
         </div>
         <Search
           search={search}
@@ -146,6 +149,11 @@ const UserList: React.FC = () => {
           </div>
         </>
       )}
+      <UserCompareModal
+        show={showCompareModal}
+        onHide={() => setShowCompareModal(false)}
+        users={users}
+      />
     </div>
   );
 };
