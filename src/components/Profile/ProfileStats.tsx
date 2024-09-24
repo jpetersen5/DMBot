@@ -26,6 +26,7 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ userId }) => {
           const data: UserStats = await response.json();
           setStats(data);
         } else {
+          setStats(null);
           console.error("Error fetching user stats:", response.statusText);
         }
       } catch (error) {

@@ -40,6 +40,7 @@ const ProfilePage: React.FC = () => {
             const userData: User = await userResponse.json();
             setProfileUser(userData);
           } else {
+            setProfileUser(null);
             console.error("Error fetching user:", userResponse.statusText);
           }
 
@@ -50,6 +51,8 @@ const ProfilePage: React.FC = () => {
               setSelectedCharterId(charterData[0].id);
             }
           } else {
+            setCharters([]);
+            setSelectedCharterId(null);
             console.error("Error checking if user is charter:", charterResponse.statusText);
           }
         } catch (error) {
