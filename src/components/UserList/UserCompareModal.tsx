@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Modal } from "react-bootstrap";
+import { API_URL } from "../../App";
 import { User, getUserImageSrc, getFallbackImage } from "../../utils/user";
 import { useAuth } from "../../context/AuthContext";
 import "./UserCompareModal.scss";
@@ -16,8 +17,12 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
   const [rightUser, setRightUser] = useState<User | null>(null);
   const [leftSearch, setLeftSearch] = useState("");
   const [rightSearch, setRightSearch] = useState("");
-  const [leftDropdownOpen, setLeftDropdownOpen] = useState(false);
+  const [leftDropdownOpen, setLeftDropdownOpen] = useState(true);
   const [rightDropdownOpen, setRightDropdownOpen] = useState(true);
+
+  const [comparisonResults, setComparisonResults] = useState<any>(null);
+  const [comparisonError, setComparisonError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const filteredLeftUsers = users.filter(user => 
     user.username.toLowerCase().includes(leftSearch.toLowerCase())
@@ -41,10 +46,99 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
     if (currentUser) {
       const user = users.find(user => user.id === currentUser.id);
       if (user) {
+        setLeftDropdownOpen(false);
         setLeftUser(user);
       }
     }
   }, [currentUser]);
+
+  useEffect(() => {
+    if (leftUser && rightUser) {
+      fetchComparisonResults();
+    }
+  }, [leftUser, rightUser]);
+
+  const fetchComparisonResults = async () => {
+    if (!leftUser || !rightUser) return;
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/users/compare`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("auth_token")}`
+        },
+        body: JSON.stringify({
+          user1_id: leftUser.id,
+          user2_id: rightUser.id
+        })
+      });
+
+      if (response.status === 404 || response.status === 400) {
+        setComparisonResults(null);
+        const errorMessage = await response.json();
+        setComparisonError(errorMessage.error);
+        return;
+      }
+
+      if (!response.ok) {
+        setComparisonResults(null);
+        const errorMessage = await response.json();
+        setComparisonError(errorMessage.error);
+        throw new Error(errorMessage.error);
+      }
+
+      const data = await response.json();
+      setComparisonError(null);
+      setComparisonResults(data);
+    } catch (error) {
+      console.error("Error fetching comparison results:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderComparisonResults = () => {
+    return (
+      <div className="comparison-results">
+        <h4>Comparison Results</h4>
+        {comparisonError && <p className="error">{comparisonError}</p>}
+        {comparisonResults && (
+        <>
+          <div className="result-item">
+            <span className="label">Common Songs:</span>
+            <span className="value">{comparisonResults.total_songs}</span>
+          </div>
+          <div className="result-item">
+            <span className="label">W/L Record:</span>
+            <span className={`value ${comparisonResults.wins > comparisonResults.losses ? "winner" : comparisonResults.wins < comparisonResults.losses ? "loser" : "tie"}`}>
+              {comparisonResults.wins}/{comparisonResults.losses} (Ties: {comparisonResults.ties})
+            </span>
+          </div>
+          <div className="result-item">
+            <span className="label">FC Difference:</span>
+            <span className={`value ${comparisonResults.fc_diff > 0 ? "winner" : comparisonResults.fc_diff < 0 ? "loser" : "tie"}`}>
+              {comparisonResults.fc_diff}
+            </span>
+          </div>
+          <div className="result-item">
+            <span className="label">Total Score Difference:</span>
+            <span className={`value ${comparisonResults.total_score_diff > 0 ? "winner" : comparisonResults.total_score_diff < 0 ? "loser" : "tie"}`}>
+              {comparisonResults.total_score_diff.toLocaleString()}
+            </span>
+          </div>
+          <div className="result-item">
+            <span className="label">Average Percent Difference:</span>
+            <span className={`value ${comparisonResults.avg_percent_diff > 0 ? "winner" : comparisonResults.avg_percent_diff < 0 ? "loser" : "tie"}`}>
+              {comparisonResults.avg_percent_diff.toFixed(2)}%
+            </span>
+          </div>
+        </>
+        )}
+      </div>
+    );
+  };
 
   const renderUserStats = (user: User, side: "left" | "right") => {
     if (!user.stats) return null;
@@ -145,6 +239,11 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
           <div className="vs">VS</div>
           {renderUserSide("right")}
         </div>
+        {isLoading ? (
+          <div className="loading">Loading comparison results...</div>
+        ) : (
+          renderComparisonResults()
+        )}
       </Modal.Body>
     </Modal>
   );
