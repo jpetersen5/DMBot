@@ -5,6 +5,9 @@ import { User, getUserImageSrc, getFallbackImage } from "../../utils/user";
 import { useAuth } from "../../context/AuthContext";
 import "./UserCompareModal.scss";
 
+import SwapIcon from "../../assets/swap.svg";
+import VS from "../../assets/vs.png";
+
 interface UserCompareModalProps {
   show: boolean;
   onHide: () => void;
@@ -40,6 +43,18 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
       setRightSearch("");
       setRightDropdownOpen(!rightDropdownOpen);
     }
+  };
+
+  const swapUsers = () => {
+    const tempLeftUser = leftUser;
+    const tempLeftDropdownOpen = leftDropdownOpen;
+    const tempLeftSearch = leftSearch;
+    setLeftUser(rightUser);
+    setRightUser(tempLeftUser);
+    setLeftDropdownOpen(rightDropdownOpen);
+    setRightDropdownOpen(tempLeftDropdownOpen);
+    setLeftSearch(rightSearch);
+    setRightSearch(tempLeftSearch);
   };
 
   useEffect(() => {
@@ -240,7 +255,14 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
       <Modal.Body>
         <div className="user-compare-container">
           {renderUserSide("left")}
-          <div className="vs">VS</div>
+          <div className="vs-container">
+            <button className="swap-button" onClick={swapUsers}>
+              <img src={SwapIcon} alt="Swap users" className="swap-icon" />
+            </button>
+            <div className="vs">
+              <img src={VS} alt="VS" className="vs-icon" />
+            </div>
+          </div>
           {renderUserSide("right")}
         </div>
         {isLoading ? (

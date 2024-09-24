@@ -22,10 +22,38 @@
     width: 45%;
   }
 
+  .vs-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .swap-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    margin-bottom: 10px;
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+
+    .swap-icon {
+      width: 24px;
+      height: 24px;
+      @include theme("filter", "filter-invert");
+    }
+  }
+
   .vs {
-    font-size: 2rem;
-    font-weight: bold;
-    align-self: center;
+    .vs-icon {
+      width: 100px;
+      height: 100px;
+      @include theme("filter", "filter-invert");
+    }
   }
 
   .selected-user {
