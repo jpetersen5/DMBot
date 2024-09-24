@@ -272,19 +272,6 @@ def process_and_save_scores(result, user_id):
 
     updated_unknown_scores = list(existing_unknown_scores_dict.values())
     updated_unknown_scores.sort(key=lambda x: x["score"], reverse=True)
-
-    total_scores = len(updated_scores) + len(updated_unknown_scores)
-    total_fcs = sum(1 for score in updated_scores if score["is_fc"]) + sum(1 for score in updated_unknown_scores if score["is_fc"])
-    total_score = sum(score["score"] for score in updated_scores) + sum(score["score"] for score in updated_unknown_scores)
-    total_percent = sum(score["percent"] for score in updated_scores) + sum(score["percent"] for score in updated_unknown_scores)
-    
-    avg_percent = total_percent / total_scores if total_scores > 0 else 0
-    user_stats = {
-        "total_scores": total_scores,
-        "total_fcs": total_fcs,
-        "total_score": total_score,
-        "avg_percent": avg_percent
-    }
     
     logger.info(f"Updating scores for user {user_id}")
     socketio.emit("score_processing_uploading",
@@ -292,8 +279,7 @@ def process_and_save_scores(result, user_id):
                   room=str(user_id))
     supabase.table("users").update({
         "scores": updated_scores,
-        "unknown_scores": updated_unknown_scores,
-        "stats": user_stats
+        "unknown_scores": updated_unknown_scores
     }).eq("id", user_id).execute()
 
     update_processing_status(user_id, "completed", 100, total_songs, total_songs)
