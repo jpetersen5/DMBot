@@ -11,6 +11,7 @@ $very-light-green: #D4EDDA;
 $discord-blue: #7289DA;
 $discord-blue-dark: #5A6EB8;
 $off-white: #F8F9FA;
+$gold: #FFD700;
 
 // dark mode
 $dark-grey-0: #121212;
@@ -60,6 +61,7 @@ $themes: (
     color-toggle-handle: $white,
     color-toggle-off: $light-grey-3,
     color-toggle-on: $light-grey-1,
+    color-highlight: $gold,
     filter-invert: invert(1),
   ),
   light: (
@@ -97,6 +99,7 @@ $themes: (
     color-toggle-handle: $white,
     color-toggle-off: $light-grey-3,
     color-toggle-on: $dark-grey-3,
+    color-highlight: $gold,
     filter-invert: invert(0),
   ),
 );

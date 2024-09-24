@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { API_URL } from "../../App";
 import { Search } from "../SongList/TableControls";
 import { User, getUserImageSrc, getFallbackImage } from "../../utils/user";
+import { useAuth } from "../../context/AuthContext";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import "./UserList.scss";
 
@@ -27,6 +28,8 @@ const UserList: React.FC = () => {
   const [filter, setFilter] = useState("all");
   const [sortBy, setSortBy] = useState("username");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const { user } = useAuth();
+  const currentUserId = user?.id;
 
   useEffect(() => {
     fetchUsers();
@@ -124,7 +127,7 @@ const UserList: React.FC = () => {
               <Link
                 to={`/user/${user.id}`}
                 key={user.id}
-                className={`user-card ${user.stats ? "has-stats" : ""}`}
+                className={`user-card ${user.stats ? "has-stats" : ""} ${user.id === currentUserId ? "current-user" : ""}`}
               >
                 <div className="user-info">
                   <UserAvatar user={user} />

@@ -93,6 +93,11 @@
         max-width: 200px;
       }
     }
+
+    &.current-user {
+      border: 2px solid;
+      @include theme("border-color", "color-highlight");
+    }
   
     .user-info {
       display: flex;
