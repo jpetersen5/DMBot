@@ -114,10 +114,10 @@ export const Pagination: React.FC<PaginationProps> = ({
 
 interface SearchProps {
   search: string;
-  filters: string[];
-  filterOptions: { value: string; label: string }[];
+  filters?: string[];
+  filterOptions?: { value: string; label: string }[];
   setSearch: React.Dispatch<React.SetStateAction<string>>;
-  setFilters: React.Dispatch<React.SetStateAction<string[]>>;
+  setFilters?: React.Dispatch<React.SetStateAction<string[]>>;
   submitSearch: () => void;
 }
 
@@ -129,13 +129,59 @@ export const Search: React.FC<SearchProps> = ({
   setFilters,
   submitSearch
 }) => {
-  const [filtersToSet, setFiltersToSet] = useState<string[]>(filters);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
   };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      submitSearch();
+    }
+  };
+
+  const handleSearchClick = () => {
+    submitSearch();
+  };
+
+  return (
+    <div className="search-controls">
+      <div className="search-input-container">
+        <input
+          type="text"
+          value={search}
+          onChange={handleSearchChange}
+          onKeyDown={handleKeyPress}
+          placeholder="Search..."
+        />
+        {filters && filterOptions && setFilters && (
+          <FilterDropdown
+            filters={filters}
+            filterOptions={filterOptions}
+            setFilters={setFilters}
+          />
+        )}
+      </div>
+      <button onClick={handleSearchClick} className="search-button">
+        Search
+      </button>
+    </div>
+  );
+};
+
+interface FilterDropdownProps {
+  filters: string[];
+  filterOptions: { value: string; label: string }[];
+  setFilters: React.Dispatch<React.SetStateAction<string[]>>;
+}
+
+export const FilterDropdown: React.FC<FilterDropdownProps> = ({
+  filters,
+  filterOptions,
+  setFilters
+}) => {
+  const [filtersToSet, setFiltersToSet] = useState<string[]>(filters);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleFilterToggle = (filter: string) => {
     setFiltersToSet(prevFilters => 
@@ -151,16 +197,6 @@ export const Search: React.FC<SearchProps> = ({
     setIsDropdownOpen(false);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      submitSearch();
-    }
-  };
-
-  const handleSearchClick = () => {
-    submitSearch();
-  };
-
   const handleDropdownClose = () => {
     setFilters(filtersToSet);
     setIsDropdownOpen(false);
@@ -169,42 +205,30 @@ export const Search: React.FC<SearchProps> = ({
   useClickOutside(dropdownRef, handleDropdownClose);
 
   return (
-    <div className="search-controls">
-      <div className="search-input-container">
-        <input
-          type="text"
-          value={search}
-          onChange={handleSearchChange}
-          onKeyDown={handleKeyPress}
-          placeholder="Search..."
-        />
-        <button 
-          className="filter-button"
-          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        >
-          <img src={FilterIcon} alt="Filter" />
-        </button>
-        {isDropdownOpen && (
-          <div className="filter-dropdown" ref={dropdownRef}>
-            {filterOptions.map(option => (
-              <label key={option.value} className="filter-option">
-                <input
-                  type="checkbox"
-                  checked={filtersToSet.includes(option.value)}
-                  onChange={() => handleFilterToggle(option.value)}
-                />
-                {option.label}
-              </label>
-            ))}
-            <button onClick={handleClearFilters} className="clear-filters-button">
-              Clear filters
-            </button>
-          </div>
-        )}
-      </div>
-      <button onClick={handleSearchClick} className="search-button">
-        Search
+    <>
+      <button 
+        className="filter-button"
+        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+      >
+        <img src={FilterIcon} alt="Filter" />
       </button>
-    </div>
+      {isDropdownOpen && (
+        <div className="filter-dropdown" ref={dropdownRef}>
+          {filterOptions.map(option => (
+            <label key={option.value} className="filter-option">
+              <input
+                type="checkbox"
+                checked={filtersToSet.includes(option.value)}
+                onChange={() => handleFilterToggle(option.value)}
+              />
+              {option.label}
+            </label>
+          ))}
+          <button onClick={handleClearFilters} className="clear-filters-button">
+            Clear filters
+          </button>
+        </div>
+      )}
+    </>
   );
 };

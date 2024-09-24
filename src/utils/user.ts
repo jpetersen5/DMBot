@@ -3,6 +3,12 @@ export interface User {
   username: string;
   avatar: string | null;
   permissions: "user" | "admin";
+  stats?: {
+    total_fcs: number;
+    avg_percent: number;
+    total_score: number;
+    total_scores: number;
+  };
 }
 
 const getColorFromId = (id: string): string => {
@@ -13,10 +19,14 @@ const getColorFromId = (id: string): string => {
   return `hsl(${hash % 360}, 70%, 60%)`;
 };
 
-export const getUserImage = (user: User): string => {
+export const getUserImageSrc = (user: User): string => {
   if (user.avatar) {
     return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
   }
+  return getFallbackImage(user);
+};
+
+export const getFallbackImage = (user: User): string => {
   return `data:image/svg+xml,${encodeURIComponent(`
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
       <rect width="32" height="32" fill="${getColorFromId(user.id)}"/>

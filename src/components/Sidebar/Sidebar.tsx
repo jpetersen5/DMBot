@@ -10,6 +10,7 @@ import HomeIcon from "../../assets//home-icon.svg";
 import ProfileIcon from "../../assets/profile-icon.svg";
 import SongsIcon from "../../assets/songs-icon.svg";
 import ThemesIcon from "../../assets/themes-icon.svg";
+import UsersIcon from "../../assets/users-icon.svg";
 
 interface NavItem {
   path: string;
@@ -25,6 +26,7 @@ const themes = {
 const staticNavItems: NavItem[] = [
   { path: "/", name: "Home", icon: HomeIcon },
   { path: "/songs", name: "Songs", icon: SongsIcon },
+  { path: "/users", name: "Users", icon: UsersIcon },
 ];
 
 const Sidebar: React.FC = () => {

@@ -7,7 +7,7 @@
     margin-bottom: 1rem;
   }
 
-  .user-list {
+  .user-grid-list {
     display: flex;
     flex-wrap: wrap;
 
@@ -30,6 +30,7 @@
         width: 32px;
         height: 32px;
         vertical-align: middle;
+        margin-bottom: 0;
       }
     }
   }

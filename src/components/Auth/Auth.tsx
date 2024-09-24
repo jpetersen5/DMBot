@@ -1,7 +1,7 @@
 import React from "react";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import { useAuth } from "../../context/AuthContext";
-import { getUserImage } from "../../utils/user";
+import { UserAvatar } from "../UserList/UserList";
 import "./Auth.scss";
 
 interface AuthProps {
@@ -32,11 +32,7 @@ const Auth: React.FC<AuthProps> = ({ onlyButtons = false }) => {
       {user ? (
         <div className="auth-user">
           <h2>Welcome, {user.username}!</h2>
-          <img 
-            src={getUserImage(user)} 
-            alt={user.username}
-            className="user-avatar"
-          />
+          <UserAvatar user={user} />
           <button className="auth-button logout-button" onClick={logout}>Logout</button>
         </div>
       ) : (

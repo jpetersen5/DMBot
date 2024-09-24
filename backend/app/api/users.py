@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request, current_app
 import jwt
 from ..services.supabase_service import get_supabase
 from ..config import Config
+from ..utils.helpers import sanitize_input
 
 bp = Blueprint("users", __name__)
 
@@ -72,8 +73,8 @@ def user_has_scores(user_id):
     has_scores = result.data[0].get("scores") is not None
     return jsonify({"has_scores": has_scores})
 
-@bp.route("/api/users")
-def get_users():
+@bp.route("/api/all-users")
+def get_all_users():
     """
     retrieves list of all users in the system
     
@@ -83,10 +84,54 @@ def get_users():
     supabase = get_supabase()
     logger = current_app.logger
     try:
-        result = supabase.table("users").select("id", "username", "avatar").execute()
+        result = supabase.table("users").select("id", "username", "avatar", "stats").execute()
+        users = []
         for user in result.data:
-            user["id"] = str(user["id"])
-        return jsonify(result.data)
+            users.append({
+                "id": str(user["id"]),
+                "username": user["username"],
+                "avatar": user["avatar"],
+                "stats": user["stats"]
+            })
+        return jsonify(users)
+    except Exception as e:
+        logger.error(f"Error fetching users: {str(e)}")
+        return jsonify({"error": "An error occurred while fetching users"}), 500
+    
+@bp.route("/api/users")
+def get_users():
+    """
+    retrieves list of users in the system with optional search
+    
+    params:
+        search (str): search query for username (optional)
+    
+    returns:
+        JSON: list of user objects; ids, usernames, avatars, and stats
+    """
+    supabase = get_supabase()
+    logger = current_app.logger
+
+    search = sanitize_input(request.args.get("search", ""))
+
+    try:
+        query = supabase.table("users").select("id", "username", "avatar", "stats")
+
+        if search:
+            query = query.ilike("username", f"*{search}*")
+
+        result = query.execute()
+
+        users = []
+        for user in result.data:
+            users.append({
+                "id": str(user["id"]),
+                "username": user["username"],
+                "avatar": user["avatar"],
+                "stats": user["stats"]
+            })
+
+        return jsonify(users)
     except Exception as e:
         logger.error(f"Error fetching users: {str(e)}")
         return jsonify({"error": "An error occurred while fetching users"}), 500

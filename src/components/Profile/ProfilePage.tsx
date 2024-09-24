@@ -5,9 +5,10 @@ import ScoreUpload from "./Scores/ScoreUpload";
 import UserScores from "./Scores/UserScores";
 import ProfileStats from "./ProfileStats";
 import CharterStats from "./Charter/CharterStats";
+import { UserAvatar } from "../UserList/UserList";
 import { Charter } from "../../utils/charter";
 import { renderSafeHTML } from "../../utils/safeHTML";
-import { getUserImage, User } from "../../utils/user";
+import { User } from "../../utils/user";
 import { useAuth } from "../../context/AuthContext";
 import { API_URL } from "../../App";
 import "./ProfilePage.scss";
@@ -75,11 +76,7 @@ const ProfilePage: React.FC = () => {
         <>
           <div className="profile-header">
             <div className="profile-info">
-              <img
-                src={getUserImage(profileUser)}
-                alt={profileUser.username}
-                className="profile-avatar"
-              />
+              <UserAvatar user={profileUser} />
               <div className="profile-details">
                 <p><strong>Username:</strong> {profileUser.username}</p>
                 <p><strong>Discord ID:</strong> {profileUser.id}</p>

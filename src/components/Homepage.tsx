@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { API_URL } from "../App";
 import LoadingSpinner from "./Loading/LoadingSpinner";
 import Auth from "./Auth/Auth";
-import UserGrid from "./UserGrid/UserGrid";
 import Tooltip from "../utils/Tooltip/Tooltip";
 import { useAuth } from "../context/AuthContext";
 
@@ -51,7 +50,6 @@ const Homepage: React.FC = () => {
       <ActionButtons />
       <Auth />
       <RedirectButton />
-      <UserGrid />
     </div>
   );
 };
