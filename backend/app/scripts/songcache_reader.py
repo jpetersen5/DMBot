@@ -26,7 +26,6 @@ def clean_up_songs_data(songs):
             # Find the song with the longest name
             longest_name_song = max(group, key=lambda x: len(x["name"]))
             cleaned_songs.append(longest_name_song)
-            logging.info(f"Longest name song: {longest_name_song['name']} - {longest_name_song['artist']} (MD5: {longest_name_song['md5']})")
             
             # Log deletions
             for song in group:
@@ -37,7 +36,6 @@ def clean_up_songs_data(songs):
                         "artist": song["artist"],
                         "album": song["album"]
                     })
-                    logging.info(f"Deleted duplicate song: {song['name']} - {song['artist']} (MD5: {song['md5']})")
 
     logging.info(f"Cleaned up {len(deleted_songs)} duplicate songs")
     return cleaned_songs, deleted_songs
@@ -46,7 +44,7 @@ def strip_color_tags(text: str) -> str:
     return re.sub(r'<color=[^>]+>(.*?)</color>', r'\1', text)
 
 def strip_tags(text: str) -> str:
-    return re.sub(r'</?b>', '', text)
+    return re.sub(r'</?[^>]+>', '', text)
 
 def split_charters(charter_string: str) -> List[str]:
     char_delimiters = [",", "/", "&"]
@@ -81,7 +79,7 @@ def split_charters(charter_string: str) -> List[str]:
     return [charter.strip() for charter in result if charter.strip()]
 
 def process_charter_name(charter: str) -> str:
-    return strip_tags(strip_color_tags(charter.strip())).strip()
+    return strip_color_tags(strip_tags(charter.strip())).strip()
 
 def map_song_paths(base_path):
     """
@@ -130,7 +128,6 @@ def find_md5_for_path(file_content, path):
             
             if is_valid_md5(md5_hex):
                 md5_hashes.append(md5_hex)
-                logging.info(f"Possible MD5 hash: {md5_hex}\nFor path: {path}")
 
         start = index + len(path_bytes)
 
