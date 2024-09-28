@@ -46,10 +46,10 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ userId }) => {
       {!loading && !stats && <p>No stats available. If you have scores, reupload your scoredata.bin file to update!</p>}
       {stats && !loading && (
         <div className="stats-grid">
-          <StatItem label="Total FCs" value={stats.total_fcs} />
-          <StatItem label="Average Percent" value={`${stats.avg_percent.toFixed(2)}%`} />
-          <StatItem label="Overall Score" value={stats.total_score.toLocaleString()} />
-          <StatItem label="Number of Scores" value={stats.total_scores} />
+          <StatItem label="Total FCs" value={stats.total_fcs?.toLocaleString()} />
+          <StatItem label="Average Percent" value={`${stats.avg_percent?.toFixed(2)}%`} />
+          <StatItem label="Overall Score" value={stats.total_score?.toLocaleString()} />
+          <StatItem label="Number of Scores" value={stats.total_scores?.toLocaleString()} />
         </div>
       )}
     </div>
