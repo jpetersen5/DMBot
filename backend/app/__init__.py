@@ -6,6 +6,7 @@ from .api import auth, users, songs, charters, scores, status, leaderboards
 from .services.supabase_service import init_supabase
 # from .migrations.update_leaderboard_rankings import update_leaderboards
 # from .migrations.upload_new_songs import upload_new_songs
+# from .migrations.populate_songs_new_table import populate_songs_new_table
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -26,6 +27,7 @@ def create_app(config_class=Config):
 
     # Uncomment when running migrations
     # with app.app_context():
+        # populate_songs_new_table()
         # update_leaderboards()
         # upload_new_songs()
 
