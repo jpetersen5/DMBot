@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -74,6 +85,37 @@ function cleanUpSongsData(songs) {
     logging.info("Cleaned up ".concat(deletedSongs.length, " duplicate songs"));
     return { cleanedSongs: cleanedSongs, deletedSongs: deletedSongs };
 }
+function splitCharters(charterString) {
+    var charDelimiters = [",", "/", "&"];
+    var multicharDelimiters = [" - ", " + ", " and "];
+    var result = [];
+    var current = [];
+    var i = 0;
+    while (i < charterString.length) {
+        if (multicharDelimiters.some(function (delim) { return charterString.startsWith(delim, i); })) {
+            if (current.length) {
+                result.push(current.join("").trim());
+                current = [];
+            }
+            i += multicharDelimiters.find(function (delim) { return charterString.startsWith(delim, i); }).length;
+        }
+        else if (charDelimiters.includes(charterString[i])) {
+            if (current.length) {
+                result.push(current.join("").trim());
+                current = [];
+            }
+            i++;
+        }
+        else {
+            current.push(charterString[i]);
+            i++;
+        }
+    }
+    if (current.length) {
+        result.push(current.join("").trim());
+    }
+    return result.filter(function (charter) { return charter.trim() !== ""; });
+}
 function mapSongPaths(basePath) {
     var songPaths = [];
     var processedFolders = 0;
@@ -103,16 +145,50 @@ function mapSongPaths(basePath) {
     logging.info("Found ".concat(songPaths.length, " song paths"));
     return songPaths;
 }
-function processSongs(basePath, outputFile) {
+function isValidMd5(hash) {
+    return /^[a-fA-F0-9]{32}$/.test(hash);
+}
+function findMd5ForPath(fileContent, path) {
+    var pathBytes = Buffer.from(path.toLowerCase());
+    var start = 0;
+    var md5Hash = null;
+    while (true) {
+        var index = fileContent.indexOf(pathBytes, start);
+        if (index === -1)
+            break;
+        var nextPathStart = fileContent.indexOf(Buffer.from("c:\\users\\jason\\documents\\clone hero\\songs"), index + pathBytes.length);
+        var endIndex = nextPathStart === -1 ? fileContent.length : nextPathStart;
+        var dataChunk = fileContent.subarray(index + pathBytes.length, endIndex);
+        if (dataChunk.length >= 36) {
+            var md5Hex = void 0;
+            if (dataChunk[dataChunk.length - 18] === 0 || dataChunk[dataChunk.length - 18] === 107) {
+                md5Hex = dataChunk.subarray(-17, -1).toString("hex");
+            }
+            else {
+                md5Hex = dataChunk.subarray(-18, -2).toString("hex");
+            }
+            if (isValidMd5(md5Hex)) {
+                md5Hash = md5Hex;
+                break;
+            }
+        }
+        start = index + pathBytes.length;
+    }
+    if (!md5Hash) {
+        logging.warn("No valid MD5 hash found for path: ".concat(path));
+    }
+    return md5Hash;
+}
+function processSongs(basePath, binaryFilePath, outputFile) {
     return __awaiter(this, void 0, void 0, function () {
-        var songPaths, songs, processedSongs, totalSongs, maxPathLength, _loop_1, _i, songPaths_1, path_1, _a, cleanedSongs, deletedSongs, deletedLogFile;
-        var _b, _c;
-        return __generator(this, function (_d) {
+        var songPaths, songs, processedSongs, totalSongs, maxPathLength, binaryFileContent, _loop_1, _i, songPaths_1, path_1, _a, cleanedSongs, deletedSongs, deletedLogFile;
+        return __generator(this, function (_b) {
             songPaths = mapSongPaths(basePath);
             songs = [];
             processedSongs = 0;
             totalSongs = songPaths.length;
             maxPathLength = process.stdout.columns - 40;
+            binaryFileContent = fs.readFileSync(binaryFilePath);
             _loop_1 = function (path_1) {
                 processedSongs++;
                 var displayDir = path_1;
@@ -126,19 +202,26 @@ function processSongs(basePath, outputFile) {
                         data: fs.readFileSync(path_1 + "/" + file)
                     }); });
                     var scannedChart = (0, scan_chart_1.scanChartFolder)(files);
-                    scannedChart.albumArt = null;
-                    var scannedChartIssues_1 = (_b = scannedChart.notesData) === null || _b === void 0 ? void 0 : _b.chartIssues;
-                    if (scannedChartIssues_1) {
-                        scannedChartIssues_1.forEach(function (issue) {
-                            if (issue.instrument !== "drums" || issue.instrument === null) {
-                                scannedChartIssues_1.splice(scannedChartIssues_1.indexOf(issue), 1);
-                            }
-                        });
-                        if ((_c = scannedChart.notesData) === null || _c === void 0 ? void 0 : _c.chartIssues) {
-                            scannedChart.notesData.chartIssues = scannedChartIssues_1;
-                        }
+                    var playlistPath = path_1
+                        .replace("C:\\Users\\jason\\Documents\\Clone Hero\\Songs", "")
+                        .replace("\\Downloaded Songs", "")
+                        .replace("\\RClone Songs\\Sync Charts", "");
+                    var scannedChartExtra = __assign(__assign({}, scannedChart), { playlistPath: playlistPath });
+                    scannedChartExtra.albumArt = null;
+                    if (scannedChartExtra.notesData) {
+                        scannedChartExtra.notesData.chartIssues = [];
                     }
-                    songs.push(scannedChart);
+                    if (scannedChartExtra.charter) {
+                        scannedChartExtra.charter = splitCharters(scannedChartExtra.charter).join(",");
+                    }
+                    var md5 = findMd5ForPath(binaryFileContent, path_1);
+                    if (md5) {
+                        scannedChartExtra.md5 = md5;
+                        songs.push(scannedChartExtra);
+                    }
+                    else {
+                        logging.error("Failed to find MD5 for path: ".concat(path_1));
+                    }
                 }
                 catch (error) {
                     logging.error("Error processing path: ".concat(path_1), error);
@@ -160,7 +243,8 @@ function processSongs(basePath, outputFile) {
     });
 }
 var basePath = "C:\\Users\\jason\\Documents\\Clone Hero\\Songs";
+var binaryFilePath = "C:\\Users\\jason\\AppData\\LocalLow\\srylain Inc_\\Clone Hero\\songcache.bin";
 var outputFile = "data\\songs_with_md5.json";
-processSongs(basePath, outputFile).catch(function (error) {
+processSongs(basePath, binaryFilePath, outputFile).catch(function (error) {
     console.error("Error processing songs:", error);
 });

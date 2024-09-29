@@ -2,12 +2,16 @@ import * as fs from "fs";
 import * as path from "path";
 import { scanChartFolder, ScannedChart } from "scan-chart";
 
+interface ScannedChartExtra extends ScannedChart {
+    playlistPath?: string;
+}
+
 const logging = console;
 
-function cleanUpSongsData(songs: ScannedChart[]): { cleanedSongs: ScannedChart[], deletedSongs: ScannedChart[] } {
-    const md5Groups: { [key: string]: ScannedChart[] } = {};
-    const cleanedSongs: ScannedChart[] = [];
-    const deletedSongs: ScannedChart[] = [];
+function cleanUpSongsData(songs: ScannedChartExtra[]): { cleanedSongs: ScannedChartExtra[], deletedSongs: ScannedChartExtra[] } {
+    const md5Groups: { [key: string]: ScannedChartExtra[] } = {};
+    const cleanedSongs: ScannedChartExtra[] = [];
+    const deletedSongs: ScannedChartExtra[] = [];
 
     // Group songs by MD5
     for (const song of songs) {
@@ -41,6 +45,40 @@ function cleanUpSongsData(songs: ScannedChart[]): { cleanedSongs: ScannedChart[]
     return { cleanedSongs, deletedSongs };
 }
 
+function splitCharters(charterString: string): string[] {
+    const charDelimiters = [",", "/", "&"];
+    const multicharDelimiters = [" - ", " + ", " and "];
+
+    const result: string[] = [];
+    let current: string[] = [];
+    let i = 0;
+
+    while (i < charterString.length) {
+        if (multicharDelimiters.some(delim => charterString.startsWith(delim, i))) {
+            if (current.length) {
+                result.push(current.join("").trim());
+                current = [];
+            }
+            i += multicharDelimiters.find(delim => charterString.startsWith(delim, i))!.length;
+        } else if (charDelimiters.includes(charterString[i])) {
+            if (current.length) {
+                result.push(current.join("").trim());
+                current = [];
+            }
+            i++;
+        } else {
+            current.push(charterString[i]);
+            i++;
+        }
+    }
+
+    if (current.length) {
+        result.push(current.join("").trim());
+    }
+
+    return result.filter(charter => charter.trim() !== "");
+}
+
 function mapSongPaths(basePath: string): string[] {
     const songPaths: string[] = [];
     let processedFolders = 0;
@@ -70,12 +108,55 @@ function mapSongPaths(basePath: string): string[] {
     return songPaths;
 }
 
-async function processSongs(basePath: string, outputFile: string): Promise<void> {
+function isValidMd5(hash: string): boolean {
+    return /^[a-fA-F0-9]{32}$/.test(hash);
+}
+
+function findMd5ForPath(fileContent: Buffer, path: string): string | null {
+    const pathBytes = Buffer.from(path.toLowerCase());
+    let start = 0;
+    let md5Hash: string | null = null;
+
+    while (true) {
+        const index = fileContent.indexOf(pathBytes, start);
+        if (index === -1) break;
+
+        const nextPathStart = fileContent.indexOf(Buffer.from("c:\\users\\jason\\documents\\clone hero\\songs"), index + pathBytes.length);
+        const endIndex = nextPathStart === -1 ? fileContent.length : nextPathStart;
+
+        const dataChunk = fileContent.subarray(index + pathBytes.length, endIndex);
+
+        if (dataChunk.length >= 36) {
+            let md5Hex: string;
+            if (dataChunk[dataChunk.length - 18] === 0 || dataChunk[dataChunk.length - 18] === 107) {
+                md5Hex = dataChunk.subarray(-17, -1).toString("hex");
+            } else {
+                md5Hex = dataChunk.subarray(-18, -2).toString("hex");
+            }
+
+            if (isValidMd5(md5Hex)) {
+                md5Hash = md5Hex;
+                break;
+            }
+        }
+
+        start = index + pathBytes.length;
+    }
+
+    if (!md5Hash) {
+        logging.warn(`No valid MD5 hash found for path: ${path}`);
+    }
+
+    return md5Hash;
+}
+
+async function processSongs(basePath: string, binaryFilePath: string, outputFile: string): Promise<void> {
     const songPaths = mapSongPaths(basePath);
-    const songs: ScannedChart[] = [];
+    const songs: ScannedChartExtra[] = [];
     let processedSongs = 0;
     const totalSongs = songPaths.length;
     const maxPathLength = process.stdout.columns - 40;
+    const binaryFileContent = fs.readFileSync(binaryFilePath);
 
     for (const path of songPaths) {
         processedSongs++;
@@ -90,19 +171,25 @@ async function processSongs(basePath: string, outputFile: string): Promise<void>
                 data: fs.readFileSync(path + "/" + file)
             }));
             const scannedChart = scanChartFolder(files);
-            scannedChart.albumArt = null;
-            const scannedChartIssues = scannedChart.notesData?.chartIssues;
-            if (scannedChartIssues) {
-                scannedChartIssues.forEach(issue => {
-                    if (issue.instrument !== "drums" && issue.instrument !== null) {
-                        scannedChartIssues.splice(scannedChartIssues.indexOf(issue), 1);
-                    }
-                });
-                if (scannedChart.notesData?.chartIssues) {
-                    scannedChart.notesData.chartIssues = scannedChartIssues;
-                }
+            const playlistPath = path
+                .replace("c:\\users\\jason\\documents\\clone hero\\songs\\", "")
+                .replace("downloaded songs\\", "")
+                .replace("rclone songs\\sync charts\\", "");
+            const scannedChartExtra = { ...scannedChart, playlistPath: playlistPath };
+            scannedChartExtra.albumArt = null;
+            if (scannedChartExtra.notesData) {
+                scannedChartExtra.notesData.chartIssues = [];
             }
-            songs.push(scannedChart);
+            if (scannedChartExtra.charter) {
+                scannedChartExtra.charter = splitCharters(scannedChartExtra.charter).join(",");
+            }
+            const md5 = findMd5ForPath(binaryFileContent, path);
+            if (md5) {
+                scannedChartExtra.md5 = md5;
+                songs.push(scannedChartExtra);
+            } else {
+                logging.error(`Failed to find MD5 for path: ${path}`);
+            }
         } catch (error) {
             logging.error(`Error processing path: ${path}`, error);
         }
@@ -119,8 +206,9 @@ async function processSongs(basePath: string, outputFile: string): Promise<void>
 }
 
 const basePath = "C:\\Users\\jason\\Documents\\Clone Hero\\Songs";
+const binaryFilePath = "C:\\Users\\jason\\AppData\\LocalLow\\srylain Inc_\\Clone Hero\\songcache.bin";
 const outputFile = "data\\songs_with_md5.json";
 
-processSongs(basePath, outputFile).catch(error => {
+processSongs(basePath, binaryFilePath, outputFile).catch(error => {
     console.error("Error processing songs:", error);
 });
