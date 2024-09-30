@@ -97,7 +97,7 @@ def process_and_save_scores(result, user_id):
         existing_unknown_scores = []
         logger.info("No existing unknown scores found for user")
 
-    batch_size = 100
+    batch_size = 500
     songs_dict = {}
     song_identifiers = [song["identifier"] for song in result["songs"]]
 
@@ -108,7 +108,7 @@ def process_and_save_scores(result, user_id):
         socketio.emit("score_processing_fetching_songs",
                         {"message": f"Fetching user scores for songs {i+1} - {i+len(batch)}"},
                         room=str(user_id))
-        batch_songs_info = supabase.table("songs").select("*").in_("md5", batch).execute().data
+        batch_songs_info = supabase.table("songs_new").select("*").in_("md5", batch).execute().data
         songs_dict.update({song["md5"]: song for song in batch_songs_info})
 
     newly_known_scores = []
@@ -258,7 +258,7 @@ def process_and_save_scores(result, user_id):
                 socketio.emit("score_processing_updating_progress",
                             {"message": f"Updating leaderboard for {i+1} / {len(leaderboard_updates)}: {update['name']}", "progress": progress},
                             room=str(user_id))
-                supabase.table("songs").update({
+                supabase.table("songs_new").update({
                     "leaderboard": update["leaderboard"],
                     "last_update": update["last_update"]
                 }).eq("md5", update["md5"]).execute()

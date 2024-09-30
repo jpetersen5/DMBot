@@ -16,7 +16,7 @@ def get_leaderboard(song_id):
     if sort_order not in ["asc", "desc"]:
         sort_order = "asc"
 
-    query = supabase.table("songs").select("leaderboard").eq("id", song_id)
+    query = supabase.table("songs_new").select("leaderboard").eq("id", song_id)
     result = query.execute()
 
     if not result.data:

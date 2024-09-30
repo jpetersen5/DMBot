@@ -242,7 +242,7 @@ const SongModal: React.FC<SongModalProps> = ({
             <SongInfoLine label="Album" value={currentSong.album} />
             <SongInfoLine label="Year" value={currentSong.year} />
             <SongInfoLine label="Genre" value={currentSong.genre} />
-            <SongInfoLine label="Difficulty" value={currentSong.difficulty} />
+            <SongInfoLine label="Difficulty" value={currentSong.difficulties ? Object.values(currentSong.difficulties).join(", ") : "Unknown"} />
             <SongInfoLine label="Length" value={msToTime(currentSong.song_length || 0)} />
             <SongInfoLine label="Charter" value={currentSong.charter_refs ? currentSong.charter_refs.join(", ") : "Unknown Author"} />
             <SongInfoLine label="MD5" value={currentSong.md5} />

@@ -11,8 +11,8 @@ from werkzeug.utils import secure_filename
 
 bp = Blueprint("songs", __name__)
 
-ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "difficulty", "charter", "song_length", "last_update", "scores_count", "md5"}
-ALLOWED_FILTERS = {"name", "artist", "album", "year", "genre", "charter"}
+ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "charter", "song_length", "last_update", "scores_count", "md5"}
+ALLOWED_FILTERS = {"name", "artist", "album", "genre", "charter"}
 
 @bp.route("/api/songs/<string:identifier>", methods=["GET"])
 def get_song(identifier):
@@ -28,9 +28,9 @@ def get_song(identifier):
     supabase = get_supabase()
     
     if identifier.isdigit():
-        query = supabase.table("songs").select("*").eq("id", int(identifier))
+        query = supabase.table("songs_new").select("*").eq("id", int(identifier))
     else:
-        query = supabase.table("songs").select("*").eq("md5", identifier)
+        query = supabase.table("songs_new").select("*").eq("md5", identifier)
     result = query.execute()
 
     if not result.data:
@@ -73,12 +73,12 @@ def get_songs():
     elif sort_by == "charter":
         sort_by = "charter_refs"
 
-    query = supabase.table("songs").select("*")
-    count_query = supabase.table("songs").select("id", count="exact")
+    query = supabase.table("songs_new").select("*")
+    count_query = supabase.table("songs_new").select("id", count="exact")
 
     if search:
         search_terms = sanitize_input(search).split()
-        search_fields = filters if filters else ["name", "artist", "album", "year", "genre", "charter"]
+        search_fields = filters if filters else ["name", "artist", "album", "genre", "charter"]
         
         for term in search_terms:
             term_filter = []
@@ -145,8 +145,8 @@ def get_related_songs():
     page = int(request.args.get("page", 1))
     per_page = int(request.args.get("per_page", 8))
 
-    query = supabase.table("songs").select("id", "artist", "name", "album", "track", "year", "genre", "difficulty", "song_length", "charter_refs", "last_update")
-    count_query = supabase.table("songs").select("id", count="exact")
+    query = supabase.table("songs_new").select("*")
+    count_query = supabase.table("songs_new").select("id", count="exact")
 
     if relation_type == "charter":
         charters = value.split(",")
@@ -211,8 +211,8 @@ def get_songs_by_ids():
     elif sort_by == "charter":
         sort_by = "charter_refs"
 
-    query = supabase.table("songs").select("*").in_("id", ids)
-    count_query = supabase.table("songs").select("id", count="exact").in_("id", ids)
+    query = supabase.table("songs_new").select("*").in_("id", ids)
+    count_query = supabase.table("songs_new").select("id", count="exact").in_("id", ids)
 
     total_songs = count_query.execute().count
 
@@ -306,6 +306,7 @@ def parse_ini_file(ini_path):
             data[key] = value
     return data
 
+# Unused until I update it to use geo's scan chart
 @bp.route("/api/songs/upload_ini", methods=["POST"])
 def upload_song_ini():
     if "file" not in request.files:
@@ -328,7 +329,7 @@ def upload_song_ini():
             supabase = get_supabase()
             logger = current_app.logger
             
-            existing_song = supabase.table("songs").select("id").eq("md5", identifier).execute()
+            existing_song = supabase.table("songs_new").select("id").eq("md5", identifier).execute()
             if existing_song.data:
                 return jsonify({"error": "Song already exists in the database"}), 400
             
@@ -351,6 +352,14 @@ def upload_song_ini():
                     logger.info(f"Inserted {len(new_charters)} new charters.")
                 else:
                     return jsonify({"error": "Failed to add charters to database"}), 500
+                
+            difficulties = {
+                "drums": int(song_data.get("diff_drums", "0")) if song_data.get("diff_drums", "").isdigit() else None,
+                "guitar": int(song_data.get("diff_guitar", "0")) if song_data.get("diff_guitar", "").isdigit() else None,
+                "bass": int(song_data.get("diff_bass", "0")) if song_data.get("diff_bass", "").isdigit() else None,
+                "vocals": int(song_data.get("diff_vocals", "0")) if song_data.get("diff_vocals", "").isdigit() else None,
+                "rhythm": int(song_data.get("diff_rhythm", "0")) if song_data.get("diff_rhythm", "").isdigit() else None
+            }
             
             new_song = {
                 "md5": identifier,
@@ -359,14 +368,14 @@ def upload_song_ini():
                 "album": song_data.get("album", ""),
                 "genre": song_data.get("genre", ""),
                 "track": int(song_data.get("track", "0")) if song_data.get("track", "").isdigit() else None,
-                "year": song_data.get("year", ""),
-                "difficulty": int(song_data.get("diff_drums", "0")) if song_data.get("diff_drums", "").isdigit() else None,
+                "year": int(song_data.get("year", "0")) if song_data.get("year", "").isdigit() else None,
+                "difficulty": difficulties,
                 "song_length": int(song_data.get("song_length", "0")) if song_data.get("song_length", "").isdigit() else None,
                 "charter_refs": charter_refs,
                 "last_update": datetime.now(UTC).isoformat()
             }
             
-            response = supabase.table("songs").insert(new_song).execute()
+            response = supabase.table("songs_new").insert(new_song).execute()
             
             if response.data:
                 return jsonify({"message": "Song added successfully"}), 200
@@ -417,18 +426,18 @@ def admin_song_action(song_id):
 
     try:
         if action == "verify":
-            song_query = supabase.table("songs").select("name").eq("id", song_id).execute()
+            song_query = supabase.table("songs_new").select("name").eq("id", song_id).execute()
             if not song_query.data:
                 return jsonify({"error": "Song not found"}), 404
             current_name = song_query.data[0]["name"]
             new_name = current_name.replace(" (Unverified)", "")
-            update_response = supabase.table("songs").update({"name": new_name}).eq("id", song_id).execute()
+            update_response = supabase.table("songs_new").update({"name": new_name}).eq("id", song_id).execute()
             if update_response.data:
                 return jsonify({"message": "Song verified successfully"}), 200
             else:
                 return jsonify({"error": "Failed to verify song"}), 500
         elif action == "remove":
-            delete_response = supabase.table("songs").delete().eq("id", song_id).execute()
+            delete_response = supabase.table("songs_new").delete().eq("id", song_id).execute()
             if delete_response.data:
                 return jsonify({"message": "Song removed successfully"}), 200
             else:

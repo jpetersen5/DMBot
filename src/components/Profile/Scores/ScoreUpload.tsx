@@ -88,12 +88,10 @@ const ScoreUpload: React.FC = () => {
       />
       <button
         onClick={handleUpload}
-        // disabled={!file || isUploading || isProcessing}
-        disabled={true}
+        disabled={!file || isUploading || isProcessing}
       >
         {isUploading ? "Uploading..." : isProcessing ? "Processing..." : "Upload"}
       </button>
-      <h3>NOTICE: Uploading is currently disabled while leaderboards are migrated to a new table.</h3>
       {message && <p>{message}</p>}
       <div className="filepath-section">
         Locate the scoredata.bin file at

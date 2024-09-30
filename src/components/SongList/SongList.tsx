@@ -310,7 +310,6 @@ export const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick }) => 
     <SongTableCell content={song.album} />
     <SongTableCell content={song.year} />
     <SongTableCell content={song.genre} />
-    <SongTableCell content={song.difficulty || "?"} />
     <SongTableCell content={song.song_length != null ? msToTime(song.song_length) : "??:??:??"} />
     <SongTableCell content={song.charter_refs ? song.charter_refs.join(", ") : "Unknown Author"} special="charter" />
     <SongTableCell content={song.scores_count?.toString() || "0"} />

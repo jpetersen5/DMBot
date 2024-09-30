@@ -7,7 +7,7 @@ export interface Song {
   track: string | null;
   year: string | null;
   genre: string | null;
-  difficulty: string | null;
+  difficulties: Record<string, number> | null;
   song_length: number | null;
   charter_refs: string[] | null;
   scores_count: number | null;
@@ -20,7 +20,6 @@ export const SONG_TABLE_HEADERS = {
   album: "Album",
   year: "Year",
   genre: "Genre",
-  difficulty: "Difficulty",
   song_length: "Length",
   charter: "Charter",
   scores_count: "Scores",
