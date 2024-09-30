@@ -121,9 +121,10 @@ const UnknownSongModal: React.FC<UnknownSongModalProps> = ({ show, onHide, score
               {isUploadingCache ? <LoadingSpinner message="Processing..." timeout={0} /> : "Upload songcache.bin to find this song's filepath"}
             </button>
           )}
-          <button className="action-button" onClick={handleSongIniUpload} disabled={isUploadingIni}>
+          <button className="action-button" onClick={handleSongIniUpload} disabled={true}>
             {isUploadingIni ? <LoadingSpinner message="Processing..." timeout={0} /> : "Know this song? Upload its song.ini!"}
           </button>
+          <h3>NOTICE: Uploading song.ini is currently disabled while things are updated to use the new song structure.</h3>
         </div>
       </Modal.Body>
     </Modal>
