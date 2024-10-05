@@ -115,11 +115,28 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
           )
         }
       });
+    } else {
+      // I don't know why this is necessary, but it is
+      filteredScores = filteredScores.filter(score => {
+        return score;
+      });
     }
 
     return filteredScores.sort((a, b) => {
-      if (a[sortBy as keyof Score] < b[sortBy as keyof Score]) return sortOrder === "asc" ? -1 : 1;
-      if (a[sortBy as keyof Score] > b[sortBy as keyof Score]) return sortOrder === "asc" ? 1 : -1;
+      let aValue = a[sortBy as keyof Score];
+      let bValue = b[sortBy as keyof Score];
+      if (typeof aValue === "string") {
+        aValue = aValue.toLowerCase();
+      }
+      if (typeof bValue === "string") {
+        bValue = bValue.toLowerCase();
+      }
+      if (sortBy === "percent") { // FC's take priority over non-FC's
+        aValue = a.is_fc ? 101 : aValue;
+        bValue = b.is_fc ? 101 : bValue;
+      }
+      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
       return 0;
     });
   }, [scores, showUnknown, sortBy, sortOrder, search, filters]);
