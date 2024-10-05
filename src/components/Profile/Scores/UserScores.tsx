@@ -57,24 +57,47 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   const navigate = useNavigate();
 
   const [scores, setScores] = useState<Scores>({ scores: [], unknown_scores: [] });
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [inputPage, setInputPage] = useState(page.toString());
-  const [perPage, setPerPage] = useState(10);
-  const [sortBy, setSortBy] = useState("posted");
-  const [sortOrder, setSortOrder] = useState("desc");
-  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [page, setPage] = useState<number>(1);
+  const [inputPage, setInputPage] = useState<string>(page.toString());
+  const [perPage, setPerPage] = useState<number>(10);
+  const [sortBy, setSortBy] = useState<string>("posted");
+  const [secondarySortBy, setSecondarySortBy] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [secondarySortOrder, setSecondarySortOrder] = useState<"asc" | "desc">("desc");
+  const [shiftPressed, setShiftPressed] = useState<boolean>(false);
+  const [search, setSearch] = useState<string>("");
   const [filters, setFilters] = useState<string[]>([]);
 
-  const [showUnknown, setShowUnknown] = useState(false);
+  const [showUnknown, setShowUnknown] = useState<boolean>(false);
   const [selectedUnknownScore, setSelectedUnknownScore] = useState<UnknownScore | null>(null);
 
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
-  const [modalLoading, setModalLoading] = useState(false);
+  const [modalLoading, setModalLoading] = useState<boolean>(false);
 
   useEffect(() => {
     fetchScores();
   }, [userId]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Shift") {
+        setShiftPressed(true);
+      }
+    };
+
+    const handleKeyUp = () => {
+      setShiftPressed(false);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, []);
 
   async function fetchScores() {
     setLoading(true);
@@ -90,6 +113,22 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
     } finally {
       setLoading(false);
     }
+  }
+
+  function getSortFunction(a: Score, b: Score, sortKey: string) {
+    let aValue = a[sortKey as keyof Score];
+    let bValue = b[sortKey as keyof Score];
+    if (typeof aValue === "string") {
+      aValue = aValue.toLowerCase();
+    }
+    if (typeof bValue === "string") {
+      bValue = bValue.toLowerCase();
+    }
+    if (sortKey === "percent") { // FC's take priority over non-FC's
+      aValue = a.is_fc ? 101 : aValue;
+      bValue = b.is_fc ? 101 : bValue;
+    }
+    return [aValue, bValue];
   }
 
   const filteredAndSortedScores = useMemo(() => {
@@ -123,23 +162,17 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
     }
 
     return filteredScores.sort((a, b) => {
-      let aValue = a[sortBy as keyof Score];
-      let bValue = b[sortBy as keyof Score];
-      if (typeof aValue === "string") {
-        aValue = aValue.toLowerCase();
-      }
-      if (typeof bValue === "string") {
-        bValue = bValue.toLowerCase();
-      }
-      if (sortBy === "percent") { // FC's take priority over non-FC's
-        aValue = a.is_fc ? 101 : aValue;
-        bValue = b.is_fc ? 101 : bValue;
-      }
+      const [aValue, bValue] = getSortFunction(a, b, sortBy);
       if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
       if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+      if (secondarySortBy) {
+        const [aSecondaryValue, bSecondaryValue] = getSortFunction(a, b, secondarySortBy);
+        if (aSecondaryValue < bSecondaryValue) return secondarySortOrder === "asc" ? -1 : 1;
+        if (aSecondaryValue > bSecondaryValue) return secondarySortOrder === "asc" ? 1 : -1;
+      }
       return 0;
     });
-  }, [scores, showUnknown, sortBy, sortOrder, search, filters]);
+  }, [scores, showUnknown, sortBy, sortOrder, secondarySortBy, secondarySortOrder, search, filters]);
 
   const paginatedScores = useMemo(() => {
     const startIndex = (page - 1) * perPage;
@@ -149,11 +182,22 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   const totalPages = Math.ceil(filteredAndSortedScores.length / perPage);
 
   const handleSort = (column: string) => {
-    if (sortBy === column) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    if (!shiftPressed) {
+      setSecondarySortBy(null);
+      setSecondarySortOrder("desc");
+      if (sortBy === column) {
+        setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+      } else {
+        setSortBy(column);
+        setSortOrder("desc");
+      }
     } else {
-      setSortBy(column);
-      setSortOrder("desc");
+      if (secondarySortBy === column) {
+        setSecondarySortOrder(secondarySortOrder === "asc" ? "desc" : "asc");
+      } else {
+        setSecondarySortBy(column);
+        setSecondarySortOrder("desc");
+      }
     }
   };
 
@@ -260,8 +304,8 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
                   key={key}
                   content={value}
                   onClick={() => handleSort(key)}
-                  sort={sortBy === key}
-                  sortOrder={sortOrder}
+                  sort={sortBy === key || secondarySortBy === key}
+                  sortOrder={sortBy === key ? sortOrder : secondarySortOrder}
                 />
               ))}
             </tr>
