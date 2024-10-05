@@ -55,15 +55,6 @@ def get_leaderboard(song_id):
 @bp.route("/api/user/<string:user_id>/scores", methods=["GET"])
 def get_user_scores(user_id):
     supabase = get_supabase()
-    
-    page = max(1, int(request.args.get("page", 1)))
-    per_page = max(10, min(100, int(request.args.get("per_page", 10))))
-    sort_by = sanitize_input(request.args.get("sort_by", "posted"))
-    sort_order = request.args.get("sort_order", "desc").lower()
-    show_unknown = request.args.get("unknown", "false").lower() == "true"
-
-    if sort_order not in ["asc", "desc"]:
-        sort_order = "desc"
 
     query = supabase.table("users").select("scores, unknown_scores").eq("id", user_id)
     result = query.execute()
@@ -71,34 +62,9 @@ def get_user_scores(user_id):
     if not result.data:
         return jsonify({"error": "User not found"}), 404
 
-    if show_unknown:
-        scores = result.data[0].get("unknown_scores", [])
-    else:
-        scores = result.data[0].get("scores", [])
+    scores, unknown_scores = result.data[0].get("scores", []), result.data[0].get("unknown_scores", [])
 
-    if not scores:
-        return jsonify({"error": "No scores found"}), 404
-
-    if sort_by == "posted":
-        sorted_scores = sorted(scores, key=lambda x: x.get("posted", ""), reverse=(sort_order == "desc"))
-    elif sort_by == "play_count":
-        sorted_scores = sorted(scores, key=lambda x: x.get("play_count", 0), reverse=(sort_order == "desc"))
-    else:
-        sorted_scores = sorted(scores, key=lambda x: x[sort_by], reverse=(sort_order == "desc"))
-
-    total_scores = len(sorted_scores)
-    start_index = (page - 1) * per_page
-    end_index = start_index + per_page
-    paginated_scores = sorted_scores[start_index:end_index]
-
-    return jsonify({
-        "scores": paginated_scores,
-        "total": total_scores,
-        "page": page,
-        "per_page": per_page,
-        "sort_by": sort_by,
-        "sort_order": sort_order
-    })
+    return jsonify({"scores": scores, "unknown_scores": unknown_scores})
 
 @bp.route("/api/user/<string:user_id>/stats", methods=["GET"])
 def get_user_stats(user_id):

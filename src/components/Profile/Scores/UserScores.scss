@@ -2,10 +2,74 @@
 @import "../../../styles/mixins";
 
 .user-scores {
-  h2 {
-    font-size: 1.5rem;
+  .user-scores-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 1rem;
-    @include theme("color", "color-text");
+
+    h2 {
+      font-size: 1.5rem;
+      @include theme("color", "color-text");
+    }
+
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      margin-left: 1rem;
+      cursor: pointer;
+
+      .toggle-label {
+        margin-right: 0.5rem;
+        font-size: 0.9rem;
+        user-select: none;
+        @include theme("color", "color-text");
+      }
+
+      .toggle-switch {
+        position: relative;
+        width: 40px;
+        height: 20px;
+      }
+
+      .toggle-input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+
+        &:checked + .toggle-slider {
+          @include theme("background", "color-toggle-on");
+        }
+
+        &:checked + .toggle-slider:before {
+          transform: translateX(20px);
+        }
+      }
+
+      .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        transition: 0.4s;
+        border-radius: 20px;
+        @include theme("background", "color-toggle-off");
+
+        &:before {
+          position: absolute;
+          content: "";
+          height: 16px;
+          width: 16px;
+          left: 2px;
+          bottom: 2px;
+          transition: 0.4s;
+          border-radius: 50%;
+          @include theme("background", "color-toggle-handle");
+        }
+      }
+    }
   }
 
   .control-bar {
@@ -20,64 +84,6 @@
       
       label, select {
         margin-right: 0.5rem;
-      }
-    }
-
-    .toggle-container {
-      display: flex;
-      align-items: center;
-      margin-left: 1rem;
-      cursor: pointer;
-    }
-
-    .toggle-label {
-      margin-right: 0.5rem;
-      font-size: 0.9rem;
-      user-select: none;
-      @include theme("color", "color-text");
-    }
-
-    .toggle-switch {
-      position: relative;
-      width: 40px;
-      height: 20px;
-    }
-
-    .toggle-input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-
-      &:checked + .toggle-slider {
-        @include theme("background", "color-toggle-on");
-      }
-
-      &:checked + .toggle-slider:before {
-        transform: translateX(20px);
-      }
-    }
-
-    .toggle-slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      transition: 0.4s;
-      border-radius: 20px;
-      @include theme("background", "color-toggle-off");
-
-      &:before {
-        position: absolute;
-        content: "";
-        height: 16px;
-        width: 16px;
-        left: 2px;
-        bottom: 2px;
-        transition: 0.4s;
-        border-radius: 50%;
-        @include theme("background", "color-toggle-handle");
       }
     }
   }

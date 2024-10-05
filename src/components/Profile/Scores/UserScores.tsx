@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { TableControls, Pagination } from "../../SongList/TableControls";
+import { TableControls, Pagination, Search } from "../../SongList/TableControls";
 import SongModal from "../../SongList/SongModal";
 import LoadingSpinner from "../../Loading/LoadingSpinner";
 import UnknownSongModal from "./UnknownSongModal";
@@ -25,6 +25,11 @@ interface UnknownScore extends Score {
   filepath: string | null;
 }
 
+export interface Scores {
+  scores: Score[];
+  unknown_scores: UnknownScore[];
+}
+
 interface UserScoresProps {
   userId: string;
 }
@@ -40,18 +45,26 @@ const SCORE_TABLE_HEADERS = {
   posted: "Posted"
 };
 
+const filterOptions = [
+  { value: "song_name", label: "Name" },
+  { value: "artist", label: "Artist" },
+  { value: "score", label: "Score" },
+  { value: "identifier", label: "Identifier" }
+];
+
 const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   const { songId } = useParams<{ songId: string }>();
   const navigate = useNavigate();
 
-  const [scores, setScores] = useState<Score[]>([]);
+  const [scores, setScores] = useState<Scores>({ scores: [], unknown_scores: [] });
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [inputPage, setInputPage] = useState(page.toString());
-  const [totalScores, setTotalScores] = useState(0);
   const [perPage, setPerPage] = useState(10);
   const [sortBy, setSortBy] = useState("posted");
   const [sortOrder, setSortOrder] = useState("desc");
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState<string[]>([]);
 
   const [showUnknown, setShowUnknown] = useState(false);
   const [selectedUnknownScore, setSelectedUnknownScore] = useState<UnknownScore | null>(null);
@@ -59,35 +72,64 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
 
-  const totalPages = Math.ceil(totalScores / perPage);
-
   useEffect(() => {
     fetchScores();
-  }, [userId, page, perPage, sortBy, sortOrder, showUnknown]);
+  }, [userId]);
 
   async function fetchScores() {
     setLoading(true);
     try {
-      const queryParams = new URLSearchParams({
-        page: page.toString(),
-        per_page: perPage.toString(),
-        sort_by: sortBy,
-        sort_order: sortOrder,
-        unknown: showUnknown.toString()
-      });
-      const response = await fetch(`${API_URL}/api/user/${userId}/scores?${queryParams}`);
+      const response = await fetch(`${API_URL}/api/user/${userId}/scores`);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
-      const data = await response.json();
-      setScores(data.scores);
-      setTotalScores(data.total);
+      const data: Scores = await response.json();
+      setScores(data);
     } catch (error) {
       console.error("Error fetching scores:", error);
     } finally {
       setLoading(false);
     }
   }
+
+  const filteredAndSortedScores = useMemo(() => {
+    let filteredScores = showUnknown ? scores.unknown_scores : scores.scores;
+    if (!filteredScores) return [];
+
+    if (search) {
+      const searchTermsLower = search.toLowerCase().split(" ");
+      filteredScores = filteredScores.filter(score => {
+        if (filters.length === 0) {
+          return searchTermsLower.every(term => 
+            score.score.toString().includes(term) ||
+            score.song_name.toLowerCase().includes(term) ||
+            score.artist.toLowerCase().includes(term) ||
+            score.identifier.toLowerCase().includes(term)
+          )
+        } else {
+          return searchTermsLower.every(term => 
+            filters.includes("score") && score.score.toString().includes(term) ||
+            filters.includes("song_name") && score.song_name.toLowerCase().includes(term) ||
+            filters.includes("artist") && score.artist.toLowerCase().includes(term) ||
+            filters.includes("identifier") && score.identifier.toLowerCase().includes(term)
+          )
+        }
+      });
+    }
+
+    return filteredScores.sort((a, b) => {
+      if (a[sortBy as keyof Score] < b[sortBy as keyof Score]) return sortOrder === "asc" ? -1 : 1;
+      if (a[sortBy as keyof Score] > b[sortBy as keyof Score]) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [scores, showUnknown, sortBy, sortOrder, search, filters]);
+
+  const paginatedScores = useMemo(() => {
+    const startIndex = (page - 1) * perPage;
+    return filteredAndSortedScores.slice(startIndex, startIndex + perPage);
+  }, [filteredAndSortedScores, page, perPage]);
+
+  const totalPages = Math.ceil(filteredAndSortedScores.length / perPage);
 
   const handleSort = (column: string) => {
     if (sortBy === column) {
@@ -139,10 +181,10 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   };
 
   const getSurroundingSongIds = () => {
-    const currentScoreIndex = scores.findIndex(score => score.identifier === songId);
+    const currentScoreIndex = filteredAndSortedScores.findIndex(score => score.identifier === songId);
     if (currentScoreIndex === -1) return { prevSongIds: [], nextSongIds: [] };
-    const prevSongIds = scores.slice(Math.max(0, currentScoreIndex - perPage), currentScoreIndex).map(score => score.identifier);
-    const nextSongIds = scores.slice(currentScoreIndex + 1, currentScoreIndex + perPage).map(score => score.identifier);
+    const prevSongIds = filteredAndSortedScores.slice(0, currentScoreIndex).map(score => score.identifier);
+    const nextSongIds = filteredAndSortedScores.slice(currentScoreIndex + 1).map(score => score.identifier);
     return { prevSongIds, nextSongIds };
   };
 
@@ -157,16 +199,8 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   return (
     <>
       <div className="user-scores">
-        <h2>User Scores</h2>
-        <div className="control-bar">
-          <TableControls perPage={perPage} setPerPage={setPerPage} setPage={setPage} />
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            inputPage={inputPage}
-            setPage={setPage}
-            setInputPage={setInputPage}
-          />
+        <div className="user-scores-header">
+          <h2>{`${showUnknown ? "Unknown" : ""} User Scores`}</h2>
           <div className="toggle-container">
             <label htmlFor="show-unknown" className="toggle-label" onClick={handleToggleUnknown}>
               Show Unknown Scores
@@ -182,6 +216,24 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
               <span className="toggle-slider"></span>
             </div>
           </div>
+        </div>
+        <div className="control-bar">
+          <TableControls perPage={perPage} setPerPage={setPerPage} setPage={setPage} />
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            inputPage={inputPage}
+            setPage={setPage}
+            setInputPage={setInputPage}
+          />
+          <Search
+            search={search}
+            filters={filters}
+            filterOptions={filterOptions}
+            setSearch={setSearch}
+            setFilters={setFilters}
+            submitSearch={() => {}}
+          />
         </div>
         <table>
           <thead>
@@ -205,13 +257,15 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
                 </td>
               </tr>
             )}
-            {!loading && scores.length === 0 && (
+            {!loading && paginatedScores.length === 0 && (
               <tr>
-                <td colSpan={Object.keys(SCORE_TABLE_HEADERS).length}>No scores found</td>
+                <td colSpan={Object.keys(SCORE_TABLE_HEADERS).length}>
+                  {`No ${showUnknown ? "unknown" : ""} scores found`}
+                </td>
               </tr>
             )}
-            {!loading && scores.length > 0 && (
-              scores.map((score, index) => (
+            {!loading && paginatedScores.length > 0 && (
+              paginatedScores.map((score, index) => (
                 <ScoreTableRow 
                   key={index} 
                   score={score}
