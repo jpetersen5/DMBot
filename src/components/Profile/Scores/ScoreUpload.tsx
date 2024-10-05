@@ -41,7 +41,7 @@ const ScoreUpload: React.FC = () => {
 
   const handleUpload = async () => {
     if (!file) {
-      finishUpload(false, "Please select a file");
+      finishUpload("Please select a file");
       return;
     }
 
@@ -61,13 +61,13 @@ const ScoreUpload: React.FC = () => {
       const result = await response.json();
 
       if (response.ok) {
-        finishUpload(true, `Upload complete. Processing started. Total songs: ${result.total_songs}`);
+        finishUpload(`Upload complete. Processing started. Total songs: ${result.total_songs}`);
         setFile(null);
       } else {
-        finishUpload(false, result.error || "An error occurred while processing the file");
+        finishUpload(result.error || "An error occurred while processing the file");
       }
     } catch (error) {
-      finishUpload(false, "An error occurred while uploading the file");
+      finishUpload("An error occurred while uploading the file");
     }
   };
 

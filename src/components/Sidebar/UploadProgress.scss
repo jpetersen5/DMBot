@@ -23,11 +23,6 @@
     padding-bottom: 0.5rem;
     margin-bottom: 0.5rem;
     border-bottom: 1px solid #e0e0e0;
-    cursor: move;
-
-    &:hover {
-      background-color: #f8f8f8;
-    }
   }
 
   h3 {
@@ -50,18 +45,18 @@
     appearance: none;
 
     &::-webkit-progress-bar {
-      background-color: #f0f0f0;
       border-radius: 4px;
+      @include theme("background", "color-box-secondary");
     }
 
     &::-webkit-progress-value {
-      background-color: #202020;
       border-radius: 4px;
+      @include theme("background", "color-box-tertiary");
     }
 
     &::-moz-progress-bar {
-      background-color: #202020;
       border-radius: 4px;
+      @include theme("background", "color-box-tertiary");
     }
   }
 
