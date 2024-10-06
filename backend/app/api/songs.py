@@ -3,7 +3,7 @@ import re
 import jwt
 from datetime import datetime, UTC
 from flask import Blueprint, jsonify, request, current_app
-from typing import Any, Dict, List, Optional
+from typing import List
 from ..config import Config
 from ..services.supabase_service import get_supabase
 from ..utils.helpers import sanitize_input, allowed_file
@@ -39,83 +39,108 @@ def get_song(identifier):
     song = result.data[0]
     return jsonify(song)
 
+# @bp.route("/api/songs", methods=["GET"])
+# def get_songs():
+#     """
+#     retrieves songs from the database
+
+#     params:
+#         page (int): page number (default 1)
+#         per_page (int): number of songs per page (default 20)
+#         sort_by (str): field to sort by (default "last_update")
+#         sort_order (str): sort order ("asc" or "desc", default "desc")
+#         search (str): search query (default None)
+#         filter (str): field to filter by (default None)
+
+#     returns:
+#         JSON: list of songs, total count, page number, songs per page, sort field, and sort order
+#     """
+#     supabase = get_supabase()
+#     logger = current_app.logger
+    
+#     page: int = max(1, int(request.args.get("page", 1)))
+#     per_page: int = max(10, min(100, int(request.args.get("per_page", 20))))
+#     sort_by: str = sanitize_input(request.args.get("sort_by", "last_update").lower())
+#     sort_order: str = request.args.get("sort_order", "desc").lower()
+#     search: Optional[str] = request.args.get("search")
+#     filters: List[str] = request.args.get("filter", "").split(",")
+
+#     filters = [filter for filter in filters if filter in ALLOWED_FILTERS]
+#     if sort_order not in ["asc", "desc"]:
+#         sort_order = "desc"
+#     if sort_by not in ALLOWED_FIELDS:
+#         sort_by = "last_update"
+#     elif sort_by == "charter":
+#         sort_by = "charter_refs"
+
+#     query = supabase.table("songs_new").select("*")
+#     count_query = supabase.table("songs_new").select("id", count="exact")
+
+#     if search:
+#         search_terms = sanitize_input(search).split()
+#         search_fields = filters if filters else ["name", "artist", "album", "genre", "charter"]
+        
+#         for term in search_terms:
+#             term_filter = []
+#             for field in search_fields:
+#                 if field != "charter":
+#                     condition = f"{field}.ilike.%{term}%"
+#                     term_filter.append(condition)
+
+#             if search_fields.count("charter") > 0:
+#                 charters_query = supabase.table("charters").select("name").ilike("name", f"*{term}*")
+#                 charters_response = charters_query.execute()
+#                 matching_charters = [charter["name"] for charter in charters_response.data]
+#                 if matching_charters:
+#                     charter_condition = f"charter_refs.ov.{{{','.join(matching_charters)}}}"
+#                     term_filter.append(charter_condition)
+            
+#             if term_filter:
+#                 query = query.or_(",".join(term_filter))
+#                 count_query = count_query.or_(",".join(term_filter))
+
+#     total_songs = count_query.execute().count
+
+#     query = query.order(sort_by, desc=(sort_order == "desc"))
+#     query = query.range((page - 1) * per_page, page * per_page - 1)
+
+#     result = query.execute()
+
+#     songs: List[Dict[str, Any]] = result.data
+
+#     return jsonify({
+#         "songs": songs,
+#         "total": total_songs,
+#         "page": page,
+#         "per_page": per_page,
+#         "sort_by": sort_by,
+#         "sort_order": sort_order
+#     })
+
 @bp.route("/api/songs", methods=["GET"])
 def get_songs():
     """
     retrieves songs from the database
 
-    params:
-        page (int): page number (default 1)
-        per_page (int): number of songs per page (default 20)
-        sort_by (str): field to sort by (default "last_update")
-        sort_order (str): sort order ("asc" or "desc", default "desc")
-        search (str): search query (default None)
-        filter (str): field to filter by (default None)
-
     returns:
-        JSON: list of songs, total count, page number, songs per page, sort field, and sort order
+        JSON: list of songs
     """
     supabase = get_supabase()
     logger = current_app.logger
-    
-    page: int = max(1, int(request.args.get("page", 1)))
-    per_page: int = max(10, min(100, int(request.args.get("per_page", 20))))
-    sort_by: str = sanitize_input(request.args.get("sort_by", "last_update").lower())
-    sort_order: str = request.args.get("sort_order", "desc").lower()
-    search: Optional[str] = request.args.get("search")
-    filters: List[str] = request.args.get("filter", "").split(",")
 
-    filters = [filter for filter in filters if filter in ALLOWED_FILTERS]
-    if sort_order not in ["asc", "desc"]:
-        sort_order = "desc"
-    if sort_by not in ALLOWED_FIELDS:
-        sort_by = "last_update"
-    elif sort_by == "charter":
-        sort_by = "charter_refs"
+    batch_size = 10000
+    offset = 0
+    songs = []
 
-    query = supabase.table("songs_new").select("*")
-    count_query = supabase.table("songs_new").select("id", count="exact")
+    while True:
+        query = supabase.table("songs_new").select("*").limit(batch_size).offset(offset)
+        result = query.execute()
+        songs.extend(result.data)
+        if len(result.data) < batch_size:
+            break
+        offset += batch_size
 
-    if search:
-        search_terms = sanitize_input(search).split()
-        search_fields = filters if filters else ["name", "artist", "album", "genre", "charter"]
-        
-        for term in search_terms:
-            term_filter = []
-            for field in search_fields:
-                if field != "charter":
-                    condition = f"{field}.ilike.%{term}%"
-                    term_filter.append(condition)
-
-            if search_fields.count("charter") > 0:
-                charters_query = supabase.table("charters").select("name").ilike("name", f"*{term}*")
-                charters_response = charters_query.execute()
-                matching_charters = [charter["name"] for charter in charters_response.data]
-                if matching_charters:
-                    charter_condition = f"charter_refs.ov.{{{','.join(matching_charters)}}}"
-                    term_filter.append(charter_condition)
-            
-            if term_filter:
-                query = query.or_(",".join(term_filter))
-                count_query = count_query.or_(",".join(term_filter))
-
-    total_songs = count_query.execute().count
-
-    query = query.order(sort_by, desc=(sort_order == "desc"))
-    query = query.range((page - 1) * per_page, page * per_page - 1)
-
-    result = query.execute()
-
-    songs: List[Dict[str, Any]] = result.data
-
-    return jsonify({
-        "songs": songs,
-        "total": total_songs,
-        "page": page,
-        "per_page": per_page,
-        "sort_by": sort_by,
-        "sort_order": sort_order
-    })
+    return jsonify(songs)
 
 @bp.route("/api/related-songs", methods=["GET"])
 def get_related_songs():

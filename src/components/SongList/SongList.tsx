@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { API_URL } from "../../App";
 import { TableControls, Pagination, Search } from "./TableControls";
@@ -7,6 +7,7 @@ import LoadingSpinner from "../Loading/LoadingSpinner";
 import CharterName from "./CharterName";
 import { useCharterData } from "../../context/CharterContext";
 import { useSongCache } from "../../context/SongContext";
+import { useKeyPress } from "../../hooks/useKeyPress";
 import Tooltip from "../../utils/Tooltip/Tooltip";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import {
@@ -35,32 +36,45 @@ const SongList: React.FC = () => {
   const location = useLocation();
   const { songId } = useParams<{ songId?: string }>();
   const queryParams = new URLSearchParams(location.search);
-
-  const [songs, setSongs] = useState<Song[]>([]);
-  const [songsLoading, setSongsLoading] = useState(true);
-  const [page, setPage] = useState(parseInt(queryParams.get("page") || "1"));
-  const [inputPage, setInputPage] = useState(page.toString());
-  const [totalSongs, setTotalSongs] = useState(0);
-  const [perPage, setPerPage] = useState(parseInt(queryParams.get("per_page") || "20"));
-  const [sortBy, setSortBy] = useState(queryParams.get("sort_by") || "last_update");
-  const [sortOrder, setSortOrder] = useState(queryParams.get("sort_order") || "desc");
-  const [search, setSearch] = useState(queryParams.get("search") || "");
-  const [filters, setFilters] = useState<string[]>(queryParams.getAll("filter") || []);
-  const commaSeparatedFilters = filters.sort().join(",");
-  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
-  const [modalLoading, setModalLoading] = useState(false);
-  const { isLoading: chartersLoading } = useCharterData();
   const { getCachedResult, setCachedResult } = useSongCache();
 
-  const totalPages = Math.ceil(totalSongs / perPage);
+  const [songs, setSongs] = useState<Song[]>([]);
+  const [songsLoading, setSongsLoading] = useState<boolean>(true);
+  const [page, setPage] = useState<number>(parseInt(queryParams.get("page") || "1"));
+  const [inputPage, setInputPage] = useState<string>(page.toString());
+  const [perPage, setPerPage] = useState<number>(parseInt(queryParams.get("per_page") || "20"));
+  const [sortBy, setSortBy] = useState<string>(queryParams.get("sort_by") || "last_update");
+  const [secondarySortBy, setSecondarySortBy] = useState<string | null>(queryParams.get("secondary_sort_by") || null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">(queryParams.get("sort_order") as "asc" | "desc" || "desc");
+  const [secondarySortOrder, setSecondarySortOrder] = useState<"asc" | "desc">(queryParams.get("secondary_sort_order") as "asc" | "desc" || "desc");
+  const shiftPressed = useKeyPress("Shift");
+  const [search, setSearch] = useState<string>(queryParams.get("search") || "");
+  const [filters, setFilters] = useState<string[]>(queryParams.getAll("filter") || []);
+  const commaSeparatedFilters = filters.sort().join(",");
+
+  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
+  const [modalLoading, setModalLoading] = useState<boolean>(false);
+  const { isLoading: chartersLoading } = useCharterData();
+
+  const { prevSongIds, nextSongIds } = useMemo(() => {
+    return getSurroundingSongIds(songs, selectedSong?.id.toString() || "");
+  }, [songs, selectedSong]);
 
   useEffect(() => {
     fetchSongs();
-  }, [location.search]);
+  }, []);
 
   useEffect(() => {
     updateURL();
-  }, [page, perPage, sortBy, sortOrder, filters]);
+  }, [page, perPage, sortBy, sortOrder, secondarySortBy, secondarySortOrder, filters]);
+
+  useEffect(() => {
+    if (page === 1) {
+      updateURL();
+    } else {
+      setPage(1);
+    }
+  }, [search, filters]);
 
   useEffect(() => {
     if (songId) {
@@ -76,45 +90,30 @@ const SongList: React.FC = () => {
     if (perPage !== 20) params.set("per_page", perPage.toString());
     if (sortBy !== "name") params.set("sort_by", sortBy);
     if (sortOrder !== "asc") params.set("sort_order", sortOrder);
+    if (secondarySortBy !== null) params.set("secondary_sort_by", secondarySortBy);
+    if (secondarySortOrder !== "desc") params.set("secondary_sort_order", secondarySortOrder);
     if (search) params.set("search", search);
     if (filters.length > 0) params.set("filter", commaSeparatedFilters);
 
     navigate(`/songs${songId ? `/${songId}` : ""}?${params.toString()}`, { replace: true });
   };
 
-  const getCacheKey = () => {
-    return `songs_${page}_${perPage}_${sortBy}_${sortOrder}_${search}_${commaSeparatedFilters}`;
-  };
-
   async function fetchSongs() {
     setSongsLoading(true);
-    const cacheKey = getCacheKey();
-    const cachedResult = getCachedResult(cacheKey);
-
-    if (cachedResult) {
-      setSongs(cachedResult.songs);
-      setTotalSongs(cachedResult.total);
+    const cachedSongs = getCachedResult("all_songs");
+    if (cachedSongs) {
+      setSongs(cachedSongs.songs);
       setSongsLoading(false);
       return;
     }
-
     try {
-      const queryParams = new URLSearchParams({
-        page: page.toString(),
-        per_page: perPage.toString(),
-        sort_by: sortBy,
-        sort_order: sortOrder,
-        search,
-        filter: commaSeparatedFilters,
-      });
-      const response = await fetch(`${API_URL}/api/songs?${queryParams}`);
+      const response = await fetch(`${API_URL}/api/songs`);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
-      const data = await response.json();
-      setSongs(data.songs);
-      setTotalSongs(data.total);
-      setCachedResult(cacheKey, { songs: data.songs, total: data.total, timestamp: Date.now() });
+      const data: Song[] = await response.json();
+      setSongs(data);
+      setCachedResult("all_songs", { songs: data, total: data.length, timestamp: Date.now() });
     } catch (error) {
       console.error("Error fetching songs:", error);
     } finally {
@@ -137,20 +136,94 @@ const SongList: React.FC = () => {
     }
   }
 
-  const handleSort = (column: string) => {
-    if (sortBy === column) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    } else {
-      setSortBy(column);
-      setSortOrder("asc");
+  const getSortValues = (a: Song, b: Song, sortKey: string) => {
+    let aValue = a[sortKey as keyof Song];
+    let bValue = b[sortKey as keyof Song];
+    if (typeof aValue === "string") {
+      aValue = aValue.toLowerCase();
     }
+    if (typeof bValue === "string") {
+      bValue = bValue.toLowerCase();
+    }
+    return [aValue, bValue];
   };
 
-  const handleSearchSubmit = () => {
-    if (page === 1) {
-      updateURL();
+  const filteredAndSortedSongs = useMemo(() => {
+    let filteredSongs = songs;
+    if (!filteredSongs) return [];
+
+    if (search) {
+      const searchTermsLower = search.toLowerCase().split(" ");
+      filteredSongs = filteredSongs.filter(song => {
+        if (filters.length === 0) {
+          return searchTermsLower.every(term => 
+            Object.values(song).some(value => 
+              (typeof value === "string" || typeof value === "number") && value.toString().toLowerCase().includes(term)
+            )
+          );
+        } else {
+          return searchTermsLower.every(term => 
+            filters.includes("name") && song.name?.toLowerCase().includes(term) ||
+            filters.includes("artist") && song.artist?.toLowerCase().includes(term) ||
+            filters.includes("album") && song.album?.toLowerCase().includes(term) ||
+            filters.includes("year") && song.year?.toString().includes(term) ||
+            filters.includes("genre") && song.genre?.toLowerCase().includes(term) ||
+            filters.includes("charter") && song.charter_refs?.some(charter => charter.toLowerCase().includes(term))
+          )
+        }
+      });
+      console.log(filteredSongs);
     } else {
-      setPage(1);
+      // I don't know why this is necessary, but it is
+      filteredSongs = filteredSongs.filter(song => {
+        return song;
+      });
+    }
+
+    const sortedSongs = filteredSongs.sort((a, b) => {
+      const [aValue, bValue] = getSortValues(a, b, sortBy);
+      if (aValue == null || bValue == null) return 0;
+      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+      if (secondarySortBy) {
+        const [aSecondaryValue, bSecondaryValue] = getSortValues(a, b, secondarySortBy);
+        if (aSecondaryValue == null || bSecondaryValue == null) return 0;
+        if (aSecondaryValue < bSecondaryValue) return secondarySortOrder === "asc" ? -1 : 1;
+        if (aSecondaryValue > bSecondaryValue) return secondarySortOrder === "asc" ? 1 : -1;
+      }
+      return 0;
+    });
+
+    return sortedSongs;
+  }, [songs, search, filters, sortBy, sortOrder, secondarySortBy, secondarySortOrder]);
+
+  const paginatedSongs = useMemo(() => {
+    const startIndex = (page - 1) * perPage;
+    return filteredAndSortedSongs.slice(startIndex, startIndex + perPage);
+  }, [filteredAndSortedSongs, page, perPage]);
+
+  const totalPages = Math.ceil(filteredAndSortedSongs.length / perPage);
+
+  const handleSort = (column: string) => {
+    if (column === "charter") {
+      return;
+    }
+    if (!shiftPressed) {
+      setSecondarySortBy(null);
+      setSecondarySortOrder("desc");
+      if (sortBy === column) {
+        setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+      } else {
+        setSortBy(column);
+        setSortOrder("desc");
+      }
+    } else {
+      if (secondarySortBy === column) {
+        setSecondarySortOrder(secondarySortOrder === "asc" ? "desc" : "asc");
+      } else {
+        setSecondarySortBy(column);
+        setSecondarySortOrder("desc");
+      }
     }
   };
 
@@ -187,7 +260,7 @@ const SongList: React.FC = () => {
           filterOptions={filterOptions}
           setSearch={setSearch}
           setFilters={setFilters}
-          submitSearch={handleSearchSubmit}
+          submitSearch={() => {}}
         />
       </div>
       <table>
@@ -198,8 +271,8 @@ const SongList: React.FC = () => {
                 key={key}
                 content={value}
                 onClick={() => handleSort(key)}
-                sort={sortBy === key}
-                sortOrder={sortOrder}
+                sort={sortBy === key || secondarySortBy === key}
+                sortOrder={sortBy === key ? sortOrder : secondarySortOrder}
               />
             ))}
           </tr>
@@ -212,13 +285,13 @@ const SongList: React.FC = () => {
               </td>
             </tr>
           )}
-          {!loading && songs.length === 0 && (
+          {!loading && paginatedSongs.length === 0 && (
             <tr>
               <td colSpan={Object.keys(SONG_TABLE_HEADERS).length}>No songs found</td>
             </tr>
           )}
-          {!loading && songs.length > 0 && (
-            songs.map((song) => (
+          {!loading && paginatedSongs.length > 0 && (
+            paginatedSongs.map((song) => (
               <SongTableRow 
                 key={song.id} 
                 song={song} 
@@ -241,8 +314,8 @@ const SongList: React.FC = () => {
           onHide={handleModalClose} 
           initialSong={selectedSong}
           loading={modalLoading}
-          previousSongIds={getSurroundingSongIds(songs, selectedSong?.id.toString() || "", perPage).prevSongIds}
-          nextSongIds={getSurroundingSongIds(songs, selectedSong?.id.toString() || "", perPage).nextSongIds}
+          previousSongIds={prevSongIds}
+          nextSongIds={nextSongIds}
         />
       )}
     </div>

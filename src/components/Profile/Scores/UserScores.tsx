@@ -101,7 +101,7 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
     }
   }
 
-  function getSortFunction(a: Score, b: Score, sortKey: string) {
+  function getSortValues(a: Score, b: Score, sortKey: string) {
     let aValue = a[sortKey as keyof Score];
     let bValue = b[sortKey as keyof Score];
     if (typeof aValue === "string") {
@@ -148,11 +148,11 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
     }
 
     return filteredScores.sort((a, b) => {
-      const [aValue, bValue] = getSortFunction(a, b, sortBy);
+      const [aValue, bValue] = getSortValues(a, b, sortBy);
       if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
       if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
       if (secondarySortBy) {
-        const [aSecondaryValue, bSecondaryValue] = getSortFunction(a, b, secondarySortBy);
+        const [aSecondaryValue, bSecondaryValue] = getSortValues(a, b, secondarySortBy);
         if (aSecondaryValue < bSecondaryValue) return secondarySortOrder === "asc" ? -1 : 1;
         if (aSecondaryValue > bSecondaryValue) return secondarySortOrder === "asc" ? 1 : -1;
       }

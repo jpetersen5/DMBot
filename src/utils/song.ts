@@ -74,10 +74,10 @@ export const formatExactTime = (lastUpdate: string) => {
   });
 };
 
-export const getSurroundingSongIds = (songs: Song[], currentSongId: string, pageSize: number) => {
+export const getSurroundingSongIds = (songs: Song[], currentSongId: string) => {
   const currentIndex = songs.findIndex(song => song.id.toString() === currentSongId);
   if (currentIndex === -1) return { prevSongIds: [], nextSongIds: [] };
-  const prevSongIds = songs.slice(Math.max(0, currentIndex - pageSize), currentIndex).map(song => song.id.toString());
-  const nextSongIds = songs.slice(currentIndex + 1, currentIndex + pageSize).map(song => song.id.toString());
+  const prevSongIds = songs.slice(0, currentIndex).map(song => song.id.toString());
+  const nextSongIds = songs.slice(currentIndex + 1).map(song => song.id.toString());
   return { prevSongIds, nextSongIds };
 };
