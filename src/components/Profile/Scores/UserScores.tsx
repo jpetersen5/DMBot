@@ -6,6 +6,7 @@ import LoadingSpinner from "../../Loading/LoadingSpinner";
 import UnknownSongModal from "./UnknownSongModal";
 import { SongTableCell } from "../../SongList/SongList";
 import { API_URL } from "../../../App";
+import { useKeyPress } from "../../../hooks/useKeyPress";
 import { Song } from "../../../utils/song";
 import "./UserScores.scss";
 
@@ -65,7 +66,7 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   const [secondarySortBy, setSecondarySortBy] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [secondarySortOrder, setSecondarySortOrder] = useState<"asc" | "desc">("desc");
-  const [shiftPressed, setShiftPressed] = useState<boolean>(false);
+  const shiftPressed = useKeyPress("Shift");
   const [search, setSearch] = useState<string>("");
   const [filters, setFilters] = useState<string[]>([]);
 
@@ -80,24 +81,9 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   }, [userId]);
 
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Shift") {
-        setShiftPressed(true);
-      }
-    };
-
-    const handleKeyUp = () => {
-      setShiftPressed(false);
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
-    };
-  }, []);
+    setPage(1);
+    setInputPage("1");
+  }, [search, filters]);
 
   async function fetchScores() {
     setLoading(true);
