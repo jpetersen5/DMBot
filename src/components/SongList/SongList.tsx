@@ -1,7 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { API_URL } from "../../App";
-import { TableControls, Pagination, Search } from "./TableControls";
+import {
+  TableControls,
+  Pagination,
+  Search,
+  MultiSelectDropdown
+} from "./TableControls";
 import SongModal from "./SongModal";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import CharterName from "./CharterName";
@@ -28,7 +33,9 @@ const filterOptions = [
   { value: "album", label: "Album" },
   { value: "year", label: "Year" },
   { value: "genre", label: "Genre" },
-  { value: "charter", label: "Charter" }
+  { value: "charter", label: "Charter" },
+  { value: "loading_phrase", label: "Loading Phrase" },
+  { value: "playlist_path", label: "Playlist" }
 ];
 
 const SongList: React.FC = () => {
@@ -44,13 +51,25 @@ const SongList: React.FC = () => {
   const [inputPage, setInputPage] = useState<string>(page.toString());
   const [perPage, setPerPage] = useState<number>(parseInt(queryParams.get("per_page") || "20"));
   const [sortBy, setSortBy] = useState<string>(queryParams.get("sort_by") || "last_update");
-  const [secondarySortBy, setSecondarySortBy] = useState<string | null>(queryParams.get("secondary_sort_by") || null);
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">(queryParams.get("sort_order") as "asc" | "desc" || "desc");
-  const [secondarySortOrder, setSecondarySortOrder] = useState<"asc" | "desc">(queryParams.get("secondary_sort_order") as "asc" | "desc" || "desc");
+  const [secondarySortBy, setSecondarySortBy] = useState<string | null>(
+    queryParams.get("secondary_sort_by") || null
+  );
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">(
+    queryParams.get("sort_order") as "asc" | "desc" || "desc"
+  );
+  const [secondarySortOrder, setSecondarySortOrder] = useState<"asc" | "desc">(
+    queryParams.get("secondary_sort_order") as "asc" | "desc" || "desc"
+  );
   const shiftPressed = useKeyPress("Shift");
   const [search, setSearch] = useState<string>(queryParams.get("search") || "");
   const [filters, setFilters] = useState<string[]>(queryParams.getAll("filter") || []);
-  const commaSeparatedFilters = filters.sort().join(",");
+
+  const [selectedInstruments, setSelectedInstruments] = useState<string[]>(
+    queryParams.getAll("instrument") || []
+  );
+  const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>(
+    queryParams.getAll("difficulty") || []
+  );
 
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [modalLoading, setModalLoading] = useState<boolean>(false);
@@ -66,7 +85,17 @@ const SongList: React.FC = () => {
 
   useEffect(() => {
     updateURL();
-  }, [page, perPage, sortBy, sortOrder, secondarySortBy, secondarySortOrder, filters]);
+  }, [
+    page, 
+    perPage, 
+    sortBy, 
+    sortOrder, 
+    secondarySortBy, 
+    secondarySortOrder, 
+    filters, 
+    selectedInstruments, 
+    selectedDifficulties
+  ]);
 
   useEffect(() => {
     if (page === 1) {
@@ -93,7 +122,13 @@ const SongList: React.FC = () => {
     if (secondarySortBy !== null) params.set("secondary_sort_by", secondarySortBy);
     if (secondarySortOrder !== "desc") params.set("secondary_sort_order", secondarySortOrder);
     if (search) params.set("search", search);
-    if (filters.length > 0) params.set("filter", commaSeparatedFilters);
+    if (filters.length > 0) params.set("filter", filters.sort().join(","));
+    if (selectedInstruments.length > 0) {
+      params.set("instrument", selectedInstruments.sort().join(","));
+    }
+    if (selectedDifficulties.length > 0) {
+      params.set("difficulty", selectedDifficulties.sort().join(","));
+    }
 
     navigate(`/songs${songId ? `/${songId}` : ""}?${params.toString()}`, { replace: true });
   };
@@ -139,11 +174,12 @@ const SongList: React.FC = () => {
   const getSortValues = (a: Song, b: Song, sortKey: string) => {
     let aValue = a[sortKey as keyof Song];
     let bValue = b[sortKey as keyof Song];
-    if (typeof aValue === "string") {
-      aValue = aValue.toLowerCase();
-    }
-    if (typeof bValue === "string") {
-      bValue = bValue.toLowerCase();
+    if (sortKey === "year" || sortKey === "song_length" || sortKey === "scores_count") {
+      aValue = aValue ? parseInt(aValue.toString()) : 0;
+      bValue = bValue ? parseInt(bValue.toString()) : 0;
+    } else {
+      aValue = aValue ? aValue.toString().toLowerCase() : "";
+      bValue = bValue ? bValue.toString().toLowerCase() : "";
     }
     return [aValue, bValue];
   };
@@ -168,7 +204,9 @@ const SongList: React.FC = () => {
             filters.includes("album") && song.album?.toLowerCase().includes(term) ||
             filters.includes("year") && song.year?.toString().includes(term) ||
             filters.includes("genre") && song.genre?.toLowerCase().includes(term) ||
-            filters.includes("charter") && song.charter_refs?.some(charter => charter.toLowerCase().includes(term))
+            filters.includes("charter") && song.charter_refs?.some(charter => charter.toLowerCase().includes(term)) ||
+            filters.includes("loading_phrase") && song.loading_phrase?.toLowerCase().includes(term) ||
+            filters.includes("playlist_path") && song.playlist_path?.toLowerCase().includes(term)
           )
         }
       });
@@ -177,6 +215,24 @@ const SongList: React.FC = () => {
       // I don't know why this is necessary, but it is
       filteredSongs = filteredSongs.filter(song => {
         return song;
+      });
+    }
+
+    if (selectedInstruments.length > 0 || selectedDifficulties.length > 0) {
+      filteredSongs = filteredSongs.filter(song => {
+        const hasInstrument = selectedInstruments.length === 0 || 
+          selectedInstruments.every(instrument => song.instruments?.includes(instrument));
+        
+        const hasDifficulty = selectedDifficulties.length === 0 || 
+          selectedDifficulties.every(difficulty => 
+            song.note_counts?.some(nc => 
+              nc.difficulty === difficulty && 
+              (selectedInstruments.length === 0 || 
+                selectedInstruments.includes(nc.instrument))
+            )
+          );
+
+        return hasInstrument && hasDifficulty;
       });
     }
 
@@ -195,7 +251,17 @@ const SongList: React.FC = () => {
     });
 
     return sortedSongs;
-  }, [songs, search, filters, sortBy, sortOrder, secondarySortBy, secondarySortOrder]);
+  }, [
+    songs, 
+    search, 
+    filters, 
+    sortBy, 
+    sortOrder, 
+    secondarySortBy, 
+    secondarySortOrder, 
+    selectedInstruments, 
+    selectedDifficulties
+  ]);
 
   const paginatedSongs = useMemo(() => {
     const startIndex = (page - 1) * perPage;
@@ -244,7 +310,23 @@ const SongList: React.FC = () => {
 
   return (
     <div className="song-list">
-      <h1>Song List</h1>
+      <div className="song-list-header">
+        <h1>Song List</h1>
+        <MultiSelectDropdown
+          options={["drums", "guitar", "rhythm", "bass", "keys",]}
+          selectedOptions={selectedInstruments}
+          setSelectedOptions={setSelectedInstruments}
+          label="Instruments"
+          clearLabel="Any instrument"
+        />
+        <MultiSelectDropdown
+          options={["expert", "hard", "medium", "easy"]}
+          selectedOptions={selectedDifficulties}
+          setSelectedOptions={setSelectedDifficulties}
+          label="Difficulties"
+          clearLabel="Any difficulty"
+        />
+      </div>
       <div className="control-bar">
         <TableControls perPage={perPage} setPerPage={setPerPage} setPage={setPage} />
         <Pagination
@@ -381,7 +463,7 @@ export const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick }) => 
     <SongTableCell content={song.name} />
     <SongTableCell content={song.artist} />
     <SongTableCell content={song.album} />
-    <SongTableCell content={song.year} />
+    <SongTableCell content={song.year?.toString() || "N/A"} />
     <SongTableCell content={song.genre} />
     <SongTableCell content={song.song_length != null ? msToTime(song.song_length) : "??:??:??"} />
     <SongTableCell content={song.charter_refs ? song.charter_refs.join(", ") : "Unknown Author"} special="charter" />

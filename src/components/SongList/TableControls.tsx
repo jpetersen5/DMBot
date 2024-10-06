@@ -232,3 +232,77 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({
     </>
   );
 };
+
+interface MultiSelectDropdownProps {
+  options: string[];
+  selectedOptions: string[];
+  setSelectedOptions: React.Dispatch<React.SetStateAction<string[]>>;
+  label: string;
+  clearLabel: string;
+}
+
+export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
+  options,
+  selectedOptions,
+  setSelectedOptions,
+  label,
+  clearLabel,
+}) => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const handleOptionToggle = (option: string) => {
+    setSelectedOptions(prevOptions => 
+      prevOptions.includes(option)
+        ? prevOptions.filter(o => o !== option)
+        : [...prevOptions, option]
+    );
+  };
+
+  const handleClearOptions = () => {
+    setSelectedOptions([]);
+    setIsDropdownOpen(false);
+  };
+
+  const handleDropdownClose = () => {
+    setIsDropdownOpen(false);
+  };
+
+  useClickOutside(dropdownRef, handleDropdownClose);
+
+  return (
+    <div className="multi-select-dropdown">
+      <button 
+        className="dropdown-button"
+        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+      >
+        {selectedOptions.length === 0 && clearLabel}
+        {selectedOptions.length === 1 && 
+          selectedOptions[0].charAt(0).toUpperCase() + selectedOptions[0].slice(1)
+        }
+        {selectedOptions.length > 1 &&
+          selectedOptions.length < options.length &&
+          `${label} (${selectedOptions.length})`
+        }
+        {selectedOptions.length === options.length && `All ${label}`}
+      </button>
+      {isDropdownOpen && (
+        <div className="dropdown-menu" ref={dropdownRef}>
+          {options.map(option => (
+            <label key={option} className="dropdown-option">
+              <input
+                type="checkbox"
+                checked={selectedOptions.includes(option)}
+                onChange={() => handleOptionToggle(option)}
+              />
+              <span>{option.charAt(0).toUpperCase() + option.slice(1)}</span>
+            </label>
+          ))}
+          <button onClick={handleClearOptions} className="clear-options-button">
+            Clear {label}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};

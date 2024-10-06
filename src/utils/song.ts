@@ -4,14 +4,24 @@ export interface Song {
   artist: string | null;
   name: string | null;
   album: string | null;
-  track: string | null;
-  year: string | null;
+  track: number | null;
+  year: number | null;
   genre: string | null;
   difficulties: Record<string, number> | null;
+  loading_phrase: string | null;
+  playlist_path: string | null;
+  note_counts: NoteCount[] | null;
+  instruments: string[] | null;
   song_length: number | null;
   charter_refs: string[] | null;
   scores_count: number | null;
   last_update: string;
+}
+
+export interface NoteCount {
+  instrument: string;
+  difficulty: string;
+  count: number;
 }
 
 export const SONG_TABLE_HEADERS = {

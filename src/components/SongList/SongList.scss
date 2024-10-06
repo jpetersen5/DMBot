@@ -5,10 +5,17 @@
   padding: 2rem;
   @include theme("background", "color-background");
 
-  h1 {
-    font-size: 2rem;
-    margin-bottom: 1.5rem;
-    @include theme("color", "color-text");
+  .song-list-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: 1rem;
+
+    h1 {
+      font-size: 2rem;
+      margin-right: 1rem;
+      @include theme("color", "color-text");
+    }
   }
 
   .control-bar {
