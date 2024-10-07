@@ -87,7 +87,13 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
   }
 
   const sortedEntries = useMemo(() => {
-    return entries.sort((a, b) => {
+    let sortedEntries = entries;
+    if (!sortedEntries) return [];
+
+    // I don't know why this is necessary, but it is
+    sortedEntries = sortedEntries.filter(entry => entry);
+
+    sortedEntries = sortedEntries.sort((a, b) => {
       const [aValue, bValue] = getSortValues(a, b, sortBy);
       if (aValue === null || bValue === null) return 0;
       if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
@@ -100,6 +106,8 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
       }
       return 0;
     });
+
+    return sortedEntries;
   }, [entries, sortBy, sortOrder, secondarySortBy, secondarySortOrder]);
 
   const paginatedEntries = useMemo(() => {
