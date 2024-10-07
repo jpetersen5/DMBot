@@ -63,14 +63,15 @@ const SongList: React.FC = () => {
   );
   const shiftPressed = useKeyPress("Shift");
   const [search, setSearch] = useState<string>(queryParams.get("search") || "");
-  const [filters, setFilters] = useState<string[]>(queryParams.getAll("filter") || []);
+  const [filters, setFilters] = useState<string[]>(queryParams.get("filter")?.split(",") || []);
 
   const [selectedInstruments, setSelectedInstruments] = useState<string[]>(
-    queryParams.getAll("instrument") || []
+    queryParams.get("instrument")?.split(",") || []
   );
   const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>(
-    queryParams.getAll("difficulty") || []
+    queryParams.get("difficulty")?.split(",") || []
   );
+  console.log(queryParams.getAll("instrument"));
 
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [modalLoading, setModalLoading] = useState<boolean>(false);

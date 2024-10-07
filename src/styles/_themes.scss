@@ -12,6 +12,7 @@ $discord-blue: #7289DA;
 $discord-blue-dark: #5A6EB8;
 $off-white: #F8F9FA;
 $gold: #FFD700;
+$tooltip-background: rgba(0, 0, 0, 0.8);
 
 // dark mode
 $dark-grey-0: #121212;
@@ -65,6 +66,8 @@ $themes: (
     color-highlight: $gold,
     color-text-success: $green,
     color-text-error: $red,
+    color-scrollbar: $dark-grey-3,
+    color-scrollbar-hover: $dark-grey-4,
     filter-invert: invert(1),
   ),
   light: (
@@ -106,6 +109,8 @@ $themes: (
     color-highlight: $gold,
     color-text-success: $green,
     color-text-error: $red,
+    color-scrollbar: $light-grey-2,
+    color-scrollbar-hover: $light-grey-3,
     filter-invert: invert(0),
   ),
 );

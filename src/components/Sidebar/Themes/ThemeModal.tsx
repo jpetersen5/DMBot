@@ -1,5 +1,6 @@
 import React from "react";
 import { Modal } from "react-bootstrap";
+import { capitalize } from "../../../utils/safeHTML";
 import "./ThemeModal.scss";
 
 import DayIcon from "../../../assets/day.svg";
@@ -45,7 +46,7 @@ const ThemeModal: React.FC<ThemeModalProps> = ({ isOpen, onClose, themes }) => {
                   className="theme-icon"
                 />
               )}
-              <span>{key.charAt(0).toUpperCase() + key.slice(1)}</span>
+              <span>{capitalize(key)}</span>
             </li>
           ))}
         </ul>

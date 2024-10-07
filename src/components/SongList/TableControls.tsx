@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useClickOutside } from "../../utils/handleClickOutside";
+import { capitalize } from "../../utils/safeHTML";
 import "./TableControls.scss";
 
 import FilterIcon from "../../assets/filter.svg";
@@ -278,7 +279,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
       >
         {selectedOptions.length === 0 && clearLabel}
         {selectedOptions.length === 1 && 
-          selectedOptions[0].charAt(0).toUpperCase() + selectedOptions[0].slice(1)
+          capitalize(selectedOptions[0])
         }
         {selectedOptions.length > 1 &&
           selectedOptions.length < options.length &&
@@ -295,7 +296,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
                 checked={selectedOptions.includes(option)}
                 onChange={() => handleOptionToggle(option)}
               />
-              <span>{option.charAt(0).toUpperCase() + option.slice(1)}</span>
+              <span>{capitalize(option)}</span>
             </label>
           ))}
           <button onClick={handleClearOptions} className="clear-options-button">

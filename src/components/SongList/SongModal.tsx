@@ -3,10 +3,10 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Modal } from "react-bootstrap";
 import { API_URL } from "../../App";
 import LoadingSpinner from "../Loading/LoadingSpinner";
-import CharterName from "./CharterName";
 import RelatedSongs from "./RelatedSongs";
-import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
-import { Song, msToTime } from "../../utils/song";
+import SongInfo from "./SongInfo";
+import { renderSafeHTML } from "../../utils/safeHTML";
+import { Song } from "../../utils/song";
 import { useAuth } from "../../context/AuthContext";
 import "./SongModal.scss";
 import Leaderboard from "../Leaderboard/Leaderboard";
@@ -141,51 +141,6 @@ const SongModal: React.FC<SongModalProps> = ({
     </Modal>
   );
 };
-
-
-interface SongInfoLineProps {
-  label: string;
-  value: string | number | null;
-}
-
-const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
-  if (value == null) {
-    return <p><strong>{label}:</strong>  N/A</p>
-  }
-  else if (label === "MD5") {
-    return <p><strong>{label}:</strong> <code>{value}</code></p>
-  }
-  else if (label === "Charter") {
-    return <div className="charter"><p><strong>{label}:</strong></p> <CharterName names={value as string} /></div>
-  }
-  const processedValue = typeof value === "string" 
-    ? processColorTags(value)
-    : String(value);
-  return (
-    <p><strong>{label}:</strong> <span dangerouslySetInnerHTML={renderSafeHTML(processedValue)} /></p>
-  );
-};
-
-
-interface SongInfoProps {
-  song: Song;
-}
-
-const SongInfo: React.FC<SongInfoProps> = ({ song }) => {
-  return (
-    <div className="song-info">
-      <SongInfoLine label="Artist" value={song.artist} />
-      <SongInfoLine label="Album" value={song.album} />
-      <SongInfoLine label="Year" value={song.year} />
-      <SongInfoLine label="Genre" value={song.genre} />
-      <SongInfoLine label="Difficulty" value={song.difficulties ? Object.values(song.difficulties).join(", ") : "Unknown"} />
-      <SongInfoLine label="Length" value={msToTime(song.song_length || 0)} />
-      <SongInfoLine label="Charter" value={song.charter_refs ? song.charter_refs.join(", ") : "Unknown Author"} />
-      <SongInfoLine label="MD5" value={song.md5} />
-    </div>
-  );
-};
-
 
 interface AdminControlsProps {
   currentSong: Song;

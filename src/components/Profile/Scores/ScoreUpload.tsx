@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useUploadProgress } from "../../../hooks/useUploadProgress";
-import Tooltip from "../../../utils/Tooltip/Tooltip";
 import { API_URL } from "../../../App";
+import { useUploadProgress } from "../../../hooks/useUploadProgress";
+import { capitalize } from "../../../utils/safeHTML";
+import Tooltip from "../../../utils/Tooltip/Tooltip";
 import "./ScoreUpload.scss";
 
 import CopyIcon from "../../../assets/copy.svg";
@@ -111,7 +112,7 @@ const ScoreUpload: React.FC = () => {
               onClick={() => setSelectedOS(os)}
               className={selectedOS === os ? "active" : ""}
             >
-              {os.charAt(0).toUpperCase() + os.slice(1)}
+              {capitalize(os)}
             </button>
           ))}
         </p>

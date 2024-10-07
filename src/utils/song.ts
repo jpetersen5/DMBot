@@ -18,11 +18,55 @@ export interface Song {
   last_update: string;
 }
 
+export interface SongExtraData {
+  name?: string;
+  artist?: string;
+  album?: string;
+  genre?: string;
+  year?: string;
+  song_length?: number;
+  diff_band?: number;
+  diff_guitar?: number;
+  diff_rhythm?: number;
+  diff_bass?: number;
+  diff_drums?: number;
+  diff_drums_real?: number;
+  diff_keys?: number;
+  album_track?: number;
+  loading_phrase?: string;
+  notesData?: NotesData;
+}
+
+export interface NotesData {
+  instruments: string[];
+  hasSoloSections: boolean;
+  hasLyrics: boolean;
+  has2xKick: boolean;
+  hasFlexLanes: boolean;
+  noteCounts: NoteCount[];
+  maxNps: MaxNps[];
+}
+
 export interface NoteCount {
   instrument: string;
-  difficulty: string;
+  difficulty: Difficulty;
   count: number;
 }
+
+export interface MaxNps {
+  instrument: string;
+  difficulty: Difficulty;
+  nps: number;
+  time: number;
+}
+
+type Difficulty = (typeof difficulties)[number]
+const difficulties = [
+	"expert",
+	"hard",
+	"medium",
+	"easy",
+] as const
 
 export const SONG_TABLE_HEADERS = {
   name: "Name",
@@ -34,6 +78,13 @@ export const SONG_TABLE_HEADERS = {
   charter: "Charter",
   scores_count: "Scores",
   last_update: "Last Update",
+};
+
+export const SONG_DIFFICULTIES = {
+  "expert": "X",
+  "hard": "H",
+  "medium": "M",
+  "easy": "E",
 };
 
 export const msToTime = (duration: number) => {

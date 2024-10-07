@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, request, current_app
 from typing import List
 from ..config import Config
 from ..services.supabase_service import get_supabase
-from ..utils.helpers import sanitize_input, allowed_file
+from ..utils.helpers import allowed_file
 from werkzeug.utils import secure_filename
 
 bp = Blueprint("songs", __name__)
@@ -145,6 +145,28 @@ def get_songs_by_ids():
     songs = result.data
 
     return jsonify(songs)
+
+@bp.route("/api/songs/<string:md5>/extra", methods=["GET"])
+def get_song_extra(md5):
+    """
+    Retrieves extra song data from the songs_extra table by MD5
+
+    params:
+        md5 (str): MD5 of the song to retrieve
+
+    returns:
+        JSON: detailed song data
+    """
+    supabase = get_supabase()
+    
+    query = supabase.table("songs_extra").select("song_data").eq("md5", md5)
+    result = query.execute()
+
+    if not result.data:
+        return jsonify({"error": "Song not found"}), 404
+
+    song_data = result.data[0]["song_data"]
+    return jsonify(song_data)
 
 def strip_color_tags(text: str) -> str:
     return re.sub(r'<color=[^>]+>(.*?)</color>', r'\1', text)

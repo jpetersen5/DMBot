@@ -28,3 +28,10 @@ export const processColorTags = (content: string) => {
   
   return processedContent;
 };
+
+export const capitalize = (str: string, all: boolean = false) => {
+  if (all) {
+    return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  }
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
