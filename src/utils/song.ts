@@ -91,3 +91,16 @@ export const getSurroundingSongIds = (songs: Song[], currentSongId: string) => {
   const nextSongIds = songs.slice(currentIndex + 1).map(song => song.id.toString());
   return { prevSongIds, nextSongIds };
 };
+
+export const getSortValues = (a: Song, b: Song, sortKey: string) => {
+  let aValue = a[sortKey as keyof Song];
+  let bValue = b[sortKey as keyof Song];
+  if (sortKey === "year" || sortKey === "song_length" || sortKey === "scores_count") {
+    aValue = aValue ? parseInt(aValue.toString()) : 0;
+    bValue = bValue ? parseInt(bValue.toString()) : 0;
+  } else {
+    aValue = aValue ? aValue.toString().toLowerCase() : "";
+    bValue = bValue ? bValue.toString().toLowerCase() : "";
+  }
+  return [aValue, bValue];
+};

@@ -129,51 +129,22 @@ def get_songs_by_ids():
 
     params:
         ids (str): comma-separated list of song IDs
-        page (int): page number (default 1)
-        per_page (int): number of songs per page (default 20)
-        sort_by (str): field to sort by (default "last_update")
-        sort_order (str): sort order ("asc" or "desc", default "desc")
 
     returns:
-        JSON: list of songs, total count, page number, songs per page, sort field, and sort order
+        JSON: list of songs
     """
     supabase = get_supabase()
     logger = current_app.logger
     
     data = request.json
     ids = data.get("ids", [])
-    page = max(1, int(data.get("page", 1)))
-    per_page = max(10, min(100, int(data.get("per_page", 20))))
-    sort_by = sanitize_input(data.get("sort_by", "last_update").lower())
-    sort_order = data.get("sort_order", "desc").lower()
-
-    if sort_order not in ["asc", "desc"]:
-        sort_order = "desc"
-    if sort_by not in ALLOWED_FIELDS:
-        sort_by = "last_update"
-    elif sort_by == "charter":
-        sort_by = "charter_refs"
 
     query = supabase.table("songs_new").select("*").in_("id", ids)
-    count_query = supabase.table("songs_new").select("id", count="exact").in_("id", ids)
-
-    total_songs = count_query.execute().count
-
-    query = query.order(sort_by, desc=(sort_order == "desc"))
-    query = query.range((page - 1) * per_page, page * per_page - 1)
 
     result = query.execute()
-
     songs = result.data
 
-    return jsonify({
-        "songs": songs,
-        "total": total_songs,
-        "page": page,
-        "per_page": per_page,
-        "sort_by": sort_by,
-        "sort_order": sort_order
-    })
+    return jsonify(songs)
 
 def strip_color_tags(text: str) -> str:
     return re.sub(r'<color=[^>]+>(.*?)</color>', r'\1', text)

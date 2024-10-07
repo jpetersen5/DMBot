@@ -21,7 +21,8 @@ import {
   msToTime,
   formatExactTime,
   formatTimeDifference,
-  getSurroundingSongIds
+  getSurroundingSongIds,
+  getSortValues
 } from "../../utils/song";
 import "./SongList.scss";
 
@@ -74,10 +75,6 @@ const SongList: React.FC = () => {
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [modalLoading, setModalLoading] = useState<boolean>(false);
   const { isLoading: chartersLoading } = useCharterData();
-
-  const { prevSongIds, nextSongIds } = useMemo(() => {
-    return getSurroundingSongIds(songs, selectedSong?.id.toString() || "");
-  }, [songs, selectedSong]);
 
   useEffect(() => {
     fetchSongs();
@@ -171,19 +168,6 @@ const SongList: React.FC = () => {
     }
   }
 
-  const getSortValues = (a: Song, b: Song, sortKey: string) => {
-    let aValue = a[sortKey as keyof Song];
-    let bValue = b[sortKey as keyof Song];
-    if (sortKey === "year" || sortKey === "song_length" || sortKey === "scores_count") {
-      aValue = aValue ? parseInt(aValue.toString()) : 0;
-      bValue = bValue ? parseInt(bValue.toString()) : 0;
-    } else {
-      aValue = aValue ? aValue.toString().toLowerCase() : "";
-      bValue = bValue ? bValue.toString().toLowerCase() : "";
-    }
-    return [aValue, bValue];
-  };
-
   const filteredAndSortedSongs = useMemo(() => {
     let filteredSongs = songs;
     if (!filteredSongs) return [];
@@ -210,7 +194,6 @@ const SongList: React.FC = () => {
           )
         }
       });
-      console.log(filteredSongs);
     } else {
       // I don't know why this is necessary, but it is
       filteredSongs = filteredSongs.filter(song => {
@@ -269,6 +252,10 @@ const SongList: React.FC = () => {
   }, [filteredAndSortedSongs, page, perPage]);
 
   const totalPages = Math.ceil(filteredAndSortedSongs.length / perPage);
+
+  const { prevSongIds, nextSongIds } = useMemo(() => {
+    return getSurroundingSongIds(filteredAndSortedSongs, selectedSong?.id.toString() || "");
+  }, [filteredAndSortedSongs, selectedSong]);
 
   const handleSort = (column: string) => {
     if (column === "charter") {
