@@ -39,84 +39,6 @@ def get_song(identifier):
     song = result.data[0]
     return jsonify(song)
 
-# @bp.route("/api/songs", methods=["GET"])
-# def get_songs():
-#     """
-#     retrieves songs from the database
-
-#     params:
-#         page (int): page number (default 1)
-#         per_page (int): number of songs per page (default 20)
-#         sort_by (str): field to sort by (default "last_update")
-#         sort_order (str): sort order ("asc" or "desc", default "desc")
-#         search (str): search query (default None)
-#         filter (str): field to filter by (default None)
-
-#     returns:
-#         JSON: list of songs, total count, page number, songs per page, sort field, and sort order
-#     """
-#     supabase = get_supabase()
-#     logger = current_app.logger
-    
-#     page: int = max(1, int(request.args.get("page", 1)))
-#     per_page: int = max(10, min(100, int(request.args.get("per_page", 20))))
-#     sort_by: str = sanitize_input(request.args.get("sort_by", "last_update").lower())
-#     sort_order: str = request.args.get("sort_order", "desc").lower()
-#     search: Optional[str] = request.args.get("search")
-#     filters: List[str] = request.args.get("filter", "").split(",")
-
-#     filters = [filter for filter in filters if filter in ALLOWED_FILTERS]
-#     if sort_order not in ["asc", "desc"]:
-#         sort_order = "desc"
-#     if sort_by not in ALLOWED_FIELDS:
-#         sort_by = "last_update"
-#     elif sort_by == "charter":
-#         sort_by = "charter_refs"
-
-#     query = supabase.table("songs_new").select("*")
-#     count_query = supabase.table("songs_new").select("id", count="exact")
-
-#     if search:
-#         search_terms = sanitize_input(search).split()
-#         search_fields = filters if filters else ["name", "artist", "album", "genre", "charter"]
-        
-#         for term in search_terms:
-#             term_filter = []
-#             for field in search_fields:
-#                 if field != "charter":
-#                     condition = f"{field}.ilike.%{term}%"
-#                     term_filter.append(condition)
-
-#             if search_fields.count("charter") > 0:
-#                 charters_query = supabase.table("charters").select("name").ilike("name", f"*{term}*")
-#                 charters_response = charters_query.execute()
-#                 matching_charters = [charter["name"] for charter in charters_response.data]
-#                 if matching_charters:
-#                     charter_condition = f"charter_refs.ov.{{{','.join(matching_charters)}}}"
-#                     term_filter.append(charter_condition)
-            
-#             if term_filter:
-#                 query = query.or_(",".join(term_filter))
-#                 count_query = count_query.or_(",".join(term_filter))
-
-#     total_songs = count_query.execute().count
-
-#     query = query.order(sort_by, desc=(sort_order == "desc"))
-#     query = query.range((page - 1) * per_page, page * per_page - 1)
-
-#     result = query.execute()
-
-#     songs: List[Dict[str, Any]] = result.data
-
-#     return jsonify({
-#         "songs": songs,
-#         "total": total_songs,
-#         "page": page,
-#         "per_page": per_page,
-#         "sort_by": sort_by,
-#         "sort_order": sort_order
-#     })
-
 @bp.route("/api/songs", methods=["GET"])
 def get_songs():
     """
@@ -145,63 +67,59 @@ def get_songs():
 @bp.route("/api/related-songs", methods=["GET"])
 def get_related_songs():
     """
-    retrieves songs related by album, artist, genre, or charter
-    
+    retrieves songs related by album, artist, genre, and charter
+
     params:
-        album, artist, genre, or charter (str): relation type and value
-        page (int): page number (default 1)
-        per_page (int): number of songs per page (default 8)
+        album (str, optional): album name
+        artist (str, optional): artist name
+        genre (str, optional): genre name
+        charter (str, optional): charter name
     
     returns:
-        JSON: list of related songs, total count, page number, and songs per page
+        JSON: list of related songs 
     """
     supabase = get_supabase()
     logger = current_app.logger
 
-    relation_types = ["album", "artist", "genre", "charter"]
-    relation_type = next((param for param in relation_types if param in request.args), None)
-    if not relation_type:
-        return jsonify({"error": "Invalid relation type"}), 400
+    album = request.args.get("album")
+    album_songs = []
+    if album:
+        album_query = supabase.table("songs_new").select("*").eq("album", album)
+        album_response = album_query.execute()
+        album_songs = album_response.data
 
-    value = request.args.get(relation_type)
-    if not value:
-        return jsonify({"error": "Missing relation value"}), 400
+    artist = request.args.get("artist")
+    artist_songs = []
+    if artist:
+        artist_query = supabase.table("songs_new").select("*").eq("artist", artist)
+        artist_response = artist_query.execute()
+        artist_songs = artist_response.data
+    
+    genre = request.args.get("genre")
+    genre_songs = []
+    if genre:
+        genre_query = supabase.table("songs_new").select("*").eq("genre", genre)
+        genre_response = genre_query.execute()
+        genre_songs = genre_response.data
 
-    page = int(request.args.get("page", 1))
-    per_page = int(request.args.get("per_page", 8))
-
-    query = supabase.table("songs_new").select("*")
-    count_query = supabase.table("songs_new").select("id", count="exact")
-
-    if relation_type == "charter":
-        charters = value.split(",")
+    charter = request.args.get("charter")
+    charter_songs = []
+    if charter:
+        charters = charter.split(",")
         charter_query = supabase.table("charters").select("name").in_("name", charters)
-        charters_response = charter_query.execute()
-        matching_charters = [charter["name"] for charter in charters_response.data]
+        charter_response = charter_query.execute()
+        matching_charters = [charter["name"] for charter in charter_response.data]
 
         if matching_charters:
-            query = query.overlaps("charter_refs", matching_charters)
-            count_query = count_query.overlaps("charter_refs", matching_charters)
-    else:
-        query = query.eq(relation_type, value)
-        count_query = count_query.eq(relation_type, value)
-
-    total_count = count_query.execute().count
-
-    if relation_type == "album":
-        query = query.order("track", desc=False)
-    else:
-        query = query.order("last_update", desc=True)
-
-    query = query.range((page - 1) * per_page, page * per_page - 1)
-        
-    response = query.execute()
+            charters_query = supabase.table("songs_new").select("*").overlaps("charter_refs", matching_charters)
+            charters_response = charters_query.execute()
+            charter_songs = charters_response.data
 
     return jsonify({
-        "songs": response.data,
-        "total": total_count,
-        "page": page,
-        "per_page": per_page
+        "album_songs": album_songs,
+        "artist_songs": artist_songs,
+        "genre_songs": genre_songs,
+        "charter_songs": charter_songs
     })
 
 @bp.route("/api/songs-by-ids", methods=["POST"])

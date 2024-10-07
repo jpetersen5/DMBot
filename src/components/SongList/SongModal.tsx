@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Modal, Nav } from "react-bootstrap";
 import { API_URL } from "../../App";
@@ -12,6 +12,20 @@ import { useAuth } from "../../context/AuthContext";
 import { useSongCache } from "../../context/SongContext";
 import "./SongModal.scss";
 import Leaderboard from "../Leaderboard/Leaderboard";
+
+interface RelatedSongs {
+  album_songs: Song[];
+  artist_songs: Song[];
+  genre_songs: Song[];
+  charter_songs: Song[];
+}
+
+enum RelatedSongsType {
+  album = "album",
+  artist = "artist",
+  genre = "genre",
+  charter = "charter"
+}
 
 interface SongModalProps {
   show: boolean;
@@ -35,24 +49,27 @@ const SongModal: React.FC<SongModalProps> = ({
 
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [previousSongs, setPreviousSongs] = useState<Song[]>([]);
-  const [relatedSongs, setRelatedSongs] = useState<Song[]>([]);
-  const [relationType, setRelationType] = useState<"album" | "artist" | "genre" | "charter">("album");
+  const [relatedSongs, setRelatedSongs] = useState<RelatedSongs>({
+    album_songs: [],
+    artist_songs: [],
+    genre_songs: [],
+    charter_songs: []
+  });
+  const [relationType, setRelationType] = useState<RelatedSongsType>(RelatedSongsType.album);
   const [relatedLoading, setRelatedLoading] = useState(false);
   const { getCachedResult, setCachedResult } = useSongCache();
 
   // related songs pagination
   const [page, setPage] = useState(1);
-  const [totalRelatedSongs, setTotalRelatedSongs] = useState(0);
   const [inputPage, setInputPage] = useState("1");
   const perPage = 8;
-  const totalPages = Math.ceil(totalRelatedSongs / perPage);
 
   useEffect(() => {
     if (initialSong) {
       setCurrentSong(initialSong);
 
       const params = new URLSearchParams(location.search);
-      const initialRelationType = params.get("relation") as "album" | "artist" | "genre" | "charter" || "album";
+      const initialRelationType = params.get("relation") as RelatedSongsType || RelatedSongsType.album;
       setRelationType(initialRelationType);
     }
   }, [initialSong, location.search]);
@@ -95,23 +112,36 @@ const SongModal: React.FC<SongModalProps> = ({
     navigate(`${location.pathname}?${params.toString()}`, { replace: true });
   };
 
-  const getCacheKey = () => {
-    if (relationType === "album") return `related_${relationType}_${currentSong?.album}_${page}_${perPage}`;
-    if (relationType === "artist") return `related_${relationType}_${currentSong?.artist}_${page}_${perPage}`;
-    if (relationType === "genre") return `related_${relationType}_${currentSong?.genre}_${page}_${perPage}`;
-    if (relationType === "charter") return `related_${relationType}_${currentSong?.charter_refs?.join(",")}_${page}_${perPage}`;
+  const getCacheKey = (type: RelatedSongsType) => {
+    if (currentSong) {
+      if (type === RelatedSongsType.charter) {
+        if (currentSong.charter_refs === null) {
+          currentSong.charter_refs = ["Unknown Author"];
+        }
+        return `related_charter_${currentSong.charter_refs.join(",")}`;
+      }
+      if (type === RelatedSongsType.album) {
+        return `related_album_${currentSong.album || "Unknown Album"}`;
+      }
+      if (type === RelatedSongsType.artist) {
+        return `related_artist_${currentSong.artist || "Unknown Artist"}`;
+      }
+      if (type === RelatedSongsType.genre) {
+        return `related_genre_${currentSong.genre || "Unknown Genre"}`;
+      }
+    }
     return "";
   };
 
   const fetchRelatedSongs = async () => {
     if (!currentSong) return;
     setRelatedLoading(true);
-    const cacheKey = getCacheKey();
+    const cacheKey = getCacheKey(relationType);
     const cachedResult = getCachedResult(cacheKey);
-
     if (cachedResult) {
-      setRelatedSongs(cachedResult.songs);
-      setTotalRelatedSongs(cachedResult.total);
+      const relatedSongsNew = { ...relatedSongs };
+      relatedSongsNew[`${relationType}_songs`] = cachedResult.songs;
+      setRelatedSongs(relatedSongsNew);
       setRelatedLoading(false);
       return;
     }
@@ -126,19 +156,25 @@ const SongModal: React.FC<SongModalProps> = ({
       } else {
         url += encodeURIComponent(currentSong[relationType] || `Unknown ${relationType}`);
       }
-      url += `&page=${page}&per_page=${perPage}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch related songs");
-      const data = await response.json();
-      setRelatedSongs(data.songs);
-      setTotalRelatedSongs(data.total);
-      setCachedResult(cacheKey, { songs: data.songs, total: data.total, timestamp: Date.now() });
+      const data: RelatedSongs = await response.json();
+      const relatedSongsNew = { ...relatedSongs };
+      relatedSongsNew[`${relationType}_songs`] = data[`${relationType}_songs`];
+      setRelatedSongs(relatedSongsNew);
+      setCachedResult(cacheKey, { songs: data[`${relationType}_songs`], total: data[`${relationType}_songs`].length, timestamp: Date.now() });
     } catch (error) {
       console.error("Error fetching related songs:", error);
     } finally {
       setRelatedLoading(false);
     }
   };
+
+  const paginatedRelatedSongs = useMemo(() => {
+    return relatedSongs[`${relationType}_songs`].slice((page - 1) * perPage, page * perPage);
+  }, [relatedSongs, relationType, page]);
+
+  const totalPages = Math.ceil(relatedSongs[`${relationType}_songs`].length / perPage);
 
   if (loading) {
     return (
@@ -184,14 +220,14 @@ const SongModal: React.FC<SongModalProps> = ({
   const renderRelatedSongsTable = () => {
     let columns;
     switch (relationType) {
-      case "album":
+      case RelatedSongsType.album:
         columns = ["#", "Name", "Length"];
         break;
-      case "artist":
+      case RelatedSongsType.artist:
         columns = ["Name", "Album", "Length"];
         break;
-      case "genre":
-      case "charter":
+      case RelatedSongsType.genre:
+      case RelatedSongsType.charter:
         columns = ["Name", "Artist", "Length"];
         break;
     }
@@ -205,16 +241,16 @@ const SongModal: React.FC<SongModalProps> = ({
         </thead>
         <tbody>
           {relatedLoading && <tr><td colSpan={columns.length}><LoadingSpinner /></td></tr>}
-          {!relatedLoading && relatedSongs.map((relatedSong) => (
+          {!relatedLoading && paginatedRelatedSongs.map((relatedSong) => (
             <tr key={relatedSong.id} onClick={() => handleRelatedSongClick(relatedSong)}>
-              {relationType === "album" && <SongTableCell content={relatedSong.track || "N/A"} />}
+              {relationType === RelatedSongsType.album && <SongTableCell content={relatedSong.track?.toString() || "N/A"} />}
               <SongTableCell content={relatedSong.name} />
-              {relationType === "artist" && <SongTableCell content={relatedSong.album} />}
-              {(relationType === "genre" || relationType === "charter") && <SongTableCell content={relatedSong.artist} />}
+              {relationType === RelatedSongsType.artist && <SongTableCell content={relatedSong.album} />}
+              {(relationType === RelatedSongsType.genre || relationType === RelatedSongsType.charter) && <SongTableCell content={relatedSong.artist} />}
               <SongTableCell content={msToTime(relatedSong.song_length || 0)} />
             </tr>
           ))}
-          {!relatedLoading && relatedSongs.length === 0 && (
+          {!relatedLoading && paginatedRelatedSongs.length === 0 && (
             <tr><td colSpan={columns.length}>{`No related songs from ${relationType}`}</td></tr>
           )}
         </tbody>
@@ -250,19 +286,19 @@ const SongModal: React.FC<SongModalProps> = ({
           <div className="related-songs">
             <h5>Related Songs</h5>
             <div className="related-songs-topbar">
-              <Nav variant="tabs" activeKey={relationType} onSelect={(k) => setRelationType(k as "album" | "artist" | "genre" | "charter")}>
+              <Nav variant="tabs" activeKey={relationType} onSelect={(k) => setRelationType(k as RelatedSongsType)}>
                 <Nav.Item>
-                  <Nav.Link eventKey="album">Album</Nav.Link>
+                  <Nav.Link eventKey={RelatedSongsType.album}>Album</Nav.Link>
                 </Nav.Item>
                 <Nav.Item>
-                  <Nav.Link eventKey="artist">Artist</Nav.Link>
+                  <Nav.Link eventKey={RelatedSongsType.artist}>Artist</Nav.Link>
                 </Nav.Item>
                 <Nav.Item>
-                  <Nav.Link eventKey="genre">Genre</Nav.Link>
+                  <Nav.Link eventKey={RelatedSongsType.genre}>Genre</Nav.Link>
                 </Nav.Item>
                 {numCharters > 0 && (
                   <Nav.Item>
-                    <Nav.Link eventKey="charter">{`Charter${numCharters > 1 ? "s" : ""}`}</Nav.Link>
+                    <Nav.Link eventKey={RelatedSongsType.charter}>{`Charter${numCharters > 1 ? "s" : ""}`}</Nav.Link>
                   </Nav.Item>
                 )}
               </Nav>
