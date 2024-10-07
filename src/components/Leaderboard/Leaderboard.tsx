@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../../App";
 import { TableControls, Pagination } from "../SongList/TableControls";
 import { SongTableCell } from "../SongList/SongList";
 import LoadingSpinner from "../Loading/LoadingSpinner";
+import { useKeyPress } from "../../hooks/useKeyPress";
 import "./Leaderboard.scss";
 
 interface LeaderboardEntry {
@@ -36,16 +37,16 @@ const LEADERBOARD_TABLE_HEADERS = {
 
 const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [inputPage, setInputPage] = useState(page.toString());
-  const [totalEntries, setTotalEntries] = useState(0);
-  const [perPage, setPerPage] = useState(50);
-  const [sortBy, setSortBy] = useState("rank");
-  const [sortOrder, setSortOrder] = useState("asc");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [page, setPage] = useState<number>(1);
+  const [inputPage, setInputPage] = useState<string>(page.toString());
+  const [perPage, setPerPage] = useState<number>(50);
+  const [sortBy, setSortBy] = useState<string>("rank");
+  const [secondarySortBy, setSecondarySortBy] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [secondarySortOrder, setSecondarySortOrder] = useState<"asc" | "desc">("desc");
+  const shiftPressed = useKeyPress("Shift");
   const navigate = useNavigate();
-
-  const totalPages = Math.ceil(totalEntries / perPage);
 
   useEffect(() => {
     setPage(1);
@@ -53,31 +54,15 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
     fetchLeaderboard();
   }, [songId]);
 
-  useEffect(() => {
-    fetchLeaderboard();
-  }, [songId, page, perPage, sortBy, sortOrder]);
-
   async function fetchLeaderboard() {
     setLoading(true);
     try {
-      const queryParams = new URLSearchParams({
-        page: page.toString(),
-        per_page: perPage.toString(),
-        sort_by: sortBy,
-        sort_order: sortOrder,
-      });
-      const response = await fetch(`${API_URL}/api/leaderboard/${songId}?${queryParams}`);
+      const response = await fetch(`${API_URL}/api/leaderboard/${songId}`);
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
-      const data = await response.json();
-      if (!data.entries) {
-        setEntries([]);
-        setTotalEntries(0);
-      } else {
-        setEntries(data.entries);
-        setTotalEntries(data.total);
-      }
+      const { leaderboard } = await response.json();
+      setEntries(leaderboard ? leaderboard : []);
     } catch (error) {
       console.error("Error fetching leaderboard:", error);
     } finally {
@@ -85,12 +70,62 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
     }
   }
 
+  function getSortValues(a: LeaderboardEntry, b: LeaderboardEntry, sortKey: string) {
+    let aValue = a[sortKey as keyof LeaderboardEntry];
+    let bValue = b[sortKey as keyof LeaderboardEntry];
+    if (typeof aValue === "string") {
+      aValue = aValue.toLowerCase();
+    }
+    if (typeof bValue === "string") {
+      bValue = bValue.toLowerCase();
+    }
+    if (sortKey === "percent") { // FC's take priority over non-FC's
+      aValue = a.is_fc ? 101 : aValue;
+      bValue = b.is_fc ? 101 : bValue;
+    }
+    return [aValue, bValue];
+  }
+
+  const sortedEntries = useMemo(() => {
+    return entries.sort((a, b) => {
+      const [aValue, bValue] = getSortValues(a, b, sortBy);
+      if (aValue === null || bValue === null) return 0;
+      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+      if (secondarySortBy) {
+        const [aSecondaryValue, bSecondaryValue] = getSortValues(a, b, secondarySortBy);
+        if (aSecondaryValue === null || bSecondaryValue === null) return 0;
+        if (aSecondaryValue < bSecondaryValue) return secondarySortOrder === "asc" ? -1 : 1;
+        if (aSecondaryValue > bSecondaryValue) return secondarySortOrder === "asc" ? 1 : -1;
+      }
+      return 0;
+    });
+  }, [entries, sortBy, sortOrder, secondarySortBy, secondarySortOrder]);
+
+  const paginatedEntries = useMemo(() => {
+    const startIndex = (page - 1) * perPage;
+    return sortedEntries.slice(startIndex, startIndex + perPage);
+  }, [sortedEntries, page, perPage]);
+
+  const totalPages = Math.ceil(sortedEntries.length / perPage);
+
   const handleSort = (column: string) => {
-    if (sortBy === column) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    if (!shiftPressed) {
+      setSecondarySortBy(null);
+      setSecondarySortOrder("desc");
+      if (sortBy === column) {
+        setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+      } else {
+        setSortBy(column);
+        setSortOrder("desc");
+      }
     } else {
-      setSortBy(column);
-      setSortOrder("desc");
+      if (secondarySortBy === column) {
+        setSecondarySortOrder(secondarySortOrder === "asc" ? "desc" : "asc");
+      } else {
+        setSecondarySortBy(column);
+        setSecondarySortOrder("desc");
+      }
     }
   };
 
@@ -119,8 +154,8 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
                 key={key}
                 content={value}
                 onClick={() => handleSort(key)}
-                sort={sortBy === key}
-                sortOrder={sortOrder}
+                sort={sortBy === key || secondarySortBy === key}
+                sortOrder={sortBy === key ? sortOrder : secondarySortOrder}
               />
             ))}
           </tr>
@@ -133,13 +168,13 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
               </td>
             </tr>
           )}
-          {!loading && entries.length === 0 && (
+          {!loading && paginatedEntries.length === 0 && (
             <tr>
               <td colSpan={Object.keys(LEADERBOARD_TABLE_HEADERS).length}>No entries found</td>
             </tr>
           )}
-          {!loading && entries.length > 0 && (
-            entries.map((entry) => (
+          {!loading && paginatedEntries.length > 0 && (
+            paginatedEntries.map((entry) => (
               <LeaderboardTableRow 
                 key={entry.user_id} 
                 entry={entry}

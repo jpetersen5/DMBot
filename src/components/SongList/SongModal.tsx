@@ -171,7 +171,21 @@ const SongModal: React.FC<SongModalProps> = ({
   };
 
   const paginatedRelatedSongs = useMemo(() => {
-    return relatedSongs[`${relationType}_songs`].slice((page - 1) * perPage, page * perPage);
+    let sortedSongs = relatedSongs[`${relationType}_songs`];
+    if (relationType === RelatedSongsType.album) {
+      sortedSongs = sortedSongs.sort((a, b) => {
+        const aTrack = a.track ? a.track : 0;
+        const bTrack = b.track ? b.track : 0;
+        return aTrack - bTrack;
+      });
+    } else {
+      sortedSongs = sortedSongs.sort((a, b) => {
+        const aLastUpdate = new Date(a.last_update);
+        const bLastUpdate = new Date(b.last_update);
+        return bLastUpdate.getTime() - aLastUpdate.getTime();
+      });
+    }
+    return sortedSongs.slice((page - 1) * perPage, page * perPage);
   }, [relatedSongs, relationType, page]);
 
   const totalPages = Math.ceil(relatedSongs[`${relationType}_songs`].length / perPage);
