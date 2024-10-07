@@ -88,13 +88,12 @@
 
     .song-details {
       display: flex;
+      justify-content: space-between;
       margin-bottom: 2rem;
 
-      .artist-info, .related-songs {
+      .song-info {
         width: 48%;
-      }
-
-      .artist-info {
+        
         p {
           display: flex;
           align-items: center;
@@ -118,112 +117,6 @@
       h5 {
         margin-bottom: 1rem;
         @include theme("color", "color-text");
-      }
-    }
-
-    .related-songs-topbar {
-      display: flex;
-
-      .nav-tabs {
-        border: none;
-        
-        .nav-link {
-          border: none;
-          @include theme("color", "color-text");
-
-          &.active {
-            @include theme("color", "color-button-text");
-            @include theme("background", "color-button");
-          }
-
-          &:hover {
-            @include theme("color", "color-button-text");
-            @include theme("background", "color-button-hover");
-          }
-        }
-      }
-
-      .pagination-container {
-        display: flex;
-        align-items: center;
-
-        .pagination {
-          display: flex;
-          align-items: center;
-          margin: 0;
-
-          .prev {
-            margin-left: 0.4rem;
-          }
-          .prev, .next {
-            background-color: transparent;
-            border: none;
-            border-radius: 4px;
-            padding: 0.25rem 0.5rem;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            @include theme("background", "color-button");
-            @include theme("color", "color-button-text");
-
-            &:hover {
-              @include theme("background", "color-button-hover");
-            }
-
-            &:disabled {
-              cursor: not-allowed;
-              @include theme("background", "color-button-disabled");
-            }
-          }
-
-          .pages {
-            margin: 0 0.5rem;
-
-            input[type="number"] {
-              width: 40px;
-              padding: 0.25rem;
-              margin-right: 0.25rem;
-              text-align: center;
-              border: 1px solid;
-              border-radius: 3px;
-              @include theme("border-color", "color-border");
-            }
-          }
-        }
-      }
-    }
-
-    .related-songs-table {
-      width: 100%;
-      border-collapse: collapse;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      @include theme("background", "color-table-background-2");
-      @include theme("color", "color-table-text");
-
-      th {
-        font-weight: bold;
-        cursor: default;
-        @include theme("background", "color-table-header");
-        @include theme("color", "color-table-header-text");
-      }
-
-      th, td {
-        padding: 0.75rem;
-        text-align: left;
-        border: none;
-      }
-
-      tr {
-        @include theme("background", "color-table-background-1");
-      }
-
-      tr:nth-child(even) {
-        @include theme("background", "color-table-background-2");
-      }
-
-      tr:hover {
-        cursor: pointer;
-        @include theme("background", "color-table-hover");
       }
     }
 

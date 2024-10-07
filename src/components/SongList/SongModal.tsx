@@ -1,31 +1,15 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Modal, Nav } from "react-bootstrap";
+import { Modal } from "react-bootstrap";
 import { API_URL } from "../../App";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import CharterName from "./CharterName";
-import { SongTableCell } from "./SongList";
+import RelatedSongs from "./RelatedSongs";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import { Song, msToTime } from "../../utils/song";
-import { Pagination } from "./TableControls";
 import { useAuth } from "../../context/AuthContext";
-import { useSongCache } from "../../context/SongContext";
 import "./SongModal.scss";
 import Leaderboard from "../Leaderboard/Leaderboard";
-
-interface RelatedSongs {
-  album_songs: Song[];
-  artist_songs: Song[];
-  genre_songs: Song[];
-  charter_songs: Song[];
-}
-
-enum RelatedSongsType {
-  album = "album",
-  artist = "artist",
-  genre = "genre",
-  charter = "charter"
-}
 
 interface SongModalProps {
   show: boolean;
@@ -49,30 +33,30 @@ const SongModal: React.FC<SongModalProps> = ({
 
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [previousSongs, setPreviousSongs] = useState<Song[]>([]);
-  const [relatedSongs, setRelatedSongs] = useState<RelatedSongs>({
-    album_songs: [],
-    artist_songs: [],
-    genre_songs: [],
-    charter_songs: []
-  });
-  const [relationType, setRelationType] = useState<RelatedSongsType>(RelatedSongsType.album);
-  const [relatedLoading, setRelatedLoading] = useState(false);
-  const { getCachedResult, setCachedResult } = useSongCache();
-
-  // related songs pagination
-  const [page, setPage] = useState(1);
-  const [inputPage, setInputPage] = useState("1");
-  const perPage = 8;
 
   useEffect(() => {
     if (initialSong) {
       setCurrentSong(initialSong);
-
-      const params = new URLSearchParams(location.search);
-      const initialRelationType = params.get("relation") as RelatedSongsType || RelatedSongsType.album;
-      setRelationType(initialRelationType);
     }
   }, [initialSong, location.search]);
+
+  if (loading) {
+    return (
+      <Modal show={show} onHide={onHide} size="xl" dialogClassName="song-modal loading">
+        <Modal.Header>
+          <button onClick={onHide} className="back-button">
+            &times;
+          </button>
+          <Modal.Title>{"Loading..."}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <LoadingSpinner message="Loading song details..." />
+        </Modal.Body>
+      </Modal>
+    );
+  }
+
+  if (!currentSong) return null;
 
   const navigateToSong = (songId: number | string) => {
     const params = new URLSearchParams(location.search);
@@ -92,121 +76,6 @@ const SongModal: React.FC<SongModalProps> = ({
       navigateToSong(nextSongId);
     }
   };
-
-  useEffect(() => {
-    if (currentSong) {
-      fetchRelatedSongs();
-      updateURL();
-    }
-  }, [currentSong, relationType, page]);
-
-  useEffect(() => {
-    setPage(1);
-    setInputPage("1");
-  }, [relationType]);
-
-  const updateURL = () => {
-    if (!currentSong) return;
-    const params = new URLSearchParams(location.search);
-    params.set("relation", relationType);
-    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
-  };
-
-  const getCacheKey = (type: RelatedSongsType) => {
-    if (currentSong) {
-      if (type === RelatedSongsType.charter) {
-        if (currentSong.charter_refs === null) {
-          currentSong.charter_refs = ["Unknown Author"];
-        }
-        return `related_charter_${currentSong.charter_refs.join(",")}`;
-      }
-      if (type === RelatedSongsType.album) {
-        return `related_album_${currentSong.album || "Unknown Album"}`;
-      }
-      if (type === RelatedSongsType.artist) {
-        return `related_artist_${currentSong.artist || "Unknown Artist"}`;
-      }
-      if (type === RelatedSongsType.genre) {
-        return `related_genre_${currentSong.genre || "Unknown Genre"}`;
-      }
-    }
-    return "";
-  };
-
-  const fetchRelatedSongs = async () => {
-    if (!currentSong) return;
-    setRelatedLoading(true);
-    const cacheKey = getCacheKey(relationType);
-    const cachedResult = getCachedResult(cacheKey);
-    if (cachedResult) {
-      const relatedSongsNew = { ...relatedSongs };
-      relatedSongsNew[`${relationType}_songs`] = cachedResult.songs;
-      setRelatedSongs(relatedSongsNew);
-      setRelatedLoading(false);
-      return;
-    }
-
-    try {
-      let url = `${API_URL}/api/related-songs?${relationType}=`;
-      if (currentSong.charter_refs === null) {
-        currentSong.charter_refs = ["Unknown Author"];
-      }
-      if (relationType === "charter") {
-        url += encodeURIComponent(currentSong.charter_refs.join(","));
-      } else {
-        url += encodeURIComponent(currentSong[relationType] || `Unknown ${relationType}`);
-      }
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("Failed to fetch related songs");
-      const data: RelatedSongs = await response.json();
-      const relatedSongsNew = { ...relatedSongs };
-      relatedSongsNew[`${relationType}_songs`] = data[`${relationType}_songs`];
-      setRelatedSongs(relatedSongsNew);
-      setCachedResult(cacheKey, { songs: data[`${relationType}_songs`], total: data[`${relationType}_songs`].length, timestamp: Date.now() });
-    } catch (error) {
-      console.error("Error fetching related songs:", error);
-    } finally {
-      setRelatedLoading(false);
-    }
-  };
-
-  const paginatedRelatedSongs = useMemo(() => {
-    let sortedSongs = relatedSongs[`${relationType}_songs`];
-    if (relationType === RelatedSongsType.album) {
-      sortedSongs = sortedSongs.sort((a, b) => {
-        const aTrack = a.track ? a.track : 0;
-        const bTrack = b.track ? b.track : 0;
-        return aTrack - bTrack;
-      });
-    } else {
-      sortedSongs = sortedSongs.sort((a, b) => {
-        const aLastUpdate = new Date(a.last_update);
-        const bLastUpdate = new Date(b.last_update);
-        return bLastUpdate.getTime() - aLastUpdate.getTime();
-      });
-    }
-    return sortedSongs.slice((page - 1) * perPage, page * perPage);
-  }, [relatedSongs, relationType, page]);
-
-  const totalPages = Math.ceil(relatedSongs[`${relationType}_songs`].length / perPage);
-
-  if (loading) {
-    return (
-      <Modal show={show} onHide={onHide} size="xl" dialogClassName="song-modal loading">
-        <Modal.Header>
-          <button onClick={onHide} className="back-button">
-            &times;
-          </button>
-          <Modal.Title>{"Loading..."}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <LoadingSpinner message="Loading song details..." />
-        </Modal.Body>
-      </Modal>
-    );
-  }
-
-  if (!currentSong) return null;
 
   const handleRelatedSongClick = (song: Song) => {
     if (currentSong.id === song.id) return;
@@ -231,49 +100,6 @@ const SongModal: React.FC<SongModalProps> = ({
     }
   };
 
-  const renderRelatedSongsTable = () => {
-    let columns;
-    switch (relationType) {
-      case RelatedSongsType.album:
-        columns = ["#", "Name", "Length"];
-        break;
-      case RelatedSongsType.artist:
-        columns = ["Name", "Album", "Length"];
-        break;
-      case RelatedSongsType.genre:
-      case RelatedSongsType.charter:
-        columns = ["Name", "Artist", "Length"];
-        break;
-    }
-
-    return (
-      <table className="related-songs-table">
-        <thead>
-          <tr>
-            {columns.map(col => <th key={col}>{col}</th>)}
-          </tr>
-        </thead>
-        <tbody>
-          {relatedLoading && <tr><td colSpan={columns.length}><LoadingSpinner /></td></tr>}
-          {!relatedLoading && paginatedRelatedSongs.map((relatedSong) => (
-            <tr key={relatedSong.id} onClick={() => handleRelatedSongClick(relatedSong)}>
-              {relationType === RelatedSongsType.album && <SongTableCell content={relatedSong.track?.toString() || "N/A"} />}
-              <SongTableCell content={relatedSong.name} />
-              {relationType === RelatedSongsType.artist && <SongTableCell content={relatedSong.album} />}
-              {(relationType === RelatedSongsType.genre || relationType === RelatedSongsType.charter) && <SongTableCell content={relatedSong.artist} />}
-              <SongTableCell content={msToTime(relatedSong.song_length || 0)} />
-            </tr>
-          ))}
-          {!relatedLoading && paginatedRelatedSongs.length === 0 && (
-            <tr><td colSpan={columns.length}>{`No related songs from ${relationType}`}</td></tr>
-          )}
-        </tbody>
-      </table>
-    );
-  };
-
-  const numCharters = currentSong.charter_refs?.length || 0;
-
   return (
     <Modal show={show} onHide={onHide} size="xl" dialogClassName="song-modal">
       <Modal.Header>
@@ -287,48 +113,11 @@ const SongModal: React.FC<SongModalProps> = ({
       <Modal.Body>
         <AdminControls currentSong={currentSong} onSongUpdate={handleSongUpdate} onHide={onHide} />
         <div className="song-details">
-          <div className="artist-info">
-            <SongInfoLine label="Artist" value={currentSong.artist} />
-            <SongInfoLine label="Album" value={currentSong.album} />
-            <SongInfoLine label="Year" value={currentSong.year} />
-            <SongInfoLine label="Genre" value={currentSong.genre} />
-            <SongInfoLine label="Difficulty" value={currentSong.difficulties ? Object.values(currentSong.difficulties).join(", ") : "Unknown"} />
-            <SongInfoLine label="Length" value={msToTime(currentSong.song_length || 0)} />
-            <SongInfoLine label="Charter" value={currentSong.charter_refs ? currentSong.charter_refs.join(", ") : "Unknown Author"} />
-            <SongInfoLine label="MD5" value={currentSong.md5} />
-          </div>
-          <div className="related-songs">
-            <h5>Related Songs</h5>
-            <div className="related-songs-topbar">
-              <Nav variant="tabs" activeKey={relationType} onSelect={(k) => setRelationType(k as RelatedSongsType)}>
-                <Nav.Item>
-                  <Nav.Link eventKey={RelatedSongsType.album}>Album</Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link eventKey={RelatedSongsType.artist}>Artist</Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link eventKey={RelatedSongsType.genre}>Genre</Nav.Link>
-                </Nav.Item>
-                {numCharters > 0 && (
-                  <Nav.Item>
-                    <Nav.Link eventKey={RelatedSongsType.charter}>{`Charter${numCharters > 1 ? "s" : ""}`}</Nav.Link>
-                  </Nav.Item>
-                )}
-              </Nav>
-              <div className="pagination-container">
-                <Pagination
-                  page={page}
-                  totalPages={totalPages}
-                  inputPage={inputPage}
-                  setInputPage={setInputPage}
-                  setPage={setPage}
-                  size="sm"
-                />
-              </div>
-            </div>
-            {renderRelatedSongsTable()}
-          </div>
+          <SongInfo song={currentSong} />
+          <RelatedSongs
+            currentSong={currentSong}
+            handleRelatedSongClick={handleRelatedSongClick}
+          />
         </div>
         <Leaderboard songId={currentSong.id.toString()} key={currentSong.id.toString()} />
       </Modal.Body>
@@ -353,6 +142,7 @@ const SongModal: React.FC<SongModalProps> = ({
   );
 };
 
+
 interface SongInfoLineProps {
   label: string;
   value: string | number | null;
@@ -375,6 +165,27 @@ const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
     <p><strong>{label}:</strong> <span dangerouslySetInnerHTML={renderSafeHTML(processedValue)} /></p>
   );
 };
+
+
+interface SongInfoProps {
+  song: Song;
+}
+
+const SongInfo: React.FC<SongInfoProps> = ({ song }) => {
+  return (
+    <div className="song-info">
+      <SongInfoLine label="Artist" value={song.artist} />
+      <SongInfoLine label="Album" value={song.album} />
+      <SongInfoLine label="Year" value={song.year} />
+      <SongInfoLine label="Genre" value={song.genre} />
+      <SongInfoLine label="Difficulty" value={song.difficulties ? Object.values(song.difficulties).join(", ") : "Unknown"} />
+      <SongInfoLine label="Length" value={msToTime(song.song_length || 0)} />
+      <SongInfoLine label="Charter" value={song.charter_refs ? song.charter_refs.join(", ") : "Unknown Author"} />
+      <SongInfoLine label="MD5" value={song.md5} />
+    </div>
+  );
+};
+
 
 interface AdminControlsProps {
   currentSong: Song;
