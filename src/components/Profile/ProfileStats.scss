@@ -9,13 +9,19 @@
   @include theme("background", "color-box");
   @include theme("color", "color-text");
 
-  h2 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
+  .stats-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
     border-bottom: 2px solid;
+    margin-bottom: 1rem;
     padding-bottom: 0.5rem;
-    @include theme("color", "color-text");
-    @include theme("border-color", "color-text");
+
+    h2 {
+      font-size: 1.5rem;
+      @include theme("color", "color-text");
+      @include theme("border-color", "color-text");
+    }
   }
 
   .stats-grid {

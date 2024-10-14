@@ -4,12 +4,17 @@ import "./ProfileStats.scss";
 
 interface ProfileStatsProps {
   userStats: UserStats | undefined;
+  elo: number | undefined;
 }
 
-const ProfileStats: React.FC<ProfileStatsProps> = ({ userStats }) => {
+const ProfileStats: React.FC<ProfileStatsProps> = ({ userStats, elo }) => {
   return (
     <div className="profile-stats">
-      <h2>User Stats</h2>
+      <div className="stats-header">
+        <h2>User Stats</h2>
+        <h2>{`Rank: #${userStats?.rank}`}</h2>
+        <h2>{`Elo: ${elo}`}</h2>
+      </div>
       {userStats ? (
         <div className="stats-grid">
           <StatItem label="Total FCs" value={userStats.total_fcs?.toLocaleString()} />

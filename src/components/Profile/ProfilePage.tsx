@@ -108,7 +108,7 @@ const ProfilePage: React.FC = () => {
                 )}
               </div>
             </div>
-            <ProfileStats userStats={profileUser.stats} />
+            <ProfileStats userStats={profileUser.stats} elo={profileUser.elo} />
           </div>
           {selectedCharter && <CharterStats stats={selectedCharter.charter_stats} />}
           <div className="profile-scores">
