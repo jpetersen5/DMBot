@@ -36,15 +36,46 @@
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       @include theme("background", "color-box");
-
-      .user-avatar {
+  
+      .user-avatar-container {
+        position: relative;
         width: 120px;
         height: 120px;
-        border-radius: 50%;
-        object-fit: cover;
-        margin-right: 2rem;
-        border: 3px solid;
-        @include theme("border-color", "color-text");
+        margin: 0.5rem 1.5rem 0.5rem 0.5rem;
+
+        .user-avatar {
+          width: 120px;
+          height: 120px;
+          border-radius: 50%;
+          object-fit: cover;
+          margin-right: 2rem;
+          border: 3px solid;
+          @include theme("border-color", "color-text");
+        }
+
+        .rank-overlay-container {
+          .rank-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 200%;
+            transform: translate(-25%, -22%);
+            object-fit: contain;
+            pointer-events: none;
+          }
+  
+          .rank-overlay-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, 140%);
+            font-size: 1rem;
+            font-weight: bold;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            color: white;
+          }
+        }
       }
 
       .profile-details {

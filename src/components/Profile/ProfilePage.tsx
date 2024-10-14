@@ -108,7 +108,7 @@ const ProfilePage: React.FC = () => {
                 )}
               </div>
             </div>
-            <ProfileStats userId={profileUser.id} />
+            <ProfileStats userStats={profileUser.stats} />
           </div>
           {selectedCharter && <CharterStats stats={selectedCharter.charter_stats} />}
           <div className="profile-scores">

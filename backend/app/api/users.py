@@ -2,7 +2,6 @@ from flask import Blueprint, jsonify, request, current_app
 import jwt
 from ..services.supabase_service import get_supabase
 from ..config import Config
-from ..utils.helpers import sanitize_input
 
 bp = Blueprint("users", __name__)
 
@@ -53,7 +52,9 @@ def get_user_by_id(user_id):
                 "id": str(user["id"]),
                 "username": user["username"],
                 "avatar": user["avatar"],
-                "permissions": user["permissions"]
+                "permissions": user["permissions"],
+                "stats": user["stats"],
+                "elo": user["elo"]
             })
         else:
             return jsonify({"error": "User not found"}), 404

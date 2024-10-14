@@ -18,13 +18,45 @@
     margin-bottom: 1rem;
   }
 }
-
-.user-avatar {
+  
+.user-avatar-container {
+  position: relative;
   width: 100px;
   height: 100px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: 1rem;
+  margin: 1rem;
+  margin-bottom: 2.5rem;
+
+  .user-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 1rem;
+  }
+
+  .rank-overlay-container {
+    .rank-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 200%;
+      height: 200%;
+      transform: translate(-25%, -22%);
+      object-fit: contain;
+      pointer-events: none;
+    }
+
+    .rank-overlay-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, 105%);
+      font-size: 1rem;
+      font-weight: bold;
+      font-family: Verdana, Geneva, Tahoma, sans-serif;
+      color: white;
+    }
+  }
 }
 
 .auth-button {
