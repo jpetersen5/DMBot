@@ -40,7 +40,7 @@ const UserList: React.FC = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/users?search=${search}`);
+      const response = await fetch(`${API_URL}/api/all-users`);
       if (!response.ok) throw new Error("Failed to fetch users");
       const data = await response.json();
       setUsers(data);
@@ -51,12 +51,10 @@ const UserList: React.FC = () => {
     }
   };
 
-  const handleSearchSubmit = () => {
-    fetchUsers();
-  };
-
   const filteredAndSortedUsers = useMemo(() => {
     let result = [...users];
+
+    result = result.filter(user => user.username.toLowerCase().includes(search.toLowerCase()));
 
     if (filter === "has-stats") {
       result = result.filter(user => user.stats && Object.values(user.stats).some(value => value !== 0));
@@ -77,7 +75,7 @@ const UserList: React.FC = () => {
     }
 
     return result;
-  }, [users, filter, sortBy, sortOrder]);
+  }, [users, filter, sortBy, sortOrder, search]);
 
   useEffect(() => {
     if (sortBy.includes("stats") && filter === "all") {
@@ -91,7 +89,7 @@ const UserList: React.FC = () => {
       }
       setFilter("all");
     }
-  }, [sortBy]);
+  }, [sortBy, sortOrder, filter, search]);
 
   return (
     <div className="user-list">
@@ -118,7 +116,7 @@ const UserList: React.FC = () => {
         <Search
           search={search}
           setSearch={setSearch}
-          submitSearch={handleSearchSubmit}
+          submitSearch={() => {}}
         />
       </div>
       {loading ? (

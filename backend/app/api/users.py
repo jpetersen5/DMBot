@@ -97,44 +97,6 @@ def get_all_users():
     except Exception as e:
         logger.error(f"Error fetching users: {str(e)}")
         return jsonify({"error": "An error occurred while fetching users"}), 500
-    
-@bp.route("/api/users")
-def get_users():
-    """
-    retrieves list of users in the system with optional search
-    
-    params:
-        search (str): search query for username (optional)
-    
-    returns:
-        JSON: list of user objects; ids, usernames, avatars, and stats
-    """
-    supabase = get_supabase()
-    logger = current_app.logger
-
-    search = sanitize_input(request.args.get("search", ""))
-
-    try:
-        query = supabase.table("users").select("id", "username", "avatar", "stats")
-
-        if search:
-            query = query.ilike("username", f"*{search}*")
-
-        result = query.execute()
-
-        users = []
-        for user in result.data:
-            users.append({
-                "id": str(user["id"]),
-                "username": user["username"],
-                "avatar": user["avatar"],
-                "stats": user["stats"]
-            })
-
-        return jsonify(users)
-    except Exception as e:
-        logger.error(f"Error fetching users: {str(e)}")
-        return jsonify({"error": "An error occurred while fetching users"}), 500
 
 @bp.route("/api/users/compare", methods=["POST"])
 def compare_users():
