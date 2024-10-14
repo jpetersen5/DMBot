@@ -15,8 +15,9 @@ interface CharterStatsProps {
 ChartJS.defaults.color = "#858585";
 
 const CharterStats: React.FC<CharterStatsProps> = ({ stats }) => {
-  const [chartColor, setChartColor] = useState("rgba(255, 255, 255, 0.6)");
-  const [chartBorderColor, setChartBorderColor] = useState("rgba(255, 255, 255, 1)");
+  const [chartColor, setChartColor] = useState<string>("rgba(255, 255, 255, 0.6)");
+  const [chartBorderColor, setChartBorderColor] = useState<string>("rgba(255, 255, 255, 1)");
+  const [selectedInstrument, setSelectedInstrument] = useState<string>("");
 
   useEffect(() => {
     const updateColors = () => {
@@ -25,7 +26,11 @@ const CharterStats: React.FC<CharterStatsProps> = ({ stats }) => {
       setChartBorderColor(theme === "light" ? "rgba(32, 32, 32, 1)" : "rgba(255, 255, 255, 1)");
     };
     updateColors();
-  }, []);
+
+    const instruments = Object.keys(stats.difficulty_distribution);
+    const defaultInstrument = instruments.includes("drums") ? "drums" : instruments.find(i => stats.difficulty_distribution[i] !== null) || "";
+    setSelectedInstrument(defaultInstrument);
+  }, [stats.difficulty_distribution]);
 
   if (!stats) return (
     <div className="charter-stats">
@@ -35,6 +40,11 @@ const CharterStats: React.FC<CharterStatsProps> = ({ stats }) => {
       </div>
     </div>
   )
+
+  const handleInstrumentChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedInstrument(event.target.value);
+  };
+
   return (
     <div className="charter-stats">
       <h2>Charter Stats</h2>
@@ -55,9 +65,20 @@ const CharterStats: React.FC<CharterStatsProps> = ({ stats }) => {
       </div>
       <div className="distributions">
         <div className="distribution-block">
-          <h3>Difficulty Distribution</h3>
+          <div className="distribution-header">
+            <h3>Difficulty Distribution</h3>
+            <select value={selectedInstrument} onChange={handleInstrumentChange} className="instrument-select">
+            {Object.keys(stats.difficulty_distribution).map(instrument => (
+              stats.difficulty_distribution[instrument] && (
+                <option key={instrument} value={instrument}>
+                  {instrument.charAt(0).toUpperCase() + instrument.slice(1)}
+                </option>
+              )
+            ))}
+            </select>
+          </div>
           <DifficultyChart
-            data={stats.difficulty_distribution}
+            data={stats.difficulty_distribution[selectedInstrument]}
             chartColor={chartColor}
             chartBorderColor={chartBorderColor}
           />
@@ -116,6 +137,10 @@ const DistributionChart: React.FC<DistributionChartProps> = ({ data }) => {
 };
 
 const DifficultyChart: React.FC<DistributionChartProps> = ({ data, chartColor, chartBorderColor }) => {
+  if (!data) {
+    return <div>No data available for this instrument.</div>;
+  }
+
   const sortedData = Object.entries(data).sort((a, b) => Number(a[0]) - Number(b[0]));
   const chartData = {
     labels: sortedData.map(([key]) => key),
