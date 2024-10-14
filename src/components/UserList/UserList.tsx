@@ -8,17 +8,49 @@ import { User, getUserImageSrc, getFallbackImage } from "../../utils/user";
 import { useAuth } from "../../context/AuthContext";
 import "./UserList.scss";
 
+import Rank1 from "../../assets/rank1.png";
+import Rank2 from "../../assets/rank2.png";
+import RankTop5 from "../../assets/ranktop5.png";
+import RankTop10 from "../../assets/ranktop10.png";
+import RankTop25 from "../../assets/ranktop25.png";
+import RankTop50 from "../../assets/ranktop50.png";
+
 export const UserAvatar: React.FC<{ user: User }> = ({ user }) => {
+  const getRankOverlay = (rank: number | undefined) => {
+    if (!rank) return null;
+    if (rank === 1) return Rank1;
+    if (rank === 2) return Rank2;
+    if (rank <= 5) return RankTop5;
+    if (rank <= 10) return RankTop10;
+    if (rank <= 25) return RankTop25;
+    if (rank <= 50) return RankTop50;
+    return null;
+  };
+
+  const rankOverlay = getRankOverlay(user.stats?.rank);
+
   return (
-    <img 
-      src={getUserImageSrc(user)} 
-      onError={(e) => {
-        e.currentTarget.onerror = null;
-        e.currentTarget.src = getFallbackImage(user);
-      }} 
-      alt={user.username}
-      className="user-avatar"
-    />
+    <div className="user-avatar-container">
+      <img 
+        src={getUserImageSrc(user)} 
+        onError={(e) => {
+          e.currentTarget.onerror = null;
+          e.currentTarget.src = getFallbackImage(user);
+        }} 
+        alt={user.username}
+        className="user-avatar"
+      />
+      {rankOverlay && (
+        <div className="rank-overlay-container">
+          <img 
+            src={rankOverlay} 
+            alt={`Rank ${user.stats?.rank}`} 
+            className="rank-overlay"
+          />
+          <span className="rank-overlay-text">{user.stats?.rank}</span>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -63,6 +95,8 @@ const UserList: React.FC = () => {
     result.sort((a, b) => {
       if (sortBy === "username") {
         return a.username.localeCompare(b.username);
+      } else if (sortBy === "elo") {
+        return (a.elo as number) - (b.elo as number);
       } else if (a.stats && b.stats) {
         const sortByStat = sortBy.replace("stats_", "");
         return (a.stats[sortByStat as keyof typeof a.stats] as number) - (b.stats[sortByStat as keyof typeof b.stats] as number);
@@ -78,7 +112,7 @@ const UserList: React.FC = () => {
   }, [users, filter, sortBy, sortOrder, search]);
 
   useEffect(() => {
-    if (sortBy.includes("stats") && filter === "all") {
+    if ((sortBy.includes("stats") || sortBy === "elo") && filter === "all") {
       if (sortOrder === "asc") {
         setSortOrder("desc");
       }
@@ -100,6 +134,7 @@ const UserList: React.FC = () => {
             Sort by:
             <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
               <option value="username">Username</option>
+              <option value="elo">Rank</option>
               <option value="stats_total_score">Total Score</option>
               <option value="stats_total_scores">Number of Scores</option>
               <option value="stats_total_fcs">Total FCs</option>
@@ -136,10 +171,19 @@ const UserList: React.FC = () => {
                 </div>
                 {user.stats && (
                   <div className="user-stats">
-                    <p><b>Overall Score:</b> {user.stats.total_score?.toLocaleString()}</p>
-                    <p><b># of Scores:</b> {user.stats.total_scores?.toLocaleString()}</p>
-                    <p><b># of FCs:</b> {user.stats.total_fcs?.toLocaleString()}</p>
-                    <p><b>Avg. Percent:</b> {user.stats.avg_percent?.toFixed(2)}%</p>
+                    {user.stats.rank && 
+                      <p><b>Rank:</b> {`#${user.stats.rank} (${user.elo})`}</p>
+                    }
+                    {user.stats && user.stats.total_score !== 0 ?
+                      <>
+                        <p><b>Overall Score:</b> {user.stats.total_score.toLocaleString()}</p>
+                        <p><b># of Scores:</b> {user.stats.total_scores.toLocaleString()}</p>
+                        <p><b># of FCs:</b> {user.stats.total_fcs.toLocaleString()}</p>
+                        <p><b>Avg. Percent:</b> {user.stats.avg_percent.toFixed(2)}%</p>
+                      </>
+                    :
+                      <p>No stats available</p>
+                    }
                   </div>
                 )}
               </Link>

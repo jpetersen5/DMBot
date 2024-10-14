@@ -79,19 +79,20 @@ def get_all_users():
     retrieves list of all users in the system
     
     returns:
-        JSON: list of user objects; ids, usernames, and avatars
+        JSON: list of user objects; ids, usernames, elo, and avatars
     """
     supabase = get_supabase()
     logger = current_app.logger
     try:
-        result = supabase.table("users").select("id", "username", "avatar", "stats").execute()
+        result = supabase.table("users").select("id", "username", "avatar", "stats", "elo").execute()
         users = []
         for user in result.data:
             users.append({
                 "id": str(user["id"]),
                 "username": user["username"],
                 "avatar": user["avatar"],
-                "stats": user["stats"]
+                "stats": user["stats"],
+                "elo": user["elo"]
             })
         return jsonify(users)
     except Exception as e:

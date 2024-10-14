@@ -4,11 +4,13 @@ export interface User {
   avatar: string | null;
   permissions: "user" | "admin";
   stats?: {
+    rank?: number;
     total_fcs: number;
     avg_percent: number;
     total_score: number;
     total_scores: number;
   };
+  elo?: number;
 }
 
 const getColorFromId = (id: string): string => {
