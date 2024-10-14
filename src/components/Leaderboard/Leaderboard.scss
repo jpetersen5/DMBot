@@ -72,6 +72,11 @@
 
     tr {
       @include theme("background", "color-table-background-1");
+
+      &.current-user {
+        border: 1px solid;
+        @include theme("border-color", "color-highlight");
+      }
     }
 
     tr:nth-child(even) {

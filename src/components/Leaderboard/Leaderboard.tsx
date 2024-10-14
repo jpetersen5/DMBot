@@ -5,6 +5,7 @@ import { TableControls, Pagination } from "../SongList/TableControls";
 import { SongTableCell } from "../SongList/SongList";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import { useKeyPress } from "../../hooks/useKeyPress";
+import { useAuth } from "../../context/AuthContext";
 import "./Leaderboard.scss";
 
 interface LeaderboardEntry {
@@ -224,17 +225,22 @@ interface LeaderboardTableRowProps {
   onClick: () => void;
 }
 
-const LeaderboardTableRow: React.FC<LeaderboardTableRowProps> = ({ entry, onClick }) => (
-  <tr onClick={onClick} style={{ cursor: "pointer" }}>
-    <SongTableCell content={entry.rank.toString()} />
-    <SongTableCell content={entry.username} />
-    <SongTableCell content={entry.score.toLocaleString()} />
-    <SongTableCell content={entry.percent.toString()} special={entry.is_fc ? "fc_percent" : "percent"} />
-    <SongTableCell content={entry.speed.toString()} special="percent" />
-    <SongTableCell content={entry.is_fc ? "Yes" : "No"} />
-    <SongTableCell content={entry.play_count ? entry.play_count.toString() : "N/A"} />
-    <SongTableCell content={entry.posted} special="last_update" />
-  </tr>
-);
+const LeaderboardTableRow: React.FC<LeaderboardTableRowProps> = ({ entry, onClick }) => {
+  const { user } = useAuth();
+  const isCurrentUser = user?.id === entry.user_id;
+
+  return (
+    <tr onClick={onClick} className={isCurrentUser ? "current-user" : ""} style={{ cursor: "pointer" }}>
+      <SongTableCell content={entry.rank.toString()} />
+      <SongTableCell content={entry.username} />
+      <SongTableCell content={entry.score.toLocaleString()} />
+      <SongTableCell content={entry.percent.toString()} special={entry.is_fc ? "fc_percent" : "percent"} />
+      <SongTableCell content={entry.speed.toString()} special="percent" />
+      <SongTableCell content={entry.is_fc ? "Yes" : "No"} />
+      <SongTableCell content={entry.play_count ? entry.play_count.toString() : "N/A"} />
+      <SongTableCell content={entry.posted} special="last_update" />
+    </tr>
+  );
+};
 
 export default Leaderboard;
