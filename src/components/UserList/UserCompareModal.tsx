@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Modal } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 import { API_URL } from "../../App";
 import { User, getUserImageSrc, getFallbackImage } from "../../utils/user";
 import { useAuth } from "../../context/AuthContext";
@@ -8,6 +9,16 @@ import "./UserCompareModal.scss";
 import SwapIcon from "../../assets/swap.svg";
 import VS from "../../assets/vs.png";
 
+interface ComparisonResults {
+  common_songs: string[];
+  wins: number;
+  losses: number;
+  ties: number;
+  fc_diff: number;
+  total_score_diff: number;
+  avg_percent_diff: number;
+}
+
 interface UserCompareModalProps {
   show: boolean;
   onHide: () => void;
@@ -15,6 +26,7 @@ interface UserCompareModalProps {
 }
 
 const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users }) => {
+  const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const [leftUser, setLeftUser] = useState<User | null>(null);
   const [rightUser, setRightUser] = useState<User | null>(null);
@@ -23,7 +35,7 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
   const [leftDropdownOpen, setLeftDropdownOpen] = useState(true);
   const [rightDropdownOpen, setRightDropdownOpen] = useState(true);
 
-  const [comparisonResults, setComparisonResults] = useState<any>(null);
+  const [comparisonResults, setComparisonResults] = useState<ComparisonResults | null>(null);
   const [comparisonError, setComparisonError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -113,6 +125,13 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
       setIsLoading(false);
     }
   };
+  
+  const handleCommonSongsClick = () => {
+    if (comparisonResults && comparisonResults.common_songs.length > 0) {
+      navigate("/songs", { state: { commonSongs: comparisonResults.common_songs } });
+      onHide();
+    }
+  };
 
   const renderComparisonResults = () => {
     if (!comparisonResults && !comparisonError && !isLoading) {
@@ -125,9 +144,9 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
         {comparisonError && <p className="error">{comparisonError}</p>}
         {comparisonResults && (
         <>
-          <div className="result-item">
+          <div className="result-item" onClick={handleCommonSongsClick} style={{ cursor: "pointer" }}>
             <span className="label">Common Songs:</span>
-            <span className="value">{comparisonResults.total_songs}</span>
+            <span className="value">{comparisonResults.common_songs.length}</span>
           </div>
           <div className="result-item">
             <span className="label">W/L Record:</span>

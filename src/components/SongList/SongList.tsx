@@ -39,7 +39,11 @@ const filterOptions = [
   { value: "playlist_path", label: "Playlist" }
 ];
 
-const SongList: React.FC = () => {
+interface SongListProps {
+  commonSongs?: number[] | string[];
+}
+
+const SongList: React.FC<SongListProps> = ({ commonSongs }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { songId } = useParams<{ songId?: string }>();
@@ -78,8 +82,15 @@ const SongList: React.FC = () => {
   const { isLoading: chartersLoading } = useCharterData();
 
   useEffect(() => {
-    fetchSongs();
-  }, []);
+    if (songs.length > 0) {
+      return;
+    }
+    if (location.state?.commonSongs || commonSongs) {
+      fetchSongsByIds(location.state?.commonSongs || commonSongs);
+    } else {
+      fetchSongs();
+    }
+  }, [location.state, commonSongs]);
 
   useEffect(() => {
     updateURL();
@@ -147,6 +158,30 @@ const SongList: React.FC = () => {
       const data: Song[] = await response.json();
       setSongs(data);
       setCachedResult("all_songs", { songs: data, total: data.length, timestamp: Date.now() });
+    } catch (error) {
+      console.error("Error fetching songs:", error);
+    } finally {
+      setSongsLoading(false);
+    }
+  }
+
+  async function fetchSongsByIds(ids: number[] | string[]) {
+    setSongsLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/songs-by-ids`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ids: ids,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data: Song[] = await response.json();
+      setSongs(data);
     } catch (error) {
       console.error("Error fetching songs:", error);
     } finally {

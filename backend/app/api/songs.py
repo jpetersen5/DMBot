@@ -128,7 +128,7 @@ def get_songs_by_ids():
     retrieves songs from the database by their IDs
 
     params:
-        ids (str): comma-separated list of song IDs
+        ids (str[] | int[]): list of song IDs
 
     returns:
         JSON: list of songs
@@ -139,10 +139,15 @@ def get_songs_by_ids():
     data = request.json
     ids = data.get("ids", [])
 
-    query = supabase.table("songs_new").select("*").in_("id", ids)
-
-    result = query.execute()
-    songs = result.data
+    songs = []
+    for i in range(0, len(ids), 500):
+        batch = ids[i:i+500]
+        if isinstance(batch[0], int):
+            query = supabase.table("songs_new").select("*").in_("id", batch)
+        else:
+            query = supabase.table("songs_new").select("*").in_("md5", batch)
+        result = query.execute()
+        songs.extend(result.data)
 
     return jsonify(songs)
 

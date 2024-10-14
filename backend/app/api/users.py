@@ -187,9 +187,10 @@ def compare_user_scores(user1_scores, user2_scores):
         avg_percent_diff += score1["percent"] - score2["percent"]
 
     total_songs = len(common_songs)
+    common_songs = list(common_songs)
     
     return {
-        "total_songs": total_songs,
+        "common_songs": common_songs,
         "wins": wins,
         "losses": losses,
         "ties": ties,
