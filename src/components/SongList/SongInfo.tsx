@@ -13,7 +13,16 @@ import {
   NotesData,
   SONG_DIFFICULTIES,
 } from "../../utils/song";
+import { fetchSongArt } from "../../utils/spotify";
 import "./SongInfo.scss";
+
+import IconBass from "../../assets/rb-bass.png";
+import IconDrums from "../../assets/rb-drums.png";
+import IconGuitar from "../../assets/rb-guitar.png";
+import IconKeys from "../../assets/rb-keys.png";
+import IconVocals from "../../assets/rb-vocals.png";
+
+import DefaultAlbumArt from "../../assets/default-album-art.jpg";
 
 interface SongInfoProps {
   song: Song;
@@ -46,22 +55,19 @@ const SongInfo: React.FC<SongInfoProps> = ({ song }) => {
   return (
     <div className="song-info">
       { 
-        extraData.loading_phrase &&
-        <SongInfoHeader value={extraData.loading_phrase} />
+        // extraData.loading_phrase &&
+        // <SongInfoHeader value={extraData.loading_phrase} />
       }
-      <SongInfoLine label="Artist" value={extraData.artist} />
-      <SongInfoLine label="Album" value={extraData.album} />
-      <SongInfoLine label="Genre" value={extraData.genre} />
-      <SongInfoLine label="Year" value={extraData.year} />
-      <SongInfoLine label="Track" value={extraData.album_track} />
-      <SongInfoLine label="Charter" value={song.charter_refs?.join(",")} />
-      <SongInfoLine label="Length" value={msToTime(extraData.song_length || 0)} />
+
+      <SongInfoPrimary extraData={extraData} song={song} />
+
       <SongInfoDifficulties song={extraData} />
-      <SongInfoInstruments instruments={extraData.notesData?.instruments} />
+      <SongInfoChartFeatures notesData={extraData.notesData} />
+
+      <SongInfoLine label="MD5" value={song.md5} />
+
       <SongInfoNoteCounts noteCounts={extraData.notesData?.noteCounts || []} />
       <SongInfoMaxNPS maxNps={extraData.notesData?.maxNps} />
-      <SongInfoChartFeatures notesData={extraData.notesData} />
-      <SongInfoLine label="MD5" value={song.md5} />
     </div>
   );
 };
@@ -81,6 +87,52 @@ const SongInfoHeader: React.FC<SongInfoHeaderProps> = ({ value }) => {
   );
 };
 
+interface SongInfoPrimaryProps {
+  extraData: SongExtraData;
+  song: Song;
+}
+
+const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) => {
+  const [albumArtUrl, setAlbumArtUrl] = useState<string>("");
+
+  useEffect(() => {
+    const getAlbumArt = async () => {
+      const artUrl = await fetchSongArt(song.artist, song.name, song.album);
+      setAlbumArtUrl(artUrl || DefaultAlbumArt);
+    };
+
+    getAlbumArt();
+  }, [extraData.artist, song.name]);
+
+  return (
+    <div className="song-box">
+      <div className="song-column">
+        <div className="song-art-box">
+          <img className="song-art-image" src={albumArtUrl}/>
+          {/* <div className="song-art-charter">
+            <img
+              src={"https://cdn.discordapp.com/avatars/225072566400712704/0653bfe218ab1ba5791a7326d69091e4.png"}
+              className="user-avatar"
+            />
+          </div> */}
+        </div>
+
+        <div className="song-details-box" >
+          <div className="song-title">{song.name}</div>
+          <div className="song-artist">{extraData.artist}</div>
+          <div>
+            <span className="song-album">{extraData.album}</span>
+            <span className="song-year"> ({extraData.year})</span>
+          </div>
+          
+          <div className="song-genre">{extraData.genre}</div>
+          <SongInfoLine label="Charter" value={song.charter_refs?.join(",")} />
+
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface SongInfoLineProps {
   label: string;
@@ -106,9 +158,9 @@ const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
     return (
       <div className="charter">
         <p className="info-line">
-          <span className="label">{label}:</span>
+          {/* <span className="label">{label}:</span> */}
+          <CharterName names={value as string} displayBadges={true}/>
         </p>
-        <CharterName names={value as string} />
       </div>
     );
   }
@@ -117,7 +169,7 @@ const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
     : String(value);
   return (
     <p className="info-line">
-      <span className="label">{label}:</span>
+      {/* <span className="label">{label}:</span> */}
       <span dangerouslySetInnerHTML={renderSafeHTML(processedValue)} />
     </p>
   );
@@ -144,14 +196,10 @@ const SongInfoDifficulties: React.FC<SongInfoDifficultiesProps> = ({ song }) => 
 
   return (
     <div className="difficulties">
-      <span className="label">Difficulties:</span>
-      <div className="difficulty-grid">
-        {difficulties.map(diff => 
+      <div className="parts">
+        {difficulties.map(diff =>
           diff.value !== undefined && diff.value !== -1 && (
-            <div key={diff.name} className="difficulty">
-              <span className="diff-name">{diff.name}</span>
-              <span className="diff-value">{diff.value}</span>
-            </div>
+            <SongInfoPart key={diff.name} name={diff.name} difficulty={diff.value} />
           )
         )}
       </div>
@@ -159,6 +207,25 @@ const SongInfoDifficulties: React.FC<SongInfoDifficultiesProps> = ({ song }) => 
   );
 };
 
+// an instrument icon + difficulty // + note count + NPS max
+const SongInfoPart: React.FC<{ name: string; difficulty: string | number }> = ({ name, difficulty }) => {
+  return (
+    <div className="part">
+      
+      <img src={name == "Drums" ? IconDrums : 
+                name == "Bass" ? IconBass :
+                name == "Guitar" ? IconGuitar :
+                name == "Rhythm" ? IconGuitar :
+                name == "Keys" ? IconKeys :
+                name == "Vocals" ? IconVocals : ""}/>
+
+      <div className="part-difficulty-numeral">
+        <span>{difficulty}</span>
+      </div>
+
+    </div>
+  );
+}
 
 interface SongInfoInstrumentsProps {
   instruments: string[] | undefined;
@@ -239,9 +306,8 @@ const SongInfoChartFeatures: React.FC<SongInfoChartFeaturesProps> = ({ notesData
   if (!notesData) return null;
   return (
     <div className="chart-features">
-      <span className="label">Chart Features:</span>
       <div className="feature-grid">
-        <span className={`feature ${notesData.hasSoloSections ? "active" : ""}`}>Solo Sections</span>
+        <span className={`feature ${notesData.hasSoloSections ? "active" : ""}`}>Solo</span>
         <span className={`feature ${notesData.hasLyrics ? "active" : ""}`}>Lyrics</span>
         <span className={`feature ${notesData.has2xKick ? "active" : ""}`}>2x Kick</span>
         <span className={`feature ${notesData.hasFlexLanes ? "active" : ""}`}>Lanes</span>

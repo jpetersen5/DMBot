@@ -2,7 +2,7 @@
 @import "../../styles/mixins";
 
 .song-info {
-  width: 48%;
+  flex: 1;
   max-height: 500px;
   overflow-y: auto;
   padding: 1rem;
@@ -26,6 +26,109 @@
     @include theme("background", "color-scrollbar-hover");
   }
 
+  .song-box {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .song-column {
+    display: flex;
+
+    flex-direction: column;
+    @media (min-width: 1200px) {
+      flex-direction: row;
+    }
+
+    gap: 1rem;
+
+  }
+
+  .song-art-box {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    @media (min-width: 1200px) {
+      width: 50%;
+    }
+  }
+
+  .song-art-image {
+    width: 100%;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+
+  .song-art-charter {
+    position: sticky;
+    
+    // 2 column large
+    @media (min-width: 1200px) {
+      width: 45px;
+      height: 45px;
+      margin-top: calc(1rem - 90px);
+      margin-left: 10px;
+    }
+    
+    // 1 column large
+    width: 55px;
+    height: 55px;
+    margin-top: calc(1rem - 105px);
+    margin-left: 15px;
+
+    // 1 column small
+    @media (max-width: 991px) {
+      width: 40px;
+      height: 40px;
+      margin-top: calc(1rem - 85px);
+      margin-left: 10px;
+    }
+  
+    margin-bottom: 0.5rem;
+    .user-avatar {
+      width: 100%;
+      height: 100%;
+      border: 1px solid black;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+  }
+
+  .song-details-box {
+    width: 100%;
+    @media (min-width: 1200px) {
+      width: 50%;
+    }
+  }
+
+  .song-header {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+
+  .song-title {
+    text-align: left;
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+
+  .song-artist {
+    font-size: 1.35rem;
+  }
+
+  .song-album {
+    font-size: 1rem;
+  }
+
+  .song-genre {
+    font-size: 0.9rem;
+  }
+
+  .song-year {
+    font-size: 0.9rem;;
+  }
+
 
   .info-header {
     font-size: 1.2rem;
@@ -35,12 +138,17 @@
 
   .info-line {
     display: flex;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.0rem;
 
     .label {
       font-weight: bold;
       margin-right: 0.5rem;
-      min-width: 80px;
+    }
+    
+    code {
+      @media (max-width: 991px) {
+        width: 80%;
+      }
     }
 
     .value {
@@ -51,13 +159,50 @@
   .charter {
     display: flex;
     align-items: center;
+    margin-top: 0.5rem;
     margin-bottom: 0.5rem;
+    margin-left: -4px;
 
     .info-line {
       margin-bottom: 0rem;
 
       .label {
         min-width: 76px;
+      }
+    }
+  }
+
+  .parts {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 1rem;
+
+    .part {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 50px;
+      margin-right: 0.5rem;
+
+      gap: 0.5rem;
+
+      img {
+        width: 100%;
+      }
+
+      .part-difficulty-numeral {
+        width: 30px;
+        height: 30px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+
+        span {
+          font-size: 22px;
+          @include theme("color", "color-text");
+        }
       }
     }
   }
