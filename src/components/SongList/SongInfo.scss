@@ -143,7 +143,12 @@
     .label {
       font-weight: bold;
       margin-right: 0.5rem;
-      min-width: 80px;
+    }
+    
+    code {
+      @media (max-width: 991px) {
+        width: 80%;
+      }
     }
 
     .value {
@@ -163,6 +168,41 @@
 
       .label {
         min-width: 76px;
+      }
+    }
+  }
+
+  .parts {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 1rem;
+
+    .part {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 50px;
+      margin-right: 0.5rem;
+
+      gap: 0.5rem;
+
+      img {
+        width: 100%;
+      }
+
+      .part-difficulty-numeral {
+        width: 30px;
+        height: 30px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+
+        span {
+          font-size: 22px;
+          @include theme("color", "color-text");
+        }
       }
     }
   }
