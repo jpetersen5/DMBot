@@ -46,16 +46,12 @@ const SongInfo: React.FC<SongInfoProps> = ({ song }) => {
   return (
     <div className="song-info">
       { 
-        extraData.loading_phrase &&
-        <SongInfoHeader value={extraData.loading_phrase} />
+        // extraData.loading_phrase &&
+        // <SongInfoHeader value={extraData.loading_phrase} />
       }
-      <SongInfoLine label="Artist" value={extraData.artist} />
-      <SongInfoLine label="Album" value={extraData.album} />
-      <SongInfoLine label="Genre" value={extraData.genre} />
-      <SongInfoLine label="Year" value={extraData.year} />
-      <SongInfoLine label="Track" value={extraData.album_track} />
-      <SongInfoLine label="Charter" value={song.charter_refs?.join(",")} />
-      <SongInfoLine label="Length" value={msToTime(extraData.song_length || 0)} />
+
+      <SongInfoPrimary extraData={extraData} song={song} />
+
       <SongInfoDifficulties song={extraData} />
       <SongInfoInstruments instruments={extraData.notesData?.instruments} />
       <SongInfoNoteCounts noteCounts={extraData.notesData?.noteCounts || []} />
@@ -81,6 +77,43 @@ const SongInfoHeader: React.FC<SongInfoHeaderProps> = ({ value }) => {
   );
 };
 
+interface SongInfoPrimaryProps {
+  extraData: SongExtraData;
+  song: Song;
+}
+
+const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) => {
+
+  return (
+    <div className="song-box">
+      <div className="song-column">
+        <div className="song-art-box">
+          <img className="song-art-image" 
+            src={"https://f4.bcbits.com/img/a3384036326_10.jpg"} alt="Song" />
+          <div className="song-art-charter">
+            <img
+              src={"https://cdn.discordapp.com/avatars/225072566400712704/0653bfe218ab1ba5791a7326d69091e4.png"}
+              className="user-avatar"
+            />
+          </div>
+        </div>
+
+        <div className="song-details-box" >
+          <div className="song-title">{song.name}</div>
+          <div className="song-artist">{extraData.artist}</div>
+          <div>
+            <span className="song-album">{extraData.album}</span>
+            <span className="song-year"> ({extraData.year})</span>
+          </div>
+          
+          <div className="song-genre">{extraData.genre}</div>
+          <SongInfoLine label="Charter" value={song.charter_refs?.join(",")} />
+
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface SongInfoLineProps {
   label: string;
@@ -106,9 +139,9 @@ const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
     return (
       <div className="charter">
         <p className="info-line">
-          <span className="label">{label}:</span>
+          {/* <span className="label">{label}:</span> */}
+          <CharterName names={value as string} displayBadges={true}/>
         </p>
-        <CharterName names={value as string} />
       </div>
     );
   }
@@ -117,7 +150,7 @@ const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
     : String(value);
   return (
     <p className="info-line">
-      <span className="label">{label}:</span>
+      {/* <span className="label">{label}:</span> */}
       <span dangerouslySetInnerHTML={renderSafeHTML(processedValue)} />
     </p>
   );

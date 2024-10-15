@@ -171,7 +171,7 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
         <tbody>
           {relatedLoading && <tr><td colSpan={columns.length}><LoadingSpinner /></td></tr>}
           {!relatedLoading && paginatedRelatedSongs.map((relatedSong) => (
-            <tr key={relatedSong.id} onClick={() => handleRelatedSongClick(relatedSong)}>
+            <tr key={relatedSong.id} className={currentSong.id == relatedSong.id ? "selected-row" : ""} onClick={() => handleRelatedSongClick(relatedSong)}>
               {relationType === RelatedSongsType.album && <SongTableCell content={relatedSong.track?.toString() || "N/A"} />}
               <SongTableCell content={relatedSong.name} />
               {relationType === RelatedSongsType.artist && <SongTableCell content={relatedSong.album} />}

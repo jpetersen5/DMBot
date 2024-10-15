@@ -12,6 +12,9 @@ $discord-blue: #7289DA;
 $discord-blue-dark: #5A6EB8;
 $off-white: #F8F9FA;
 $gold: #FFD700;
+$gold-dark-1: #D98A2E;
+$gold-dark-2: #E5A82E;
+$gold-dark-3: #F6BF00;
 $tooltip-background: rgba(0, 0, 0, 0.8);
 
 // dark mode
@@ -33,6 +36,7 @@ $themes: (
     color-box-secondary: $dark-grey-3,
     color-box-tertiary: $light-grey-2,
     color-button: $dark-grey-4,
+    color-button-subtle: $dark-grey-4,
     color-button-text: $white,
     color-button-hover: $light-grey-1,
     color-button-disabled: $light-grey-1,
@@ -51,8 +55,11 @@ $themes: (
     color-table-header-hover: $dark-grey-2,
     color-table-background-1: $dark-grey-3,
     color-table-background-2: $dark-grey-4,
-    color-table-hover: $dark-grey-4,
+    color-table-hover: $dark-grey-2,
     color-table-div: $dark-grey-4,
+    color-table-selected-text: $white,
+    color-table-selected-background: $gold-dark-2,
+    color-table-selected-hover: $gold-dark-1,
     color-charter-hover: $dark-grey-4,
     color-dropdown: $dark-grey-2,
     color-dropdown-highlight: $dark-grey-3,
@@ -77,6 +84,7 @@ $themes: (
     color-box-tertiary: $dark-grey-2,
     color-button: $dark-grey-2,
     color-button-text: $white,
+    color-button-subtle: $light-grey-3,
     color-button-hover: $dark-grey-3,
     color-button-disabled: $light-grey-2,
     color-button-secondary: $off-white,
@@ -96,6 +104,9 @@ $themes: (
     color-table-background-2: $very-light-grey-2,
     color-table-hover: $light-grey-3,
     color-table-div: $light-grey-2,
+    color-table-selected-text: $dark-grey-4,
+    color-table-selected-background: $gold,
+    color-table-selected-hover: $gold-dark-3,
     color-charter-hover: $dark-grey-3,
     color-dropdown: $white,
     color-dropdown-highlight: $very-light-grey-2,
