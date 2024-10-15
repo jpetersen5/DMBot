@@ -98,15 +98,25 @@
 
     tr {
       @include theme("background", "color-table-background-1");
-    }
+      
+      &:nth-child(even) {
+        @include theme("background", "color-table-background-2");
+      }
 
-    tr:nth-child(even) {
-      @include theme("background", "color-table-background-2");
+      &.selected-row {
+        @include theme("background", "color-table-selected-background");
+        @include theme("color", "color-table-selected-text");
+      }
     }
+    
 
     tr:hover {
       cursor: pointer;
       @include theme("background", "color-table-hover");
+
+      &.selected-row {
+        @include theme("background", "color-table-selected-hover");
+      }
     }
   }
 }

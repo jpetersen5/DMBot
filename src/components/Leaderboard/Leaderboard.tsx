@@ -230,7 +230,7 @@ const LeaderboardTableRow: React.FC<LeaderboardTableRowProps> = ({ entry, onClic
   const isCurrentUser = user?.id === entry.user_id;
 
   return (
-    <tr onClick={onClick} className={isCurrentUser ? "current-user" : ""} style={{ cursor: "pointer" }}>
+    <tr onClick={onClick} className={isCurrentUser ? "selected-row" : ""} style={{ cursor: "pointer" }}>
       <SongTableCell content={entry.rank.toString()} />
       <SongTableCell content={entry.username} />
       <SongTableCell content={entry.score.toLocaleString()} />
