@@ -90,6 +90,11 @@
       display: flex;
       justify-content: space-between;
       margin-bottom: 2rem;
+      gap: 2rem;
+      
+      @media (max-width: 991px) {
+        flex-direction: column;
+      }
     }
 
     .leaderboard {
