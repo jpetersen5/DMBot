@@ -13,6 +13,7 @@ import {
   NotesData,
   SONG_DIFFICULTIES,
 } from "../../utils/song";
+import { fetchSongArt } from "../../utils/spotify";
 import "./SongInfo.scss";
 
 import IconBass from "../../assets/rb-bass.png";
@@ -20,6 +21,8 @@ import IconDrums from "../../assets/rb-drums.png";
 import IconGuitar from "../../assets/rb-guitar.png";
 import IconKeys from "../../assets/rb-keys.png";
 import IconVocals from "../../assets/rb-vocals.png";
+
+import DefaultAlbumArt from "../../assets/default-album-art.jpg";
 
 interface SongInfoProps {
   song: Song;
@@ -90,21 +93,28 @@ interface SongInfoPrimaryProps {
 }
 
 const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) => {
+  const [albumArtUrl, setAlbumArtUrl] = useState<string>("");
+
+  useEffect(() => {
+    const getAlbumArt = async () => {
+      const artUrl = await fetchSongArt(song.artist, song.name, song.album);
+      setAlbumArtUrl(artUrl || DefaultAlbumArt);
+    };
+
+    getAlbumArt();
+  }, [extraData.artist, song.name]);
 
   return (
     <div className="song-box">
       <div className="song-column">
         <div className="song-art-box">
-          <img className="song-art-image" 
-            // src={"https://f4.bcbits.com/img/a3384036326_10.jpg"} 
-            src={"https://m.media-amazon.com/images/I/81D5il1PpPL._UF1000,1000_QL80_.jpg"} 
-          />
-          <div className="song-art-charter">
+          <img className="song-art-image" src={albumArtUrl}/>
+          {/* <div className="song-art-charter">
             <img
               src={"https://cdn.discordapp.com/avatars/225072566400712704/0653bfe218ab1ba5791a7326d69091e4.png"}
               className="user-avatar"
             />
-          </div>
+          </div> */}
         </div>
 
         <div className="song-details-box" >
