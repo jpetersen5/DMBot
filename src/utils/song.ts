@@ -24,6 +24,8 @@ export interface SongExtraData {
   album?: string;
   genre?: string;
   year?: string;
+  charter?: string;
+  icon?: string;
   song_length?: number;
   diff_band?: number;
   diff_guitar?: number;

@@ -59,27 +59,27 @@
   }
 
   .song-art-charter {
-    position: sticky;
+    position: absolute;
     
     // 2 column large
     @media (min-width: 1200px) {
       width: 45px;
       height: 45px;
-      margin-top: calc(1rem - 90px);
+      margin-top: calc(1.5rem - 90px);
       margin-left: 10px;
     }
     
     // 1 column large
     width: 55px;
     height: 55px;
-    margin-top: calc(1rem - 105px);
+    margin-top: calc(2rem - 110px);
     margin-left: 15px;
 
     // 1 column small
     @media (max-width: 991px) {
       width: 40px;
       height: 40px;
-      margin-top: calc(1rem - 85px);
+      margin-top: calc(1.5rem - 80px);
       margin-left: 10px;
     }
   

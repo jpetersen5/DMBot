@@ -24,6 +24,8 @@ import IconVocals from "../../assets/rb-vocals.png";
 
 import DefaultAlbumArt from "../../assets/default-album-art.jpg";
 
+import { charterAvatars } from '../../assets/charter-avatars';
+
 interface SongInfoProps {
   song: Song;
 }
@@ -94,14 +96,24 @@ interface SongInfoPrimaryProps {
 
 const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) => {
   const [albumArtUrl, setAlbumArtUrl] = useState<string>("");
+  const [avatarArtUrl, setAvatarArtUrl] = useState<string>("");
 
   useEffect(() => {
     const getAlbumArt = async () => {
       const artUrl = await fetchSongArt(song.artist, song.name, song.album);
       setAlbumArtUrl(artUrl || DefaultAlbumArt);
+
+      getAvatarArt(); // prevents rendering until after artwork is loaded
     };
 
+    const getAvatarArt = async () => {
+      const icon = extraData.icon ? extraData.icon : "";
+      const artUrl = icon && icon in charterAvatars ? charterAvatars[icon] : "";
+      setAvatarArtUrl(artUrl);
+    }
+
     getAlbumArt();
+    
   }, [extraData.artist, song.name]);
 
   return (
@@ -109,12 +121,11 @@ const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) =>
       <div className="song-column">
         <div className="song-art-box">
           <img className="song-art-image" src={albumArtUrl}/>
-          {/* <div className="song-art-charter">
-            <img
-              src={"https://cdn.discordapp.com/avatars/225072566400712704/0653bfe218ab1ba5791a7326d69091e4.png"}
-              className="user-avatar"
-            />
-          </div> */}
+          {avatarArtUrl && (
+          <div className="song-art-charter" >
+            <img className="user-avatar" src={avatarArtUrl}/>
+          </div>
+          )}
         </div>
 
         <div className="song-details-box" >
