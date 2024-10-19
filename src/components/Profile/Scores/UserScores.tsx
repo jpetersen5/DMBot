@@ -7,44 +7,19 @@ import UnknownSongModal from "./UnknownSongModal";
 import { SongTableCell } from "../../SongList/SongList";
 import { API_URL } from "../../../App";
 import { useKeyPress } from "../../../hooks/useKeyPress";
+import {
+  Score,
+  Scores,
+  UnknownScore,
+  SCORE_TABLE_HEADERS,
+  formatRank
+} from "../../../utils/score";
 import { Song } from "../../../utils/song";
 import "./UserScores.scss";
-
-export interface Score {
-  is_fc: boolean;
-  score: number;
-  speed: number;
-  artist: string;
-  percent: number;
-  song_name: string;
-  identifier: string;
-  play_count: number;
-  posted: string;
-}
-
-interface UnknownScore extends Score {
-  filepath: string | null;
-}
-
-export interface Scores {
-  scores: Score[];
-  unknown_scores: UnknownScore[];
-}
 
 interface UserScoresProps {
   userId: string;
 }
-
-const SCORE_TABLE_HEADERS = {
-  song_name: "Song",
-  artist: "Artist",
-  score: "Score",
-  percent: "Percent",
-  speed: "Speed",
-  is_fc: "FC",
-  play_count: "Plays",
-  posted: "Posted"
-};
 
 const filterOptions = [
   { value: "song_name", label: "Name" },
@@ -113,6 +88,13 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
     if (sortKey === "percent") { // FC's take priority over non-FC's
       aValue = a.is_fc ? 101 : aValue;
       bValue = b.is_fc ? 101 : bValue;
+    }
+    if (sortKey === "rank" && sortOrder === "asc") {
+      aValue = a.rank ? aValue : 1000000;
+      bValue = b.rank ? bValue : 1000000;
+    } else if (sortKey === "rank" && sortOrder === "desc") {
+      aValue = a.rank ? aValue : 0;
+      bValue = b.rank ? bValue : 0;
     }
     return [aValue, bValue];
   }
@@ -383,6 +365,7 @@ const ScoreTableRow: React.FC<ScoreTableRowProps> = ({ score, onClick }) => {
       <SongTableCell content={score.is_fc ? "Yes" : "No"} />
       <SongTableCell content={score.play_count ? score.play_count.toString() : "N/A"} />
       <SongTableCell content={score.posted} special="last_update" />
+      <SongTableCell content={formatRank(score.rank)} />
     </tr>
   );
 };

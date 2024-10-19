@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Modal } from "react-bootstrap";
-import { Score } from "./UserScores";
 import LoadingSpinner from "../../Loading/LoadingSpinner";
 import { API_URL } from "../../../App";
+import { Score } from "../../../utils/score";
 import { formatExactTime, formatTimeDifference } from "../../../utils/song";
 import Tooltip from "../../../utils/Tooltip/Tooltip";
 import "./UnknownSongModal.scss";
