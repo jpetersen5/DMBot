@@ -184,21 +184,14 @@ def process_and_save_scores(result, user_id):
                     "speed": score["speed"],
                     "score": score["score"],
                     "play_count": play_count,
-                    "posted": datetime.now(UTC).isoformat()
+                    "posted": datetime.now(UTC).isoformat(),
+                    "rank": None
                 }
 
                 if song_info:
-                    existing_score = existing_scores_dict.get(song["identifier"], None)
-                    if existing_score and score["score"] < existing_score["score"]:
-                        logger.info(f"Score for song {song['identifier']} doesn't need to be updated. Skipping.")
-                        continue
-                    elif existing_score and score["score"] == existing_score["score"] and play_count <= existing_score.get("play_count", 0):
-                        logger.info(f"Score for song {song['identifier']} doesn't need to be updated. Skipping.")
-                        continue
-
-                    existing_scores_dict[song["identifier"]] = score_data
-                
                     leaderboard = song_info.get("leaderboard", []) or []
+                    user_entry = next((entry for entry in leaderboard if entry["user_id"] == user_id), None)
+                
                     leaderboard_entry = {
                         "user_id": user_id,
                         "username": username,
@@ -210,9 +203,12 @@ def process_and_save_scores(result, user_id):
                         "posted": score_data["posted"]
                     }
                     
-                    user_entry = next((entry for entry in leaderboard if entry["user_id"] == user_id), None)
                     if user_entry:
                         if score["score"] < user_entry["score"]:
+                            logger.info(f"Score for song {song['identifier']} doesn't need to be updated. Skipping.")
+                            continue
+                        elif score["score"] == user_entry["score"] and play_count <= user_entry.get("play_count", 0):
+                            logger.info(f"Score for song {song['identifier']} doesn't need to be updated. Skipping.")
                             continue
                         elif score["score"] > user_entry["score"] or play_count > user_entry.get("play_count", 0) or user_entry.get("posted", "") == "":
                             leaderboard.remove(user_entry)
@@ -221,6 +217,10 @@ def process_and_save_scores(result, user_id):
                         leaderboard.append(leaderboard_entry)
                     
                     leaderboard = sort_and_rank_leaderboard(leaderboard)
+                    
+                    user_rank = next((entry["rank"] for entry in leaderboard if entry["user_id"] == user_id), None)
+                    score_data["rank"] = user_rank
+                    existing_scores_dict[song["identifier"]] = score_data
                     
                     leaderboard_updates.append({
                         "md5": song["identifier"],
