@@ -205,6 +205,12 @@
         }
       }
     }
+
+    .part-notes-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
   }
 
   .difficulties, .instruments, .max-nps, .chart-features, .note-counts {

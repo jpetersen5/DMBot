@@ -5,13 +5,18 @@
   position: relative;
   display: inline-block;
 
-  &:hover .tooltip {
+  &:hover .tooltip-content-container {
     opacity: 1;
     visibility: visible;
+
+    .tooltip {
+      opacity: 1;
+      visibility: visible;
+    }
   }
 
   &.top {
-    .tooltip {
+    .tooltip-content-container {
       bottom: 125%;
       left: 50%;
       transform: translateX(-50%);
@@ -26,7 +31,7 @@
   }
 
   &.left {
-    .tooltip {
+    .tooltip-content-container {
       right: 125%;
       top: 50%;
       transform: translateY(-50%);
@@ -41,7 +46,7 @@
   }
 
   &.right {
-    .tooltip {
+    .tooltip-content-container {
       left: 125%;
       top: 50%;
       transform: translateY(-50%);
@@ -56,7 +61,7 @@
   }
 
   &.bottom {
-    .tooltip {
+    .tooltip-content-container {
       top: 125%;
       left: 50%;
       transform: translateX(-50%);
@@ -70,19 +75,23 @@
     }
   }
 
-  .tooltip {
+  .tooltip-content-container {
     position: absolute;
     padding: 5px 10px;
     background-color: rgba(0, 0, 0, 0.8);
-    color: white;
     border-radius: 4px;
-    font-size: 12px;
-    white-space: nowrap;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.2s, visibility 0.2s;
     pointer-events: none;
-    z-index: 1;
+    z-index: 1000;
+
+    .tooltip {
+      font-size: 12px;
+      white-space: nowrap;
+      color: white;
+      transition: opacity 0.2s, visibility 0.2s;
+    }
 
     &::after {
       content: "";

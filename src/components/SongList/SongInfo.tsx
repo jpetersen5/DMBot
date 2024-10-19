@@ -3,10 +3,9 @@ import { API_URL } from "../../App";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import CharterName from "./CharterName";
 import Tooltip from "../../utils/Tooltip/Tooltip";
-import { renderSafeHTML, processColorTags, capitalize } from "../../utils/safeHTML";
+import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import {
   Song,
-  msToTime,
   SongExtraData,
   NoteCount,
   MaxNps,
@@ -19,6 +18,7 @@ import "./SongInfo.scss";
 import IconBass from "../../assets/rb-bass.png";
 import IconDrums from "../../assets/rb-drums.png";
 import IconGuitar from "../../assets/rb-guitar.png";
+import IconRhythm from "../../assets/rb-rhythm.png";
 import IconKeys from "../../assets/rb-keys.png";
 import IconVocals from "../../assets/rb-vocals.png";
 
@@ -56,20 +56,19 @@ const SongInfo: React.FC<SongInfoProps> = ({ song }) => {
 
   return (
     <div className="song-info">
-      { 
-        // extraData.loading_phrase &&
-        // <SongInfoHeader value={extraData.loading_phrase} />
-      }
 
       <SongInfoPrimary extraData={extraData} song={song} />
 
       <SongInfoDifficulties song={extraData} />
       <SongInfoChartFeatures notesData={extraData.notesData} />
 
-      <SongInfoLine label="MD5" value={song.md5} />
 
-      <SongInfoNoteCounts noteCounts={extraData.notesData?.noteCounts || []} />
-      <SongInfoMaxNPS maxNps={extraData.notesData?.maxNps} />
+      {/* <SongInfoNoteCounts noteCounts={extraData.notesData?.noteCounts || []} />
+      <SongInfoMaxNPS maxNps={extraData.notesData?.maxNps} /> */}
+      {extraData.loading_phrase &&
+        <SongInfoHeader value={extraData.loading_phrase} />
+      }
+      <SongInfoLine label="MD5" value={song.md5} />
     </div>
   );
 };
@@ -81,7 +80,7 @@ interface SongInfoHeaderProps {
 
 const SongInfoHeader: React.FC<SongInfoHeaderProps> = ({ value }) => {
   return (
-    <Tooltip text={"This song info was included by the charter!"} position="bottom">
+    <Tooltip text={"This song info was included by the charter!"} position="top">
       <p className="info-header">
         <span dangerouslySetInnerHTML={renderSafeHTML(value)} />
       </p>
@@ -169,7 +168,6 @@ const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
     return (
       <div className="charter">
         <p className="info-line">
-          {/* <span className="label">{label}:</span> */}
           <CharterName names={value as string} displayBadges={true}/>
         </p>
       </div>
@@ -180,7 +178,6 @@ const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
     : String(value);
   return (
     <p className="info-line">
-      {/* <span className="label">{label}:</span> */}
       <span dangerouslySetInnerHTML={renderSafeHTML(processedValue)} />
     </p>
   );
@@ -192,7 +189,6 @@ interface SongInfoDifficultiesProps {
 }
 
 const SongInfoDifficulties: React.FC<SongInfoDifficultiesProps> = ({ song }) => {
-  console.log(song);
   const difficulties = [
     { name: "Guitar", value: song.diff_guitar },
     { name: "Rhythm", value: song.diff_rhythm },
@@ -209,104 +205,64 @@ const SongInfoDifficulties: React.FC<SongInfoDifficultiesProps> = ({ song }) => 
     <div className="difficulties">
       <div className="parts">
         {difficulties.map(diff =>
-          diff.value !== undefined && diff.value !== -1 && (
-            <SongInfoPart key={diff.name} name={diff.name} difficulty={diff.value} />
-          )
+          <SongInfoPart
+            key={diff.name}
+            name={diff.name}
+            difficulty={diff.value}
+            noteCounts={song.notesData?.noteCounts}
+            maxNps={song.notesData?.maxNps}
+          />
         )}
       </div>
     </div>
   );
 };
 
-// an instrument icon + difficulty // + note count + NPS max
-const SongInfoPart: React.FC<{ name: string; difficulty: string | number }> = ({ name, difficulty }) => {
-  return (
-    <div className="part">
-      
-      <img src={name == "Drums" ? IconDrums : 
-                name == "Bass" ? IconBass :
-                name == "Guitar" ? IconGuitar :
-                name == "Rhythm" ? IconGuitar :
-                name == "Keys" ? IconKeys :
-                name == "Vocals" ? IconVocals : ""}/>
-
-      <div className="part-difficulty-numeral">
-        <span>{difficulty}</span>
-      </div>
-
-    </div>
-  );
+interface SongInfoPartProps {
+  name: string;
+  difficulty: string | number | undefined;
+  noteCounts?: NoteCount[];
+  maxNps?: MaxNps[];
 }
 
-interface SongInfoInstrumentsProps {
-  instruments: string[] | undefined;
-}
-
-const SongInfoInstruments: React.FC<SongInfoInstrumentsProps> = ({ instruments }) => {
-  if (!instruments) return null;
-  return (
-    <div className="instruments">
-      <span className="label">Instruments:</span>
-      <div className="instrument-list">
-        {instruments.map(instrument => (
-          <span key={instrument} className="instrument">
-            {capitalize(instrument)}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-
-interface SongInfoNoteCountsProps {
-  noteCounts: NoteCount[] | undefined;
-}
-
-const SongInfoNoteCounts: React.FC<SongInfoNoteCountsProps> = ({ noteCounts }) => {
-  if (!noteCounts) return null;
-  return (
-    <div className="note-counts">
-      <span className="label">Note Counts:</span>
-      <div className="note-count-grid">
-        {noteCounts.map((count, index) => (
+const SongInfoPart: React.FC<SongInfoPartProps> = ({ name, difficulty, noteCounts, maxNps }) => {
+  const notesTooltip = (
+    <div className="part-notes-info">
+      <span>{name}</span>
+      {noteCounts && noteCounts.map((count, index) => (
+        count.instrument === name.toLowerCase() && (
           <div key={index} className="note-count-item">
             <span className="note-count-instrument">
-              {capitalize(count.instrument)} ({SONG_DIFFICULTIES[count.difficulty]})
+              {SONG_DIFFICULTIES[count.difficulty]}
             </span>
             <span className="note-count-value">{count.count}</span>
+            {maxNps &&
+              <span className="note-count-max-nps">
+                {`(max: ${maxNps.find(nps => nps.instrument === count.instrument)?.nps}/s)`}
+              </span>
+            }
           </div>
-        ))}
-      </div>
+        )
+      ))}
     </div>
-  );
-};
+  )
 
-
-interface SongInfoMaxNPSProps {
-  maxNps: MaxNps[] | undefined;
-}
-
-const SongInfoMaxNPS: React.FC<SongInfoMaxNPSProps> = ({ maxNps }) => {
-  if (!maxNps) return null;
   return (
-    <div className="max-nps">
-      <span className="label">Max NPS:</span>
-      <div className="max-nps-grid">
-        {maxNps.map((nps, index) => (
-          <div key={index} className="nps-item">
-            <span className="nps-instrument">
-              {capitalize(nps.instrument)} ({SONG_DIFFICULTIES[nps.difficulty]})
-            </span>
-            <span className="nps-value">
-              {nps.nps.toFixed(2)} at {msToTime(nps.time)}
-            </span>
-          </div>
-        ))}
+    <Tooltip content={notesTooltip}>
+      <div className="part">
+        <img src={name == "Drums" ? IconDrums : 
+                  name == "Bass" ? IconBass :
+                  name == "Guitar" ? IconGuitar :
+                  name == "Rhythm" ? IconRhythm :
+                  name == "Keys" ? IconKeys :
+                  name == "Vocals" ? IconVocals : ""}/>
+        <div className="part-difficulty-numeral">
+          <span>{difficulty && difficulty !== -1 ? difficulty : "-"}</span>
+        </div>
       </div>
-    </div>
+    </Tooltip>
   );
-};
+}
 
 
 interface SongInfoChartFeaturesProps {
