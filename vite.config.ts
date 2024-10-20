@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv } from "vite"
+import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 import svgr from "vite-plugin-svgr"
 
@@ -6,9 +6,6 @@ import svgr from "vite-plugin-svgr"
 export default defineConfig(({ command, mode }) => {
   const isGitHubPages = process.env.GITHUB_ACTIONS === "true"
   const isProduction = mode === "production"
-  const env = loadEnv(mode, process.cwd())
-  const spotifyClientId = env.VITE_SPOTIFY_CLIENT_ID
-  const spotifyClientSecret = env.VITE_SPOTIFY_CLIENT_SECRET
 
   const config = {
     plugins: [react(), svgr()],
@@ -30,8 +27,6 @@ export default defineConfig(({ command, mode }) => {
         ? JSON.stringify("https://dmbot-kb5j.onrender.com")
         : JSON.stringify("http://localhost:5000"),
       "import.meta.env.VITE_COMMIT_DATE": JSON.stringify(process.env.VITE_COMMIT_DATE),
-      "import.meta.env.VITE_SPOTIFY_CLIENT_ID": spotifyClientId ? JSON.stringify(spotifyClientId) : JSON.stringify(process.env.VITE_SPOTIFY_CLIENT_ID),
-      "import.meta.env.VITE_SPOTIFY_CLIENT_SECRET": spotifyClientSecret ? JSON.stringify(spotifyClientSecret) : JSON.stringify(process.env.VITE_SPOTIFY_CLIENT_SECRET),
     }
   }
 

@@ -27,8 +27,6 @@ jobs:
           VITE_GITHUB_ACTIONS: "true"
           VITE_API_URL: "https://dmbot-kb5j.onrender.com"
           VITE_COMMIT_DATE: ${{ env.VITE_COMMIT_DATE }}
-          VITE_SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
-          VITE_SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
       - name: List build directory
         run: ls -R dist
       - name: Deploy

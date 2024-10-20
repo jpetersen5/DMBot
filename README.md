@@ -60,21 +60,12 @@ Docker is a platform that allows users to develop, ship, and run applications in
 
 ### Configuration
 
-1. Create a file named `.env` and add this to its content or rename `.env.example` to `.env`:
-
-   ```
-   VITE_SPOTIFY_CLIENT_ID=
-   VITE_SPOTIFY_CLIENT_SECRET=
-   ```
-
-   Contact me `@._satan` on Discord for the Spotify client ID and secret if you're interested in developing the Spotify integration.
-
-2. Navigate into the backend directory:
+1. Navigate into the backend directory:
   ```
   cd backend
   ```
 
-3. Create a file named `.env.dev` and add this to its content or rename `.env.dev.example` to `.env.dev`:
+2. Create a file named `.env.dev` and add this to its content or rename `.env.dev.example` to `.env.dev`:
 
    ```
    FLASK_APP=app.py
@@ -97,6 +88,9 @@ Docker is a platform that allows users to develop, ship, and run applications in
    REDIS_URL=redis://redis:6379
 
    UPLOAD_FOLDER=uploads
+   
+   VITE_SPOTIFY_CLIENT_ID=
+   VITE_SPOTIFY_CLIENT_SECRET=
 
    PROCESS_SONGS_SCRIPT=
    ```

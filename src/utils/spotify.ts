@@ -1,23 +1,11 @@
-const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-const clientSecret = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET;
+import { API_URL } from "../App";
+
+const SPOTIFY_ACCESS_TOKEN = localStorage.getItem("spotifyAccessToken");
 
 const getSpotifyAccessToken = async (): Promise<string | null> => {
-    try {
-        const response = await fetch("https://accounts.spotify.com/api/token", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-                "Authorization": "Basic " + btoa(`${clientId}:${clientSecret}`)
-            },
-            body: "grant_type=client_credentials"
-        });
-
-        const data = await response.json();
-        return data.access_token;
-    } catch (error) {
-        console.error("Error fetching Spotify access token:", error);
-        return null;
-    }
+    const response = await fetch(`${API_URL}/api/spotify/get_access_token`);
+    const data = await response.json();
+    return data.access_token || null;
 };
 
 export const fetchSongArt = async (
@@ -25,41 +13,28 @@ export const fetchSongArt = async (
     title: string | null,
     album: string | null
 ): Promise<string | null> => {
-    const accessToken = await getSpotifyAccessToken();
-    if (!accessToken) return null;
+    if (!SPOTIFY_ACCESS_TOKEN) {
+        const accessToken = await getSpotifyAccessToken();
+        if (accessToken) {
+            localStorage.setItem("spotifyAccessToken", accessToken);
+        }
+    }
 
     artist = artist || "";
     title = title || "";
     album = album || "";
 
     try {
-        const trackResponse = await fetch(`https://api.spotify.com/v1/search?q=artist:${artist} track:${title} album:${album}&type=track`, {
-            headers: {
-                "Authorization": `Bearer ${accessToken}`
-            }
-        });
-
-        const trackData = await trackResponse.json();
-        const tracks = trackData.tracks.items;
-
-        if (tracks && tracks.length > 0) {
-            return tracks[0].album.images[0].url;
-        }
-
-        const albumResponse = await fetch(`https://api.spotify.com/v1/search?q=artist:${artist} album:${album}&type=album`, {
-            headers: {
-                "Authorization": `Bearer ${accessToken}`
-            }
-        });
-      
-        const albumData = await albumResponse.json();
-        const albums = albumData.albums.items;
+        const response = await fetch(`${API_URL}/api/spotify/fetch_song_art?artist=${encodeURIComponent(artist)}&title=${encodeURIComponent(title)}&album=${encodeURIComponent(album)}&access_token=${SPOTIFY_ACCESS_TOKEN}`);
         
-        if (albums && albums.length > 0) {
-            return albums[0].images[0].url;
+        if (!response.ok) {
+            throw new Error("Failed to fetch song art");
         }
+
+        const data = await response.json();
+        return data.image_url || null;
     } catch (error) {
-        console.error("Error fetching song art from Spotify:", error);
+        console.error("Error fetching song art:", error);
+        return null;
     }
-    return null;
 };
