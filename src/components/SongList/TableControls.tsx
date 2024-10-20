@@ -91,7 +91,8 @@ export const Pagination: React.FC<PaginationProps> = ({
         {size === "sm" && "←"}
       </button>
       <span className="pages">
-        {size === "lg" && "Page "} <input
+        <span>{size === "lg" && "Page "}</span>
+        <input
           type="number" 
           value={inputPage} 
           onChange={handlePageInputChange}
@@ -99,7 +100,8 @@ export const Pagination: React.FC<PaginationProps> = ({
           onKeyDown={handlePageInputKeyPress}
           min={1} 
           max={totalPages} 
-        /> of {totalPages}
+        />
+        <span>{` of ${totalPages}`}</span>
       </span>
       <button
         onClick={handleNextPage}

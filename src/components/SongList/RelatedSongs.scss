@@ -8,6 +8,8 @@
     display: flex;
 
     .nav-tabs {
+      display: flex;
+      flex-wrap: nowrap;
       border: none;
       
       .nav-link {
@@ -60,6 +62,7 @@
         }
 
         .pages {
+          text-wrap: nowrap;
           margin: 0 0.5rem;
 
           input[type="number"] {

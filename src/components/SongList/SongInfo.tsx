@@ -137,14 +137,13 @@ const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) =>
         </div>
 
         <div className="song-details-box" >
-          <div className="song-title">{song.name}</div>
-          <div className="song-artist">{extraData.artist}</div>
-          <div>
-            <span className="song-album">{extraData.album}</span>
-            <span className="song-year"> ({extraData.year})</span>
+          <div className="song-title info-line">{song.name}</div>
+          <div className="song-artist info-line">{extraData.artist}</div>
+          <div className="song-album info-line">
+            <span>{extraData.album} ({extraData.year})</span>
           </div>
           
-          <div className="song-genre">{extraData.genre}</div>
+          <div className="song-genre info-line">{extraData.genre}</div>
           <SongInfoLine label="Charter" value={song.charter_refs?.join(",")} />
 
         </div>
@@ -175,7 +174,7 @@ const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
   }
   else if (label === "Charter") {
     return (
-      <div className="charter">
+      <div className="charter info-line">
         <CharterName names={value as string} displayBadges={true}/>
       </div>
     );
