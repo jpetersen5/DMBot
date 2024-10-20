@@ -28,8 +28,8 @@ export default defineConfig(({ command, mode }) => {
         ? JSON.stringify("https://dmbot-kb5j.onrender.com")
         : JSON.stringify("http://localhost:5000"),
       "import.meta.env.VITE_COMMIT_DATE": JSON.stringify(process.env.VITE_COMMIT_DATE),
-      "import.meta.env.VITE_SPOTIFY_CLIENT_ID": JSON.stringify(env.VITE_SPOTIFY_CLIENT_ID),
-      "import.meta.env.VITE_SPOTIFY_CLIENT_SECRET": JSON.stringify(env.VITE_SPOTIFY_CLIENT_SECRET),
+      "import.meta.env.VITE_SPOTIFY_CLIENT_ID": JSON.stringify(env.VITE_SPOTIFY_CLIENT_ID) || JSON.stringify(process.env.VITE_SPOTIFY_CLIENT_ID),
+      "import.meta.env.VITE_SPOTIFY_CLIENT_SECRET": JSON.stringify(env.VITE_SPOTIFY_CLIENT_SECRET) || JSON.stringify(process.env.VITE_SPOTIFY_CLIENT_SECRET),
     }
   }
 
