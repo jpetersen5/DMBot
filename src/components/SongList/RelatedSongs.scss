@@ -2,12 +2,14 @@
 @import "../../styles/mixins";
 
 .related-songs {
-  width: 48%;
+  flex: 1;
 
   .related-songs-topbar {
     display: flex;
 
     .nav-tabs {
+      display: flex;
+      flex-wrap: nowrap;
       border: none;
       
       .nav-link {
@@ -60,6 +62,7 @@
         }
 
         .pages {
+          text-wrap: nowrap;
           margin: 0 0.5rem;
 
           input[type="number"] {
@@ -94,19 +97,33 @@
       padding: 0.75rem;
       text-align: left;
       border: none;
+
+      // white-space: nowrap;
+      // overflow: hidden;
+      // text-overflow: ellipsis;
     }
 
     tr {
       @include theme("background", "color-table-background-1");
-    }
+      
+      &:nth-child(even) {
+        @include theme("background", "color-table-background-2");
+      }
 
-    tr:nth-child(even) {
-      @include theme("background", "color-table-background-2");
+      &.selected-row {
+        @include theme("background", "color-table-selected-background");
+        @include theme("color", "color-table-selected-text");
+      }
     }
+    
 
     tr:hover {
       cursor: pointer;
       @include theme("background", "color-table-hover");
+
+      &.selected-row {
+        @include theme("background", "color-table-selected-hover");
+      }
     }
   }
 }

@@ -3,17 +3,27 @@ import { API_URL } from "../../App";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import CharterName from "./CharterName";
 import Tooltip from "../../utils/Tooltip/Tooltip";
-import { renderSafeHTML, processColorTags, capitalize } from "../../utils/safeHTML";
+import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import {
   Song,
-  msToTime,
   SongExtraData,
   NoteCount,
   MaxNps,
   NotesData,
   SONG_DIFFICULTIES,
 } from "../../utils/song";
+import { fetchSongArt } from "../../utils/spotify";
 import "./SongInfo.scss";
+
+import IconBass from "../../assets/rb-bass.png";
+import IconDrums from "../../assets/rb-drums.png";
+import IconGuitar from "../../assets/rb-guitar.png";
+import IconRhythm from "../../assets/rb-rhythm.png";
+import IconKeys from "../../assets/rb-keys.png";
+
+import DefaultAlbumArt from "../../assets/default-album-art.jpg";
+
+import { charterAvatars } from '../../assets/charter-avatars';
 
 interface SongInfoProps {
   song: Song;
@@ -40,27 +50,31 @@ const SongInfo: React.FC<SongInfoProps> = ({ song }) => {
     fetchExtraData();
   }, [song.md5]);
 
-  if (loading) return <LoadingSpinner message="Loading song details..." />;
-  if (!extraData) return <p>No extra data available for this song.</p>;
+  if (loading) return (
+    <div className="song-info">
+      <LoadingSpinner message="Loading song details..." />
+    </div>
+  );
+  if (!extraData) return (
+    <div className="song-info">
+      <p>No extra data available for this song.</p>
+    </div>
+  );
 
   return (
     <div className="song-info">
-      { 
-        extraData.loading_phrase &&
+
+      <SongInfoPrimary extraData={extraData} song={song} />
+
+      <SongInfoDifficulties song={extraData} />
+      <SongInfoChartFeatures notesData={extraData.notesData} />
+
+
+      {/* <SongInfoNoteCounts noteCounts={extraData.notesData?.noteCounts || []} />
+      <SongInfoMaxNPS maxNps={extraData.notesData?.maxNps} /> */}
+      {extraData.loading_phrase &&
         <SongInfoHeader value={extraData.loading_phrase} />
       }
-      <SongInfoLine label="Artist" value={extraData.artist} />
-      <SongInfoLine label="Album" value={extraData.album} />
-      <SongInfoLine label="Genre" value={extraData.genre} />
-      <SongInfoLine label="Year" value={extraData.year} />
-      <SongInfoLine label="Track" value={extraData.album_track} />
-      <SongInfoLine label="Charter" value={song.charter_refs?.join(",")} />
-      <SongInfoLine label="Length" value={msToTime(extraData.song_length || 0)} />
-      <SongInfoDifficulties song={extraData} />
-      <SongInfoInstruments instruments={extraData.notesData?.instruments} />
-      <SongInfoNoteCounts noteCounts={extraData.notesData?.noteCounts || []} />
-      <SongInfoMaxNPS maxNps={extraData.notesData?.maxNps} />
-      <SongInfoChartFeatures notesData={extraData.notesData} />
       <SongInfoLine label="MD5" value={song.md5} />
     </div>
   );
@@ -73,7 +87,7 @@ interface SongInfoHeaderProps {
 
 const SongInfoHeader: React.FC<SongInfoHeaderProps> = ({ value }) => {
   return (
-    <Tooltip text={"This song info was included by the charter!"} position="bottom">
+    <Tooltip text={"This song info was included by the charter!"} position="top">
       <p className="info-header">
         <span dangerouslySetInnerHTML={renderSafeHTML(value)} />
       </p>
@@ -81,6 +95,62 @@ const SongInfoHeader: React.FC<SongInfoHeaderProps> = ({ value }) => {
   );
 };
 
+interface SongInfoPrimaryProps {
+  extraData: SongExtraData;
+  song: Song;
+}
+
+const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) => {
+  const [albumArtUrl, setAlbumArtUrl] = useState<string>(DefaultAlbumArt);
+  const [avatarArtUrl, setAvatarArtUrl] = useState<string>("");
+
+  useEffect(() => {
+    const getAlbumArt = async () => {
+      const artUrl = await fetchSongArt(song.artist, song.name, song.album);
+      if (artUrl) {
+        setAlbumArtUrl(artUrl);
+      }
+
+      getAvatarArt(); // prevents rendering until after artwork is loaded
+    };
+
+    const getAvatarArt = async () => {
+      const icon = extraData.icon ? extraData.icon : "";
+      const artUrl = icon && icon in charterAvatars ? charterAvatars[icon] : "";
+      setAvatarArtUrl(artUrl);
+    }
+
+    getAlbumArt();
+    
+  }, [extraData.artist, song.name]);
+
+  return (
+    <div className="song-box">
+      <div className="song-column">
+        <div className="song-art-box">
+          <img className="song-art-image" src={albumArtUrl}/>
+          {avatarArtUrl && (
+          <div className="song-art-charter" >
+            <img className="user-avatar" src={avatarArtUrl}/>
+          </div>
+          )}
+        </div>
+
+        <div className="song-details-box" >
+          <div className="song-title info-line">{song.name}</div>
+          <div className="song-artist info-line">{extraData.artist}</div>
+          <div className="song-album info-line">
+            <span>{extraData.album} ({extraData.year})</span>
+          </div>
+          
+          <div className="song-genre info-line">{extraData.genre}</div>
+          <SongInfoLine label="Charter" value={song.charter_refs?.join(",")} />
+
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface SongInfoLineProps {
   label: string;
@@ -104,11 +174,8 @@ const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
   }
   else if (label === "Charter") {
     return (
-      <div className="charter">
-        <p className="info-line">
-          <span className="label">{label}:</span>
-        </p>
-        <CharterName names={value as string} />
+      <div className="charter info-line">
+        <CharterName names={value as string} displayBadges={true}/>
       </div>
     );
   }
@@ -117,7 +184,6 @@ const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
     : String(value);
   return (
     <p className="info-line">
-      <span className="label">{label}:</span>
       <span dangerouslySetInnerHTML={renderSafeHTML(processedValue)} />
     </p>
   );
@@ -129,7 +195,6 @@ interface SongInfoDifficultiesProps {
 }
 
 const SongInfoDifficulties: React.FC<SongInfoDifficultiesProps> = ({ song }) => {
-  console.log(song);
   const difficulties = [
     { name: "Guitar", value: song.diff_guitar },
     { name: "Rhythm", value: song.diff_rhythm },
@@ -144,91 +209,69 @@ const SongInfoDifficulties: React.FC<SongInfoDifficultiesProps> = ({ song }) => 
 
   return (
     <div className="difficulties">
-      <span className="label">Difficulties:</span>
-      <div className="difficulty-grid">
-        {difficulties.map(diff => 
-          diff.value !== undefined && diff.value !== -1 && (
-            <div key={diff.name} className="difficulty">
-              <span className="diff-name">{diff.name}</span>
-              <span className="diff-value">{diff.value}</span>
-            </div>
-          )
+      <div className="parts">
+        {difficulties.map(diff =>
+          <SongInfoPart
+            key={diff.name}
+            name={diff.name}
+            difficulty={diff.value}
+            noteCounts={song.notesData?.noteCounts}
+            maxNps={song.notesData?.maxNps}
+          />
         )}
       </div>
     </div>
   );
 };
 
-
-interface SongInfoInstrumentsProps {
-  instruments: string[] | undefined;
+interface SongInfoPartProps {
+  name: string;
+  difficulty: string | number | undefined;
+  noteCounts?: NoteCount[];
+  maxNps?: MaxNps[];
 }
 
-const SongInfoInstruments: React.FC<SongInfoInstrumentsProps> = ({ instruments }) => {
-  if (!instruments) return null;
-  return (
-    <div className="instruments">
-      <span className="label">Instruments:</span>
-      <div className="instrument-list">
-        {instruments.map(instrument => (
-          <span key={instrument} className="instrument">
-            {capitalize(instrument)}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-
-interface SongInfoNoteCountsProps {
-  noteCounts: NoteCount[] | undefined;
-}
-
-const SongInfoNoteCounts: React.FC<SongInfoNoteCountsProps> = ({ noteCounts }) => {
-  if (!noteCounts) return null;
-  return (
-    <div className="note-counts">
-      <span className="label">Note Counts:</span>
-      <div className="note-count-grid">
-        {noteCounts.map((count, index) => (
+const SongInfoPart: React.FC<SongInfoPartProps> = ({ name, difficulty, noteCounts, maxNps }) => {
+  const hasDifficulty = difficulty !== undefined && difficulty !== -1;
+  
+  const notesTooltip = (
+    <div className="part-notes-info">
+      <span className="part-notes-info-name">{name}</span>
+      {noteCounts && noteCounts.map((count, index) => (
+        count.instrument === name.toLowerCase() && (
           <div key={index} className="note-count-item">
             <span className="note-count-instrument">
-              {capitalize(count.instrument)} ({SONG_DIFFICULTIES[count.difficulty]})
+              {SONG_DIFFICULTIES[count.difficulty]}
             </span>
-            <span className="note-count-value">{count.count}</span>
+            <span className="note-count-value">{`${count.count} notes`}</span>
+            {maxNps &&
+              <span className="note-count-max-nps">
+                {`(max: ${maxNps.find(nps => nps.instrument === count.instrument && nps.difficulty === count.difficulty)?.nps}/s)`}
+              </span>
+            }
           </div>
-        ))}
-      </div>
+        )
+      ))}
     </div>
-  );
-};
+  )
 
-
-interface SongInfoMaxNPSProps {
-  maxNps: MaxNps[] | undefined;
-}
-
-const SongInfoMaxNPS: React.FC<SongInfoMaxNPSProps> = ({ maxNps }) => {
-  if (!maxNps) return null;
   return (
-    <div className="max-nps">
-      <span className="label">Max NPS:</span>
-      <div className="max-nps-grid">
-        {maxNps.map((nps, index) => (
-          <div key={index} className="nps-item">
-            <span className="nps-instrument">
-              {capitalize(nps.instrument)} ({SONG_DIFFICULTIES[nps.difficulty]})
-            </span>
-            <span className="nps-value">
-              {nps.nps.toFixed(2)} at {msToTime(nps.time)}
-            </span>
-          </div>
-        ))}
+    <div className={`part ${!hasDifficulty ? "inactive" : ""}`}>
+      <Tooltip content={notesTooltip} position="bottom">
+        <img 
+          src={name == "Drums" ? IconDrums : 
+              name == "Bass" ? IconBass :
+              name == "Guitar" ? IconGuitar :
+              name == "Rhythm" ? IconRhythm :
+              name == "Keys" ? IconKeys : ""}
+        />
+      </Tooltip>
+      <div className="part-difficulty-numeral">
+        <span>{hasDifficulty ? difficulty : "-"}</span>
       </div>
     </div>
   );
-};
+}
 
 
 interface SongInfoChartFeaturesProps {
@@ -239,9 +282,8 @@ const SongInfoChartFeatures: React.FC<SongInfoChartFeaturesProps> = ({ notesData
   if (!notesData) return null;
   return (
     <div className="chart-features">
-      <span className="label">Chart Features:</span>
       <div className="feature-grid">
-        <span className={`feature ${notesData.hasSoloSections ? "active" : ""}`}>Solo Sections</span>
+        <span className={`feature ${notesData.hasSoloSections ? "active" : ""}`}>Solo</span>
         <span className={`feature ${notesData.hasLyrics ? "active" : ""}`}>Lyrics</span>
         <span className={`feature ${notesData.has2xKick ? "active" : ""}`}>2x Kick</span>
         <span className={`feature ${notesData.hasFlexLanes ? "active" : ""}`}>Lanes</span>

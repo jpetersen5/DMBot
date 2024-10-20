@@ -75,11 +75,11 @@
     }
   }
 
-  .tooltip-container {
+  .version-container {
     position: absolute;
     bottom: 70px;
-    left: 50%;
-    transform: translateX(-50%);
+    left: calc(50% - 15px);
+
     .version {
       font-size: 16px;
       color: $light-grey-2;

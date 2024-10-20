@@ -75,7 +75,6 @@ const SongList: React.FC<SongListProps> = ({ commonSongs }) => {
   const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>(
     queryParams.get("difficulty")?.split(",") || []
   );
-  console.log(queryParams.getAll("instrument"));
 
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [modalLoading, setModalLoading] = useState<boolean>(false);

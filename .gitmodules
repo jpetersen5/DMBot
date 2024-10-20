@@ -1,0 +1,9 @@
+[submodule "external"]
+	path = external
+	url = git@gitlab.com:clonehero/sources.git
+[submodule "ext"]
+	path = ext
+	url = git@gitlab.com:clonehero/sources.git
+[submodule "third_party/ch_sources"]
+	path = third_party/ch_sources
+	url = git@gitlab.com:clonehero/sources.git

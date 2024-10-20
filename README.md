@@ -60,28 +60,44 @@ Docker is a platform that allows users to develop, ship, and run applications in
 
 ### Configuration
 
-1. Navigate into the backend directory:
+1. Create a file named `.env` and add this to its content or rename `.env.example` to `.env`:
+
+   ```
+   VITE_SPOTIFY_CLIENT_ID=
+   VITE_SPOTIFY_CLIENT_SECRET=
+   ```
+
+   Contact me `@._satan` on Discord for the Spotify client ID and secret if you're interested in developing the Spotify integration.
+
+2. Navigate into the backend directory:
   ```
   cd backend
   ```
 
-2. Create a file named `.env.dev` and add this to its content:
+3. Create a file named `.env.dev` and add this to its content or rename `.env.dev.example` to `.env.dev`:
 
    ```
    FLASK_APP=app.py
    FLASK_ENV=development
+
    ALLOWED_ORIGINS=http://localhost:3000
+
    SECRET_KEY=
    JWT_SECRET=
+
    SUPABASE_URL=https://tczhxtrzfaqgsjoudhoi.supabase.co
    SUPABASE_KEY=
    SUPABASE_SERVICE_ROLE_KEY=
+
    DISCORD_CLIENT_ID=1230729896393703425
    DISCORD_CLIENT_SECRET=
-   DISCORD_REDIRECT_URI=http://localhost:5000/api/auth/callback
-   FRONTEND_URL=https://jpetersen5.github.io/DMBot
+   DISCORD_REDIRECT_URI=http://localhost:5000/api/auth/callback # change to 5001 for Mac
+   FRONTEND_URL=http://localhost:3000
+
    REDIS_URL=redis://redis:6379
+
    UPLOAD_FOLDER=uploads
+
    PROCESS_SONGS_SCRIPT=
    ```
 
@@ -106,7 +122,7 @@ Docker is a platform that allows users to develop, ship, and run applications in
 4. Wait for the build process to complete. This may take a few minutes the first time.
 5. Once complete, you should see output indicating that the services are running and green containers in the Docker UI
 6. Open a web browser and navigate to `http://localhost:3000` to view the site
-7. The backend API is accessible to the frontend at `http://localhost:5000`
+7. The backend API is accessible to the frontend at `http://localhost:5000` (or `http://localhost:5001` for Mac)
 
 To stop the application, press `Ctrl+C` in the terminal where Docker is running or open another terminal and run:
 ```
@@ -116,7 +132,7 @@ docker-compose down
 ## Troubleshooting
 
 If you encounter issues:
-1. Ensure all required ports (3000, 5000, 6379) are free and not used by other applications
+1. Ensure all required ports (3000, 5000 or 5001, 6379) are free and not used by other applications
 2. Check the Docker logs for any error messages:
    ```
    docker-compose logs

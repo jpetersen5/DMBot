@@ -113,7 +113,7 @@ const SongModal: React.FC<SongModalProps> = ({
       <Modal.Body>
         <AdminControls currentSong={currentSong} onSongUpdate={handleSongUpdate} onHide={onHide} />
         <div className="song-details">
-          <SongInfo song={currentSong} />
+          <SongInfo song={currentSong} key={currentSong.id.toString()} />
           <RelatedSongs
             currentSong={currentSong}
             handleRelatedSongClick={handleRelatedSongClick}

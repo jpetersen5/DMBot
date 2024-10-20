@@ -12,6 +12,7 @@
     cursor: pointer;
     transition: background-color 0.3s;
     transition: transform 0.3s;
+
     @include theme("color", "color-text");
 
     &:hover {
@@ -29,5 +30,11 @@
       color: #404040;
       cursor: not-allowed;
     }
+  }
+}
+
+.display-badges {
+  a {
+    @include theme("background", "color-button-subtle");
   }
 }
