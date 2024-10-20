@@ -1,5 +1,7 @@
 import { API_URL } from "../App";
 
+let spotifyAccessToken: string | null = null;
+
 const getSpotifyAccessToken = async (): Promise<string | null> => {
     const response = await fetch(`${API_URL}/api/spotify/get_access_token`);
     const data = await response.json();
@@ -11,12 +13,8 @@ export const fetchSongArt = async (
     title: string | null,
     album: string | null
 ): Promise<string | null> => {
-    let spotifyAccessToken = localStorage.getItem("spotifyAccessToken");
     if (!spotifyAccessToken) {
-        const accessToken = await getSpotifyAccessToken();
-        if (accessToken) {
-            localStorage.setItem("spotifyAccessToken", accessToken);
-        }
+        spotifyAccessToken = await getSpotifyAccessToken();
     }
 
     artist = artist || "";
