@@ -1,5 +1,5 @@
 // src/assets/icons/index.ts
-const importAll = async (r: Record<string, () => Promise<{ default: string }>>) => {
+const importAll = async (r: Record<string, () => Promise<any>>) => {
     let images: { [key: string]: string } = {};
     for (const path in r) {
         const module = await r[path]();
