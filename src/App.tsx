@@ -9,7 +9,6 @@ import Login from "./components/Login/Login";
 import Sidebar from "./components/Sidebar/Sidebar";
 import SongList from "./components/SongList/SongList";
 import UserList from "./components/UserList/UserList";
-import KofiWidget from "./components/KofiWidget";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./styles/styles.scss";
 
@@ -41,7 +40,6 @@ const App: React.FC = () => {
             </Routes>
           </main>
         </div>
-        <KofiWidget />
       </Router>
     </AppProvider>
   );

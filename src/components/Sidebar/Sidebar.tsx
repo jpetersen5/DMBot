@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import UploadProgress from "./UploadProgress";
 import ThemeModal from "./Themes/ThemeModal";
+import KofiWidget from "../KofiWidget";
 import { useAuth } from "../../context/AuthContext";
 import Tooltip from "../../utils/Tooltip/Tooltip";
 import "./Sidebar.scss";
@@ -105,6 +106,7 @@ const Sidebar: React.FC = () => {
         themes={themes}
       />
       <UploadProgress />
+      <KofiWidget isSidebarOpen={isOpen} />
     </>
   );
 };
