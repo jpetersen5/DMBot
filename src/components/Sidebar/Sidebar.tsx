@@ -92,9 +92,11 @@ const Sidebar: React.FC = () => {
           </ul>
         </nav>
         {isOpen && (
-          <Tooltip text={`Last updated: ${commitDate}`}>
-            <div className="version">{version}</div>
-          </Tooltip>
+          <div className="version-container">
+            <Tooltip text={`Last updated: ${commitDate}`}>
+              <div className="version">{version}</div>
+            </Tooltip>
+          </div>
         )}
       </div>
       <ThemeModal

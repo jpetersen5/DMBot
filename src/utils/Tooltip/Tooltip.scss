@@ -15,68 +15,8 @@
     }
   }
 
-  &.top {
-    .tooltip-content-container {
-      bottom: 125%;
-      left: 50%;
-      transform: translateX(-50%);
-
-      &::after {
-        top: 100%;
-        left: 50%;
-        margin-left: -5px;
-        border-color: $tooltip-background transparent transparent transparent;
-      }
-    }
-  }
-
-  &.left {
-    .tooltip-content-container {
-      right: 125%;
-      top: 50%;
-      transform: translateY(-50%);
-
-      &::after {
-        top: 50%;
-        left: 100%;
-        margin-top: -5px;
-        border-color: transparent $tooltip-background transparent transparent;
-      }
-    }
-  }
-
-  &.right {
-    .tooltip-content-container {
-      left: 125%;
-      top: 50%;
-      transform: translateY(-50%);
-
-      &::after {
-        top: 50%;
-        left: -10px;
-        margin-top: -5px;
-        border-color: transparent transparent transparent $tooltip-background;
-      }
-    }
-  }
-
-  &.bottom {
-    .tooltip-content-container {
-      top: 125%;
-      left: 50%;
-      transform: translateX(-50%);
-
-      &::after {
-        bottom: 100%;
-        left: 50%;
-        margin-left: -5px;
-        border-color: transparent transparent $tooltip-background transparent;
-      }
-    }
-  }
-
   .tooltip-content-container {
-    position: absolute;
+    position: fixed;
     padding: 5px 10px;
     background-color: rgba(0, 0, 0, 0.8);
     border-radius: 4px;
@@ -84,7 +24,7 @@
     visibility: hidden;
     transition: opacity 0.2s, visibility 0.2s;
     pointer-events: none;
-    z-index: 1000;
+    z-index: 10000;
 
     .tooltip {
       font-size: 12px;
@@ -99,5 +39,39 @@
       border-width: 5px;
       border-style: solid;
     }
+  }
+
+  &.top, &.bottom, &.left, &.right {
+    .tooltip-content-container {
+      transform: none;
+    }
+  }
+
+  &.top .tooltip-content-container::after {
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-color: $tooltip-background transparent transparent transparent;
+  }
+
+  &.bottom .tooltip-content-container::after {
+    bottom: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-color: transparent transparent $tooltip-background transparent;
+  }
+
+  &.left .tooltip-content-container::after {
+    top: 50%;
+    left: 100%;
+    margin-top: -5px;
+    border-color: transparent transparent transparent $tooltip-background;
+  }
+
+  &.right .tooltip-content-container::after {
+    top: 50%;
+    right: 100%;
+    margin-top: -5px;
+    border-color: transparent $tooltip-background transparent transparent;
   }
 }

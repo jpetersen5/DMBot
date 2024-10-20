@@ -228,17 +228,17 @@ interface SongInfoPartProps {
 const SongInfoPart: React.FC<SongInfoPartProps> = ({ name, difficulty, noteCounts, maxNps }) => {
   const notesTooltip = (
     <div className="part-notes-info">
-      <span>{name}</span>
+      <span className="part-notes-info-name">{name}</span>
       {noteCounts && noteCounts.map((count, index) => (
         count.instrument === name.toLowerCase() && (
           <div key={index} className="note-count-item">
             <span className="note-count-instrument">
               {SONG_DIFFICULTIES[count.difficulty]}
             </span>
-            <span className="note-count-value">{count.count}</span>
+            <span className="note-count-value">{`${count.count} notes`}</span>
             {maxNps &&
               <span className="note-count-max-nps">
-                {`(max: ${maxNps.find(nps => nps.instrument === count.instrument)?.nps}/s)`}
+                {`(max: ${maxNps.find(nps => nps.instrument === count.instrument && nps.difficulty === count.difficulty)?.nps}/s)`}
               </span>
             }
           </div>
@@ -248,19 +248,19 @@ const SongInfoPart: React.FC<SongInfoPartProps> = ({ name, difficulty, noteCount
   )
 
   return (
-    <Tooltip content={notesTooltip}>
-      <div className="part">
+    <div className="part">
+      <Tooltip content={notesTooltip} position="bottom">
         <img src={name == "Drums" ? IconDrums : 
                   name == "Bass" ? IconBass :
-                  name == "Guitar" ? IconGuitar :
-                  name == "Rhythm" ? IconRhythm :
-                  name == "Keys" ? IconKeys :
-                  name == "Vocals" ? IconVocals : ""}/>
-        <div className="part-difficulty-numeral">
-          <span>{difficulty && difficulty !== -1 ? difficulty : "-"}</span>
-        </div>
+                name == "Guitar" ? IconGuitar :
+                name == "Rhythm" ? IconRhythm :
+                name == "Keys" ? IconKeys :
+                name == "Vocals" ? IconVocals : ""}/>
+      </Tooltip>
+      <div className="part-difficulty-numeral">
+        <span>{difficulty && difficulty !== -1 ? difficulty : "-"}</span>
       </div>
-    </Tooltip>
+    </div>
   );
 }
 
