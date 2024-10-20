@@ -1,7 +1,5 @@
 import { API_URL } from "../App";
 
-const SPOTIFY_ACCESS_TOKEN = localStorage.getItem("spotifyAccessToken");
-
 const getSpotifyAccessToken = async (): Promise<string | null> => {
     const response = await fetch(`${API_URL}/api/spotify/get_access_token`);
     const data = await response.json();
@@ -13,7 +11,8 @@ export const fetchSongArt = async (
     title: string | null,
     album: string | null
 ): Promise<string | null> => {
-    if (!SPOTIFY_ACCESS_TOKEN) {
+    let spotifyAccessToken = localStorage.getItem("spotifyAccessToken");
+    if (!spotifyAccessToken) {
         const accessToken = await getSpotifyAccessToken();
         if (accessToken) {
             localStorage.setItem("spotifyAccessToken", accessToken);
@@ -25,7 +24,7 @@ export const fetchSongArt = async (
     album = album || "";
 
     try {
-        const response = await fetch(`${API_URL}/api/spotify/fetch_song_art?artist=${encodeURIComponent(artist)}&title=${encodeURIComponent(title)}&album=${encodeURIComponent(album)}&access_token=${SPOTIFY_ACCESS_TOKEN}`);
+        const response = await fetch(`${API_URL}/api/spotify/fetch_song_art?artist=${encodeURIComponent(artist)}&title=${encodeURIComponent(title)}&album=${encodeURIComponent(album)}&access_token=${spotifyAccessToken}`);
         
         if (!response.ok) {
             throw new Error("Failed to fetch song art");
