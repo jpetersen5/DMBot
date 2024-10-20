@@ -11,6 +11,14 @@
   scrollbar-width: thin;
   @include theme("scrollbar-color", "color-scrollbar color-box");
   @include theme("background", "color-box");
+
+  .loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 450px;
+  }
   
   &::-webkit-scrollbar {
     width: 10px;
@@ -196,6 +204,10 @@
           font-size: 22px;
           @include theme("color", "color-text");
         }
+      }
+
+      &.inactive {
+        opacity: 0.5;
       }
     }
 

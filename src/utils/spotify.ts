@@ -20,32 +20,43 @@ const getSpotifyAccessToken = async (): Promise<string | null> => {
     }
 };
 
-export const fetchSongArt = async (artist: string | null, title: string | null, album: string | null): Promise<string | null> => {
+export const fetchSongArt = async (
+    artist: string | null,
+    title: string | null,
+    album: string | null
+): Promise<string | null> => {
     const accessToken = await getSpotifyAccessToken();
     if (!accessToken) return null;
 
-    if (!artist) {
-        artist = "";
-    }
-    if (!title) {
-        title = "";
-    }
-    if (!album) {
-        album = "";
-    }
+    artist = artist || "";
+    title = title || "";
+    album = album || "";
 
     try {
-        const response = await fetch(`https://api.spotify.com/v1/search?q=artist:${artist} track:${title} album:${album}&type=track`, {
+        const trackResponse = await fetch(`https://api.spotify.com/v1/search?q=artist:${artist} track:${title} album:${album}&type=track`, {
             headers: {
                 "Authorization": `Bearer ${accessToken}`
             }
         });
 
-        const data = await response.json();
-        const tracks = data.tracks.items;
+        const trackData = await trackResponse.json();
+        const tracks = trackData.tracks.items;
+
         if (tracks && tracks.length > 0) {
-            const track = tracks[0];
-            return track.album.images[0].url;
+            return tracks[0].album.images[0].url;
+        }
+
+        const albumResponse = await fetch(`https://api.spotify.com/v1/search?q=artist:${artist} album:${album}&type=album`, {
+            headers: {
+                "Authorization": `Bearer ${accessToken}`
+            }
+        });
+      
+        const albumData = await albumResponse.json();
+        const albums = albumData.albums.items;
+        
+        if (albums && albums.length > 0) {
+            return albums[0].images[0].url;
         }
     } catch (error) {
         console.error("Error fetching song art from Spotify:", error);

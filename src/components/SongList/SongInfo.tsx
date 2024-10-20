@@ -20,7 +20,6 @@ import IconDrums from "../../assets/rb-drums.png";
 import IconGuitar from "../../assets/rb-guitar.png";
 import IconRhythm from "../../assets/rb-rhythm.png";
 import IconKeys from "../../assets/rb-keys.png";
-import IconVocals from "../../assets/rb-vocals.png";
 
 import DefaultAlbumArt from "../../assets/default-album-art.jpg";
 
@@ -51,8 +50,16 @@ const SongInfo: React.FC<SongInfoProps> = ({ song }) => {
     fetchExtraData();
   }, [song.md5]);
 
-  if (loading) return <LoadingSpinner message="Loading song details..." />;
-  if (!extraData) return <p>No extra data available for this song.</p>;
+  if (loading) return (
+    <div className="song-info">
+      <LoadingSpinner message="Loading song details..." />
+    </div>
+  );
+  if (!extraData) return (
+    <div className="song-info">
+      <p>No extra data available for this song.</p>
+    </div>
+  );
 
   return (
     <div className="song-info">
@@ -94,13 +101,15 @@ interface SongInfoPrimaryProps {
 }
 
 const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) => {
-  const [albumArtUrl, setAlbumArtUrl] = useState<string>("");
+  const [albumArtUrl, setAlbumArtUrl] = useState<string>(DefaultAlbumArt);
   const [avatarArtUrl, setAvatarArtUrl] = useState<string>("");
 
   useEffect(() => {
     const getAlbumArt = async () => {
       const artUrl = await fetchSongArt(song.artist, song.name, song.album);
-      setAlbumArtUrl(artUrl || DefaultAlbumArt);
+      if (artUrl) {
+        setAlbumArtUrl(artUrl);
+      }
 
       getAvatarArt(); // prevents rendering until after artwork is loaded
     };
@@ -167,9 +176,7 @@ const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
   else if (label === "Charter") {
     return (
       <div className="charter">
-        <p className="info-line">
-          <CharterName names={value as string} displayBadges={true}/>
-        </p>
+        <CharterName names={value as string} displayBadges={true}/>
       </div>
     );
   }
@@ -226,6 +233,8 @@ interface SongInfoPartProps {
 }
 
 const SongInfoPart: React.FC<SongInfoPartProps> = ({ name, difficulty, noteCounts, maxNps }) => {
+  const hasDifficulty = difficulty !== undefined && difficulty !== -1;
+  
   const notesTooltip = (
     <div className="part-notes-info">
       <span className="part-notes-info-name">{name}</span>
@@ -248,17 +257,18 @@ const SongInfoPart: React.FC<SongInfoPartProps> = ({ name, difficulty, noteCount
   )
 
   return (
-    <div className="part">
+    <div className={`part ${!hasDifficulty ? "inactive" : ""}`}>
       <Tooltip content={notesTooltip} position="bottom">
-        <img src={name == "Drums" ? IconDrums : 
-                  name == "Bass" ? IconBass :
-                name == "Guitar" ? IconGuitar :
-                name == "Rhythm" ? IconRhythm :
-                name == "Keys" ? IconKeys :
-                name == "Vocals" ? IconVocals : ""}/>
+        <img 
+          src={name == "Drums" ? IconDrums : 
+              name == "Bass" ? IconBass :
+              name == "Guitar" ? IconGuitar :
+              name == "Rhythm" ? IconRhythm :
+              name == "Keys" ? IconKeys : ""}
+        />
       </Tooltip>
       <div className="part-difficulty-numeral">
-        <span>{difficulty && difficulty !== -1 ? difficulty : "-"}</span>
+        <span>{hasDifficulty ? difficulty : "-"}</span>
       </div>
     </div>
   );
