@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { API_URL } from "../App";
 import LoadingSpinner from "./Loading/LoadingSpinner";
 import Auth from "./Auth/Auth";
+import Credits from "./Extras/Credits";
 import Tooltip from "../utils/Tooltip/Tooltip";
 import { useAuth } from "../context/AuthContext";
 
@@ -10,6 +11,7 @@ import FeatureIcon from "../assets/feature-icon.svg";
 import BugIcon from "../assets/bug-icon.svg";
 import ContributeIcon from "../assets/contribute-icon.svg";
 import DiscordIcon from "../assets/discord-icon.svg";
+import CreditsIcon from "../assets/credits-icon.svg";
 import BannerImage1 from "../assets/dmbotbanner1.png";
 import BannerImage2 from "../assets/dmbotbanner2.png";
 
@@ -18,6 +20,7 @@ import "./Homepage.scss";
 const Homepage: React.FC = () => {
   const [backendStatus, setBackendStatus] = useState<string | null>(null);
   const [dbStatus, setDbStatus] = useState<string | null>(null);
+  const [showCredits, setShowCredits] = useState<boolean>(false);
 
   useEffect(() => {
     fetch(`${API_URL}/api/hello`)
@@ -37,6 +40,10 @@ const Homepage: React.FC = () => {
       });
   }, []);
 
+  const toggleShowCredits = () => {
+    setShowCredits(prev => !prev);
+  };
+
   return (
     <div className="homepage">
       <div className="banner-container">
@@ -47,8 +54,8 @@ const Homepage: React.FC = () => {
         <Status label="Backend" value={backendStatus} />
         <Status label="Database" value={dbStatus} />
       </div>
-      <ActionButtons />
-      <Auth />
+      <ActionButtons toggleShowCredits={toggleShowCredits} />
+      {showCredits ? <Credits /> : <Auth />}
       <RedirectButton />
     </div>
   );
@@ -103,7 +110,11 @@ const RedirectButton: React.FC = () => {
   );
 };
 
-const ActionButtons: React.FC = () => {
+interface ActionButtonsProps {
+  toggleShowCredits: () => void;
+}
+
+const ActionButtons: React.FC<ActionButtonsProps> = ({ toggleShowCredits }) => {
   return (
     <div className="action-buttons">
       <Tooltip text="Request a new feature">
@@ -125,6 +136,11 @@ const ActionButtons: React.FC = () => {
         <a href="https://discord.gg/Eh8RgrzYbb" target="_blank" rel="noopener noreferrer" className="icon-button">
           <img src={DiscordIcon} alt="Discord" />
         </a>
+      </Tooltip>
+      <Tooltip text="Credits">
+        <button onClick={toggleShowCredits} className="icon-button">
+          <img src={CreditsIcon} alt="Credits" />
+        </button>
       </Tooltip>
     </div>
   );

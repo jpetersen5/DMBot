@@ -47,6 +47,7 @@
       height: 48px;
       border-radius: 50%;
       transition: background-color 0.2s, transform 0.2s;
+      border: none;
       @include theme("background", "color-button");
       @include theme("color", "color-icon");
 
