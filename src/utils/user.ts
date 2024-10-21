@@ -5,6 +5,7 @@ export interface User {
   permissions: "user" | "admin";
   stats?: UserStats;
   elo?: number;
+  elo_history?: EloHistory[];
 }
 
 export interface UserStats {
@@ -13,6 +14,11 @@ export interface UserStats {
   avg_percent: number;
   total_score: number;
   total_scores: number;
+}
+
+export interface EloHistory {
+  elo: number;
+  timestamp: string;
 }
 
 const getColorFromId = (id: string): string => {

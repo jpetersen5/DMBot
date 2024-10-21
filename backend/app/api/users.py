@@ -45,7 +45,9 @@ def get_user_by_id(user_id):
     supabase = get_supabase()
     try:
         response = supabase.table("users").select("*").eq("id", user_id).execute()
-        
+        elo_history = supabase.table("elo_history").select("elo, timestamp").eq("user_id", user_id).execute()
+        elo_history_data = sorted(elo_history.data, key=lambda x: x["timestamp"], reverse=False) if elo_history.data else []
+
         if response.data:
             user = response.data[0]
             return jsonify({
@@ -54,7 +56,8 @@ def get_user_by_id(user_id):
                 "avatar": user["avatar"],
                 "permissions": user["permissions"],
                 "stats": user["stats"],
-                "elo": user["elo"]
+                "elo": user["elo"],
+                "elo_history": elo_history_data
             })
         else:
             return jsonify({"error": "User not found"}), 404

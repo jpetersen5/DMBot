@@ -22,6 +22,35 @@
       @include theme("color", "color-text");
       @include theme("border-color", "color-text");
     }
+
+    .elo-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    
+      .see-history-btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.9rem;
+        border: none;
+        border-radius: 4px;
+        margin-bottom: 0.35rem;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        @include theme("background", "color-button");
+        @include theme("color", "color-button-text");
+    
+        &:hover {
+          @include theme("background", "color-button-hover");
+        }
+
+        img {
+          margin-left: 0.5rem;
+          width: 1rem;
+          height: 1rem;
+          @include theme("filter", "filter-invert");
+        }
+      }
+    }
   }
 
   .stats-grid {
@@ -45,6 +74,54 @@
       .stat-value {
         font-size: 1.2rem;
         @include theme("color", "color-text-secondary");
+      }
+    }
+  }
+}
+
+.elo-modal {
+  .modal-dialog {
+    position: relative;
+    margin: 1.75rem auto;
+  }
+
+  .modal-content {
+    border: none;
+    @include theme("background", "color-background");
+    @include theme("color", "color-text");
+  }
+
+  .modal-header {
+    border: none;
+    @include theme("background", "color-sidebar");
+    @include theme("color", "color-sidebar-text");
+    
+    .btn-close {
+      @include theme("color", "color-sidebar-text");
+    }
+  }
+
+  .modal-body {
+    padding: 2rem;
+
+    .elo-chart {
+      .chart-controls {
+        margin-bottom: 1rem;
+        
+        select {
+          padding: 0.5rem;
+          border-radius: 4px;
+          border: 1px solid;
+          font-size: 1rem;
+          @include theme("background", "color-dropdown");
+          @include theme("color", "color-dropdown-text");
+          @include theme("border-color", "color-border");
+
+          &:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+          }
+        }
       }
     }
   }
