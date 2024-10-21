@@ -96,6 +96,10 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
       aValue = a.rank ? aValue : 0;
       bValue = b.rank ? bValue : 0;
     }
+    if (sortKey === "posted") {
+      aValue = a.posted ? aValue : new Date(0).toISOString();
+      bValue = b.posted ? bValue : new Date(0).toISOString();
+    }
     return [aValue, bValue];
   }
 
