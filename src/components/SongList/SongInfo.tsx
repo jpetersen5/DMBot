@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { API_URL } from "../../App";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import CharterName from "./CharterName";
@@ -12,7 +12,7 @@ import {
   NotesData,
   SONG_DIFFICULTIES,
 } from "../../utils/song";
-import { fetchSongArt } from "../../utils/spotify";
+import { fetchSongData, SongData } from "../../utils/spotify";
 import "./SongInfo.scss";
 
 import IconBass from "../../assets/rb-bass.png";
@@ -20,10 +20,11 @@ import IconDrums from "../../assets/rb-drums.png";
 import IconGuitar from "../../assets/rb-guitar.png";
 import IconRhythm from "../../assets/rb-rhythm.png";
 import IconKeys from "../../assets/rb-keys.png";
-
+import ChevronLeft from "../../assets/chevron-left.svg";
+import ChevronRight from "../../assets/chevron-right.svg";
 import DefaultAlbumArt from "../../assets/default-album-art.jpg";
 
-import { charterAvatars } from '../../assets/charter-avatars';
+import { charterAvatars } from "../../assets/charter-avatars";
 
 interface SongInfoProps {
   song: Song;
@@ -101,14 +102,19 @@ interface SongInfoPrimaryProps {
 }
 
 const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) => {
-  const [albumArtUrl, setAlbumArtUrl] = useState<string>(DefaultAlbumArt);
+  const [songData, setSongData] = useState<SongData | null>(null);
   const [avatarArtUrl, setAvatarArtUrl] = useState<string>("");
 
   useEffect(() => {
     const getAlbumArt = async () => {
-      const artUrl = await fetchSongArt(song.artist, song.name, song.album);
-      if (artUrl) {
-        setAlbumArtUrl(artUrl);
+      const songData: SongData | null = await fetchSongData(song.artist, song.name, song.album);
+      if (songData) {
+        setSongData(songData);
+      } else {
+        setSongData({
+          image_url: DefaultAlbumArt,
+          genres: [],
+        });
       }
 
       getAvatarArt(); // prevents rendering until after artwork is loaded
@@ -128,7 +134,11 @@ const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) =>
     <div className="song-box">
       <div className="song-column">
         <div className="song-art-box">
-          <img className="song-art-image" src={albumArtUrl}/>
+          {songData?.image_url ? (
+            <img className="song-art-image" src={songData.image_url}/>
+          ) : (
+            <LoadingSpinner message="" timeout={0} />
+          )}
           {avatarArtUrl && (
           <div className="song-art-charter" >
             <img className="user-avatar" src={avatarArtUrl}/>
@@ -145,7 +155,10 @@ const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) =>
           
           <div className="song-genre info-line">{extraData.genre}</div>
           <SongInfoLine label="Charter" value={song.charter_refs?.join(",")} />
-
+          
+          {songData?.tempo && (
+            <SongSpotifyData songData={songData} />
+          )}
         </div>
       </div>
     </div>
@@ -291,6 +304,108 @@ const SongInfoChartFeatures: React.FC<SongInfoChartFeaturesProps> = ({ notesData
     </div>
   );
 };
+
+
+interface SongSpotifyDataProps {
+  songData: SongData | null;
+}
+
+const SongSpotifyData: React.FC<SongSpotifyDataProps> = ({ songData }) => {
+  if (!songData) return null;
+  const tsc = songData.time_signature_confidence;
+  const tc = songData.tempo_confidence;
+
+  // const renderMeter = (value: number | null | undefined, label: string) => {
+  //   if (value === null || value === undefined) return null;
+  //   const percentage = Math.min(Math.max(value * 100, 0), 100);
+  //   return (
+  //     <div className="spotify-meter">
+  //       <div className="meter-bar" style={{ height: `${percentage}%` }}></div>
+  //       <span className="meter-label">{label}</span>
+  //     </div>
+  //   );
+  // };
+
+  return (
+    <div className="song-spotify-data">
+      <div className="spotify-data-grid">
+        <Tooltip text={`Confidence: ${(tc ? (tc * 100).toFixed(0) : 0)}%`} position="top">
+          <div className="spotify-data-item">
+            <span className="value">{songData.tempo?.toFixed(0) || 0}</span>
+            <span className="label">BPM</span>
+          </div>
+        </Tooltip>
+        <Tooltip text={`Confidence: ${(tsc ? (tsc * 100).toFixed(0) : 0)}%`} position="top">
+          <div className="spotify-data-item">
+            <span className="value">{songData.time_signature}/4</span>
+            <span className="label">Time</span>
+          </div>
+        </Tooltip>
+        <div className="spotify-data-item">
+          <span className="value">{songData.loudness?.toFixed(1) || 0}</span>
+          <span className="label">dB</span>
+        </div>
+      </div>
+      {/* <div className="spotify-meters">
+        {renderMeter(songData.danceability, "Danceability")}
+        {renderMeter(songData.energy, "Energy")}
+        {renderMeter(songData.valence, "Valence")}
+      </div> */}
+      {songData.genres && songData.genres.length > 0 && (
+        <SongDataGenres genres={songData.genres} />
+      )}
+    </div>
+  );
+};
+
+
+interface SongDataGenresProps {
+  genres: string[];
+}
+
+const SongDataGenres: React.FC<SongDataGenresProps> = ({ genres }) => {
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const genresRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: "left" | "right") => {
+    if (genresRef.current) {
+      const scrollAmount = 100;
+      const newPosition = direction === "left" 
+        ? scrollPosition - scrollAmount 
+        : scrollPosition + scrollAmount;
+      
+      genresRef.current.scrollTo({
+        left: newPosition,
+        behavior: "smooth"
+      });
+      setScrollPosition(newPosition);
+    }
+  };
+
+  return (
+    <div className="spotify-genres-container">
+      <button 
+        className="scroll-button left" 
+        onClick={() => scroll("left")}
+        style={{ visibility: scrollPosition > 0 ? "visible" : "hidden" }}
+      >
+        <img src={ChevronLeft} />
+      </button>
+      <div className="spotify-genres" ref={genresRef}>
+        {genres.map((genre, index) => (
+          <span key={index} className="genre-tag">{genre}</span>
+        ))}
+      </div>
+      <button 
+        className="scroll-button right" 
+        onClick={() => scroll("right")}
+        style={{ visibility: scrollPosition < (genresRef.current?.scrollWidth || 0) - (genresRef.current?.clientWidth || 0) ? "visible" : "hidden" }}
+      >
+        <img src={ChevronRight} />
+      </button>
+    </div>
+  );
+}
 
 
 export default SongInfo;

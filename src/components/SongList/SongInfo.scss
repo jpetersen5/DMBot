@@ -35,6 +35,12 @@
     height: 450px;
   }
 
+  .song-art-box {
+    .loading-spinner {
+      height: 235px;
+    }
+  }
+
   &::-webkit-scrollbar {
     width: 10px;
     &-track { background: transparent; }
@@ -49,6 +55,139 @@
 .song-box {
   @extend .flex-column;
   @extend .margin-bottom-medium;
+
+  .song-spotify-data {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    @include theme("background", "color-box-secondary");
+  
+    .spotify-data-grid {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+  
+    .spotify-data-item {
+      display: flex;
+      align-items: center;
+      padding: 5px;
+      border-radius: 4px;
+      @include theme("background", "color-box");
+  
+      .value {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-right: 5px;
+        @include theme("color", "color-text");
+      }
+  
+      .label {
+        font-size: 0.8em;
+        @include theme("color", "color-text-secondary");
+      }
+    }
+  
+    .spotify-meters {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+  
+    .spotify-meter {
+      position: relative;
+      width: 60px;
+      height: 60px;
+      @include theme("background", "color-box-secondary");
+  
+      .meter-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        transition: height 0.3s ease;
+        border-radius: var(--border-radius);
+        @include theme("background", "color-text-success");
+      }
+  
+      .meter-label {
+        position: absolute;
+        left: 50%;
+        top: 115%;
+        transform: translate(-50%, -50%);
+        font-size: 0.8em;
+        text-align: center;
+        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+        @include theme("color", "color-text");
+      }
+    }
+  
+    .spotify-genres-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+    }
+    
+    .spotify-genres {
+      display: flex;
+      overflow-x: hidden;
+      white-space: nowrap;
+      scrollbar-width: none; // Hide scrollbar for Firefox
+      -ms-overflow-style: none; // Hide scrollbar for IE and Edge
+      &::-webkit-scrollbar {
+        display: none; // Hide scrollbar for Chrome, Safari, and Opera
+      }
+    }
+    
+    .genre-tag {
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.8em;
+      margin-right: 5px;
+      @include theme("background", "color-box");
+      @include theme("color", "color-text-secondary");
+    }
+    
+    .scroll-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px;
+      z-index: 1;
+      border-radius: 4px;
+      opacity: 0.8;
+      @include theme("background", "color-button");
+      @include theme("color", "color-text");
+
+      img {
+        width: 15px;
+        height: 15px;
+        opacity: 1;
+        @include theme("filter", "filter-invert");
+      }
+    
+      &.left {
+        left: -5px;
+      }
+    
+      &.right {
+        right: -5px;
+      }
+    
+      &:hover {
+        @include theme("background", "color-button-hover");
+        @include theme("color", "color-text-hover");
+      }
+    }
+  }
 }
 
 .song-column {
@@ -68,9 +207,14 @@
 }
 
 .song-title {
+  display: block !important;
   text-align: left;
   font-size: 1.5rem;
   font-weight: bold;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .song-artist { font-size: 1.35rem; }
