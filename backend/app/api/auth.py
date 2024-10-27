@@ -1,5 +1,8 @@
 from flask import Blueprint, jsonify, request, redirect, session, current_app
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import jwt
+import secrets
 import datetime
 import requests
 from postgrest.exceptions import APIError
@@ -7,6 +10,7 @@ from ..services.supabase_service import get_supabase
 from ..config import Config
 
 bp = Blueprint("auth", __name__)
+limiter = Limiter(get_remote_address, app=current_app, default_limits=[])
 
 @bp.route("/api/auth/login")
 def login():
@@ -16,12 +20,18 @@ def login():
     returns:
         redirect to the Discord authorization page
     """
+    state = secrets.token_urlsafe(16)
+    session["oauth_state"] = state
     api = Config.DISCORD_API_ENDPOINT
     id = Config.DISCORD_CLIENT_ID
     redirect_uri = Config.DISCORD_REDIRECT_URI
-    return redirect(f"{api}/oauth2/authorize?client_id={id}&redirect_uri={redirect_uri}&response_type=code&scope=identify")
+    return redirect(
+        f"{api}/oauth2/authorize?client_id={id}&redirect_uri={redirect_uri}"
+        f"&response_type=code&scope=identify&state={state}"
+    )
 
 @bp.route("/api/auth/callback")
+@limiter.limit("5 per minute")
 def callback():
     """
     handles OAuth2 callback from Discord, creates or updates user data,
@@ -35,6 +45,10 @@ def callback():
     """
     supabase = get_supabase()
     logger = current_app.logger
+    state = request.args.get("state")
+    if not state or state != session.get("oauth_state"):
+        return jsonify({"error": "Invalid OAuth state"}), 400
+    
     api = Config.DISCORD_API_ENDPOINT
     try:
         code = request.args.get("code")
@@ -81,7 +95,7 @@ def callback():
     except requests.RequestException as e:
        if e.response.status_code == 429:
            retry_after = e.response.headers.get("Retry-After", "unknown")
-           return jsonify({"error": f"Rate limited by Discord. Please try again after {retry_after} seconds."}), 429
+           return jsonify({"error": f"Rate limited by Discord. Please try again after {retry_after // 60 // 60}:{retry_after // 60 % 60}:{retry_after % 60}."}), 429
        else:
            logger.error(f"Error during Discord API request: {str(e)}")
            return jsonify({"error": "Failed to authenticate with Discord"}), 500

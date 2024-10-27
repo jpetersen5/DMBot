@@ -1,5 +1,6 @@
 Flask==3.0.3
 Flask-CORS==5.0.0
+Flask-Limiter==3.8.0
 Flask-Session==0.8.0
 Flask-SocketIO==5.3.6
 Flask-redis==0.4.0
