@@ -79,8 +79,12 @@ def callback():
         return redirect(f"{Config.FRONTEND_URL}/auth?token={token}")
     
     except requests.RequestException as e:
-        logger.error(f"Error during Discord API request: {str(e)}")
-        return jsonify({"error": "Failed to authenticate with Discord"}), 500
+       if e.response.status_code == 429:
+           retry_after = e.response.headers.get("Retry-After", "unknown")
+           return jsonify({"error": f"Rate limited by Discord. Please try again after {retry_after} seconds."}), 429
+       else:
+           logger.error(f"Error during Discord API request: {str(e)}")
+           return jsonify({"error": "Failed to authenticate with Discord"}), 500
     except APIError as e:
         logger.error(f"Supabase API error: {str(e)}")
         return jsonify({"error": "Database operation failed"}), 500
