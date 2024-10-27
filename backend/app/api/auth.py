@@ -94,7 +94,7 @@ def callback():
     
     except requests.RequestException as e:
        if e.response.status_code == 429:
-           retry_after = e.response.headers.get("Retry-After", "unknown")
+           retry_after = int(e.response.headers.get("Retry-After", "unknown"))
            return jsonify({"error": f"Rate limited by Discord. Please try again after {retry_after // 60 // 60}:{retry_after // 60 % 60}:{retry_after % 60}."}), 429
        else:
            logger.error(f"Error during Discord API request: {str(e)}")
