@@ -14,6 +14,7 @@ export interface Song {
   instruments: string[] | null;
   song_length: number | null;
   charter_refs: string[] | null;
+  leaderboard: LeaderboardEntry[] | null;
   scores_count: number | null;
   last_update: string;
 }
@@ -60,6 +61,18 @@ export interface MaxNps {
   difficulty: Difficulty;
   nps: number;
   time: number;
+}
+
+export interface LeaderboardEntry {
+  rank: number;
+  is_fc: boolean;
+  score: number;
+  speed: number;
+  posted?: string;
+  percent: number;
+  user_id: string;
+  username: string;
+  play_count?: number;
 }
 
 type Difficulty = (typeof difficulties)[number]

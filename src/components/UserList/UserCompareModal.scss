@@ -175,6 +175,10 @@
       margin-bottom: 1.5rem;
       @include theme("color", "color-text");
     }
+
+    .tooltip-container {
+      display: block;
+    }
   
     .result-item {
       margin-bottom: 1rem;

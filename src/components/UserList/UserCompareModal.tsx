@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Modal } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../../App";
+import Tooltip from "../../utils/Tooltip/Tooltip";
 import { User, getUserImageSrc, getFallbackImage } from "../../utils/user";
 import { useAuth } from "../../context/AuthContext";
 import "./UserCompareModal.scss";
@@ -127,8 +128,11 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
   };
   
   const handleCommonSongsClick = () => {
-    if (comparisonResults && comparisonResults.common_songs.length > 0) {
-      navigate("/songs", { state: { commonSongs: comparisonResults.common_songs } });
+    if (comparisonResults) {
+      navigate("/songs", { state: {
+        leftUser: leftUser,
+        rightUser: rightUser
+      } });
       onHide();
     }
   };
@@ -144,10 +148,12 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
         {comparisonError && <p className="error">{comparisonError}</p>}
         {comparisonResults && (
         <>
-          <div className="result-item" onClick={handleCommonSongsClick} style={{ cursor: "pointer" }}>
-            <span className="label">Common Songs:</span>
-            <span className="value">{comparisonResults.common_songs.length}</span>
-          </div>
+          <Tooltip content="Click to compare scores!">
+            <div className="result-item" onClick={handleCommonSongsClick} style={{ cursor: "pointer" }}>
+              <span className="label">Common Songs:</span>
+              <span className="value">{comparisonResults.common_songs.length}</span>
+            </div>
+          </Tooltip>
           <div className="result-item">
             <span className="label">W/L Record:</span>
             <span className={`value ${comparisonResults.wins > comparisonResults.losses ? "winner" : comparisonResults.wins < comparisonResults.losses ? "loser" : "tie"}`}>

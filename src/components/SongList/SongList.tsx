@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
+
 import { API_URL } from "../../App";
 import {
   TableControls,
@@ -10,9 +11,12 @@ import {
 import SongModal from "./SongModal";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import CharterName from "./CharterName";
+import { UserAvatar } from "../UserList/UserList";
+
 import { useCharterData } from "../../context/CharterContext";
 import { useSongCache } from "../../context/SongContext";
 import { useKeyPress } from "../../hooks/useKeyPress";
+import { User } from "../../utils/user";
 import Tooltip from "../../utils/Tooltip/Tooltip";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import {
@@ -24,9 +28,11 @@ import {
   getSurroundingSongIds,
   getSortValues
 } from "../../utils/song";
+
 import "./SongList.scss";
 
 import fcIcon from "../../assets/crown.png";
+import VS from "../../assets/vs.png";
 
 const filterOptions = [
   { value: "name", label: "Name" },
@@ -39,11 +45,7 @@ const filterOptions = [
   { value: "playlist_path", label: "Playlist" }
 ];
 
-interface SongListProps {
-  commonSongs?: number[] | string[];
-}
-
-const SongList: React.FC<SongListProps> = ({ commonSongs }) => {
+const SongList: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { songId } = useParams<{ songId?: string }>();
@@ -80,16 +82,28 @@ const SongList: React.FC<SongListProps> = ({ commonSongs }) => {
   const [modalLoading, setModalLoading] = useState<boolean>(false);
   const { isLoading: chartersLoading } = useCharterData();
 
+  const [leftUser, setLeftUser] = useState<User | null>(null);
+  const [rightUser, setRightUser] = useState<User | null>(null);
+
   useEffect(() => {
     if (songs.length > 0) {
       return;
     }
-    if (location.state?.commonSongs || commonSongs) {
-      fetchSongsByIds(location.state?.commonSongs || commonSongs);
-    } else {
-      fetchSongs();
+    fetchSongs();
+  }, [location.state]);
+
+  useEffect(() => {
+    if (location.state?.leftUser) {
+      setLeftUser(location.state.leftUser);
+    } else if (queryParams.get("left_user")) {
+      fetchUser(queryParams.get("left_user") || "").then(user => setLeftUser(user));
     }
-  }, [location.state, commonSongs]);
+    if (location.state?.rightUser) {
+      setRightUser(location.state.rightUser);
+    } else if (queryParams.get("right_user")) {
+      fetchUser(queryParams.get("right_user") || "").then(user => setRightUser(user));
+    }
+  }, [location.state, queryParams.get("left_user"), queryParams.get("right_user")]);
 
   useEffect(() => {
     updateURL();
@@ -102,7 +116,9 @@ const SongList: React.FC<SongListProps> = ({ commonSongs }) => {
     secondarySortOrder, 
     filters, 
     selectedInstruments, 
-    selectedDifficulties
+    selectedDifficulties,
+    leftUser,
+    rightUser
   ]);
 
   useEffect(() => {
@@ -111,7 +127,7 @@ const SongList: React.FC<SongListProps> = ({ commonSongs }) => {
     } else {
       setPage(1);
     }
-  }, [search, filters]);
+  }, [search, filters, sortBy, sortOrder, secondarySortBy, secondarySortOrder]);
 
   useEffect(() => {
     if (songId) {
@@ -137,6 +153,8 @@ const SongList: React.FC<SongListProps> = ({ commonSongs }) => {
     if (selectedDifficulties.length > 0) {
       params.set("difficulty", selectedDifficulties.sort().join(","));
     }
+    if (leftUser) params.set("left_user", leftUser.id.toString());
+    if (rightUser) params.set("right_user", rightUser.id.toString());
 
     navigate(`/songs${songId ? `/${songId}` : ""}?${params.toString()}`, { replace: true });
   };
@@ -164,29 +182,29 @@ const SongList: React.FC<SongListProps> = ({ commonSongs }) => {
     }
   }
 
-  async function fetchSongsByIds(ids: number[] | string[]) {
-    setSongsLoading(true);
-    try {
-      const response = await fetch(`${API_URL}/api/songs-by-ids`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ids: ids,
-        }),
-      });
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      const data: Song[] = await response.json();
-      setSongs(data);
-    } catch (error) {
-      console.error("Error fetching songs:", error);
-    } finally {
-      setSongsLoading(false);
-    }
-  }
+  // async function fetchSongsByIds(ids: number[] | string[]) {
+  //   setSongsLoading(true);
+  //   try {
+  //     const response = await fetch(`${API_URL}/api/songs-by-ids`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         ids: ids,
+  //       }),
+  //     });
+  //     if (!response.ok) {
+  //       throw new Error("Network response was not ok");
+  //     }
+  //     const data: Song[] = await response.json();
+  //     setSongs(data);
+  //   } catch (error) {
+  //     console.error("Error fetching songs:", error);
+  //   } finally {
+  //     setSongsLoading(false);
+  //   }
+  // }
 
   async function fetchSong(id: string) {
     setModalLoading(true);
@@ -201,6 +219,12 @@ const SongList: React.FC<SongListProps> = ({ commonSongs }) => {
     } finally {
       setModalLoading(false);
     }
+  }
+
+  async function fetchUser(id: string) {
+    const response = await fetch(`${API_URL}/api/user/${id}`);
+    if (!response.ok) throw new Error("Failed to fetch user");
+    return await response.json();
   }
 
   const filteredAndSortedSongs = useMemo(() => {
@@ -255,17 +279,34 @@ const SongList: React.FC<SongListProps> = ({ commonSongs }) => {
     }
 
     const sortedSongs = filteredSongs.sort((a, b) => {
-      const [aValue, bValue] = getSortValues(a, b, sortBy);
-      if (aValue == null || bValue == null) return 0;
-      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
-      if (secondarySortBy) {
-        const [aSecondaryValue, bSecondaryValue] = getSortValues(a, b, secondarySortBy);
-        if (aSecondaryValue == null || bSecondaryValue == null) return 0;
-        if (aSecondaryValue < bSecondaryValue) return secondarySortOrder === "asc" ? -1 : 1;
-        if (aSecondaryValue > bSecondaryValue) return secondarySortOrder === "asc" ? 1 : -1;
+      if (sortBy === "score_difference") {
+        const leftScoreA = a.leaderboard?.find(entry => entry.user_id === leftUser?.id)?.score;
+        const rightScoreA = a.leaderboard?.find(entry => entry.user_id === rightUser?.id)?.score;
+        const leftScoreB = b.leaderboard?.find(entry => entry.user_id === leftUser?.id)?.score;
+        const rightScoreB = b.leaderboard?.find(entry => entry.user_id === rightUser?.id)?.score;
+        if (leftScoreA == null || rightScoreA == null) {
+          return 1;
+        } else if (leftScoreB == null || rightScoreB == null) {
+          return -1;
+        }
+        const scoreDifferenceA = leftScoreA - rightScoreA;
+        const scoreDifferenceB = leftScoreB - rightScoreB;
+        if (scoreDifferenceA < scoreDifferenceB) return sortOrder === "asc" ? -1 : 1;
+        if (scoreDifferenceA > scoreDifferenceB) return sortOrder === "asc" ? 1 : -1;
+        return 0;
+      } else {
+        const [aValue, bValue] = getSortValues(a, b, sortBy);
+        if (aValue == null || bValue == null) return 0;
+        if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+        if (secondarySortBy) {
+          const [aSecondaryValue, bSecondaryValue] = getSortValues(a, b, secondarySortBy);
+          if (aSecondaryValue == null || bSecondaryValue == null) return 0;
+          if (aSecondaryValue < bSecondaryValue) return secondarySortOrder === "asc" ? -1 : 1;
+          if (aSecondaryValue > bSecondaryValue) return secondarySortOrder === "asc" ? 1 : -1;
+        }
+        return 0;
       }
-      return 0;
     });
 
     return sortedSongs;
@@ -333,21 +374,34 @@ const SongList: React.FC<SongListProps> = ({ commonSongs }) => {
   return (
     <div className="song-list">
       <div className="song-list-header">
-        <h1>Song List</h1>
-        <MultiSelectDropdown
-          options={["drums", "guitar", "rhythm", "bass", "keys",]}
-          selectedOptions={selectedInstruments}
-          setSelectedOptions={setSelectedInstruments}
-          label="Instruments"
-          clearLabel="Any instrument"
-        />
-        <MultiSelectDropdown
-          options={["expert", "hard", "medium", "easy"]}
-          selectedOptions={selectedDifficulties}
-          setSelectedOptions={setSelectedDifficulties}
-          label="Difficulties"
-          clearLabel="Any difficulty"
-        />
+        <div className="song-list-header-left">
+          <h1>Song List</h1>
+          <MultiSelectDropdown
+            options={["drums", "guitar", "rhythm", "bass", "keys",]}
+            selectedOptions={selectedInstruments}
+            setSelectedOptions={setSelectedInstruments}
+            label="Instruments"
+            clearLabel="Any instrument"
+          />
+          <MultiSelectDropdown
+            options={["expert", "hard", "medium", "easy"]}
+            selectedOptions={selectedDifficulties}
+            setSelectedOptions={setSelectedDifficulties}
+            label="Difficulties"
+            clearLabel="Any difficulty"
+          />
+        </div>
+        <div className="song-list-header-right">
+          {leftUser && rightUser && (
+            <div className="user-comparison">
+              <UserAvatar user={leftUser} />
+              <div className="vs">
+                <img src={VS} alt="VS" className="vs-icon" />
+              </div>
+              <UserAvatar user={rightUser} />
+            </div>
+          )}
+        </div>
       </div>
       <div className="control-bar">
         <TableControls perPage={perPage} setPerPage={setPerPage} setPage={setPage} />
@@ -379,12 +433,21 @@ const SongList: React.FC<SongListProps> = ({ commonSongs }) => {
                 sortOrder={sortBy === key ? sortOrder : secondarySortOrder}
               />
             ))}
+            {leftUser && rightUser && (
+              <SongTableHeader
+                key="score_difference"
+                content="Score Difference"
+                onClick={() => handleSort("score_difference")}
+                sort={sortBy === "score_difference" || secondarySortBy === "score_difference"}
+                sortOrder={sortBy === "score_difference" ? sortOrder : secondarySortOrder}
+              />
+            )}
           </tr>
         </thead>
         <tbody>
           {loading && (
             <tr>
-              <td colSpan={Object.keys(SONG_TABLE_HEADERS).length}>
+              <td colSpan={Object.keys(SONG_TABLE_HEADERS).length + (leftUser && rightUser ? 1 : 0)}>
                 <LoadingSpinner message="Loading songs..." />
               </td>
             </tr>
@@ -400,6 +463,8 @@ const SongList: React.FC<SongListProps> = ({ commonSongs }) => {
                 key={song.id} 
                 song={song} 
                 onClick={() => handleRowClick(song)}
+                leftUser={leftUser}
+                rightUser={rightUser}
               />
             ))
           )}
@@ -444,7 +509,7 @@ export const SongTableHeader: React.FC<SongTableHeaderProps> = ({ onClick, conte
 
 interface SongTableCellProps {
   content: string | null | undefined;
-  special?: "charter" | "last_update" | "fc_percent" | "percent";
+  special?: "charter" | "last_update" | "fc_percent" | "percent" | "score_difference";
 }
 
 export const SongTableCell: React.FC<SongTableCellProps> = ({ content, special }) => {
@@ -466,6 +531,14 @@ export const SongTableCell: React.FC<SongTableCellProps> = ({ content, special }
       </td>;
     case "charter":
       return <td><CharterName names={content} /></td>;
+    case "score_difference":
+      if (content.startsWith("-")) {
+        return <td className="score-difference-negative">{content}</td>;
+      } else if (content.startsWith("+")) {
+        return <td className="score-difference-positive">{content}</td>;
+      } else {
+        return <td>{content}</td>;
+      }
   }
 
   const processedContent = typeof content === "string" 
@@ -478,20 +551,31 @@ export const SongTableCell: React.FC<SongTableCellProps> = ({ content, special }
 interface SongTableRowProps {
   song: Song;
   onClick: () => void;
+  leftUser?: User | null;
+  rightUser?: User | null;
 }
 
-export const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick }) => (
-  <tr onClick={onClick} style={{ cursor: "pointer" }}>
-    <SongTableCell content={song.name} />
-    <SongTableCell content={song.artist} />
-    <SongTableCell content={song.album} />
-    <SongTableCell content={song.year?.toString() || "N/A"} />
-    <SongTableCell content={song.genre} />
-    <SongTableCell content={song.song_length != null ? msToTime(song.song_length) : "??:??:??"} />
-    <SongTableCell content={song.charter_refs ? song.charter_refs.join(", ") : "Unknown Author"} special="charter" />
-    <SongTableCell content={song.scores_count?.toString() || "0"} />
-    <SongTableCell content={song.last_update} special="last_update" />
-  </tr>
-);
+export const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick, leftUser, rightUser }) => {
+  const leftScore = leftUser ? song.leaderboard?.find(entry => entry.user_id === leftUser.id) : null;
+  const rightScore = rightUser ? song.leaderboard?.find(entry => entry.user_id === rightUser.id) : null;
+  const scoreDifference = leftScore && rightScore ? leftScore.score - rightScore.score : null;
+
+  return (
+    <tr onClick={onClick} style={{ cursor: "pointer" }}>
+      <SongTableCell content={song.name} />
+      <SongTableCell content={song.artist} />
+      <SongTableCell content={song.album} />
+      <SongTableCell content={song.year?.toString() || "N/A"} />
+      <SongTableCell content={song.genre} />
+      <SongTableCell content={song.song_length != null ? msToTime(song.song_length) : "??:??:??"} />
+      <SongTableCell content={song.charter_refs ? song.charter_refs.join(", ") : "Unknown Author"} special="charter" />
+      <SongTableCell content={song.scores_count?.toString() || "0"} />
+      <SongTableCell content={song.last_update} special="last_update" />
+      {leftUser && rightUser && (
+        <SongTableCell content={scoreDifference != null ? (scoreDifference > 0 ? "+" + scoreDifference.toString() : scoreDifference.toString()) : "N/A"} special="score_difference" />
+      )}
+    </tr>
+  );
+};
 
 export default SongList;
