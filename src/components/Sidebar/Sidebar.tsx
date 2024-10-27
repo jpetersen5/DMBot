@@ -66,6 +66,8 @@ const Sidebar: React.FC = () => {
 
   return (
     <>
+      <UploadProgress />
+      <KofiWidget isSidebarOpen={isOpen} />
       <div className={`sidebar ${isOpen ? "open" : ""}`}>
         <button className="toggle-btn" onClick={toggleSidebar}>
           {isOpen ? "←" : "→"}
@@ -105,8 +107,6 @@ const Sidebar: React.FC = () => {
         onClose={closeThemeModal}
         themes={themes}
       />
-      <UploadProgress />
-      <KofiWidget isSidebarOpen={isOpen} />
     </>
   );
 };
