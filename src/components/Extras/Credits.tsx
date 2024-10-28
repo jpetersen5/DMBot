@@ -24,7 +24,7 @@ const contributors: Contributor[] = [
   },
   {
     name: "Dichotic",
-    role: "Spotify Integration, Song Info",
+    role: "Spotify Integration, Song Info, Domain Hosting",
     avatarUrl: "https://cdn.discordapp.com/avatars/225072566400712704/0653bfe218ab1ba5791a7326d69091e4.png",
     profileUrl: "https://github.com/noahbaxter",
   },
