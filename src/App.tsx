@@ -12,12 +12,10 @@ import UserList from "./components/UserList/UserList";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./styles/styles.scss";
 
-const isGitHubPages = import.meta.env.VITE_GITHUB_ACTIONS === "true";
-
 export const API_URL = import.meta.env.VITE_API_URL;
 
 const App: React.FC = () => {
-  const basename = isGitHubPages ? "/DMBot" : "/";
+  const basename = "/";
 
   return (
     <AppProvider>

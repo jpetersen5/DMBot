@@ -4,12 +4,11 @@ import svgr from "vite-plugin-svgr"
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
-  const isGitHubPages = process.env.GITHUB_ACTIONS === "true"
   const isProduction = mode === "production"
 
   const config = {
     plugins: [react(), svgr()],
-    base: isGitHubPages ? "/DMBot/" : "/",
+    base: "/",
     build: {
       outDir: "dist",
       assetsDir: "assets",
