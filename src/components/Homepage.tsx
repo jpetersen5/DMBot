@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { API_URL } from "../App";
 import LoadingSpinner from "./Loading/LoadingSpinner";
 import Auth from "./Auth/Auth";
 import Credits from "./Extras/Credits";
 import Tooltip from "../utils/Tooltip/Tooltip";
-import { useAuth } from "../context/AuthContext";
 
 import FeatureIcon from "../assets/feature-icon.svg";
 import BugIcon from "../assets/bug-icon.svg";
@@ -50,71 +48,23 @@ const Homepage: React.FC = () => {
         <img src={BannerImage1} alt="DMBot Banner Pt 1" className="banner-image" />
         <img src={BannerImage2} alt="DMBot Banner Pt 2" className="banner-image" />
       </div>
+      <ActionButtons toggleShowCredits={toggleShowCredits} showCredits={showCredits} />
+      {showCredits ? <Credits /> : <Auth />}
       <div className="status-container">
         <Status label="Backend" value={backendStatus} />
         <Status label="Database" value={dbStatus} />
       </div>
-      <ActionButtons toggleShowCredits={toggleShowCredits} />
-      {showCredits ? <Credits /> : <Auth />}
-      <RedirectButton />
     </div>
   );
 };
 
-const RedirectButton: React.FC = () => {
-  const [hasScores, setHasScores] = useState<boolean | null>(null);
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (user) {
-      fetch(`${API_URL}/api/user/${user.id}/has-scores`, {
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("auth_token")}`
-        }
-      })
-        .then(response => response.json())
-        .then(data => setHasScores(data.has_scores))
-        .catch(error => {
-          console.error("Error checking user scores:", error);
-          setHasScores(null);
-        });
-    }
-  }, [user]);
-
-  const handleButtonClick = () => {
-    if (!user) {
-      return;
-    }
-    if (hasScores) {
-      navigate("/songs");
-    } else {
-      navigate(`/user/${user.id}`);
-    }
-  };
-
-  if (!user) {
-    return null;
-  }
-
-  return (
-    <button onClick={handleButtonClick} className="main-action-button">
-      {hasScores === null ? (
-        <LoadingSpinner message="" timeout={0} />
-      ) : hasScores ? (
-        "Check leaderboards here!"
-      ) : (
-        "Upload scores here!"
-      )}
-    </button>
-  );
-};
 
 interface ActionButtonsProps {
   toggleShowCredits: () => void;
+  showCredits: boolean;
 }
 
-const ActionButtons: React.FC<ActionButtonsProps> = ({ toggleShowCredits }) => {
+const ActionButtons: React.FC<ActionButtonsProps> = ({ toggleShowCredits, showCredits }) => {
   return (
     <div className="action-buttons">
       <Tooltip text="Request a new feature">
@@ -138,7 +88,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ toggleShowCredits }) => {
         </a>
       </Tooltip>
       <Tooltip text="Credits">
-        <button onClick={toggleShowCredits} className="icon-button">
+        <button onClick={toggleShowCredits} className={`icon-button ${showCredits ? "selected" : ""}`} >
           <img src={CreditsIcon} alt="Credits" />
         </button>
       </Tooltip>

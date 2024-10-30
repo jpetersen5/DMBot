@@ -7,12 +7,12 @@
   left: 0;
   height: 100vh;
   transition: width 0.3s ease;
-  width: 44px;
+  width: $sidebar-width;
   overflow-x: hidden;
   @include theme("background", "color-sidebar");
 
   &.open {
-    width: 200px;
+    width: $sidebar-width-expanded;
   }
 
   .toggle-btn {
@@ -103,12 +103,12 @@
 }
 
 .main-content {
-  width: calc(100% - 44px);
-  margin-left: 44px;
+  width: calc(100% - $sidebar-width);
+  margin-left: $sidebar-width;
   transition: width 0.3s ease, margin-left 0.3s ease;
 
   .sidebar.open + & {
-    width: calc(100% - 200px);
-    margin-left: 200px;
+    width: calc(100% - $sidebar-width-expanded);
+    margin-left: $sidebar-width-expanded;
   }
 }

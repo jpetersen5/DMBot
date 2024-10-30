@@ -2,18 +2,19 @@
 @import "../styles/mixins";
 
 .homepage {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  height: 100vh;
   align-items: center;
-  min-height: 100vh;
   padding: 2rem;
   @include theme("background", "color-background");
   @include theme("color", "color-text");
 
   .banner-container {
+    flex: 1;
     display: flex;
     justify-content: center;
-    gap: 4rem;
     align-items: center;
     width: 100%;
     margin-bottom: 2rem;
@@ -21,15 +22,11 @@
     box-sizing: border-box;
 
     .banner-image {
-      max-width: 45%;
-      max-height: 200px;
-      height: auto;
       object-fit: contain;
     }
   }
 
   .subtitle {
-    font-size: 1.2rem;
     margin-bottom: 1.5rem;
   }
 
@@ -37,14 +34,11 @@
     display: flex;
     justify-content: center;
     gap: 1rem;
-    margin-bottom: 2rem;
 
     .icon-button {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 48px;
-      height: 48px;
       border-radius: 50%;
       transition: background-color 0.2s, transform 0.2s;
       border: none;
@@ -57,20 +51,27 @@
       }
 
       img {
-        width: 24px;
-        height: 24px;
         object-fit: contain;
       }
     }
+
+    .selected {
+      @include theme("background", "color-button-hover");
+    }
+  }
+
+  .auth-container {
+    flex: 1;
+  }
+
+  .credits {
+    flex: 1;
   }
 
   .status-container {
     display: flex;
     justify-content: center;
     gap: 2rem;
-    height: 64px;
-    margin-bottom: 2rem;
-    padding: 1rem 2rem;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     @include theme("background", "color-box");
@@ -78,16 +79,20 @@
     .status {
       display: flex;
       align-items: center;
-      font-size: 1rem;
       @include theme("color", "color-text-secondary");
+      gap: 1rem;
 
       .status-label {
+        flex: 1;
         font-weight: bold;
-        margin-right: 0.5rem;
+      }
+
+      .status-value,
+      .loading-spinner {
+        flex: 1;
       }
 
       .status-value {
-        padding: 0.25rem 0.5rem;
         border-radius: 4px;
         font-weight: 500;
 
@@ -107,41 +112,116 @@
       }
     }
   }
+}
 
-  .main-action-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    max-height: 60px;
-    margin-top: 2rem;
-    padding: 1rem 2rem;
-    font-size: 1.2rem;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    @include theme("background", "color-button");
-    @include theme("color", "color-button-text");
+@include mobile {
+  .homepage {
+    .banner-container {
+      flex-direction: row;
+      gap: 1rem;
 
-    &:hover {
-      @include theme("background", "color-button-hover");
+      .banner-image {
+        max-height: 100px;
+      }
     }
 
-    .loading-spinner {
-      filter: invert(1);
+    .subtitle {
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .action-buttons {
+      min-height: 3rem;
+
+      .icon-button {
+        width: 40px;
+        height: 40px;
+
+        img {
+          width: 20px;
+          height: 20px;
+        }
+      }
+    }
+
+    .auth-container, .credits {
+      min-height: 20rem;
+    }
+
+
+    .status-container {
+      flex-direction: row;
+      min-height: 40px;
+      min-width: 310px;
+      padding: 0.5rem 0rem;
+      margin-top: 1rem;
+      gap: 1rem;
+
+      .status {
+        font-size: 0.7rem;
+
+        .status-value {
+          text-align: center;
+          min-width: 68px;
+        }
+
+        .status-value,
+        .loading-spinner {
+          max-height: 30px;
+        }
+      }
     }
   }
 }
 
-@media (max-width: 768px) {
+@include tabletplus {
   .homepage {
     .banner-container {
-      flex-direction: column;
+      gap: 4rem;
 
       .banner-image {
-        max-width: 90%;
-        margin-bottom: 1rem;
+        max-width: 45%;
+        max-height: 200px;
+      }
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .action-buttons {
+      min-height: 5rem;
+
+      .icon-button {
+        width: 60px;
+        height: 60px;
+
+        img {
+          width: 30px;
+          height: 30px;
+        }
+      }
+    }
+
+    .status-container {
+      flex-direction: row;
+      padding: 1rem 2rem;
+      gap: 2rem;
+      max-height: 60px;
+
+      .status {
+        min-width: 200px;
+        font-size: 1rem;
+
+        .status-label {
+          margin-right: 0.5rem;
+        }
+
+        .status-value,
+        .loading-spinner {
+          max-height: 40px;
+        }
       }
     }
   }
