@@ -174,12 +174,12 @@ const UserList: React.FC = () => {
                     {user.stats.rank && 
                       <p><b>Rank:</b> {`#${user.stats.rank} (${user.elo})`}</p>
                     }
-                    {user.stats && user.stats.total_score !== 0 ?
+                    {user.stats && user.stats.total_score ?
                       <>
-                        <p><b>Overall Score:</b> {user.stats.total_score.toLocaleString()}</p>
-                        <p><b># of Scores:</b> {user.stats.total_scores.toLocaleString()}</p>
-                        <p><b># of FCs:</b> {user.stats.total_fcs.toLocaleString()}</p>
-                        <p><b>Avg. Percent:</b> {user.stats.avg_percent.toFixed(2)}%</p>
+                        <p><b>Overall Score:</b> {user.stats.total_score?.toLocaleString()}</p>
+                        <p><b># of Scores:</b> {user.stats.total_scores?.toLocaleString()}</p>
+                        <p><b># of FCs:</b> {user.stats.total_fcs?.toLocaleString()}</p>
+                        <p><b>Avg. Percent:</b> {user.stats.avg_percent?.toFixed(2)}%</p>
                       </>
                     :
                       <p>No stats available</p>
