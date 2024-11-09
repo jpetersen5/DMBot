@@ -104,16 +104,7 @@
 
 // Mobile styles (sidebar on top and icons in a row)
 @include mobile {
-  .main-content {
-    width: 100%;
-    padding-top: $sidebar-width;
-    
-    // max-height: calc(100% - 500px) !important;
-  }
-
   .sidebar {
-    width: 100%;
-    height: $sidebar-width;
     display: flex;
     align-items: center;
 
@@ -152,15 +143,4 @@
 }
 
 @include tabletplus
-{
-  .main-content {
-    width: calc(100% - $sidebar-width);
-    margin-left: $sidebar-width;
-    transition: width 0.3s ease, margin-left 0.3s ease;
-  
-    .sidebar.open + & {
-      width: calc(100% - $sidebar-width-expanded);
-      margin-left: $sidebar-width-expanded;
-    }
-  }
-}
+{}

@@ -10,6 +10,44 @@
 
 .app-container {
   display: flex;
+  position: fixed;
+
+  width: 100%;
+  max-height: 100%;
+}
+
+.sidebar {
+  z-index: 2;
+}
+
+.main-content {
+  overflow-y: scroll;
+  z-index: 1;
+}
+
+@include mobile {
+  .main-content {
+    width: 100%;
+    padding-top: $sidebar-width;
+  }
+
+  .sidebar {
+    width: 100%;
+    height: $sidebar-width;
+  }
+}
+
+@include tabletplus {
+  .main-content {
+    width: calc(100% - $sidebar-width);
+    margin-left: $sidebar-width;
+    transition: width 0.3s ease, margin-left 0.3s ease;
+
+    .sidebar.open+& {
+      width: calc(100% - $sidebar-width-expanded);
+      margin-left: $sidebar-width-expanded;
+    }
+  }
 }
 
 @include master-theme("background", "color-background");
