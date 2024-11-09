@@ -102,13 +102,65 @@
   }
 }
 
-.main-content {
-  width: calc(100% - $sidebar-width);
-  margin-left: $sidebar-width;
-  transition: width 0.3s ease, margin-left 0.3s ease;
+// Mobile styles (sidebar on top and icons in a row)
+@include mobile {
+  .main-content {
+    width: 100%;
+    padding-top: $sidebar-width;
+    
+    // max-height: calc(100% - 500px) !important;
+  }
 
-  .sidebar.open + & {
-    width: calc(100% - $sidebar-width-expanded);
-    margin-left: $sidebar-width-expanded;
+  .sidebar {
+    width: 100%;
+    height: $sidebar-width;
+    display: flex;
+    align-items: center;
+
+    .toggle-btn {
+      display: none;;
+    }
+
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      padding: 0;
+
+      ul {
+        width: 100%;
+        display: flex;
+        justify-content: space-around;
+
+        a {
+          li {
+            flex-direction: column;
+            align-items: center;
+
+            .icon {
+              margin-bottom: 5px;
+            }
+          }
+        }
+      }
+    }
+
+    .version-container {
+      display: none;
+    }
+  }
+}
+
+@include tabletplus
+{
+  .main-content {
+    width: calc(100% - $sidebar-width);
+    margin-left: $sidebar-width;
+    transition: width 0.3s ease, margin-left 0.3s ease;
+  
+    .sidebar.open + & {
+      width: calc(100% - $sidebar-width-expanded);
+      margin-left: $sidebar-width-expanded;
+    }
   }
 }
