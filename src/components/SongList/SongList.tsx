@@ -56,7 +56,7 @@ const SongList: React.FC = () => {
   const [songsLoading, setSongsLoading] = useState<boolean>(true);
   const [page, setPage] = useState<number>(parseInt(queryParams.get("page") || "1"));
   const [inputPage, setInputPage] = useState<string>(page.toString());
-  const [perPage, setPerPage] = useState<number>(parseInt(queryParams.get("per_page") || "20"));
+  const [perPage, setPerPage] = useState<number>(parseInt(queryParams.get("per_page") || "100"));
   const [sortBy, setSortBy] = useState<string>(queryParams.get("sort_by") || "last_update");
   const [secondarySortBy, setSecondarySortBy] = useState<string | null>(
     queryParams.get("secondary_sort_by") || null
@@ -140,7 +140,7 @@ const SongList: React.FC = () => {
   const updateURL = () => {
     const params = new URLSearchParams();
     if (page !== 1) params.set("page", page.toString());
-    if (perPage !== 20) params.set("per_page", perPage.toString());
+    if (perPage !== 100) params.set("per_page", perPage.toString());
     if (sortBy !== "name") params.set("sort_by", sortBy);
     if (sortOrder !== "asc") params.set("sort_order", sortOrder);
     if (secondarySortBy !== null) params.set("secondary_sort_by", secondarySortBy);
@@ -376,20 +376,7 @@ const SongList: React.FC = () => {
       <div className="song-list-header">
         <div className="song-list-header-left">
           <h1>Song List</h1>
-          <MultiSelectDropdown
-            options={["drums", "guitar", "rhythm", "bass", "keys",]}
-            selectedOptions={selectedInstruments}
-            setSelectedOptions={setSelectedInstruments}
-            label="Instruments"
-            clearLabel="Any instrument"
-          />
-          <MultiSelectDropdown
-            options={["expert", "hard", "medium", "easy"]}
-            selectedOptions={selectedDifficulties}
-            setSelectedOptions={setSelectedDifficulties}
-            label="Difficulties"
-            clearLabel="Any difficulty"
-          />
+          
         </div>
         <div className="song-list-header-right">
           {leftUser && rightUser && (
@@ -403,80 +390,86 @@ const SongList: React.FC = () => {
           )}
         </div>
       </div>
-      <div className="control-bar">
-        <TableControls perPage={perPage} setPerPage={setPerPage} setPage={setPage} />
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          inputPage={inputPage}
-          setPage={setPage}
-          setInputPage={setInputPage}
-        />
+      <div className="search-bar">
+        <MultiSelectDropdown
+          options={["drums", "guitar", "rhythm", "bass", "keys",]}
+          selectedOptions={selectedInstruments}
+          setSelectedOptions={setSelectedInstruments}
+          label="Instruments"
+          clearLabel="Any instrument"/>
+        <MultiSelectDropdown
+          options={["expert", "hard", "medium", "easy"]}
+          selectedOptions={selectedDifficulties}
+          setSelectedOptions={setSelectedDifficulties}
+          label="Difficulties"
+          clearLabel="Any difficulty"/>
         <Search
           search={search}
           filters={filters}
           filterOptions={filterOptions}
           setSearch={setSearch}
           setFilters={setFilters}
-          submitSearch={() => {}}
-        />
+          submitSearch={() => {}}/>
       </div>
-      <table>
-        <thead>
-          <tr>
-            {Object.entries(SONG_TABLE_HEADERS).map(([key, value]) => (
-              <SongTableHeader
-                key={key}
-                content={value}
-                onClick={() => handleSort(key)}
-                sort={sortBy === key || secondarySortBy === key}
-                sortOrder={sortBy === key ? sortOrder : secondarySortOrder}
-              />
-            ))}
-            {leftUser && rightUser && (
-              <SongTableHeader
-                key="score_difference"
-                content="Score Difference"
-                onClick={() => handleSort("score_difference")}
-                sort={sortBy === "score_difference" || secondarySortBy === "score_difference"}
-                sortOrder={sortBy === "score_difference" ? sortOrder : secondarySortOrder}
-              />
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {loading && (
-            <tr>
-              <td colSpan={Object.keys(SONG_TABLE_HEADERS).length + (leftUser && rightUser ? 1 : 0)}>
-                <LoadingSpinner message="Loading songs..." />
-              </td>
-            </tr>
-          )}
-          {!loading && paginatedSongs.length === 0 && (
-            <tr>
-              <td colSpan={Object.keys(SONG_TABLE_HEADERS).length}>No songs found</td>
-            </tr>
-          )}
-          {!loading && paginatedSongs.length > 0 && (
-            paginatedSongs.map((song) => (
-              <SongTableRow 
-                key={song.id} 
-                song={song} 
-                onClick={() => handleRowClick(song)}
-                leftUser={leftUser}
-                rightUser={rightUser}
-              />
-            ))
-          )}
-        </tbody>
-      </table>
-      <Pagination
-        page={page}
-        totalPages={totalPages}
-        inputPage={inputPage}
-        setPage={setPage}
-        setInputPage={setInputPage}
-      />
+      <div className="table-container">
+        {loading && (
+          <LoadingSpinner message="Loading songs..." />
+        )}
+        {!loading && (
+          <table>
+            <thead>
+              <tr>
+                {Object.entries(SONG_TABLE_HEADERS).map(([key, value]) => (
+                  <SongTableHeader
+                    key={key}
+                    content={value}
+                    onClick={() => handleSort(key)}
+                    sort={sortBy === key || secondarySortBy === key}
+                    sortOrder={sortBy === key ? sortOrder : secondarySortOrder}
+                  />
+                ))}
+                {leftUser && rightUser && (
+                  <SongTableHeader
+                    key="score_difference"
+                    content="Score Difference"
+                    onClick={() => handleSort("score_difference")}
+                    sort={sortBy === "score_difference" || secondarySortBy === "score_difference"}
+                    sortOrder={sortBy === "score_difference" ? sortOrder : secondarySortOrder}
+                  />
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedSongs.length === 0 && (
+                <tr>
+                  <td colSpan={Object.keys(SONG_TABLE_HEADERS).length}>No songs found</td>
+                </tr>
+              )}
+              {paginatedSongs.length > 0 && (
+                paginatedSongs.map((song) => (
+                  <SongTableRow 
+                    key={song.id} 
+                    song={song} 
+                    onClick={() => handleRowClick(song)}
+                    leftUser={leftUser}
+                    rightUser={rightUser}/>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
+      {paginatedSongs.length > 0 && (
+        <div className="page-controls">
+          <TableControls perPage={perPage} setPerPage={setPerPage} setPage={setPage} />
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            inputPage={inputPage}
+            setPage={setPage}
+            setInputPage={setInputPage}/>
+        </div>
+      )}
       {(selectedSong || modalLoading) && (
         <SongModal 
           show={true}
@@ -484,8 +477,7 @@ const SongList: React.FC = () => {
           initialSong={selectedSong}
           loading={modalLoading}
           previousSongIds={prevSongIds}
-          nextSongIds={nextSongIds}
-        />
+          nextSongIds={nextSongIds}/>
       )}
     </div>
   );

@@ -2,7 +2,8 @@
 @import "../../styles/mixins";
 
 .song-list {
-  padding: 2rem;
+  display: flex;
+  flex-direction: column;
   @include theme("background", "color-background");
 
   .song-list-header {
@@ -85,25 +86,29 @@
     }
   }
 
-  .control-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  .search-bar {
+    margin: 0 1rem;
     margin-bottom: 1rem;
+    width: calc(100% - 2rem);
+    display: flex;
+    flex-direction: row;
+  }
+
+  .table-container {
+    flex: 1;
+    overflow: scroll;
   }
   
   table {
-    width: 100%;
     border-collapse: collapse;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 1rem;
     @include theme("background", "color-table-background-2");
     @include theme("color", "color-table-text");
 
-    th, td {
-      padding: 0.75rem;
-      text-align: left;
-      border: none;
+    thead {
+      top: 0;
+      position: sticky;
+      z-index: 1;
     }
 
     .score-difference-negative {
@@ -146,6 +151,65 @@
     tr:hover {
       cursor: pointer;
       @include theme("background", "color-table-hover");
+    }
+  }
+
+  .page-controls {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+
+    .table-controls {
+      position: absolute;
+      left: 0;
+      display: none;
+    }
+  }
+}
+
+
+@include mobile {
+  .song-list-header h1 {
+    display: none;
+  }
+
+  .search-bar {
+    margin: 0;
+    padding: 0;
+    .multi-select-dropdown {
+      display: none;
+    }
+  }
+
+  table {
+    th, td {
+      padding: 0.5rem 0.3rem;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      max-width: 160px;
+    }
+
+    th {
+      font-size: 0.82rem;
+    }
+
+    td {
+      font-size: 0.8rem;
+    }
+  }
+}
+
+@include tabletplus {
+  .table-container {
+    margin: 1rem;
+  }
+
+  table {
+    th, td {
+      padding: 0.6rem;
+      min-width: 200px;
+      max-width: 250px;
     }
   }
 }

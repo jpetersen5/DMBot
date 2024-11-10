@@ -5,7 +5,6 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  height: 100vh;
   align-items: center;
   padding: 2rem;
   @include theme("background", "color-background");
@@ -145,7 +144,8 @@
     }
 
     .auth-container, .credits {
-      min-height: 20rem;
+      flex: 1;
+      min-height: 15rem;
     }
 
 

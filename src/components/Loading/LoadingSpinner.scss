@@ -17,7 +17,8 @@
   
   .loading-message,
   .timeout-message {
-    margin-top: 10px;
+    margin: 10px 20px;
+    text-align: center;
     font-size: 1rem;
     @include theme("color", "color-text");
   }
