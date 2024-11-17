@@ -121,7 +121,7 @@ function findMd5ForPath(fileContent: Buffer, path: string): string | null {
         const index = fileContent.indexOf(pathBytes, start);
         if (index === -1) break;
 
-        const nextPathStart = fileContent.indexOf(Buffer.from("c:\\users\\jason\\documents\\clone hero\\songs"), index + pathBytes.length);
+        const nextPathStart = fileContent.indexOf(Buffer.from("e:\\songs"), index + pathBytes.length);
         const endIndex = nextPathStart === -1 ? fileContent.length : nextPathStart;
 
         const dataChunk = fileContent.subarray(index + pathBytes.length, endIndex);
@@ -172,7 +172,7 @@ async function processSongs(basePath: string, binaryFilePath: string, outputFile
             }));
             const scannedChart = scanChartFolder(files);
             const playlistPath = path
-                .replace("c:\\users\\jason\\documents\\clone hero\\songs\\", "")
+                .replace("e:\\songs\\", "")
                 .replace("downloaded songs\\", "")
                 .replace("rclone songs\\sync charts\\", "");
             const scannedChartExtra = { ...scannedChart, playlistPath: playlistPath };
@@ -205,7 +205,7 @@ async function processSongs(basePath: string, binaryFilePath: string, outputFile
     logging.info(`Deleted songs log saved to ${deletedLogFile}.`);
 }
 
-const basePath = "C:\\Users\\jason\\Documents\\Clone Hero\\Songs";
+const basePath = "E:\\Songs";
 const binaryFilePath = "C:\\Users\\jason\\AppData\\LocalLow\\srylain Inc_\\Clone Hero\\songcache.bin";
 const outputFile = "data\\songs_with_md5.json";
 
