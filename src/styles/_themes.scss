@@ -17,6 +17,8 @@ $gold-dark-2: #E5A82E;
 $gold-dark-3: #F6BF00;
 $tooltip-background: rgba(0, 0, 0, 0.8);
 
+$filter-highlight: brightness(0) saturate(100%) invert(77%) sepia(90%) saturate(2097%) hue-rotate(357deg) brightness(103%) contrast(107%);
+
 // dark mode
 $dark-grey-0: #121212;
 $dark-grey-1: #1E1E1E;

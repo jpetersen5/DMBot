@@ -169,10 +169,6 @@
 
 
 @include mobile {
-  .song-list-header h1 {
-    display: none;
-  }
-
   .search-bar {
     margin: 0;
     padding: 0;
@@ -181,21 +177,25 @@
     }
   }
 
+  .table-container {
+    margin: 0.4rem;
+  }
+
   table {
     th, td {
       padding: 0.5rem 0.3rem;
       text-overflow: ellipsis;
       overflow: hidden;
-      white-space: nowrap;
-      max-width: 160px;
+      // white-space: nowrap;
+      max-width: 140px;
     }
 
     th {
-      font-size: 0.82rem;
+      font-size: 0.8rem;
     }
 
     td {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
     }
   }
 }

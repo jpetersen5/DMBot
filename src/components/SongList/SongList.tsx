@@ -374,10 +374,6 @@ const SongList: React.FC = () => {
   return (
     <div className="song-list">
       <div className="song-list-header">
-        <div className="song-list-header-left">
-          <h1>Song List</h1>
-          
-        </div>
         <div className="song-list-header-right">
           {leftUser && rightUser && (
             <div className="user-comparison">

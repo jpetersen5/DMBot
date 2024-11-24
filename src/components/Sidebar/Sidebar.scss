@@ -68,9 +68,17 @@
           }
         }
 
-        &:hover {
-          @include theme("background", "color-sidebar-hover");
+      }
+
+      &>.active {
+        img {
+          filter: $filter-highlight;
         }
+
+      }
+
+      &>:hover {
+        @include theme("background", "color-sidebar-hover");
       }
     }
   }
