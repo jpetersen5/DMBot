@@ -8,6 +8,7 @@
     align-items: center;
 
     .modal-content {
+      flex: 1;
       height: 800px;
     }
   }
@@ -18,6 +19,7 @@
   }
 
   .modal-content {
+    flex: 1;
     border: none;
     @include theme("background", "color-background");
     @include theme("color", "color-text");
@@ -141,17 +143,27 @@
       left: -40px;
       border-top-left-radius: 40px;
       border-bottom-left-radius: 40px;
+      font-size: 2.5rem;
+      padding-left: 5px;
     }
-
+    
     &.next-button {
       right: -40px;
       border-top-right-radius: 40px;
       border-bottom-right-radius: 40px;
+      font-size: 2.5rem;
+      padding-right: 5px;
     }
   }
 }
 
 @include mobile {
+  .modal-header {
+    top: 0;
+    position: sticky;
+    z-index: 2;
+  }
+  
   .modal-dialog {
     max-width: 100%;
     margin: 0;
@@ -163,11 +175,45 @@
     .song-details {
       flex-direction: column;
     }
+    
+    .related-songs {
+      display: none;
+    }
   }
+
+  .close-button {
+    display: none;
+  }
+  
 }
 
 @include tabletplus {
   .modal-body {
     padding: 1rem;
   }
+
+  .song-details,
+  .related-songs {
+    min-height: 480px;
+    max-height: 480px;
+  }
+
+  .related-songs {
+    // max-width: 40%;
+    overflow: hidden;
+    .table-container {
+      height: 100%;
+      overflow-y: auto;
+    }
+  }
+
+  .leaderboard {
+    flex: 1;
+    max-height: calc(100vh - 750px);
+  }
+
+  .close-button {
+    display: none;
+  }
+
 }

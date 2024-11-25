@@ -129,14 +129,14 @@ const SongModal: React.FC<SongModalProps> = ({
         disabled={previousSongIds.length === 0}
         className="nav-button prev-button"
       >
-        {"<"}
+        {"←"}
       </button>
       <button
         onClick={handleNextSong}
         disabled={nextSongIds.length === 0}
         className="nav-button next-button"
       >
-        {">"}
+        {"→"}
       </button>
     </Modal>
   );

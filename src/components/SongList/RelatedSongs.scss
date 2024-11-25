@@ -9,6 +9,7 @@
     display: flex;
 
     .nav-tabs {
+      flex: 1;
       display: flex;
       flex-wrap: nowrap;
       border: none;
@@ -30,7 +31,7 @@
     }
 
     .pagination-container {
-      display: flex;
+      display: none;
       align-items: center;
 
       .pagination {

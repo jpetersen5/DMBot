@@ -21,6 +21,19 @@ export const TableHeader: React.FC<TableHeaderProps> = ({ onClick, className, co
   </th>
 );
 
+interface SimpleTableHeaderProps {
+  className?: string;
+  content: string;
+}
+
+export const SimpleTableHeader: React.FC<SimpleTableHeaderProps> = ({ className, content }) => (
+  <th className={className}>
+    <div className="header-content">
+      <span className="header-text">{content}</span>
+    </div>
+  </th>
+);
+
 
 interface SongTableCellProps {
   className?: string;
