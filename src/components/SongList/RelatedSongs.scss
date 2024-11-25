@@ -1,5 +1,6 @@
 @import "../../styles/themes";
 @import "../../styles/mixins";
+@import "../Extras/Tables.scss";
 
 .related-songs {
   flex: 1;
@@ -75,54 +76,6 @@
             @include theme("border-color", "color-border");
           }
         }
-      }
-    }
-  }
-
-  .related-songs-table {
-    width: 100%;
-    border-collapse: collapse;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    @include theme("background", "color-table-background-2");
-    @include theme("color", "color-table-text");
-
-    th {
-      font-weight: bold;
-      cursor: default;
-      @include theme("background", "color-table-header");
-      @include theme("color", "color-table-header-text");
-    }
-
-    th, td {
-      padding: 0.75rem;
-      text-align: left;
-      border: none;
-
-      // white-space: nowrap;
-      // overflow: hidden;
-      // text-overflow: ellipsis;
-    }
-
-    tr {
-      @include theme("background", "color-table-background-1");
-      
-      &:nth-child(even) {
-        @include theme("background", "color-table-background-2");
-      }
-
-      &.selected-row {
-        @include theme("background", "color-table-selected-background");
-        @include theme("color", "color-table-selected-text");
-      }
-    }
-    
-
-    tr:hover {
-      cursor: pointer;
-      @include theme("background", "color-table-hover");
-
-      &.selected-row {
-        @include theme("background", "color-table-selected-hover");
       }
     }
   }

@@ -87,129 +87,28 @@
   }
 
   .search-bar {
-    margin: 0 1rem;
-    margin-bottom: 1rem;
-    width: calc(100% - 2rem);
     display: flex;
     flex-direction: row;
   }
 
-  .table-container {
-    flex: 1;
-    overflow: scroll;
-  }
-  
-  table {
-    border-collapse: collapse;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    @include theme("background", "color-table-background-2");
-    @include theme("color", "color-table-text");
-
-    thead {
-      top: 0;
-      position: sticky;
-      z-index: 1;
-    }
-
-    .score-difference-negative {
-      @include theme("color", "color-text-error");
-    }
-
-    .score-difference-positive {
-      @include theme("color", "color-text-success");
-    }
-
-    th {
-      font-weight: bold;
-      cursor: pointer;
-      user-select: none;
-      white-space: nowrap;
-      position: relative;
-      padding-right: 20px;
-      @include theme("background", "color-table-header");
-      @include theme("color", "color-table-header-text");
-
-      .header-content {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      &:hover {
-        @include theme("background", "color-table-header-hover");
-      }
-    }
-    
-    tr {
-      @include theme("background", "color-table-background-1");
-    }
-
-    tr:nth-child(even) {
-      @include theme("background", "color-table-background-2");
-    }
-
-    tr:hover {
-      cursor: pointer;
-      @include theme("background", "color-table-hover");
-    }
-  }
-
-  .page-controls {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-
-    .table-controls {
-      position: absolute;
-      left: 0;
-      display: none;
-    }
-  }
 }
 
-
 @include mobile {
+  .song-list {
+    padding: 0 1rem;
+  }
   .search-bar {
-    margin: 0;
-    padding: 0;
-    .multi-select-dropdown {
-      display: none;
-    }
-  }
-
-  .table-container {
-    margin: 0.4rem;
-  }
-
-  table {
-    th, td {
-      padding: 0.5rem 0.3rem;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      // white-space: nowrap;
-      max-width: 140px;
-    }
-
-    th {
-      font-size: 0.8rem;
-    }
-
-    td {
-      font-size: 0.75rem;
-    }
+    padding: 0 0 1rem 0;
   }
 }
 
 @include tabletplus {
-  .table-container {
-    margin: 1rem;
+  .song-list {
+    width: 100%;
+    padding: 1rem 2rem;
   }
 
-  table {
-    th, td {
-      padding: 0.6rem;
-      min-width: 200px;
-      max-width: 250px;
-    }
+  .search-bar {
+    margin-bottom: 2rem;
   }
 }

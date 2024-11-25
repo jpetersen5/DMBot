@@ -8,30 +8,25 @@ import {
   Search,
   MultiSelectDropdown
 } from "./TableControls";
+import { TableHeader, SongTableCell } from "../Extras/Tables";
 import SongModal from "./SongModal";
 import LoadingSpinner from "../Loading/LoadingSpinner";
-import CharterName from "./CharterName";
 import { UserAvatar } from "../UserList/UserList";
 
 import { useCharterData } from "../../context/CharterContext";
 import { useSongCache } from "../../context/SongContext";
 import { useKeyPress } from "../../hooks/useKeyPress";
 import { User } from "../../utils/user";
-import Tooltip from "../../utils/Tooltip/Tooltip";
-import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import {
   Song,
   SONG_TABLE_HEADERS,
   msToTime,
-  formatExactTime,
-  formatTimeDifference,
   getSurroundingSongIds,
   getSortValues
 } from "../../utils/song";
 
 import "./SongList.scss";
 
-import fcIcon from "../../assets/crown.png";
 import VS from "../../assets/vs.png";
 
 const filterOptions = [
@@ -416,8 +411,9 @@ const SongList: React.FC = () => {
             <thead>
               <tr>
                 {Object.entries(SONG_TABLE_HEADERS).map(([key, value]) => (
-                  <SongTableHeader
+                  <TableHeader
                     key={key}
+                    className={key.replace(/_/g, "-")}
                     content={value}
                     onClick={() => handleSort(key)}
                     sort={sortBy === key || secondarySortBy === key}
@@ -425,8 +421,9 @@ const SongList: React.FC = () => {
                   />
                 ))}
                 {leftUser && rightUser && (
-                  <SongTableHeader
+                  <TableHeader
                     key="score_difference"
+                    className="score-difference"
                     content="Score Difference"
                     onClick={() => handleSort("score_difference")}
                     sort={sortBy === "score_difference" || secondarySortBy === "score_difference"}
@@ -455,7 +452,7 @@ const SongList: React.FC = () => {
           </table>
         )}
       </div>
-      {paginatedSongs.length > 0 && (
+      {totalPages > 1 && (
         <div className="page-controls">
           <TableControls perPage={perPage} setPerPage={setPerPage} setPage={setPage} />
           <Pagination
@@ -479,63 +476,6 @@ const SongList: React.FC = () => {
   );
 };
 
-interface SongTableHeaderProps {
-  onClick: () => void;
-  content: string;
-  sort: boolean;
-  sortOrder: string;
-}
-
-export const SongTableHeader: React.FC<SongTableHeaderProps> = ({ onClick, content, sort, sortOrder }) => (
-  <th onClick={onClick}>
-    <div className="header-content">
-      <span className="header-text">{content}</span>
-      {sort && <span className="sort-arrow">{sortOrder === "asc" ? "▲" : "▼"}</span>}
-    </div>
-  </th>
-);
-
-interface SongTableCellProps {
-  content: string | null | undefined;
-  special?: "charter" | "last_update" | "fc_percent" | "percent" | "score_difference";
-}
-
-export const SongTableCell: React.FC<SongTableCellProps> = ({ content, special }) => {
-  if (content == null) {
-    return <td>{"N/A"}</td>;
-  }
-  switch (special) {
-    case "percent":
-      return <td>{content + "%"}</td>;
-    case "fc_percent":
-      return <td>
-        <img src={fcIcon} alt="FC" className="fc-crown" />
-      </td>;
-    case "last_update":
-      return <td>
-        <Tooltip text={formatExactTime(content)}>
-          {formatTimeDifference(content)}
-        </Tooltip>
-      </td>;
-    case "charter":
-      return <td><CharterName names={content} /></td>;
-    case "score_difference":
-      if (content.startsWith("-")) {
-        return <td className="score-difference-negative">{content}</td>;
-      } else if (content.startsWith("+")) {
-        return <td className="score-difference-positive">{content}</td>;
-      } else {
-        return <td>{content}</td>;
-      }
-  }
-
-  const processedContent = typeof content === "string" 
-    ? processColorTags(content)
-    : String(content);
-
-  return <td dangerouslySetInnerHTML={renderSafeHTML(processedContent)} />;
-};
-
 interface SongTableRowProps {
   song: Song;
   onClick: () => void;
@@ -550,17 +490,17 @@ export const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick, leftU
 
   return (
     <tr onClick={onClick} style={{ cursor: "pointer" }}>
-      <SongTableCell content={song.name} />
-      <SongTableCell content={song.artist} />
-      <SongTableCell content={song.album} />
-      <SongTableCell content={song.year?.toString() || "N/A"} />
-      <SongTableCell content={song.genre} />
-      <SongTableCell content={song.song_length != null ? msToTime(song.song_length) : "??:??:??"} />
-      <SongTableCell content={song.charter_refs ? song.charter_refs.join(", ") : "Unknown Author"} special="charter" />
-      <SongTableCell content={song.scores_count?.toString() || "0"} />
-      <SongTableCell content={song.last_update} special="last_update" />
+      <SongTableCell className="name" content={song.name} />
+      <SongTableCell className="artist" content={song.artist} />
+      <SongTableCell className="album" content={song.album} />
+      <SongTableCell className="year" content={song.year?.toString() || "N/A"} />
+      <SongTableCell className="genre" content={song.genre} />
+      <SongTableCell className="song-length" content={song.song_length != null ? msToTime(song.song_length) : "??:??:??"} />
+      <SongTableCell className="charter-refs" content={song.charter_refs ? song.charter_refs.join(", ") : "Unknown Author"} special="charter" />
+      <SongTableCell className="scores-count" content={song.scores_count?.toString() || "0"} />
+      <SongTableCell className="last-update" content={song.last_update} special="last_update" />
       {leftUser && rightUser && (
-        <SongTableCell content={scoreDifference != null ? (scoreDifference > 0 ? "+" + scoreDifference.toString() : scoreDifference.toString()) : "N/A"} special="score_difference" />
+        <SongTableCell className="score-difference" content={scoreDifference != null ? (scoreDifference > 0 ? "+" + scoreDifference.toString() : scoreDifference.toString()) : "N/A"} special="score_difference" />
       )}
     </tr>
   );

@@ -2,22 +2,14 @@
 @import "../../styles/mixins";
 
 .leaderboard {
-  margin-top: 2rem;
-  padding: 1rem;
-  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
   @include theme("background", "color-background");
-
-  h5 {
-    font-size: 1.25rem;
-    margin-bottom: 1rem;
-    @include theme("color", "color-text");
-  }
 
   .control-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
     
     .table-controls {
       display: flex;
@@ -28,105 +20,10 @@
       }
     }
   }
-  
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  h5 {
     margin-bottom: 1rem;
-    @include theme("background", "color-table-background-2");
-    @include theme("color", "color-table-text");
-
-    th, td {
-      padding: 0.75rem;
-      text-align: left;
-      border: none;
-      
-      .fc-crown {
-        width: 20px;
-        height: 20px;
-        vertical-align: middle;
-      }
-    }
-
-    th {
-      font-weight: bold;
-      cursor: pointer;
-      user-select: none;
-      white-space: nowrap;
-      position: relative;
-      padding-right: 20px;
-      @include theme("background", "color-table-header");
-      @include theme("color", "color-table-header-text");
-
-      .header-content {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      &:hover {
-        @include theme("background", "color-table-header-hover");
-      }
-    }
-
-    tr {
-      @include theme("background", "color-table-background-1");
-      
-      &:nth-child(even) {
-        @include theme("background", "color-table-background-2");
-      }
-
-      &.selected-row {
-        @include theme("background", "color-table-selected-background");
-        @include theme("color", "color-table-selected-text");
-      }
-    }
-
-    tr:hover {
-      cursor: pointer;
-      @include theme("background", "color-table-hover");
-
-      &.selected-row {
-        @include theme("background", "color-table-selected-hover");
-      }
-    }
-  }
-
-  .pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 1rem;
     @include theme("color", "color-text");
-
-    button {
-      border: none;
-      padding: 0.5rem 1rem;
-      margin: 0 0.5rem;
-      cursor: pointer;
-      transition: background-color 0.3s;
-      @include theme("background", "color-button");
-      @include theme("color", "color-button-text");
-
-      &:hover {
-        @include theme("background", "color-button-hover");
-      }
-
-      &:disabled {
-        cursor: not-allowed;
-        @include theme("background", "color-button-disabled");
-      }
-    }
-
-    span {
-      margin: 0 1rem;
-
-      input[type="number"] {
-        width: 50px;
-        padding: 0.25rem;
-        text-align: center;
-      }
-    }
   }
+  
 }

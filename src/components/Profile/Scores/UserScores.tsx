@@ -4,7 +4,7 @@ import { TableControls, Pagination, Search } from "../../SongList/TableControls"
 import SongModal from "../../SongList/SongModal";
 import LoadingSpinner from "../../Loading/LoadingSpinner";
 import UnknownSongModal from "./UnknownSongModal";
-import { SongTableCell } from "../../SongList/SongList";
+import { SongTableCell } from "../../Extras/Tables";
 import { API_URL } from "../../../App";
 import { useKeyPress } from "../../../hooks/useKeyPress";
 import {
@@ -14,6 +14,8 @@ import {
   SCORE_TABLE_HEADERS,
   formatRank
 } from "../../../utils/score";
+
+import { TableHeader } from "../../Extras/Tables";
 import { Song } from "../../../utils/song";
 import "./UserScores.scss";
 
@@ -272,8 +274,9 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
           <thead>
             <tr>
               {Object.entries(SCORE_TABLE_HEADERS).map(([key, value]) => (
-                <ScoreTableHeader
+                <TableHeader
                   key={key}
+                  className={key.replace(/_/g, "-")}
                   content={value}
                   onClick={() => handleSort(key)}
                   sort={sortBy === key || secondarySortBy === key}
@@ -337,21 +340,7 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   );
 };
 
-interface ScoreTableHeaderProps {
-  onClick: () => void;
-  content: string;
-  sort: boolean;
-  sortOrder: string;
-}
-
-const ScoreTableHeader: React.FC<ScoreTableHeaderProps> = ({ onClick, content, sort, sortOrder }) => (
-  <th onClick={onClick}>
-    <div className="header-content">
-      <span className="header-text">{content}</span>
-      {sort && <span className="sort-arrow">{sortOrder === "asc" ? "▲" : "▼"}</span>}
-    </div>
-  </th>
-);
+// TODO: Consolidate these components into Tables.tsx
 
 interface ScoreTableRowProps {
   score: Score;
@@ -361,15 +350,15 @@ interface ScoreTableRowProps {
 const ScoreTableRow: React.FC<ScoreTableRowProps> = ({ score, onClick }) => {
   return (
     <tr onClick={onClick} style={{ cursor: "pointer" }}>
-      <SongTableCell content={score.song_name} />
-      <SongTableCell content={score.artist} />
-      <SongTableCell content={score.score.toLocaleString()} />
-      <SongTableCell content={score.percent.toString()} special={score.is_fc ? "fc_percent" : "percent"} />
-      <SongTableCell content={score.speed.toString()} special="percent" />
-      <SongTableCell content={score.is_fc ? "Yes" : "No"} />
-      <SongTableCell content={score.play_count ? score.play_count.toString() : "N/A"} />
-      <SongTableCell content={score.posted} special="last_update" />
-      <SongTableCell content={formatRank(score.rank)} />
+      <SongTableCell className="name" content={score.song_name} />
+      <SongTableCell className="artist" content={score.artist} />
+      <SongTableCell className="score" content={score.score.toLocaleString()} />
+      <SongTableCell className="percent" content={score.percent.toString()} special={score.is_fc ? "fc_percent" : "percent"} />
+      <SongTableCell className="speed" content={score.speed.toString()} special="percent" />
+      <SongTableCell className="is-fc" content={score.is_fc ? "Yes" : "No"} />
+      <SongTableCell className="play-count" content={score.play_count ? score.play_count.toString() : "N/A"} />
+      <SongTableCell className="posted" content={score.posted} special="last_update" />
+      <SongTableCell className="score" content={formatRank(score.rank)} />
     </tr>
   );
 };

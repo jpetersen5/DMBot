@@ -15,7 +15,6 @@
   .modal-dialog {
     position: relative;
     max-width: 80%;
-    margin: 1.75rem auto;
   }
 
   .modal-content {
@@ -51,8 +50,6 @@
   }
 
   .modal-body {
-    padding: 2rem;
-
     .admin-controls {
       display: flex;
       justify-content: flex-end;
@@ -91,38 +88,6 @@
       justify-content: space-between;
       margin-bottom: 2rem;
       gap: 2rem;
-      
-      @media (max-width: 991px) {
-        flex-direction: column;
-      }
-    }
-
-    .leaderboard {
-      margin-top: 2rem;
-      @include theme("background", "color-box");
-      @include theme("color", "color-text");
-
-      h5 {
-        margin-bottom: 1rem;
-        @include theme("color", "color-text");
-      }
-
-      th, td {
-        padding: 0.75rem;
-        text-align: left;
-        border: none;
-      }
-
-      th {
-        font-weight: bold;
-        cursor: default;
-        @include theme("background", "color-table-header");
-        @include theme("color", "color-table-header-text");
-
-        &:hover {
-          @include theme("background", "color-table-header-hover");
-        }
-      }
     }
   }
 
@@ -183,5 +148,26 @@
       border-top-right-radius: 40px;
       border-bottom-right-radius: 40px;
     }
+  }
+}
+
+@include mobile {
+  .modal-dialog {
+    max-width: 100%;
+    margin: 0;
+  }
+
+  .modal-body {
+    padding: 1rem;
+
+    .song-details {
+      flex-direction: column;
+    }
+  }
+}
+
+@include tabletplus {
+  .modal-body {
+    padding: 1rem;
   }
 }

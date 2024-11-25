@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Nav } from "react-bootstrap";
 import { API_URL } from "../../App";
-import { SongTableCell } from "./SongList";
+import { SongTableCell } from "../Extras/Tables";
 import { Pagination } from "./TableControls";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import { useSongCache } from "../../context/SongContext";
@@ -162,7 +162,7 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
     }
 
     return (
-      <table className="related-songs-table">
+      <table>
         <thead>
           <tr>
             {columns.map(col => <th key={col}>{col}</th>)}
@@ -172,7 +172,7 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
           {relatedLoading && <tr><td colSpan={columns.length}><LoadingSpinner /></td></tr>}
           {!relatedLoading && paginatedRelatedSongs.map((relatedSong) => (
             <tr key={relatedSong.id} className={currentSong.id == relatedSong.id ? "selected-row" : ""} onClick={() => handleRelatedSongClick(relatedSong)}>
-              {relationType === RelatedSongsType.album && <SongTableCell content={relatedSong.track?.toString() || "N/A"} />}
+              {relationType === RelatedSongsType.album && <SongTableCell content={relatedSong.track?.toString() || ""} />}
               <SongTableCell content={relatedSong.name} />
               {relationType === RelatedSongsType.artist && <SongTableCell content={relatedSong.album} />}
               {(relationType === RelatedSongsType.genre || relationType === RelatedSongsType.charter) && <SongTableCell content={relatedSong.artist} />}
@@ -218,7 +218,9 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
           />
         </div>
       </div>
-      {renderRelatedSongsTable()}
+      <div className="table-container">
+        {renderRelatedSongsTable()}
+      </div>
     </div>
   );
 };

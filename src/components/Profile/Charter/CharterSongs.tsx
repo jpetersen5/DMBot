@@ -3,7 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { API_URL } from "../../../App";
 import { TableControls, Pagination, Search } from "../../SongList/TableControls";
 import SongModal from "../../SongList/SongModal";
-import { SongTableHeader, SongTableRow } from "../../SongList/SongList";
+import { TableHeader } from "../../Extras/Tables";
+import { SongTableRow } from "../../SongList/SongList";
 import LoadingSpinner from "../../Loading/LoadingSpinner";
 import { useCharterData } from "../../../context/CharterContext";
 import { useSongCache } from "../../../context/SongContext";
@@ -240,8 +241,9 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
         <thead>
           <tr>
             {Object.entries(SONG_TABLE_HEADERS).map(([key, value]) => (
-              <SongTableHeader
+              <TableHeader
                 key={key}
+                className={key.replace(/_/g, "-")}
                 content={value}
                 onClick={() => handleSort(key)}
                 sort={sortBy === key || secondarySortBy === key}
