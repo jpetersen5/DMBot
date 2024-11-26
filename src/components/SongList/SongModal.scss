@@ -175,7 +175,7 @@
     .song-details {
       flex-direction: column;
     }
-    
+
     .related-songs {
       display: none;
     }
@@ -192,14 +192,17 @@
     padding: 1rem;
   }
 
-  .song-details,
+  .song-info,
   .related-songs {
-    min-height: 480px;
-    max-height: 480px;
+    min-height: 430px;
+    max-height: 430px;
+  }
+
+  .song-info {
+    overflow: hidden;
   }
 
   .related-songs {
-    // max-width: 40%;
     overflow: hidden;
     .table-container {
       height: 100%;
@@ -209,7 +212,13 @@
 
   .leaderboard {
     flex: 1;
+    min-height: 400px;
     max-height: calc(100vh - 750px);
+    
+    .loading-spinner {
+      min-height: 400px;
+      max-height: calc(100vh - 750px);
+    }
   }
 
   .close-button {

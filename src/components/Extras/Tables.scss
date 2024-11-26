@@ -1,6 +1,8 @@
 .table-container {
   flex: 1;
   overflow: scroll;
+
+  @include theme("background", "color-box");
 }
 
 table {

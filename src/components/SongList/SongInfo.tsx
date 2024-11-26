@@ -66,10 +66,10 @@ const SongInfo: React.FC<SongInfoProps> = ({ song }) => {
     <div className="song-info">
 
       <SongInfoPrimary extraData={extraData} song={song} />
-
-      <SongInfoDifficulties song={extraData} />
-      <SongInfoChartFeatures notesData={extraData.notesData} />
-
+      <div className="song-column">
+        <SongInfoDifficulties song={extraData} />
+        <SongInfoChartFeatures notesData={extraData.notesData} />
+      </div>
 
       {/* <SongInfoNoteCounts noteCounts={extraData.notesData?.noteCounts || []} />
       <SongInfoMaxNPS maxNps={extraData.notesData?.maxNps} /> */}
@@ -147,14 +147,16 @@ const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) =>
         </div>
 
         <div className="song-details-box" >
-          <div className="song-title info-line">{song.name}</div>
-          <div className="song-artist info-line">{extraData.artist}</div>
-          <div className="song-album info-line">
-            <span>{extraData.album} ({extraData.year})</span>
+          <div className="song-details-info">
+            <div className="song-title info-line">{song.name}</div>
+            <div className="song-artist info-line">{extraData.artist}</div>
+            <div className="song-album info-line">
+              <span>{extraData.album} ({extraData.year})</span>
+            </div>
+            
+            <div className="song-genre info-line">{extraData.genre}</div>
+            <SongInfoLine label="Charter" value={song.charter_refs?.join(",")} />
           </div>
-          
-          <div className="song-genre info-line">{extraData.genre}</div>
-          <SongInfoLine label="Charter" value={song.charter_refs?.join(",")} />
           
           {songData?.tempo && (
             <SongSpotifyData songData={songData} />
@@ -180,7 +182,7 @@ const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
   }
   else if (label === "MD5") {
     return (
-      <p className="info-line">
+      <p className="MD5 info-line">
         <span className="label">{label}:</span> <code>{value}</code>
       </p>
     );
