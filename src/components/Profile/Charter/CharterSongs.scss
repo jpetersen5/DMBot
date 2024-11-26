@@ -30,3 +30,18 @@
   }
 
 }
+
+@include mobile {
+  .charter-songs {
+
+    .control-bar {
+      flex-direction: column;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+
+      .table-controls {
+        margin-top: 0.5rem;
+      }
+    }
+  }
+}

@@ -221,13 +221,6 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
       <h2>Charter Songs</h2>
       <div className="control-bar">
         <TableControls perPage={perPage} setPerPage={setPerPage} setPage={setPage} />
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          inputPage={inputPage}
-          setPage={setPage}
-          setInputPage={setInputPage}
-        />
         <Search
           search={search}
           filters={filters}
@@ -237,45 +230,47 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
           submitSearch={() => {}}
         />
       </div>
-      <table>
-        <thead>
-          <tr>
-            {Object.entries(SONG_TABLE_HEADERS).map(([key, value]) => (
-              <TableHeader
-                key={key}
-                className={key.replace(/_/g, "-")}
-                content={value}
-                onClick={() => handleSort(key)}
-                sort={sortBy === key || secondarySortBy === key}
-                sortOrder={sortBy === key ? sortOrder : secondarySortOrder}
-              />
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {loading && (
+      <div className="table-container">
+        <table>
+          <thead>
             <tr>
-              <td colSpan={Object.keys(SONG_TABLE_HEADERS).length}>
-                <LoadingSpinner message="Loading songs..." />
-              </td>
+              {Object.entries(SONG_TABLE_HEADERS).map(([key, value]) => (
+                <TableHeader
+                  key={key}
+                  className={key.replace(/_/g, "-")}
+                  content={value}
+                  onClick={() => handleSort(key)}
+                  sort={sortBy === key || secondarySortBy === key}
+                  sortOrder={sortBy === key ? sortOrder : secondarySortOrder}
+                />
+              ))}
             </tr>
-          )}
-          {!loading && paginatedSongs.length === 0 && (
-            <tr>
-              <td colSpan={Object.keys(SONG_TABLE_HEADERS).length}>No songs found</td>
-            </tr>
-          )}
-          {!loading && paginatedSongs.length > 0 && (
-            paginatedSongs.map((song) => (
-              <SongTableRow 
-                key={song.id} 
-                song={song} 
-                onClick={() => handleRowClick(song)}
-              />
-            ))
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {loading && (
+              <tr>
+                <td colSpan={Object.keys(SONG_TABLE_HEADERS).length}>
+                  <LoadingSpinner message="Loading songs..." />
+                </td>
+              </tr>
+            )}
+            {!loading && paginatedSongs.length === 0 && (
+              <tr>
+                <td colSpan={Object.keys(SONG_TABLE_HEADERS).length}>No songs found</td>
+              </tr>
+            )}
+            {!loading && paginatedSongs.length > 0 && (
+              paginatedSongs.map((song) => (
+                <SongTableRow 
+                  key={song.id} 
+                  song={song} 
+                  onClick={() => handleRowClick(song)}
+                />
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
       <Pagination
         page={page}
         totalPages={totalPages}
