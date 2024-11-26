@@ -30,12 +30,11 @@
     @include theme("background", "color-sidebar");
     @include theme("color", "color-sidebar-text");
     .back-button {
-      display: flex;
-      align-items: center;
       position: absolute;
       height: 30px;
       width: 30px;
       right: 1rem;
+      padding-bottom: 5px;
       background-color: transparent;
       border: none;
       border-radius: 4px;
