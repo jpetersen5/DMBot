@@ -3,9 +3,9 @@
 
 .user-list {
   padding: 2rem;
-  padding-right: 200px;
   @include theme("background", "color-background");
   @include theme("color", "color-text");
+  overflow-x: hidden;
 
   h1 {
     font-size: 2rem;
@@ -67,7 +67,6 @@
     position: relative;
     display: flex;
     align-items: center;
-    padding: 1rem;
     border-radius: 8px;
     text-decoration: none;
     transition: all 0.2s ease-in-out;
@@ -141,7 +140,6 @@
     }
   
     h3 {
-      font-size: 1.2rem;
       text-align: center;
       margin: 0;
       text-overflow: ellipsis;
@@ -171,16 +169,49 @@
   }
 }
 
-@media (max-width: 768px) {
+@include mobile {
   .user-list {
-    .user-list-controls {
-      flex-direction: column;
-      align-items: stretch;
+    padding: 1rem;
+  }
 
-      .controls-left {
-        flex-direction: column;
-        align-items: stretch;
+  .user-list-controls {
+    font-size: 0.9rem;
+  }
+
+  .user-card {
+    padding: 0.5rem;
+
+    h3 {
+      font-size: 0.8rem;
+    }
+
+    .user-info {
+      
+      max-width: 40%;
+    }
+    &.has-stats {
+      width: 100%;
+    
+      .user-stats {
+        opacity: 1;
+        visibility: visible;
+        max-width: 200px;
       }
+    }
+    }
+}
+
+@include tabletplus {
+  .user-list {
+    background-color: blue;
+    padding-right: 200px;
+  }
+
+  .user-card {
+    padding: 1rem;
+
+    h3 {
+      font-size: 1.2rem;
     }
   }
 }

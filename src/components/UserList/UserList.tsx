@@ -131,7 +131,6 @@ const UserList: React.FC = () => {
       <div className="user-list-controls">
         <div className="sort-controls">
           <label>
-            Sort by:
             <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
               <option value="username">Username</option>
               <option value="elo">Rank</option>
