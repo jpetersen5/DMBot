@@ -156,7 +156,7 @@ function findMd5ForPath(fileContent, path) {
         var index = fileContent.indexOf(pathBytes, start);
         if (index === -1)
             break;
-        var nextPathStart = fileContent.indexOf(Buffer.from("c:\\users\\jason\\documents\\clone hero\\songs"), index + pathBytes.length);
+        var nextPathStart = fileContent.indexOf(Buffer.from("e:\\songs"), index + pathBytes.length);
         var endIndex = nextPathStart === -1 ? fileContent.length : nextPathStart;
         var dataChunk = fileContent.subarray(index + pathBytes.length, endIndex);
         if (dataChunk.length >= 36) {
@@ -203,9 +203,9 @@ function processSongs(basePath, binaryFilePath, outputFile) {
                     }); });
                     var scannedChart = (0, scan_chart_1.scanChartFolder)(files);
                     var playlistPath = path_1
-                        .replace("C:\\Users\\jason\\Documents\\Clone Hero\\Songs", "")
-                        .replace("\\Downloaded Songs", "")
-                        .replace("\\RClone Songs\\Sync Charts", "");
+                        .replace("e:\\songs\\", "")
+                        .replace("downloaded songs\\", "")
+                        .replace("rclone songs\\sync charts\\", "");
                     var scannedChartExtra = __assign(__assign({}, scannedChart), { playlistPath: playlistPath });
                     scannedChartExtra.albumArt = null;
                     if (scannedChartExtra.notesData) {
@@ -242,7 +242,7 @@ function processSongs(basePath, binaryFilePath, outputFile) {
         });
     });
 }
-var basePath = "C:\\Users\\jason\\Documents\\Clone Hero\\Songs";
+var basePath = "E:\\Songs";
 var binaryFilePath = "C:\\Users\\jason\\AppData\\LocalLow\\srylain Inc_\\Clone Hero\\songcache.bin";
 var outputFile = "data\\songs_with_md5.json";
 processSongs(basePath, binaryFilePath, outputFile).catch(function (error) {

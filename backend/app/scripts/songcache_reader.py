@@ -112,7 +112,7 @@ def find_md5_for_path(file_content, path):
             break
 
         # Find the start of the next path
-        next_path_start = file_content.find(b"c:\\users\\jason\\documents\\clone hero\\songs", index + len(path_bytes))
+        next_path_start = file_content.find(b"e:\\songs", index + len(path_bytes))
         if next_path_start == -1:
             next_path_start = len(file_content)
 
@@ -230,7 +230,7 @@ def format_song_length(milliseconds):
     return f"{hours:02}:{minutes:02}:{seconds:02}"
 
 if __name__ == "__main__":
-    base_path = "C:\\Users\\jason\\Documents\\Clone Hero\\Songs"
+    base_path = "E:\\Songs"
     binary_file_path = "C:\\Users\\jason\\AppData\\LocalLow\\srylain Inc_\Clone Hero\\songcache.bin"
     output_file = "data\\songs_with_md5.json"
     

@@ -146,7 +146,6 @@ def prepare_song_data(song):
 
     return {
         "md5": song.get("md5"),
-        "song_data": song,
         "name": song.get("name"),
         "artist": song.get("artist"),
         "album": song.get("album"),
@@ -163,6 +162,27 @@ def prepare_song_data(song):
         "instruments": song.get("notesData", {}).get("instruments", [])
     }
 
+def get_existing_md5s(supabase):
+    existing_md5s = set()
+    offset = 0
+    batch_size = 10000
+    
+    while True:
+        result = (supabase.table("songs_new")
+                 .select("md5")
+                 .range(offset, offset + batch_size - 1)
+                 .execute())
+        
+        if not result.data:
+            break
+            
+        existing_md5s.update(row["md5"] for row in result.data)
+        offset += batch_size
+        
+        print(f"Fetched {len(existing_md5s)} existing md5s so far...")
+        
+    return existing_md5s
+
 def populate_songs_new_table():
     supabase = get_supabase()
     
@@ -170,14 +190,35 @@ def populate_songs_new_table():
     json_file_path = os.path.join(current_dir, "data", "songs_with_md5.json")
     songs_data = load_json_data(json_file_path)
 
-    prepared_songs = [prepare_song_data(song) for song in songs_data]
+    existing_md5s = get_existing_md5s(supabase)
 
-    batch_size = 1000
+    new_songs = [song for song in songs_data if song["md5"] not in existing_md5s]
+    prepared_songs = [prepare_song_data(song) for song in new_songs]
+    
+    print(f"Found {len(songs_data)} total songs")
+    print(f"Found {len(existing_md5s)} existing songs")
+    print(f"Inserting {len(prepared_songs)} new songs")
+
+    batch_size = 500
     for i in range(0, len(prepared_songs), batch_size):
         batch = prepared_songs[i:i+batch_size]
         result = supabase.table("songs_new").insert(batch).execute()
         
         if hasattr(result, "error") and result.error:
-            print(f"Error inserting batch {i//batch_size + 1}: {result.error}")
+            print(f"Error inserting batch {i//batch_size + 1} into songs_new: {result.error}")
+            continue
+
+        extra_batch = [
+            {
+                "md5": new_songs[i+j]["md5"],
+                "song_data": new_songs[i+j]
+            }
+            for j in range(len(batch))
+        ]
+        
+        extra_result = supabase.table("songs_extra").insert(extra_batch).execute()
+        
+        if hasattr(extra_result, "error") and extra_result.error:
+            print(f"Error inserting batch {i//batch_size + 1} into songs_extra: {extra_result.error}")
         else:
-            print(f"Successfully inserted batch {i//batch_size + 1}")
+            print(f"Successfully inserted batch {i//batch_size + 1} into both tables")
