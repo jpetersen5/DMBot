@@ -254,13 +254,13 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
         </div>
         <div className="control-bar">
           <TableControls perPage={perPage} setPerPage={setPerPage} setPage={setPage} />
-          <Pagination
+          {/* <Pagination
             page={page}
             totalPages={totalPages}
             inputPage={inputPage}
             setPage={setPage}
             setInputPage={setInputPage}
-          />
+          /> */}
           <Search
             search={search}
             filters={filters}
@@ -270,72 +270,74 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
             submitSearch={() => {}}
           />
         </div>
-        <table>
-          <thead>
-            <tr>
-              {Object.entries(SCORE_TABLE_HEADERS).map(([key, value]) => (
-                <TableHeader
-                  key={key}
-                  className={key.replace(/_/g, "-")}
-                  content={value}
-                  onClick={() => handleSort(key)}
-                  sort={sortBy === key || secondarySortBy === key}
-                  sortOrder={sortBy === key ? sortOrder : secondarySortOrder}
-                />
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {loading && (
+        <div className="table-container">
+          <table>
+            <thead>
               <tr>
-                <td colSpan={Object.keys(SCORE_TABLE_HEADERS).length}>
-                  <LoadingSpinner message="Loading scores..." />
-                </td>
+                {Object.entries(SCORE_TABLE_HEADERS).map(([key, value]) => (
+                  <TableHeader
+                    key={key}
+                    className={key.replace(/_/g, "-")}
+                    content={value}
+                    onClick={() => handleSort(key)}
+                    sort={sortBy === key || secondarySortBy === key}
+                    sortOrder={sortBy === key ? sortOrder : secondarySortOrder}
+                  />
+                ))}
               </tr>
-            )}
-            {!loading && paginatedScores.length === 0 && (
-              <tr>
-                <td colSpan={Object.keys(SCORE_TABLE_HEADERS).length}>
-                  {`No ${showUnknown ? "unknown" : ""} scores found`}
-                </td>
-              </tr>
-            )}
-            {!loading && paginatedScores.length > 0 && (
-              paginatedScores.map((score, index) => (
-                <ScoreTableRow 
-                  key={index} 
-                  score={score}
-                  onClick={() => handleRowClick(score)}
-                />
-              ))
-            )}
-          </tbody>
-        </table>
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          inputPage={inputPage}
-          setPage={setPage}
-          setInputPage={setInputPage}
-        />
+            </thead>
+            <tbody>
+              {loading && (
+                <tr>
+                  <td colSpan={Object.keys(SCORE_TABLE_HEADERS).length}>
+                    <LoadingSpinner message="Loading scores..." />
+                  </td>
+                </tr>
+              )}
+              {!loading && paginatedScores.length === 0 && (
+                <tr>
+                  <td colSpan={Object.keys(SCORE_TABLE_HEADERS).length}>
+                    {`No ${showUnknown ? "unknown" : ""} scores found`}
+                  </td>
+                </tr>
+              )}
+              {!loading && paginatedScores.length > 0 && (
+                paginatedScores.map((score, index) => (
+                  <ScoreTableRow 
+                    key={index} 
+                    score={score}
+                    onClick={() => handleRowClick(score)}
+                  />
+                ))
+              )}
+            </tbody>
+          </table>
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            inputPage={inputPage}
+            setPage={setPage}
+            setInputPage={setInputPage}
+          />
+        </div>
+        {(selectedSong || modalLoading) && (
+          <SongModal
+            show={true}
+            onHide={handleModalClose}
+            initialSong={selectedSong}
+            loading={modalLoading}
+            previousSongIds={getSurroundingSongIds().prevSongIds}
+            nextSongIds={getSurroundingSongIds().nextSongIds}
+          />
+        )}
+        {selectedUnknownScore && showUnknown && (
+          <UnknownSongModal
+            show={true}
+            onHide={handleUnknownModalClose}
+            score={selectedUnknownScore}
+          />
+        )}
       </div>
-      {(selectedSong || modalLoading) && (
-        <SongModal
-          show={true}
-          onHide={handleModalClose}
-          initialSong={selectedSong}
-          loading={modalLoading}
-          previousSongIds={getSurroundingSongIds().prevSongIds}
-          nextSongIds={getSurroundingSongIds().nextSongIds}
-        />
-      )}
-      {selectedUnknownScore && showUnknown && (
-        <UnknownSongModal
-          show={true}
-          onHide={handleUnknownModalClose}
-          score={selectedUnknownScore}
-        />
-      )}
     </>
   );
 };

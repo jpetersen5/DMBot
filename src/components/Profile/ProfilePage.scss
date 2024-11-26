@@ -180,18 +180,34 @@
   }
 }
 
-@media (max-width: 600px) {
+@include mobile {
   .profile-page {
     padding: 1rem;
-
-    .profile-info {
+    display: flex;
+    flex-direction: column;
+    
+    .profile-header,
+    .profile-info
+     {
       flex-direction: column;
-      text-align: center;
+      gap: 1rem;
+    }
 
-      .profile-avatar {
-        margin-right: 0;
-        margin-bottom: 1rem;
+    .profile-stats {
+
+      .stat-item {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
       }
+    }
+
+
+    .profile-info,
+    .profile-stats,
+    .charter-stats,
+    .profile-scores {
+      padding: 0.5rem;;
     }
   }
 }
