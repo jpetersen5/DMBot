@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { TableControls, Pagination, Search } from "../../SongList/TableControls";
+import { Pagination, Search } from "../../SongList/TableControls";
 import SongModal from "../../SongList/SongModal";
 import LoadingSpinner from "../../Loading/LoadingSpinner";
 import UnknownSongModal from "./UnknownSongModal";
-import { SongTableCell } from "../../SongList/SongList";
+import { SongTableCell } from "../../Extras/Tables";
 import { API_URL } from "../../../App";
 import { useKeyPress } from "../../../hooks/useKeyPress";
 import {
@@ -14,6 +14,8 @@ import {
   SCORE_TABLE_HEADERS,
   formatRank
 } from "../../../utils/score";
+
+import { TableHeader } from "../../Extras/Tables";
 import { Song } from "../../../utils/song";
 import "./UserScores.scss";
 
@@ -36,7 +38,6 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
   const [inputPage, setInputPage] = useState<string>(page.toString());
-  const [perPage, setPerPage] = useState<number>(10);
   const [sortBy, setSortBy] = useState<string>("posted");
   const [secondarySortBy, setSecondarySortBy] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
@@ -44,6 +45,7 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   const shiftPressed = useKeyPress("Shift");
   const [search, setSearch] = useState<string>("");
   const [filters, setFilters] = useState<string[]>([]);
+  const perPage = 100;
 
   const [showUnknown, setShowUnknown] = useState<boolean>(false);
   const [selectedUnknownScore, setSelectedUnknownScore] = useState<UnknownScore | null>(null);
@@ -234,80 +236,75 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
       <div className="user-scores">
         <div className="user-scores-header">
           <h2>{`${showUnknown ? "Unknown" : ""} User Scores`}</h2>
-          <div className="toggle-container">
-            <label htmlFor="show-unknown" className="toggle-label" onClick={handleToggleUnknown}>
-              Show Unknown Scores
-            </label>
-            <div className="toggle-switch" onClick={handleToggleUnknown}>
-              <input
-                id="show-unknown"
-                type="checkbox"
-                checked={showUnknown}
-                onChange={handleToggleUnknown}
-                className="toggle-input"
-              />
-              <span className="toggle-slider"></span>
+          <div className="control-bar">
+            <Search
+              search={search}
+              filters={filters}
+              filterOptions={filterOptions}
+              setSearch={setSearch}
+              setFilters={setFilters}
+              submitSearch={() => {}}
+            />
+            <div className="toggle-container">
+              <label htmlFor="show-unknown" className="toggle-label" onClick={handleToggleUnknown}>
+                Show Unknown Scores
+              </label>
+              <div className="toggle-switch" onClick={handleToggleUnknown}>
+                <input
+                  id="show-unknown"
+                  type="checkbox"
+                  checked={showUnknown}
+                  onChange={handleToggleUnknown}
+                  className="toggle-input"
+                />
+                <span className="toggle-slider"></span>
+              </div>
             </div>
           </div>
         </div>
-        <div className="control-bar">
-          <TableControls perPage={perPage} setPerPage={setPerPage} setPage={setPage} />
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            inputPage={inputPage}
-            setPage={setPage}
-            setInputPage={setInputPage}
-          />
-          <Search
-            search={search}
-            filters={filters}
-            filterOptions={filterOptions}
-            setSearch={setSearch}
-            setFilters={setFilters}
-            submitSearch={() => {}}
-          />
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                {Object.entries(SCORE_TABLE_HEADERS).map(([key, value]) => (
+                  <TableHeader
+                    key={key}
+                    className={key.replace(/_/g, "-")}
+                    content={value}
+                    onClick={() => handleSort(key)}
+                    sort={sortBy === key || secondarySortBy === key}
+                    sortOrder={sortBy === key ? sortOrder : secondarySortOrder}
+                  />
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {loading && (
+                <tr>
+                  <td colSpan={Object.keys(SCORE_TABLE_HEADERS).length}>
+                    <LoadingSpinner message="Loading scores..." />
+                  </td>
+                </tr>
+              )}
+              {!loading && paginatedScores.length === 0 && (
+                <tr>
+                  <td colSpan={Object.keys(SCORE_TABLE_HEADERS).length}>
+                    {`No ${showUnknown ? "unknown" : ""} scores found`}
+                  </td>
+                </tr>
+              )}
+              {!loading && paginatedScores.length > 0 && (
+                paginatedScores.map((score, index) => (
+                  <ScoreTableRow 
+                    key={index} 
+                    score={score}
+                    onClick={() => handleRowClick(score)}
+                  />
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
-        <table>
-          <thead>
-            <tr>
-              {Object.entries(SCORE_TABLE_HEADERS).map(([key, value]) => (
-                <ScoreTableHeader
-                  key={key}
-                  content={value}
-                  onClick={() => handleSort(key)}
-                  sort={sortBy === key || secondarySortBy === key}
-                  sortOrder={sortBy === key ? sortOrder : secondarySortOrder}
-                />
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {loading && (
-              <tr>
-                <td colSpan={Object.keys(SCORE_TABLE_HEADERS).length}>
-                  <LoadingSpinner message="Loading scores..." />
-                </td>
-              </tr>
-            )}
-            {!loading && paginatedScores.length === 0 && (
-              <tr>
-                <td colSpan={Object.keys(SCORE_TABLE_HEADERS).length}>
-                  {`No ${showUnknown ? "unknown" : ""} scores found`}
-                </td>
-              </tr>
-            )}
-            {!loading && paginatedScores.length > 0 && (
-              paginatedScores.map((score, index) => (
-                <ScoreTableRow 
-                  key={index} 
-                  score={score}
-                  onClick={() => handleRowClick(score)}
-                />
-              ))
-            )}
-          </tbody>
-        </table>
         <Pagination
           page={page}
           totalPages={totalPages}
@@ -315,43 +312,29 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
           setPage={setPage}
           setInputPage={setInputPage}
         />
+        {(selectedSong || modalLoading) && (
+          <SongModal
+            show={true}
+            onHide={handleModalClose}
+            initialSong={selectedSong}
+            loading={modalLoading}
+            previousSongIds={getSurroundingSongIds().prevSongIds}
+            nextSongIds={getSurroundingSongIds().nextSongIds}
+          />
+        )}
+        {selectedUnknownScore && showUnknown && (
+          <UnknownSongModal
+            show={true}
+            onHide={handleUnknownModalClose}
+            score={selectedUnknownScore}
+          />
+        )}
       </div>
-      {(selectedSong || modalLoading) && (
-        <SongModal
-          show={true}
-          onHide={handleModalClose}
-          initialSong={selectedSong}
-          loading={modalLoading}
-          previousSongIds={getSurroundingSongIds().prevSongIds}
-          nextSongIds={getSurroundingSongIds().nextSongIds}
-        />
-      )}
-      {selectedUnknownScore && showUnknown && (
-        <UnknownSongModal
-          show={true}
-          onHide={handleUnknownModalClose}
-          score={selectedUnknownScore}
-        />
-      )}
     </>
   );
 };
 
-interface ScoreTableHeaderProps {
-  onClick: () => void;
-  content: string;
-  sort: boolean;
-  sortOrder: string;
-}
-
-const ScoreTableHeader: React.FC<ScoreTableHeaderProps> = ({ onClick, content, sort, sortOrder }) => (
-  <th onClick={onClick}>
-    <div className="header-content">
-      <span className="header-text">{content}</span>
-      {sort && <span className="sort-arrow">{sortOrder === "asc" ? "▲" : "▼"}</span>}
-    </div>
-  </th>
-);
+// TODO: Consolidate these components into Tables.tsx
 
 interface ScoreTableRowProps {
   score: Score;
@@ -361,15 +344,15 @@ interface ScoreTableRowProps {
 const ScoreTableRow: React.FC<ScoreTableRowProps> = ({ score, onClick }) => {
   return (
     <tr onClick={onClick} style={{ cursor: "pointer" }}>
-      <SongTableCell content={score.song_name} />
-      <SongTableCell content={score.artist} />
-      <SongTableCell content={score.score.toLocaleString()} />
-      <SongTableCell content={score.percent.toString()} special={score.is_fc ? "fc_percent" : "percent"} />
-      <SongTableCell content={score.speed.toString()} special="percent" />
-      <SongTableCell content={score.is_fc ? "Yes" : "No"} />
-      <SongTableCell content={score.play_count ? score.play_count.toString() : "N/A"} />
-      <SongTableCell content={score.posted} special="last_update" />
-      <SongTableCell content={formatRank(score.rank)} />
+      <SongTableCell className="name" content={score.song_name} />
+      <SongTableCell className="artist" content={score.artist} />
+      <SongTableCell className="score" content={score.score.toLocaleString()} />
+      <SongTableCell className="percent" content={score.percent.toString()} special={score.is_fc ? "fc_percent" : "percent"} />
+      <SongTableCell className="speed" content={score.speed.toString()} special="percent" />
+      <SongTableCell className="is-fc" content={score.is_fc ? "Yes" : "No"} />
+      <SongTableCell className="play-count" content={score.play_count ? score.play_count.toString() : "N/A"} />
+      <SongTableCell className="posted" content={score.posted} special="last_update" />
+      <SongTableCell className="score" content={formatRank(score.rank)} />
     </tr>
   );
 };

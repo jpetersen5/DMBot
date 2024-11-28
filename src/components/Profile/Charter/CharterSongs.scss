@@ -2,79 +2,55 @@
 @import "../../../styles/mixins";
 
 .charter-songs {
+  display: flex;
+  flex-direction: column;
+  height: 600px;
   margin-top: 2rem;
   padding: 1rem;
   border-radius: 4px;
   @include theme("background", "color-box");
 
-  h2 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    @include theme("color", "color-text");
-  }
-
-  .control-bar {
+  .charter-songs-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
-    
-    .table-controls {
+
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      @include theme("color", "color-text");
+    }
+
+    .control-bar {
       display: flex;
+      justify-content: space-between;
       align-items: center;
+      margin-bottom: 1rem;
       
-      label, select {
-        margin-right: 0.5rem;
+      .table-controls {
+        display: flex;
+        align-items: center;
+        
+        label, select {
+          margin-right: 0.5rem;
+        }
       }
     }
   }
-  
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 1rem;
-    @include theme("background", "color-table-background-2");
-    @include theme("color", "color-table-text");
+}
 
-    th, td {
-      padding: 0.75rem;
-      text-align: left;
-      border: none;
-    }
+@include mobile {
+  .charter-songs {
 
-    th {
-      font-weight: bold;
-      cursor: pointer;
-      user-select: none;
-      white-space: nowrap;
-      position: relative;
-      padding-right: 20px;
-      @include theme("background", "color-table-header");
-      @include theme("color", "color-table-header-text");
+    .control-bar {
+      flex-direction: column;
+      align-items: flex-start;
+      margin-bottom: 1rem;
 
-      .header-content {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+      .table-controls {
+        margin-top: 0.5rem;
       }
-
-      &:hover {
-        @include theme("background", "color-table-header-hover");
-      }
-    }
-
-    tr {
-      @include theme("background", "color-table-background-1");
-    }
-
-    tr:nth-child(even) {
-      @include theme("background", "color-table-background-2");
-    }
-
-    tr:hover {
-      cursor: pointer;
-      @include theme("background", "color-table-hover");
     }
   }
 }

@@ -3,6 +3,7 @@
 
 @import "../components/Homepage.scss";
 @import "../components/Auth/Auth.scss";
+@import "../components/Extras/Tables.scss";
 @import "../components/Profile/ProfilePage.scss";
 @import "../components/Sidebar/Sidebar.scss";
 @import "../components/SongList/SongList.scss";
@@ -10,6 +11,63 @@
 
 .app-container {
   display: flex;
+  position: fixed;
+
+  width: 100%;
+  max-height: 100%;
+}
+
+.sidebar {
+  z-index: 2;
+}
+
+.main-content {
+  overflow-y: auto;
+  z-index: 1;
+  @include scrollbar;
+  & > * {
+    height: 100%;
+  }
+}
+
+.modal {
+  @include scrollbar;
+}
+
+@include mobile {
+  .app-container {
+    flex-direction: column;
+  }
+
+  .main-content {
+    height: calc(100vh - $sidebar-width);
+    margin-top: $sidebar-width;
+    width: 100%;
+  }
+
+  .sidebar {
+    width: 100%;
+    height: $sidebar-width;
+    overflow: hidden;
+  }
+}
+
+@include tabletplus {
+  .app-container {
+    height: 100vh;
+    flex-direction: row;
+  }
+
+  .main-content {
+    width: calc(100% - $sidebar-width);
+    margin-left: $sidebar-width;
+    transition: width 0.3s ease, margin-left 0.3s ease;
+
+    .sidebar.open+& {
+      width: calc(100% - $sidebar-width-expanded);
+      margin-left: $sidebar-width-expanded;
+    }
+  }
 }
 
 @include master-theme("background", "color-background");

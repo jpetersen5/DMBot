@@ -4,8 +4,7 @@
 .table-controls {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  margin: 0.5rem;
   @include theme("color", "color-text");
 
   label {
@@ -35,8 +34,6 @@
 
   button {
     border: none;
-    padding: 0.5rem 1rem;
-    margin: 0 0.5rem;
     cursor: pointer;
     transition: background-color 0.3s;
     border-radius: 4px;
@@ -58,7 +55,7 @@
     align-items: center;
     margin: 0 1rem;
 
-    input[type="number"] {
+    input[type="text"] {
       width: 50px;
       padding: 0.25rem;
       margin: 0 0.5rem;
@@ -73,16 +70,20 @@
 }
 
 .search-controls {
+  flex: 1;
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 0.5rem;
 
   .search-input-container {
+    flex: 1;
     position: relative;
     display: flex;
     align-items: center;
-
+    
     input[type="text"] {
+      flex: 1;
       padding: 0.5rem;
       padding-right: 2.5rem;
       border: 1px solid;
@@ -248,5 +249,40 @@
     &:hover {
       @include theme("background", "color-button-hover");
     }
+  }
+}
+
+@include mobile {
+  .multi-select-dropdown>.dropdown-button{
+    font-size: 1rem;
+    white-space: nowrap;
+  }
+
+  .pagination {
+    min-height: 3rem;
+
+    button {
+      padding: 0.1rem 1rem;
+      margin: 0 0.5rem;
+    }
+  }
+
+  .paginate-large {
+    display: none;
+  }
+}
+
+@include tabletplus {
+  .pagination {
+    min-height: 4rem;
+
+    button {
+      padding: 0.5rem 1rem;
+      margin: 0 0.5rem;
+    }
+  }
+
+  .paginate-small {
+    display: none;
   }
 }

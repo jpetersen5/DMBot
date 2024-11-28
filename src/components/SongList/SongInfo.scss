@@ -19,36 +19,17 @@
 
 .song-info {
   flex: 1;
-  max-height: 500px;
   overflow-y: auto;
   padding: var(--gap-medium);
   border-radius: var(--border-radius);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  scrollbar-width: thin;
-  @include theme("scrollbar-color", "color-scrollbar color-box");
   @include theme("background", "color-box");
+  @include scrollbar;
 
   .loading-spinner {
     @extend .flex-column;
     align-items: center;
     justify-content: center;
-    height: 450px;
-  }
-
-  .song-art-box {
-    .loading-spinner {
-      height: 235px;
-    }
-  }
-
-  &::-webkit-scrollbar {
-    width: 10px;
-    &-track { background: transparent; }
-    &-thumb {
-      border-radius: 5px;
-      @include theme("background", "color-scrollbar");
-      &:hover { @include theme("background", "color-scrollbar-hover"); }
-    }
   }
 }
 
@@ -65,7 +46,7 @@
     .spotify-data-grid {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      // justify-content: space-between;
       margin-bottom: 10px;
     }
   
@@ -73,11 +54,12 @@
       display: flex;
       align-items: center;
       padding: 5px;
+      margin-right: 5px;
       border-radius: 4px;
       @include theme("background", "color-box");
   
       .value {
-        font-size: 1.2em;
+        font-size: 0.8em;
         font-weight: bold;
         margin-right: 5px;
         @include theme("color", "color-text");
@@ -193,10 +175,6 @@
 .song-column {
   @extend .flex-column;
   @extend .gap-medium;
-
-  @media (min-width: 1200px) {
-    flex-direction: row;
-  }
 }
 
 .song-header {
@@ -212,7 +190,6 @@
   font-size: 1.5rem;
   font-weight: bold;
   width: 100%;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -225,9 +202,6 @@
   height: 100%;
   position: relative;
 
-  @media (min-width: 1200px) {
-    width: 50%;
-  }
 }
 
 .song-art-image {
@@ -243,20 +217,6 @@
   margin-top: calc(2rem - 110px);
   margin-left: 15px;
   margin-bottom: var(--gap-small);
-  
-  @media (min-width: 1200px) {
-    width: 45px;
-    height: 45px;
-    margin-top: calc(1.5rem - 90px);
-    margin-left: 10px;
-  }
-
-  @media (max-width: 991px) {
-    width: 40px;
-    height: 40px;
-    margin-top: calc(1.5rem - 80px);
-    margin-left: 10px;
-  }
 
   .user-avatar {
     width: 100%;
@@ -288,10 +248,12 @@
   }
 
   .value { flex: 1; }
+}
 
-  @media (max-width: 991px) {
-    code { width: 80%; }
-  }
+.song-details-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .parts {
@@ -346,15 +308,9 @@
   }
 }
 
-.difficulties {
-  @extend .margin-bottom-medium;
-}
-
 .feature-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
   gap: var(--gap-small);
-  @extend .margin-bottom-medium;
 }
 
 .difficulty, .instrument, .nps-item, .feature, .note-count-item {
@@ -376,12 +332,60 @@
   margin-right: var(--gap-small);
 }
 
-@media (min-width: 1200px) {
-  .song-details-box { width: 50%; }
+.MD5 {
+  padding-top: 20px;
 }
 
-@media (max-width: 991px) {
-  .charter {
-    .info-line .label { min-width: 76px; }
+
+@include mobile {
+  .song-column {
+    flex-direction: column;
   }
+
+  .song-info {
+    height: 100%;
+  }
+
+  .feature-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .parts {
+    justify-content: space-between;
+  }
+}
+
+@include tabletplus {
+  .song-column {
+    flex-direction: row;
+  }
+
+  .song-details-box {
+    overflow-y: auto;
+    @include scrollbar;
+  }
+
+  .song-art-box,
+  .song-details-box,
+  .song-art-box > .loading-spinner
+  {
+    min-height: 253px;
+    max-height: 253px;
+  }
+  .song-art-box,
+  .song-details-box,
+  .difficulties,
+  .chart-features
+  {
+    width: calc(50% - 0.5rem);
+  }
+
+  .feature-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .spotify-data-grid {
+    overflow-x: hidden;
+  }
+
 }

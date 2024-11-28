@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Nav } from "react-bootstrap";
 import { API_URL } from "../../App";
-import { SongTableCell } from "./SongList";
+import { SimpleTableHeader, SongTableCell } from "../Extras/Tables";
 import { Pagination } from "./TableControls";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import { useSongCache } from "../../context/SongContext";
@@ -47,7 +47,7 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
 
   const [page, setPage] = useState(1);
   const [inputPage, setInputPage] = useState("1");
-  const perPage = 8;
+  const perPage = 50;
 
   const updateURL = () => {
     if (!currentSong) return;
@@ -146,44 +146,69 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
   const totalPages = Math.ceil(relatedSongs[`${relationType}_songs`].length / perPage);
   const numCharters = currentSong.charter_refs?.length || 0;
 
+  // TODO: reconcile with Tables.tsx
   const renderRelatedSongsTable = () => {
+    let RELATED_SONGS_TABLE_HEADERS;
     let columns;
     switch (relationType) {
       case RelatedSongsType.album:
+        RELATED_SONGS_TABLE_HEADERS = {
+          "#": "Track",
+          Name: "Name",
+          Length: "Length"
+        };
         columns = ["#", "Name", "Length"];
         break;
       case RelatedSongsType.artist:
+        RELATED_SONGS_TABLE_HEADERS = {
+          Name: "Name",
+          Artist: "Artist",
+          Length: "Length"
+        };
         columns = ["Name", "Album", "Length"];
         break;
       case RelatedSongsType.genre:
       case RelatedSongsType.charter:
+        RELATED_SONGS_TABLE_HEADERS = {
+          Name: "Name",
+          Artist: "Artist",
+          Length: "Length"
+        };
         columns = ["Name", "Artist", "Length"];
         break;
     }
 
     return (
-      <table className="related-songs-table">
-        <thead>
-          <tr>
-            {columns.map(col => <th key={col}>{col}</th>)}
-          </tr>
-        </thead>
-        <tbody>
-          {relatedLoading && <tr><td colSpan={columns.length}><LoadingSpinner /></td></tr>}
-          {!relatedLoading && paginatedRelatedSongs.map((relatedSong) => (
-            <tr key={relatedSong.id} className={currentSong.id == relatedSong.id ? "selected-row" : ""} onClick={() => handleRelatedSongClick(relatedSong)}>
-              {relationType === RelatedSongsType.album && <SongTableCell content={relatedSong.track?.toString() || "N/A"} />}
-              <SongTableCell content={relatedSong.name} />
-              {relationType === RelatedSongsType.artist && <SongTableCell content={relatedSong.album} />}
-              {(relationType === RelatedSongsType.genre || relationType === RelatedSongsType.charter) && <SongTableCell content={relatedSong.artist} />}
-              <SongTableCell content={msToTime(relatedSong.song_length || 0)} />
+      <div className="table-container">
+        <table>
+          <thead>
+            <tr>
+              {Object.entries(RELATED_SONGS_TABLE_HEADERS).map(([key, value]) => (
+                <SimpleTableHeader
+                  key={key}
+                  className={key.replace(/_/g, "-")}
+                  content={value}
+                />
+              ))}
             </tr>
-          ))}
-          {!relatedLoading && paginatedRelatedSongs.length === 0 && (
-            <tr><td colSpan={columns.length}>{`No related songs from ${relationType}`}</td></tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {relatedLoading && <tr><td colSpan={Object.keys(RELATED_SONGS_TABLE_HEADERS).length}><LoadingSpinner /></td></tr>}
+            {!relatedLoading && paginatedRelatedSongs.map((relatedSong) => (
+              <tr key={relatedSong.id} className={currentSong.id == relatedSong.id ? "selected-row" : ""} onClick={() => handleRelatedSongClick(relatedSong)}>
+                {relationType === RelatedSongsType.album && <SongTableCell className="track" content={relatedSong.track?.toString() || ""} />}
+                <SongTableCell className="name" content={relatedSong.name} />
+                {relationType === RelatedSongsType.artist && <SongTableCell className="album" content={relatedSong.album} />}
+                {(relationType === RelatedSongsType.genre || relationType === RelatedSongsType.charter) && <SongTableCell className="artist" content={relatedSong.artist} />}
+                <SongTableCell className="song-length" content={msToTime(relatedSong.song_length || 0)} />
+              </tr>
+            ))}
+            {!relatedLoading && paginatedRelatedSongs.length === 0 && (
+              <tr><td colSpan={columns.length}>{`No related songs from ${relationType}`}</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     );
   };
 
@@ -207,7 +232,7 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
             </Nav.Item>
           )}
         </Nav>
-        <div className="pagination-container">
+        {/* <div className="pagination-container">
           <Pagination
             page={page}
             totalPages={totalPages}
@@ -216,9 +241,11 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
             setPage={setPage}
             size="sm"
           />
-        </div>
+        </div> */}
       </div>
-      {renderRelatedSongsTable()}
+      <div className="table-container">
+        {renderRelatedSongsTable()}
+      </div>
     </div>
   );
 };

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../../App";
 import { TableControls, Pagination } from "../SongList/TableControls";
-import { SongTableCell } from "../SongList/SongList";
+import { TableHeader, SongTableCell } from "../Extras/Tables";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import { useKeyPress } from "../../hooks/useKeyPress";
 import { useAuth } from "../../context/AuthContext";
@@ -26,12 +26,12 @@ interface LeaderboardProps {
 }
 
 const LEADERBOARD_TABLE_HEADERS = {
-  rank: "Rank",
+  rank: "#",
   username: "Player",
   score: "Score",
   percent: "Percent",
   speed: "Speed",
-  is_fc: "FC",
+  // is_fc: "FC",
   play_count: "Plays",
   posted: "Posted",
 };
@@ -144,81 +144,59 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
 
   return (
     <div className="leaderboard">
-      <h5>Leaderboard</h5>
-      <div className="control-bar">
-        <TableControls perPage={perPage} setPerPage={setPerPage} setPage={setPage} />
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          inputPage={inputPage}
-          setPage={setPage}
-          setInputPage={setInputPage}
-        />
+      <div className="table-container">
+        {loading && (
+          <LoadingSpinner message="Loading leaderboard..." />
+        )}
+        {!loading && (
+          <table>
+            <thead>
+              <tr>
+                {Object.entries(LEADERBOARD_TABLE_HEADERS).map(([key, value]) => (
+                  <TableHeader
+                    key={key}
+                    className={key.replace(/_/g, "-")}
+                    content={value}
+                    onClick={() => handleSort(key)}
+                    sort={sortBy === key || secondarySortBy === key}
+                    sortOrder={sortBy === key ? sortOrder : secondarySortOrder}
+                  />
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedEntries.length === 0 && (
+                <tr>
+                  <td colSpan={Object.keys(LEADERBOARD_TABLE_HEADERS).length}>No entries found</td>
+                </tr>
+              )}
+              {paginatedEntries.length > 0 && (
+                paginatedEntries.map((entry) => (
+                  <LeaderboardTableRow 
+                    key={entry.user_id} 
+                    entry={entry}
+                    onClick={() => handleRowClick(entry.user_id)}
+                  />
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
-      <table>
-        <thead>
-          <tr>
-            {Object.entries(LEADERBOARD_TABLE_HEADERS).map(([key, value]) => (
-              <LeaderboardTableHeader
-                key={key}
-                content={value}
-                onClick={() => handleSort(key)}
-                sort={sortBy === key || secondarySortBy === key}
-                sortOrder={sortBy === key ? sortOrder : secondarySortOrder}
-              />
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {loading && (
-            <tr>
-              <td colSpan={Object.keys(LEADERBOARD_TABLE_HEADERS).length}>
-                <LoadingSpinner message="Loading leaderboard..." />
-              </td>
-            </tr>
-          )}
-          {!loading && paginatedEntries.length === 0 && (
-            <tr>
-              <td colSpan={Object.keys(LEADERBOARD_TABLE_HEADERS).length}>No entries found</td>
-            </tr>
-          )}
-          {!loading && paginatedEntries.length > 0 && (
-            paginatedEntries.map((entry) => (
-              <LeaderboardTableRow 
-                key={entry.user_id} 
-                entry={entry}
-                onClick={() => handleRowClick(entry.user_id)}
-              />
-            ))
-          )}
-        </tbody>
-      </table>
-      <Pagination
-        page={page}
-        totalPages={totalPages}
-        inputPage={inputPage}
-        setPage={setPage}
-        setInputPage={setInputPage}
-      />
+      {totalPages > 1 && (
+        <div className="page-controls">
+          <TableControls perPage={perPage} setPerPage={setPerPage} setPage={setPage} />
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            inputPage={inputPage}
+            setPage={setPage}
+            setInputPage={setInputPage} />
+        </div>
+      )}
     </div>
   );
 };
-
-interface LeaderboardTableHeaderProps {
-  onClick: () => void;
-  content: string;
-  sort: boolean;
-  sortOrder: string;
-}
-
-const LeaderboardTableHeader: React.FC<LeaderboardTableHeaderProps> = ({ onClick, content, sort, sortOrder }) => (
-  <th onClick={onClick}>
-    <div className="header-content">
-      <span className="header-text">{content}</span>
-      {sort && <span className="sort-arrow">{sortOrder === "asc" ? "▲" : "▼"}</span>}
-    </div>
-  </th>
-);
 
 interface LeaderboardTableRowProps {
   entry: LeaderboardEntry;
@@ -231,14 +209,14 @@ const LeaderboardTableRow: React.FC<LeaderboardTableRowProps> = ({ entry, onClic
 
   return (
     <tr onClick={onClick} className={isCurrentUser ? "selected-row" : ""} style={{ cursor: "pointer" }}>
-      <SongTableCell content={entry.rank.toString()} />
-      <SongTableCell content={entry.username} />
-      <SongTableCell content={entry.score.toLocaleString()} />
-      <SongTableCell content={entry.percent.toString()} special={entry.is_fc ? "fc_percent" : "percent"} />
-      <SongTableCell content={entry.speed.toString()} special="percent" />
-      <SongTableCell content={entry.is_fc ? "Yes" : "No"} />
-      <SongTableCell content={entry.play_count ? entry.play_count.toString() : "N/A"} />
-      <SongTableCell content={entry.posted} special="last_update" />
+      <SongTableCell className="rank" content={entry.rank.toString()} />
+      <SongTableCell className="username" content={entry.username} />
+      <SongTableCell className="score" content={entry.score.toLocaleString()} />
+      <SongTableCell className="percent" content={entry.percent.toString()} special={entry.is_fc ? "fc_percent" : "percent"} />
+      <SongTableCell className="speed" content={entry.speed.toString()} special="percent" />
+      {/* <SongTableCell className="is-fc" content={entry.is_fc ? "Yes" : "No"} /> */}
+      <SongTableCell className="play-count" content={entry.play_count ? entry.play_count.toString() : "N/A"} />
+      <SongTableCell className="posted" content={entry.posted} special="last_update" />
     </tr>
   );
 };

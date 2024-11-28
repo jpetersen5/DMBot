@@ -1,0 +1,171 @@
+.table-container {
+  flex: 1;
+  overflow: auto;
+  @include theme("background", "color-box");
+  @include scrollbar;
+}
+
+table {
+  border-collapse: collapse;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  @include theme("background", "color-table-background-2");
+  @include theme("color", "color-table-text");
+
+  thead {
+    top: 0;
+    position: sticky;
+    z-index: 1;
+  }
+
+  .score-difference-negative {
+    @include theme("color", "color-text-error");
+  }
+
+  .score-difference-positive {
+    @include theme("color", "color-text-success");
+  }
+
+  th {
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    position: relative;
+    @include theme("background", "color-table-header");
+    @include theme("color", "color-table-header-text");
+
+    .sort-arrow {
+      padding-left: 2px;
+    }
+
+    &:hover {
+      @include theme("background", "color-table-header-hover");
+    }
+  }
+
+  th, td {
+    &.rank,
+    &.percent,
+    &.speed,
+    &.is-fc,
+    &.play-count,
+    &.year,
+    &.scores-count,
+    &.song-length
+    {
+      text-align: center;
+    }
+  }
+  
+  .fc-crown {
+    align-items: center;
+    vertical-align: middle;
+  }
+
+  // Row colors
+
+  tr {
+    @include theme("background", "color-table-background-1");
+  }
+
+  tr:nth-child(even) {
+    @include theme("background", "color-table-background-2");
+  }
+
+  tr.selected-row {
+    @include theme("background", "color-table-selected-background");
+    @include theme("color", "color-table-selected-text");
+  }
+
+  tr:hover {
+    cursor: pointer;
+    @include theme("background", "color-table-hover");
+  }
+
+  tr.selected-row {
+    cursor: pointer;
+    @include theme("background", "color-table-selected-hover");
+  }
+}
+
+.page-controls {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+
+  .table-controls {
+    position: absolute;
+    left: 0;
+    display: none;
+  }
+}
+
+@include mobile {
+  .search-bar {
+    margin: 0;
+    padding: 0;
+
+    .multi-select-dropdown {
+      display: none;
+    }
+  }
+
+  table {
+    min-width: 100%;
+    font-size: 0.75rem;
+
+    th,
+    td {
+      padding: 0.3rem;
+      text-overflow: ellipsis;
+
+  
+      &.rank        { max-width: 30px; }
+      &.speed,
+      &.play-count  { max-width: 50px; }
+      &.percent     { max-width: 65px; }
+      &.year        { max-width: 60px; }
+      &.scores-count,
+      &.length      { max-width: 70px; }
+      &.username    { 
+        min-width: 110px;
+        max-width: 110px;
+        word-break: break-all;}
+
+      &.posted {
+        white-space: nowrap;
+      }
+    }
+
+    .fc-crown {
+      width: 15px;
+      height: 15px;
+    }
+  }
+}
+
+@include tabletplus {
+
+  table {
+    min-width: 100%;
+
+    th,
+    td {
+      padding: 0.6rem;
+
+      &.rank        { max-width: 20px; }
+      &.speed,
+      &.play-count  { max-width: 30px; }
+      &.percent     { max-width: 35px; }
+      &.year        { max-width: 60px; }
+      &.scores-count,
+      &.length      { max-width: 70px; }
+
+    }
+
+   .fc-crown {
+      width: 20px;
+      min-height: 20px;
+    }
+  }
+}

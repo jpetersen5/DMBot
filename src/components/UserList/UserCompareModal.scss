@@ -138,6 +138,7 @@
       border-radius: 4px;
       @include theme("background", "color-dropdown");
       @include theme("border-color", "color-border");
+      @include scrollbar;
     }
 
     .user-option {

@@ -117,6 +117,7 @@
     padding-right: 10px;
     overflow-y: auto;
     overflow-x: hidden;
+    @include scrollbar;
 
     .chart-bar {
       display: flex;

@@ -47,8 +47,54 @@ export const Pagination: React.FC<PaginationProps> = ({
   totalPages,
   setPage,
   setInputPage,
-  size = "lg"
 }) => {
+
+  const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputPage(e.target.value);
+  };
+
+  const handlePageInputUpdate = () => {
+    const newPage = parseInt(inputPage, 10);
+    if (!isNaN(newPage)) {
+      if (newPage < 1) {
+        setInputPage("1");
+      }
+      else if (newPage > totalPages) {
+        setInputPage(totalPages.toString());
+      }
+      else {
+        setPage(newPage);
+      }
+    }
+  };
+
+  const handlePageInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handlePageInputUpdate();
+      e.currentTarget.blur();
+    } else if (e.key === "Escape") {
+      e.currentTarget.blur();
+    } else if (e.key === "ArrowUp") {
+      handleNextPage();
+    } else if (e.key === "ArrowDown") {
+      handlePrevPage();
+    }
+  };
+
+  const handleInputClick = (e: React.MouseEvent<HTMLInputElement>) => {
+    e.currentTarget.select();
+  };
+
+  const handleBlur = () => {
+    handlePageInputUpdate();
+
+    // if input left blank/invalid, reset to current page
+    const newPage = parseInt(inputPage, 10);
+    if (isNaN(newPage)) { 
+      setInputPage(page.toString());
+    }
+  }
+
   const handlePrevPage = () => {
     if (page > 1) setPage(page - 1);
   };
@@ -57,59 +103,39 @@ export const Pagination: React.FC<PaginationProps> = ({
     if (page < totalPages) setPage(page + 1);
   };
 
-  const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputPage(e.target.value);
-  };
-
-  const handlePageInputUpdate = () => {
-    const newPage = parseInt(inputPage, 10);
-    if (!isNaN(newPage) && newPage >= 1 && newPage <= totalPages) {
-      setPage(newPage);
-    } else {
-      setInputPage(page.toString());
-    }
-  };
-
-  const handlePageInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handlePageInputUpdate();
-    }
-  };
-
   useEffect(() => {
     setInputPage(page.toString());
   }, [page]);
 
+  useEffect(() => {
+    handlePageInputUpdate();
+  }, [inputPage]);
+
   return (
     <div className="pagination">
-      <button
-        onClick={handlePrevPage}
-        disabled={page === 1}
-        className="prev"
-      >
-        {size === "lg" && "Previous"}
-        {size === "sm" && "←"}
+      <button onClick={handlePrevPage} disabled={page === 1} className="prev">
+        <span className="paginate-large">Previous</span>
+        <span className="paginate-small">←</span>
       </button>
-      <span className="pages">
-        <span>{size === "lg" && "Page "}</span>
+      <div className="pages">
+        <span className="paginate-large">Page&nbsp;</span>
         <input
-          type="number" 
-          value={inputPage} 
+          className="paginate-large"
+          type="text"
+          pattern="[0-9]{1}"
+          value={inputPage}
           onChange={handlePageInputChange}
-          onBlur={handlePageInputUpdate}
+          onBlur={handleBlur}
           onKeyDown={handlePageInputKeyPress}
-          min={1} 
-          max={totalPages} 
-        />
-        <span>{` of ${totalPages}`}</span>
-      </span>
-      <button
-        onClick={handleNextPage}
-        disabled={page === totalPages}
-        className="next"
-      >
-        {size === "lg" && "Next"}
-        {size === "sm" && "→"}
+          onClick={handleInputClick}
+          min={1}
+          max={totalPages}/>
+        <span className="paginate-small">{inputPage}&nbsp;</span>
+        <span>{`of ${totalPages}`}</span>
+      </div>
+      <button onClick={handleNextPage} disabled={page === totalPages} className="next">
+        <span className="paginate-large">Next</span>
+        <span className="paginate-small">→</span>
       </button>
     </div>
   );
@@ -129,22 +155,12 @@ export const Search: React.FC<SearchProps> = ({
   filters,
   filterOptions,
   setSearch,
-  setFilters,
-  submitSearch
+  setFilters
 }) => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      submitSearch();
-    }
-  };
-
-  const handleSearchClick = () => {
-    submitSearch();
-  };
 
   return (
     <div className="search-controls">
@@ -153,20 +169,14 @@ export const Search: React.FC<SearchProps> = ({
           type="text"
           value={search}
           onChange={handleSearchChange}
-          onKeyDown={handleKeyPress}
-          placeholder="Search..."
-        />
+          placeholder="Search..."/>
         {filters && filterOptions && setFilters && (
           <FilterDropdown
             filters={filters}
             filterOptions={filterOptions}
-            setFilters={setFilters}
-          />
+            setFilters={setFilters}/>
         )}
       </div>
-      <button onClick={handleSearchClick} className="search-button">
-        Search
-      </button>
     </div>
   );
 };

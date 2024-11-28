@@ -23,9 +23,9 @@
     }
 
     .btn-close {
-      opacity: 0.8;
+      opacity: 0.6;
       transition: opacity 0.3s;
-      @include theme("color", "color-sidebar-text");
+      filter: invert(1);
 
       &:hover {
         opacity: 1;
@@ -46,8 +46,8 @@
   .theme-option {
     display: flex;
     align-items: center;
-    padding: 0.75rem 1rem;
     margin-bottom: 0.5rem;
+    padding: 0.5rem;
     cursor: pointer;
     transition: all 0.3s ease;
     border-radius: 4px;

@@ -8,6 +8,7 @@
     align-items: center;
 
     .modal-content {
+      flex: 1;
       height: 800px;
     }
   }
@@ -15,10 +16,10 @@
   .modal-dialog {
     position: relative;
     max-width: 80%;
-    margin: 1.75rem auto;
   }
 
   .modal-content {
+    flex: 1;
     border: none;
     @include theme("background", "color-background");
     @include theme("color", "color-text");
@@ -29,12 +30,11 @@
     @include theme("background", "color-sidebar");
     @include theme("color", "color-sidebar-text");
     .back-button {
-      display: flex;
-      align-items: center;
       position: absolute;
       height: 30px;
       width: 30px;
       right: 1rem;
+      padding-bottom: 5px;
       background-color: transparent;
       border: none;
       border-radius: 4px;
@@ -51,8 +51,6 @@
   }
 
   .modal-body {
-    padding: 2rem;
-
     .admin-controls {
       display: flex;
       justify-content: flex-end;
@@ -91,38 +89,6 @@
       justify-content: space-between;
       margin-bottom: 2rem;
       gap: 2rem;
-      
-      @media (max-width: 991px) {
-        flex-direction: column;
-      }
-    }
-
-    .leaderboard {
-      margin-top: 2rem;
-      @include theme("background", "color-box");
-      @include theme("color", "color-text");
-
-      h5 {
-        margin-bottom: 1rem;
-        @include theme("color", "color-text");
-      }
-
-      th, td {
-        padding: 0.75rem;
-        text-align: left;
-        border: none;
-      }
-
-      th {
-        font-weight: bold;
-        cursor: default;
-        @include theme("background", "color-table-header");
-        @include theme("color", "color-table-header-text");
-
-        &:hover {
-          @include theme("background", "color-table-header-hover");
-        }
-      }
     }
   }
 
@@ -176,12 +142,86 @@
       left: -40px;
       border-top-left-radius: 40px;
       border-bottom-left-radius: 40px;
+      font-size: 2.5rem;
+      padding-left: 5px;
     }
-
+    
     &.next-button {
       right: -40px;
       border-top-right-radius: 40px;
       border-bottom-right-radius: 40px;
+      font-size: 2.5rem;
+      padding-right: 5px;
     }
   }
+}
+
+@include mobile {
+  .modal-header {
+    top: 0;
+    position: sticky;
+    z-index: 2;
+  }
+  
+  .modal-dialog {
+    max-width: 100%;
+    margin: 0;
+  }
+
+  .modal-body {
+    padding: 1rem;
+
+    .song-details {
+      flex-direction: column;
+    }
+
+    .related-songs {
+      display: none;
+    }
+  }
+
+  .close-button {
+    display: none;
+  }
+  
+}
+
+@include tabletplus {
+  .modal-body {
+    padding: 1rem;
+  }
+
+  .song-info,
+  .related-songs {
+    min-height: 430px;
+    max-height: 430px;
+  }
+
+  .song-info {
+    overflow: hidden;
+  }
+
+  .related-songs {
+    overflow: hidden;
+    .table-container {
+      height: 100%;
+      overflow-y: auto;
+    }
+  }
+
+  .leaderboard {
+    flex: 1;
+    min-height: 400px;
+    max-height: calc(100vh - 750px);
+    
+    .loading-spinner {
+      min-height: 400px;
+      max-height: calc(100vh - 750px);
+    }
+  }
+
+  .close-button {
+    display: none;
+  }
+
 }

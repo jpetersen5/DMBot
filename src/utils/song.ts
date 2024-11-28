@@ -103,7 +103,8 @@ export const SONG_DIFFICULTIES = {
 };
 
 export const msToTime = (duration: number) => {
-  return new Date(duration).toISOString().substring(11, 19);
+  const timeString = new Date(duration).toISOString().substring(11, 19);
+  return timeString.replace(/^0{1,2}:(0{1,2})?/, '').replace(/^0/, '');
 }
 
 export const msToHourMinSec = (duration: number) => {

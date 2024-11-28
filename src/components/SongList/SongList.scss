@@ -2,7 +2,8 @@
 @import "../../styles/mixins";
 
 .song-list {
-  padding: 2rem;
+  display: flex;
+  flex-direction: column;
   @include theme("background", "color-background");
 
   .song-list-header {
@@ -85,67 +86,29 @@
     }
   }
 
-  .control-bar {
+  .search-bar {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
+    flex-direction: row;
   }
-  
-  table {
+
+}
+
+@include mobile {
+  .song-list {
+    padding: 0 1rem;
+  }
+  .search-bar {
+    padding: 0 0 1rem 0;
+  }
+}
+
+@include tabletplus {
+  .song-list {
     width: 100%;
-    border-collapse: collapse;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 1rem;
-    @include theme("background", "color-table-background-2");
-    @include theme("color", "color-table-text");
+    padding: 1rem 2rem;
+  }
 
-    th, td {
-      padding: 0.75rem;
-      text-align: left;
-      border: none;
-    }
-
-    .score-difference-negative {
-      @include theme("color", "color-text-error");
-    }
-
-    .score-difference-positive {
-      @include theme("color", "color-text-success");
-    }
-
-    th {
-      font-weight: bold;
-      cursor: pointer;
-      user-select: none;
-      white-space: nowrap;
-      position: relative;
-      padding-right: 20px;
-      @include theme("background", "color-table-header");
-      @include theme("color", "color-table-header-text");
-
-      .header-content {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      &:hover {
-        @include theme("background", "color-table-header-hover");
-      }
-    }
-    
-    tr {
-      @include theme("background", "color-table-background-1");
-    }
-
-    tr:nth-child(even) {
-      @include theme("background", "color-table-background-2");
-    }
-
-    tr:hover {
-      cursor: pointer;
-      @include theme("background", "color-table-hover");
-    }
+  .search-bar {
+    margin-bottom: 2rem;
   }
 }

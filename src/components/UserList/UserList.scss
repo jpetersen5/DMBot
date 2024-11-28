@@ -3,7 +3,7 @@
 
 .user-list {
   padding: 2rem;
-  padding-right: 200px;
+  overflow: hidden;
   @include theme("background", "color-background");
   @include theme("color", "color-text");
 
@@ -57,17 +57,23 @@
     }
   }
 
-  .user-card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1rem;
+  .user-card-grid-container {
+    height: calc(100% - 100px);
+    overflow-y: auto;
+    @include scrollbar;
+
+    .user-card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+    }
   }
+
 
   .user-card {
     position: relative;
     display: flex;
     align-items: center;
-    padding: 1rem;
     border-radius: 8px;
     text-decoration: none;
     transition: all 0.2s ease-in-out;
@@ -141,7 +147,6 @@
     }
   
     h3 {
-      font-size: 1.2rem;
       text-align: center;
       margin: 0;
       text-overflow: ellipsis;
@@ -171,16 +176,53 @@
   }
 }
 
-@media (max-width: 768px) {
+@include mobile {
   .user-list {
-    .user-list-controls {
-      flex-direction: column;
-      align-items: stretch;
+    padding: 1rem;
+  }
 
-      .controls-left {
-        flex-direction: column;
-        align-items: stretch;
+  .user-list-controls {
+    font-size: 0.9rem;
+  }
+
+  .user-card {
+    padding: 0.5rem;
+
+    h3 {
+      font-size: 0.8rem;
+    }
+
+    .user-info {
+      
+      max-width: 40%;
+    }
+    &.has-stats {
+      width: 100%;
+    
+      .user-stats {
+        opacity: 1;
+        visibility: visible;
+        max-width: 200px;
       }
+    }
+    }
+}
+
+@include tabletplus {
+  .user-list {
+    background-color: blue;
+  }
+
+  .user-card-grid-container,
+  .user-list-controls {
+    padding-right: 200px;
+  }
+
+  .user-card {
+    padding: 1rem;
+
+    h3 {
+      font-size: 1.2rem;
     }
   }
 }

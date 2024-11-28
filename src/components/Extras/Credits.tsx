@@ -36,7 +36,7 @@ const Credits: React.FC = () => {
       <h2>Contributors</h2>
       <div className="contributors-list">
         {contributors.map((contributor, index) => (
-          <Tooltip text={contributor.role} key={index}>
+          <Tooltip text={contributor.role} key={index} position="bottom">
             <a
               key={index}
               href={contributor.profileUrl}

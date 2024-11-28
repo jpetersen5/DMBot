@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import UploadProgress from "./UploadProgress";
 import ThemeModal from "./Themes/ThemeModal";
 import KofiWidget from "../KofiWidget";
@@ -34,6 +34,7 @@ const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
   const { user } = useAuth();
+  const location = useLocation();
 
   const storedTheme = localStorage.getItem("theme") || "light";
   useEffect(() => {
@@ -53,6 +54,20 @@ const Sidebar: React.FC = () => {
     setIsThemeModalOpen(false);
   };
 
+  const isIconActive = (name: string, path: string): boolean => {
+    if (name === "Home") {
+      return location.pathname === "/";
+    }
+    else if (name === "Users") {
+      return location.pathname.startsWith("/users") || 
+             location.pathname.startsWith("/charter") ||
+             location.pathname.startsWith("/user") && !location.pathname.startsWith("/user/" + user?.id); // Exclude user profile page
+    }
+    else {
+      return location.pathname.startsWith(path);
+    }
+  }
+
   const profileNavItem: NavItem = {
     path: user ? `/user/${user.id}` : "/login",
     name: "Profile",
@@ -61,7 +76,7 @@ const Sidebar: React.FC = () => {
 
   const navItems = user ? [...staticNavItems, profileNavItem] : staticNavItems;
 
-  const version = "v1.8.1";
+  const version = "v1.9.0";
   const commitDate = import.meta.env.VITE_COMMIT_DATE || "Unknown";
 
   return (
@@ -75,14 +90,16 @@ const Sidebar: React.FC = () => {
         <nav className="nav-menu">
           <ul>
             {navItems.map((item) => (
-              <Link to={item.path} key={item.path}>
-                <li>
-                    <span className="icon">
-                      <img src={item.icon} alt={item.name} />
-                    </span>
-                    {isOpen && <span className="nav-text">{item.name}</span>}
-                </li>
-              </Link>
+              <div className={isIconActive(item.name, item.path) ? "active" : ""}>
+                <Link to={item.path} key={item.path}>
+                  <li>
+                      <span className="icon">
+                        <img src={item.icon} alt={item.name} />
+                      </span>
+                      {isOpen && <span className="nav-text">{item.name}</span>}
+                  </li>
+                </Link>
+              </div>
             ))}
             <a onClick={openThemeModal}>
               <li>

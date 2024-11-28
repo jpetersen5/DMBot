@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { API_URL } from "../../../App";
-import { TableControls, Pagination, Search } from "../../SongList/TableControls";
+import { Pagination, Search } from "../../SongList/TableControls";
 import SongModal from "../../SongList/SongModal";
-import { SongTableHeader, SongTableRow } from "../../SongList/SongList";
+import { TableHeader } from "../../Extras/Tables";
+import { SongTableRow } from "../../SongList/SongList";
 import LoadingSpinner from "../../Loading/LoadingSpinner";
 import { useCharterData } from "../../../context/CharterContext";
 import { useSongCache } from "../../../context/SongContext";
@@ -39,7 +40,6 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
   const [songsLoading, setSongsLoading] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
   const [inputPage, setInputPage] = useState<string>(page.toString());
-  const [perPage, setPerPage] = useState<number>(20);
   const [sortBy, setSortBy] = useState<string>("last_update");
   const [secondarySortBy, setSecondarySortBy] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
@@ -47,6 +47,7 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
   const shiftPressed = useKeyPress("Shift");
   const [search, setSearch] = useState<string>("");
   const [filters, setFilters] = useState<string[]>([]);
+  const perPage = 50;
 
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [modalLoading, setModalLoading] = useState<boolean>(false);
@@ -217,63 +218,60 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
 
   return (
     <div className="charter-songs">
-      <h2>Charter Songs</h2>
-      <div className="control-bar">
-        <TableControls perPage={perPage} setPerPage={setPerPage} setPage={setPage} />
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          inputPage={inputPage}
-          setPage={setPage}
-          setInputPage={setInputPage}
-        />
-        <Search
-          search={search}
-          filters={filters}
-          filterOptions={filterOptions}
-          setSearch={setSearch}
-          setFilters={setFilters}
-          submitSearch={() => {}}
-        />
+      <div className="charter-songs-header">
+        <h2>Charter Songs</h2>
+        <div className="control-bar">
+          <Search
+            search={search}
+            filters={filters}
+            filterOptions={filterOptions}
+            setSearch={setSearch}
+            setFilters={setFilters}
+            submitSearch={() => {}}
+          />
+        </div>
       </div>
-      <table>
-        <thead>
-          <tr>
-            {Object.entries(SONG_TABLE_HEADERS).map(([key, value]) => (
-              <SongTableHeader
-                key={key}
-                content={value}
-                onClick={() => handleSort(key)}
-                sort={sortBy === key || secondarySortBy === key}
-                sortOrder={sortBy === key ? sortOrder : secondarySortOrder}
-              />
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {loading && (
+      <div className="table-container">
+        <table>
+          <thead>
             <tr>
-              <td colSpan={Object.keys(SONG_TABLE_HEADERS).length}>
-                <LoadingSpinner message="Loading songs..." />
-              </td>
+              {Object.entries(SONG_TABLE_HEADERS).map(([key, value]) => (
+                <TableHeader
+                  key={key}
+                  className={key.replace(/_/g, "-")}
+                  content={value}
+                  onClick={() => handleSort(key)}
+                  sort={sortBy === key || secondarySortBy === key}
+                  sortOrder={sortBy === key ? sortOrder : secondarySortOrder}
+                />
+              ))}
             </tr>
-          )}
-          {!loading && paginatedSongs.length === 0 && (
-            <tr>
-              <td colSpan={Object.keys(SONG_TABLE_HEADERS).length}>No songs found</td>
-            </tr>
-          )}
-          {!loading && paginatedSongs.length > 0 && (
-            paginatedSongs.map((song) => (
-              <SongTableRow 
-                key={song.id} 
-                song={song} 
-                onClick={() => handleRowClick(song)}
-              />
-            ))
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {loading && (
+              <tr>
+                <td colSpan={Object.keys(SONG_TABLE_HEADERS).length}>
+                  <LoadingSpinner message="Loading songs..." />
+                </td>
+              </tr>
+            )}
+            {!loading && paginatedSongs.length === 0 && (
+              <tr>
+                <td colSpan={Object.keys(SONG_TABLE_HEADERS).length}>No songs found</td>
+              </tr>
+            )}
+            {!loading && paginatedSongs.length > 0 && (
+              paginatedSongs.map((song) => (
+                <SongTableRow 
+                  key={song.id} 
+                  song={song} 
+                  onClick={() => handleRowClick(song)}
+                />
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
       <Pagination
         page={page}
         totalPages={totalPages}

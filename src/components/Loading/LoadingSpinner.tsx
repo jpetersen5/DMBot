@@ -28,7 +28,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
       {message && <p className="loading-message">{message}</p>}
       {showTimeoutMessage && (
         <p className="timeout-message">
-          We're using free services, so please be patient. It could take up to a minute.
+          Please be patient. It could take up to a minute.
         </p>
       )}
     </div>
