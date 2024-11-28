@@ -3,9 +3,9 @@
 
 .user-list {
   padding: 2rem;
+  overflow: hidden;
   @include theme("background", "color-background");
   @include theme("color", "color-text");
-  overflow-x: hidden;
 
   h1 {
     font-size: 2rem;
@@ -57,11 +57,18 @@
     }
   }
 
-  .user-card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1rem;
+  .user-card-grid-container {
+    height: calc(100% - 100px);
+    overflow-y: auto;
+    @include scrollbar;
+
+    .user-card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+    }
   }
+
 
   .user-card {
     position: relative;
@@ -204,6 +211,10 @@
 @include tabletplus {
   .user-list {
     background-color: blue;
+  }
+
+  .user-card-grid-container,
+  .user-list-controls {
     padding-right: 200px;
   }
 

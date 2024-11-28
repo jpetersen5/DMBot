@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { TableControls, Pagination, Search } from "../../SongList/TableControls";
+import { Pagination, Search } from "../../SongList/TableControls";
 import SongModal from "../../SongList/SongModal";
 import LoadingSpinner from "../../Loading/LoadingSpinner";
 import UnknownSongModal from "./UnknownSongModal";
@@ -38,7 +38,6 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
   const [inputPage, setInputPage] = useState<string>(page.toString());
-  const [perPage, setPerPage] = useState<number>(10);
   const [sortBy, setSortBy] = useState<string>("posted");
   const [secondarySortBy, setSecondarySortBy] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
@@ -46,6 +45,7 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   const shiftPressed = useKeyPress("Shift");
   const [search, setSearch] = useState<string>("");
   const [filters, setFilters] = useState<string[]>([]);
+  const perPage = 100;
 
   const [showUnknown, setShowUnknown] = useState<boolean>(false);
   const [selectedUnknownScore, setSelectedUnknownScore] = useState<UnknownScore | null>(null);
@@ -236,39 +236,31 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
       <div className="user-scores">
         <div className="user-scores-header">
           <h2>{`${showUnknown ? "Unknown" : ""} User Scores`}</h2>
-          <div className="toggle-container">
-            <label htmlFor="show-unknown" className="toggle-label" onClick={handleToggleUnknown}>
-              Show Unknown Scores
-            </label>
-            <div className="toggle-switch" onClick={handleToggleUnknown}>
-              <input
-                id="show-unknown"
-                type="checkbox"
-                checked={showUnknown}
-                onChange={handleToggleUnknown}
-                className="toggle-input"
-              />
-              <span className="toggle-slider"></span>
+          <div className="control-bar">
+            <Search
+              search={search}
+              filters={filters}
+              filterOptions={filterOptions}
+              setSearch={setSearch}
+              setFilters={setFilters}
+              submitSearch={() => {}}
+            />
+            <div className="toggle-container">
+              <label htmlFor="show-unknown" className="toggle-label" onClick={handleToggleUnknown}>
+                Show Unknown Scores
+              </label>
+              <div className="toggle-switch" onClick={handleToggleUnknown}>
+                <input
+                  id="show-unknown"
+                  type="checkbox"
+                  checked={showUnknown}
+                  onChange={handleToggleUnknown}
+                  className="toggle-input"
+                />
+                <span className="toggle-slider"></span>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="control-bar">
-          <TableControls perPage={perPage} setPerPage={setPerPage} setPage={setPage} />
-          {/* <Pagination
-            page={page}
-            totalPages={totalPages}
-            inputPage={inputPage}
-            setPage={setPage}
-            setInputPage={setInputPage}
-          /> */}
-          <Search
-            search={search}
-            filters={filters}
-            filterOptions={filterOptions}
-            setSearch={setSearch}
-            setFilters={setFilters}
-            submitSearch={() => {}}
-          />
         </div>
         <div className="table-container">
           <table>
@@ -312,14 +304,14 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
               )}
             </tbody>
           </table>
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            inputPage={inputPage}
-            setPage={setPage}
-            setInputPage={setInputPage}
-          />
         </div>
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          inputPage={inputPage}
+          setPage={setPage}
+          setInputPage={setInputPage}
+        />
         {(selectedSong || modalLoading) && (
           <SongModal
             show={true}

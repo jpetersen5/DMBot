@@ -156,7 +156,7 @@ const UserList: React.FC = () => {
       {loading ? (
         <LoadingSpinner message="Loading users..." />
       ) : (
-        <>
+        <div className="user-card-grid-container">
           <div className="user-card-grid">
             {filteredAndSortedUsers.map((user) => (
               <Link
@@ -188,7 +188,7 @@ const UserList: React.FC = () => {
               </Link>
             ))}
           </div>
-        </>
+        </div>
       )}
       <UserCompareModal
         show={showCompareModal}

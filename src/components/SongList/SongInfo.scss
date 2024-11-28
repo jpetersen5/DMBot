@@ -23,24 +23,13 @@
   padding: var(--gap-medium);
   border-radius: var(--border-radius);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  scrollbar-width: thin;
-  @include theme("scrollbar-color", "color-scrollbar color-box");
   @include theme("background", "color-box");
+  @include scrollbar;
 
   .loading-spinner {
     @extend .flex-column;
     align-items: center;
     justify-content: center;
-  }
-
-  &::-webkit-scrollbar {
-    width: 10px;
-    &-track { background: transparent; }
-    &-thumb {
-      border-radius: 5px;
-      @include theme("background", "color-scrollbar");
-      &:hover { @include theme("background", "color-scrollbar-hover"); }
-    }
   }
 }
 
@@ -372,7 +361,8 @@
   }
 
   .song-details-box {
-    overflow-y: scroll;
+    overflow-y: auto;
+    @include scrollbar;
   }
 
   .song-art-box,

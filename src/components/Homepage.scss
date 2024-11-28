@@ -71,6 +71,7 @@
     display: flex;
     justify-content: center;
     gap: 2rem;
+    margin-top: 1rem;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     @include theme("background", "color-box");
@@ -78,8 +79,8 @@
     .status {
       display: flex;
       align-items: center;
-      @include theme("color", "color-text-secondary");
       gap: 1rem;
+      @include theme("color", "color-text-secondary");
 
       .status-label {
         flex: 1;
@@ -92,6 +93,7 @@
       }
 
       .status-value {
+        text-align: center;
         border-radius: 4px;
         font-weight: 500;
 

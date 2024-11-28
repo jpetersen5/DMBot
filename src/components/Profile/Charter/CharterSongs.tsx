@@ -40,7 +40,6 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
   const [songsLoading, setSongsLoading] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
   const [inputPage, setInputPage] = useState<string>(page.toString());
-  const [perPage, setPerPage] = useState<number>(20);
   const [sortBy, setSortBy] = useState<string>("last_update");
   const [secondarySortBy, setSecondarySortBy] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
@@ -48,6 +47,7 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
   const shiftPressed = useKeyPress("Shift");
   const [search, setSearch] = useState<string>("");
   const [filters, setFilters] = useState<string[]>([]);
+  const perPage = 50;
 
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [modalLoading, setModalLoading] = useState<boolean>(false);
@@ -218,17 +218,18 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
 
   return (
     <div className="charter-songs">
-      <h2>Charter Songs</h2>
-      <div className="control-bar">
-        <TableControls perPage={perPage} setPerPage={setPerPage} setPage={setPage} />
-        <Search
-          search={search}
-          filters={filters}
-          filterOptions={filterOptions}
-          setSearch={setSearch}
-          setFilters={setFilters}
-          submitSearch={() => {}}
-        />
+      <div className="charter-songs-header">
+        <h2>Charter Songs</h2>
+        <div className="control-bar">
+          <Search
+            search={search}
+            filters={filters}
+            filterOptions={filterOptions}
+            setSearch={setSearch}
+            setFilters={setFilters}
+            submitSearch={() => {}}
+          />
+        </div>
       </div>
       <div className="table-container">
         <table>

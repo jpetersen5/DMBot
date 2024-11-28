@@ -2,33 +2,42 @@
 @import "../../../styles/mixins";
 
 .charter-songs {
+  display: flex;
+  flex-direction: column;
+  height: 600px;
   margin-top: 2rem;
   padding: 1rem;
   border-radius: 4px;
   @include theme("background", "color-box");
 
-  h2 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    @include theme("color", "color-text");
-  }
-
-  .control-bar {
+  .charter-songs-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
-    
-    .table-controls {
+
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      @include theme("color", "color-text");
+    }
+
+    .control-bar {
       display: flex;
+      justify-content: space-between;
       align-items: center;
+      margin-bottom: 1rem;
       
-      label, select {
-        margin-right: 0.5rem;
+      .table-controls {
+        display: flex;
+        align-items: center;
+        
+        label, select {
+          margin-right: 0.5rem;
+        }
       }
     }
   }
-
 }
 
 @include mobile {

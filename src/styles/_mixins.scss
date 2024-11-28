@@ -4,6 +4,26 @@ $sidebar-width-expanded: 200px;
 $screen-mobile-max: 768px;
 $screen-tablet-max: 1200px;
 
+@mixin scrollbar {
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    @include theme("background", "color-table-header");
+
+    &:hover {
+      @include theme("background", "color-table-background-1");
+    }
+  }
+}
+
 @mixin mobile {
   @media (max-width: #{$screen-mobile-max - 1}) {
     @content;
