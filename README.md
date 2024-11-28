@@ -142,7 +142,7 @@ If you encounter issues:
 ## Production Environments
 
 - Frontend: Running on GitHub Pages
-- Backend: Deployed on Render's free tier Webservices tool
+- Backend: Deployed on Render's Webservices tool
 - Database: Hosted on Supabase
 
 ## Contributing
