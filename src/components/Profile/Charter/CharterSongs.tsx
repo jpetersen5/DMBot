@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { API_URL } from "../../../App";
-import { TableControls, Pagination, Search } from "../../SongList/TableControls";
+import { Pagination, Search } from "../../SongList/TableControls";
 import SongModal from "../../SongList/SongModal";
 import { TableHeader } from "../../Extras/Tables";
 import { SongTableRow } from "../../SongList/SongList";
