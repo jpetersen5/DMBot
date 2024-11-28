@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Nav } from "react-bootstrap";
 import { API_URL } from "../../App";
 import { SimpleTableHeader, SongTableCell } from "../Extras/Tables";
-import { Pagination } from "./TableControls";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import { useSongCache } from "../../context/SongContext";
 import { Song, msToTime } from "../../utils/song";
@@ -46,7 +45,6 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
   const { getCachedResult, setCachedResult } = useSongCache();
 
   const [page, setPage] = useState(1);
-  const [inputPage, setInputPage] = useState("1");
   const perPage = 50;
 
   const updateURL = () => {
@@ -64,7 +62,6 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
 
   useEffect(() => {
     setPage(1);
-    setInputPage("1");
   }, [relationType]);
 
   const getCacheKey = (type: RelatedSongsType) => {
@@ -143,7 +140,6 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
     return sortedSongs.slice((page - 1) * perPage, page * perPage);
   }, [relatedSongs, relationType, page]);
 
-  const totalPages = Math.ceil(relatedSongs[`${relationType}_songs`].length / perPage);
   const numCharters = currentSong.charter_refs?.length || 0;
 
   // TODO: reconcile with Tables.tsx
@@ -232,16 +228,6 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
             </Nav.Item>
           )}
         </Nav>
-        {/* <div className="pagination-container">
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            inputPage={inputPage}
-            setInputPage={setInputPage}
-            setPage={setPage}
-            size="sm"
-          />
-        </div> */}
       </div>
       <div className="table-container">
         {renderRelatedSongsTable()}
