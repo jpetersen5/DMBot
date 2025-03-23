@@ -5,7 +5,7 @@ import ProfilePage from "./components/Profile/ProfilePage";
 import CharterPage from "./components/Profile/Charter/CharterPage";
 import AuthHandler from "./components/Auth/AuthHandler";
 import AppProvider from "./context/AppContext";
-import Login from "./components/Login/Login";
+import Auth from "./components/Auth/Auth";
 import Sidebar from "./components/Sidebar/Sidebar";
 import SongList from "./components/SongList/SongList";
 import UserList from "./components/UserList/UserList";
@@ -29,7 +29,7 @@ const App: React.FC = () => {
               <Route path="/user/:userId/:songId" element={<ProfilePage />} />
               <Route path="/charter/:charterId" element={<CharterPage />} />
               <Route path="/charter/:charterId/:songId" element={<CharterPage />} />
-              <Route path="/login" element={<Login />} />
+              <Route path="/login" element={<Auth />} />
               <Route path="/auth" element={<AuthHandler />} />
               <Route path="/songs" element={<SongList />} />
               <Route path="/songs/:songId" element={<SongList />} />
