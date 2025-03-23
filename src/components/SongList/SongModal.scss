@@ -203,8 +203,11 @@
 
   .related-songs {
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    
     .table-container {
-      height: 100%;
+      flex: 1;
       overflow-y: auto;
     }
   }
