@@ -6,6 +6,7 @@ import { TableHeader, SongTableCell } from "../Extras/Tables";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import { useKeyPress } from "../../hooks/useKeyPress";
 import { useAuth } from "../../context/AuthContext";
+import ScrollableTable from "../Extras/ScrollableTable";
 import "./Leaderboard.scss";
 
 interface LeaderboardEntry {
@@ -144,7 +145,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
 
   return (
     <div className="leaderboard">
-      <div className="table-container">
+      <ScrollableTable>
         {loading && (
           <LoadingSpinner message="Loading leaderboard..." />
         )}
@@ -182,7 +183,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
             </tbody>
           </table>
         )}
-      </div>
+      </ScrollableTable>
       {totalPages > 1 && (
         <div className="page-controls">
           <TableControls perPage={perPage} setPerPage={setPerPage} setPage={setPage} />

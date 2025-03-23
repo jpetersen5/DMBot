@@ -18,6 +18,7 @@ import {
 import { TableHeader } from "../../Extras/Tables";
 import { Song } from "../../../utils/song";
 import "./UserScores.scss";
+import ScrollableTable from "../../Extras/ScrollableTable";
 
 interface UserScoresProps {
   userId: string;
@@ -262,7 +263,7 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
             </div>
           </div>
         </div>
-        <div className="table-container">
+        <ScrollableTable>
           <table>
             <thead>
               <tr>
@@ -304,7 +305,7 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
               )}
             </tbody>
           </table>
-        </div>
+        </ScrollableTable>
         <Pagination
           page={page}
           totalPages={totalPages}

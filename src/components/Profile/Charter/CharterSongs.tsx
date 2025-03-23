@@ -16,6 +16,7 @@ import {
   getSortValues
 } from "../../../utils/song";
 import "./CharterSongs.scss";
+import ScrollableTable from "../../Extras/ScrollableTable";
 
 interface CharterSongsProps {
   charterId: string;
@@ -248,7 +249,7 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
           />
         </div>
       </div>
-      <div className="table-container">
+      <ScrollableTable>
         <table>
           <thead>
             <tr>
@@ -277,18 +278,12 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
                 <td colSpan={Object.keys(SONG_TABLE_HEADERS).length}>No songs found</td>
               </tr>
             )}
-            {!loading && paginatedSongs.length > 0 && (
-              paginatedSongs.map((song) => (
-                <SongTableRow 
-                  key={song.id} 
-                  song={song} 
-                  onClick={() => handleRowClick(song)}
-                />
-              ))
-            )}
+            {!loading && paginatedSongs.map((song) => (
+              <SongTableRow key={song.id} song={song} onClick={() => handleRowClick(song)} />
+            ))}
           </tbody>
         </table>
-      </div>
+      </ScrollableTable>
       <Pagination
         page={page}
         totalPages={totalPages}

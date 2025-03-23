@@ -6,6 +6,7 @@ import { SimpleTableHeader, SongTableCell } from "../Extras/Tables";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import { useSongCache } from "../../context/SongContext";
 import { Song, msToTime } from "../../utils/song";
+import ScrollableTable from "../Extras/ScrollableTable";
 import "./RelatedSongs.scss";
 
 interface RelatedSongs {
@@ -142,7 +143,6 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
 
   const numCharters = currentSong.charter_refs?.length || 0;
 
-  // TODO: reconcile with Tables.tsx
   const renderRelatedSongsTable = () => {
     let RELATED_SONGS_TABLE_HEADERS;
     let columns;
@@ -175,7 +175,7 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
     }
 
     return (
-      <div className="table-container">
+      <ScrollableTable>
         <table>
           <thead>
             <tr>
@@ -204,7 +204,7 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
             )}
           </tbody>
         </table>
-      </div>
+      </ScrollableTable>
     );
   };
 
@@ -229,9 +229,7 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
           )}
         </Nav>
       </div>
-      <div className="table-container">
-        {renderRelatedSongsTable()}
-      </div>
+      {renderRelatedSongsTable()}
     </div>
   );
 };

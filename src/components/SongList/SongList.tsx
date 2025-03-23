@@ -12,6 +12,7 @@ import { TableHeader, SongTableCell } from "../Extras/Tables";
 import SongModal from "./SongModal";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import { UserAvatar } from "../UserList/UserList";
+import ScrollableTable from "../Extras/ScrollableTable";
 
 import { useCharterData } from "../../context/CharterContext";
 import { useSongCache } from "../../context/SongContext";
@@ -402,7 +403,7 @@ const SongList: React.FC = () => {
           setFilters={setFilters}
           submitSearch={() => {}}/>
       </div>
-      <div className="table-container">
+      <ScrollableTable>
         {loading && (
           <LoadingSpinner message="Loading songs..." />
         )}
@@ -451,7 +452,7 @@ const SongList: React.FC = () => {
             </tbody>
           </table>
         )}
-      </div>
+      </ScrollableTable>
       {totalPages > 1 && (
         <div className="page-controls">
           <TableControls perPage={perPage} setPerPage={setPerPage} setPage={setPage} />
