@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { API_URL } from "../../../App";
 import { Pagination, Search } from "../../SongList/TableControls";
 import SongModal from "../../SongList/SongModal";
@@ -33,9 +33,10 @@ const filterOptions = [
 ];
 
 const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }) => {
-  const { songId } = useParams<{ songId: string }>();
   const navigate = useNavigate();
-
+  const location = useLocation();
+  const { userId, songId } = useParams<{ userId: string; songId: string }>();
+  
   const [songs, setSongs] = useState<Song[]>([]);
   const [songsLoading, setSongsLoading] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
@@ -57,6 +58,14 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
   useEffect(() => {
     fetchSongs();
   }, [charterId, charterSongIds]);
+
+  useEffect(() => {
+    if (songId) {
+      fetchSong(songId);
+    } else {
+      setSelectedSong(null);
+    }
+  }, [songId]);
 
   const getCacheKey = () => {
     return `charter_songs_${charterId}`;
@@ -96,18 +105,6 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
     }
   }
   
-  useEffect(() => {
-    if (songId) {
-      fetchSong(songId);
-    } else {
-      setSelectedSong(null);
-    }
-  }, [songId]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [search, filters]);
-
   async function fetchSong(id: string) {
     setModalLoading(true);
     try {
@@ -122,6 +119,10 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
       setModalLoading(false);
     }
   }
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, filters]);
 
   const filteredAndSortedSongs = useMemo(() => {
     let filteredSongs = songs;
@@ -206,12 +207,28 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
 
   const handleRowClick = (song: Song) => {
     setSelectedSong(song);
-    navigate(`/charter/${charterId}/${song.id}`);
+    
+    // Check context - are we in a user profile or standalone charter page?
+    if (location.pathname.includes('/user/') && userId) {
+      // User profile with tabbed interface
+      navigate(`/user/${userId}/charter-song/${song.id}`, { replace: true });
+    } else {
+      // Standalone charter page
+      navigate(`/charter/${charterId}/${song.id}`, { replace: true });
+    }
   };
 
   const handleModalClose = () => {
     setSelectedSong(null);
-    navigate(`/charter/${charterId}`);
+    
+    // Check context - are we in a user profile or standalone charter page?
+    if (location.pathname.includes('/user/') && userId) {
+      // Return to user profile with charter_songs tab
+      navigate(`/user/${userId}`, { replace: true });
+    } else {
+      // Return to standalone charter page
+      navigate(`/charter/${charterId}`, { replace: true });
+    }
   };
 
   const loading = songsLoading || chartersLoading;

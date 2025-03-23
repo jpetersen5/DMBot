@@ -5,10 +5,9 @@
   display: flex;
   flex-direction: column;
   height: 600px;
-  margin-top: 2rem;
-  padding: 1rem;
-  border-radius: 4px;
-  @include theme("background", "color-box");
+  padding: 1.5rem;
+  border-radius: 0;
+  box-shadow: none;
 
   .charter-songs-header {
     display: flex;
@@ -18,7 +17,7 @@
 
     h2 {
       font-size: 1.5rem;
-      margin-bottom: 1rem;
+      margin-bottom: 0.5rem;
       @include theme("color", "color-text");
     }
 
@@ -38,18 +37,48 @@
       }
     }
   }
+
+  .table-container {
+    flex: 1;
+    overflow-y: auto;
+    @include scrollbar;
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      @include theme("color", "color-text");
+    }
+  }
+
+  .pagination-container {
+    margin-top: 1rem;
+  }
 }
 
 @include mobile {
   .charter-songs {
+    padding: 1rem;
+    height: auto;
+    max-height: 600px;
+
+    .charter-songs-header {
+      flex-direction: column;
+      align-items: flex-start;
+
+      h2 {
+        margin-bottom: 1rem;
+      }
+    }
 
     .control-bar {
+      width: 100%;
       flex-direction: column;
       align-items: flex-start;
       margin-bottom: 1rem;
 
       .table-controls {
         margin-top: 0.5rem;
+        width: 100%;
       }
     }
   }

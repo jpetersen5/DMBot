@@ -3,17 +3,27 @@
 
 .charter-page {
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   @include theme("background", "color-background");
   @include theme("color", "color-text");
 
   h1 {
     font-size: 2rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0;
+    padding: 1rem 2rem;
     border-bottom: 2px solid;
-    padding-bottom: 0.5rem;
     @include theme("color", "color-text");
     @include theme("border-color", "color-text");
+  }
+
+  .charter-content-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem;
+    @include scrollbar;
   }
 
   .charter-header {
@@ -60,6 +70,29 @@
     .charter-songs {
       padding: 0.5rem;
       ;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .charter-page {
+    padding: 0;
+    
+    h1 {
+      padding: 0.75rem 1rem;
+      font-size: 1.5rem;
+    }
+    
+    .charter-content-wrapper {
+      padding: 0 1rem 1rem;
+    }
+    
+    .distributions {
+      flex-direction: column;
+    }
+
+    .distribution-block {
+      width: 100%;
     }
   }
 }

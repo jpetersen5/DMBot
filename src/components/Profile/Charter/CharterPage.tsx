@@ -37,22 +37,24 @@ const CharterPage: React.FC = () => {
 
   return (
     <div className="charter-page">
-      <h1>Charter Profile</h1>
-      {loading && <LoadingSpinner />}
-      {!charter && !loading && <p>Charter not found.</p>}
-      {charter && !loading && (
-        <>
-          <div className="charter-header">
-            <h2>
-              <span
-                dangerouslySetInnerHTML={renderSafeHTML(charter.colorized_name || charter.name)}
-              />
-            </h2>
-          </div>
-          <CharterStats stats={charter.charter_stats} />
-          <CharterSongs charterId={charterId!} charterSongIds={charter.charter_songs} />
-        </>
-      )}
+      <h1>Charter Profile: {charter?.name}</h1>
+      <div className="charter-content-wrapper">
+        {loading && <LoadingSpinner />}
+        {!charter && !loading && <p>Charter not found.</p>}
+        {charter && !loading && (
+          <>
+            <div className="charter-header">
+              <h2>
+                <span
+                  dangerouslySetInnerHTML={renderSafeHTML(charter.colorized_name || charter.name)}
+                />
+              </h2>
+            </div>
+            <CharterStats stats={charter.charter_stats} />
+            <CharterSongs charterId={charterId!} charterSongIds={charter.charter_songs} />
+          </>
+        )}
+      </div>
     </div>
   );
 };

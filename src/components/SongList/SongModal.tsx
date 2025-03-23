@@ -60,7 +60,26 @@ const SongModal: React.FC<SongModalProps> = ({
 
   const navigateToSong = (songId: number | string) => {
     const params = new URLSearchParams(location.search);
-    navigate(`${location.pathname.split("/").slice(0, -1).join("/")}/${songId}?${params.toString()}`);
+    
+    // Handle different URL patterns
+    let basePath = location.pathname.split("/").slice(0, -1).join("/");
+    
+    // Case 1: Charter songs tab in user profile
+    if (location.pathname.includes('/user/') && location.pathname.includes('/charter-song/')) {
+      basePath = location.pathname.split("/charter-song/")[0];
+      navigate(`${basePath}/charter-song/${songId}?${params.toString()}`);
+      return;
+    }
+    
+    // Case 2: Standalone charter page
+    if (location.pathname.includes('/charter/')) {
+      basePath = location.pathname.split("/").slice(0, -1).join("/");
+      navigate(`${basePath}/${songId}?${params.toString()}`);
+      return;
+    }
+    
+    // Default case: regular song navigation
+    navigate(`${basePath}/${songId}?${params.toString()}`);
   }
 
   const handlePrevSong = () => {
