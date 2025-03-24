@@ -42,11 +42,5 @@ class General(commands.Cog):
     async def ping(self, ctx):
         await ctx.send(f"Pong! Latency: {round(self.bot.latency * 1000)}ms")
 
-    @commands.command(name="add", help="Adds two int numbers")
-    async def add(self, ctx, 
-                  a: int = commands.parameter(description="The first number"),
-                  b: int = commands.parameter(description="The second number")):
-        await ctx.send(f"The sum is: {a + b}")
-
 async def setup(bot):
     await bot.add_cog(General(bot))

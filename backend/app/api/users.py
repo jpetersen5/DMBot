@@ -201,3 +201,43 @@ def compare_user_scores(user1_scores, user2_scores):
         "total_score_diff": total_score_diff,
         "avg_percent_diff": avg_percent_diff / total_songs if total_songs > 0 else 0,
     }
+
+@bp.route("/api/users/discord/<string:discord_id>")
+def get_user_by_discord_id(discord_id):
+    """
+    Retrieves user information based on the provided Discord ID
+    
+    Args:
+        discord_id (str): The Discord ID of the user
+    
+    Returns:
+        JSON: User information including id, username, avatar, etc.
+    """
+    supabase = get_supabase()
+    logger = current_app.logger
+    
+    try:
+        # Since Discord ID is stored as the primary 'id' field
+        response = supabase.table("users").select("*").eq("id", discord_id).execute()
+        
+        if not response.data:
+            return jsonify({"error": "User not found"}), 404
+            
+        user = response.data[0]
+        
+        # Get user stats and elo history if available
+        elo_history = supabase.table("elo_history").select("elo, timestamp").eq("user_id", discord_id).execute()
+        elo_history_data = sorted(elo_history.data, key=lambda x: x["timestamp"], reverse=False) if elo_history.data else []
+        
+        return jsonify({
+            "id": str(user["id"]),
+            "username": user["username"],
+            "avatar": user["avatar"],
+            "permissions": user.get("permissions", {}),
+            "stats": user.get("stats", {}),
+            "elo": user.get("elo", 1000),
+            "elo_history": elo_history_data
+        })
+    except Exception as e:
+        logger.error(f"Error fetching user by Discord ID: {str(e)}")
+        return jsonify({"error": f"An error occurred while fetching user: {str(e)}"}), 500
