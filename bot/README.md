@@ -49,6 +49,7 @@ The bot is organized into the following cogs:
 ### User Cog
 - `!profile [user]`: Display user profile
 - `!stats [user]`: Show detailed user statistics
+- `!link`, `!login`: Directs user to log in to the website with Discord authentication
 
 ### Ranking Cog
 - `!rank [user]`: Show user rank and nearby rankings
@@ -62,10 +63,11 @@ The bot is organized into the following cogs:
 
 ### Charts Cog
 - `!charter <query>`: Display stats for a certain charter
+- `!charters`: List top charters by number of overall plays
 - `!registercharter`: Register yourself as a charter! (On admin approval)
 
 ### Events Cog (Future)
-- `!tourney`, `!tournament`: Show current/upcoming community tournaments
+- `!tourney`, `!tournament`, `!competition`: Show current/upcoming community tournaments
 - `!sotw`, `!week`: Show/vote for Song of the Week
 - `!challenge`: Create a score challenge
 
