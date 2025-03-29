@@ -3,7 +3,7 @@ from discord.ext import commands
 import asyncio
 from typing import List, Dict, Any
 from bot.utils.api_client import DMBotAPI
-from bot.utils.ui import PaginatedView, SongSelector
+from bot.utils.ui import SongSelector
 
 class Songs(commands.Cog):
     """Commands for searching and displaying song information"""
@@ -211,12 +211,16 @@ class Songs(commands.Cog):
         if len(matching_songs) == 1:
             return matching_songs[0]
         
-        selector = EnhancedSongSelector(matching_songs[:25])  # Discord limits to 25 options
+        # Create a SongSelector view
+        selector = SongSelector(matching_songs[:25])  # Discord limits to 25 options
         
         await response_msg.edit(
             content="Please select a song:",
             view=selector
         )
+        
+        selector.message = response_msg
+        
         await selector.wait()
         
         return selector.selected_song
@@ -249,41 +253,6 @@ class Songs(commands.Cog):
         except Exception as e:
             print(f"Error searching songs: {e}")
             return []
-
-
-class EnhancedSongSelector(SongSelector):
-    """Enhanced version of SongSelector with implemented callbacks"""
-    
-    async def _on_select(self, interaction: discord.Interaction):
-        """Handle song selection"""
-        selected_index = int(interaction.data["values"][0])
-        self.selected_song = self.songs[selected_index]
-        
-        await interaction.response.defer()
-        
-        for item in self.children:
-            item.disabled = True
-        
-        await interaction.message.edit(
-            content=f"Selected: {self.selected_song.get('name')} by {self.selected_song.get('artist')}",
-            view=self
-        )
-        
-        self.stop()
-    
-    @discord.ui.button(label="Cancel", style=discord.ButtonStyle.red)
-    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
-        """Cancel selection"""
-        await interaction.response.defer()
-        
-        self.selected_song = None
-        
-        for item in self.children:
-            item.disabled = True
-        
-        await interaction.message.edit(content="Song selection cancelled.", view=self)
-        
-        self.stop()
 
 
 async def setup(bot):

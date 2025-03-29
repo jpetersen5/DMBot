@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from bot.cogs.general import CustomHelpCommand
+from bot.cogs.general import CustomHelpCommand, HelpCategoryView, BackToMainHelpView
 import json
 import os
 
@@ -11,10 +11,9 @@ class DMBot(commands.Bot):
             env = json.load(f)
             self.token = env["DISCORD_TOKEN"]
 
-        # Set up intents
         intents = discord.Intents.default()
-        intents.messages = True
         intents.message_content = True
+        intents.messages = True
 
         # Initialize the bot
         super().__init__(command_prefix="!", intents=intents, help_command=CustomHelpCommand())
@@ -30,6 +29,7 @@ class DMBot(commands.Bot):
 
     async def on_ready(self):
         print(f"Logged in as {self.user}")
+        print(f"Bot is ready and connected to Discord!")
 
     def run(self):
         super().run(self.token)
