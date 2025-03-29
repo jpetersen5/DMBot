@@ -44,7 +44,6 @@ The bot is organized into the following cogs:
 ### Leaderboard Cog
 - `!leaderboard <song_name>`: Display leaderboard for a song
 - `!scores [user]`: Show user's scores (paginated)
-- `!songinfo <song_name>`: Display detailed information about a song
 
 ### User Cog
 - `!profile [user]`: Display user profile
@@ -60,6 +59,7 @@ The bot is organized into the following cogs:
 - `!search <query>`: Search for songs
 - `!popular`, `!topsongs`: Show most played songs
 - `!recent`: Show recently played songs
+- `!songinfo <song_name>`: Display detailed information about a song
 
 ### Charts Cog
 - `!charter <query>`: Display stats for a certain charter
