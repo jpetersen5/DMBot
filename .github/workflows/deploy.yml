@@ -29,6 +29,8 @@ jobs:
           VITE_COMMIT_DATE: ${{ env.VITE_COMMIT_DATE }}
       - name: List build directory
         run: ls -R dist
+      - name: Create CNAME file
+        run: echo "dmleaderboards.com" > dist/CNAME
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
