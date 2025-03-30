@@ -4,85 +4,7 @@ import asyncio
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 from bot.utils.api_client import DMBotAPI
-from bot.utils.ui import PaginatedView
-
-class LeaderboardPaginator(PaginatedView):
-    """Paginator specifically for leaderboard data"""
-    
-    def __init__(self, song: Dict[str, Any], leaderboard: List[Dict[str, Any]], format_func, timeout: float = 180.0):
-        super().__init__(leaderboard, format_func, timeout)
-        self.song = song
-    
-    async def _handle_page_change(self, interaction, new_page):
-        """Handle page change for leaderboard data"""
-        try:
-            # Add throttling to prevent rate limits
-            current_time = asyncio.get_event_loop().time()
-            time_since_last = current_time - self.last_interaction_time
-            if time_since_last < 1.0 and self.last_interaction_time > 0:
-                # Add a small delay if interactions are too frequent
-                await asyncio.sleep(1.0 - time_since_last)
-                
-            # Update the timestamp
-            self.last_interaction_time = asyncio.get_event_loop().time()
-            
-            # Update the current page and buttons
-            self.current_page = new_page
-            self._update_buttons()
-            
-            # Create the embed with the current page of data
-            start_idx = self.current_page * 10
-            end_idx = min(start_idx + 10, len(self.data))
-            page_data = self.data[start_idx:end_idx]
-            
-            # Use the format function to create the embed
-            embed = self.format_page_func(self.song, page_data, self.current_page)
-            
-            # Edit the message with the new content
-            await interaction.message.edit(embed=embed, view=self)
-            
-        except Exception as e:
-            import traceback
-            print(f"Error handling page change: {type(e).__name__}: {e}")
-            print(traceback.format_exc())
-            try:
-                await interaction.followup.send(f"Error: {type(e).__name__}. Please try again.", ephemeral=True)
-            except:
-                pass
-    
-    @discord.ui.button(emoji="⏪", style=discord.ButtonStyle.blurple)
-    async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button):
-        """Go to first page"""
-        await interaction.response.defer()
-        await self._handle_page_change(interaction, 0)
-    
-    @discord.ui.button(emoji="◀️", style=discord.ButtonStyle.secondary)
-    async def prev_page(self, interaction: discord.Interaction, button: discord.ui.Button):
-        """Go to previous page"""
-        await interaction.response.defer()
-        await self._handle_page_change(interaction, max(0, self.current_page - 1))
-    
-    @discord.ui.button(label="Page 1/1", style=discord.ButtonStyle.grey, disabled=True)
-    async def page_counter(self, interaction: discord.Interaction, button: discord.ui.Button):
-        """Page counter label (not clickable)"""
-        await interaction.response.defer(thinking=True)
-        try:
-            await interaction.followup.send("This button just shows the current page number.", ephemeral=True)
-        except:
-            pass
-    
-    @discord.ui.button(emoji="▶️", style=discord.ButtonStyle.secondary)
-    async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button):
-        """Go to next page"""
-        await interaction.response.defer()
-        await self._handle_page_change(interaction, min(self.total_pages - 1, self.current_page + 1))
-    
-    @discord.ui.button(emoji="⏩", style=discord.ButtonStyle.blurple)
-    async def last_page(self, interaction: discord.Interaction, button: discord.ui.Button):
-        """Go to last page"""
-        await interaction.response.defer()
-        await self._handle_page_change(interaction, self.total_pages - 1)
-
+from bot.utils.ui import PaginatedView, SongSelector
 
 class Leaderboard(commands.Cog):
     """Commands for viewing and interacting with song leaderboards"""
@@ -345,39 +267,39 @@ class Leaderboard(commands.Cog):
         response_msg = await ctx.send(f"🔍 Searching for '{song_name}'...")
         
         try:
-            # Call the API client method once implemented
-            # For now, use the existing method
-            matching_songs = await self.search_songs_by_name(song_name)
+            # Check if songs are cached - if not, update message
+            cache_key = self.api._get_cache_key("api/songs", None)
+            if not self.api._is_cache_valid(cache_key):
+                await response_msg.edit(content=f"🔍 Fetching song database (this may take a moment)...")
+            
+            matching_songs = await self.api.search_songs(song_name)
             
             if not matching_songs:
                 await response_msg.edit(content=f"❌ No songs found matching '{song_name}'")
                 return
             
-            # If multiple matches, ask user to select one
+            # If multiple matches, use SongSelector for selection
             selected_song = await self.handle_song_selection(ctx, response_msg, matching_songs)
             if not selected_song:
                 return  # Selection was canceled or timed out
             
-            # Get leaderboard data
             await response_msg.edit(content=f"📊 Fetching leaderboard for '{selected_song.get('name')}'...")
             
-            # Call the API client method once implemented
-            # For now, use the existing method
-            leaderboard = await self.get_leaderboard(selected_song.get("id"))
+            leaderboard = await self.api.get_leaderboard(selected_song.get("id"))
             
             if not leaderboard:
                 await response_msg.edit(content=f"📊 No leaderboard entries found for '{selected_song.get('name')}'.")
                 return
             
-            # Create the initial embed
             embed = self.format_leaderboard_embed(selected_song, leaderboard, 0)
             
-            # If there are more than 10 entries, use pagination
             if len(leaderboard) > 10:
-                view = LeaderboardPaginator(
-                    song=selected_song,
-                    leaderboard=leaderboard,
-                    format_func=self.format_leaderboard_embed
+                def format_page(page_data, page_num):
+                    return self.format_leaderboard_embed(selected_song, leaderboard, page_num)
+                
+                view = PaginatedView(
+                    data=leaderboard,
+                    format_page_func=format_page
                 )
                 view.message = response_msg
                 await response_msg.edit(content=None, embed=embed, view=view)
@@ -405,21 +327,14 @@ class Leaderboard(commands.Cog):
         response_msg = await ctx.send(f"🔍 Looking up scores for {target_member.display_name}...")
         
         try:
-            # Get user from API
-            # Call the API client method once implemented
-            # For now, use the existing method
-            user = await self.get_user_by_discord_id(str(target_member.id))
+            user = await self.api.get_user_by_discord_id(str(target_member.id))
             
             if not user:
                 await response_msg.edit(content=f"❌ User {target_member.display_name} not found in the database. They may need to log in to the web app first.")
                 return
             
-            # Get user's scores
             await response_msg.edit(content=f"📊 Fetching scores for {target_member.display_name}...")
-            
-            # Call the API client method once implemented
-            # For now, use the existing method
-            scores = await self.get_user_scores(user.get("id"))
+            scores = await self.api.get_user_scores(user.get("id"))
             
             if not scores:
                 await response_msg.edit(content=f"📊 {target_member.display_name} hasn't submitted any scores yet.")
@@ -434,13 +349,14 @@ class Leaderboard(commands.Cog):
                 await response_msg.edit(content=f"⚠️ {target_member.display_name} has {len(scores)} scores. Showing only the {MAX_SCORES} most recent scores.")
                 scores = scores[:MAX_SCORES]
             
-            # Create the initial embed
             embed = self.format_user_scores_embed(user, scores, 0)
             
-            # Use pagination for the scores
+            def format_page(page_data, page_num):
+                return self.format_user_scores_embed(user, scores, page_num)
+            
             view = PaginatedView(
                 data=scores,
-                format_page_func=lambda data, page: self.format_user_scores_embed(user, data, page)
+                format_page_func=format_page
             )
             view.message = response_msg
             
@@ -453,9 +369,8 @@ class Leaderboard(commands.Cog):
             await response_msg.edit(content=f"❌ An error occurred: {str(e)[:1000]}")
     
     # Helper methods
-    
     async def handle_song_selection(self, ctx, response_msg, matching_songs):
-        """Handle selection from multiple matching songs
+        """Handle selection from multiple matching songs using SongSelector
         
         Args:
             ctx: Command context
@@ -467,109 +382,19 @@ class Leaderboard(commands.Cog):
         """
         if len(matching_songs) == 1:
             return matching_songs[0]
-            
-        selection_text = "Found multiple matches. Reply with the number to select:\n\n"
-        for i, song in enumerate(matching_songs, 1):
-            song_name = song.get("name", "Unknown")
-            artist = song.get("artist", "Unknown")
-            selection_text += f"**{i}.** {song_name} by {artist}\n"
         
-        await response_msg.edit(content=selection_text)
+        selector = SongSelector(matching_songs[:25])  # Discord limits to 25 options
         
-        try:
-            selection_response = await self.bot.wait_for(
-                "message",
-                check=lambda m: m.author == ctx.author and m.channel == ctx.channel and m.content.isdigit(),
-                timeout=30.0
-            )
-            
-            selection = int(selection_response.content)
-            if selection < 1 or selection > len(matching_songs):
-                await response_msg.edit(content="❌ Invalid selection. Try again with a valid number.")
-                return None
-            
-            return matching_songs[selection - 1]
-        except asyncio.TimeoutError:
-            await response_msg.edit(content="⏱️ Selection timed out. Please try again.")
-            return None
-    
-    # Temporary API methods until DMBotAPI is fully implemented
-    
-    async def search_songs_by_name(self, song_name: str) -> List[Dict[str, Any]]:
-        """Search for songs by name from the API"""
-        try:
-            # Ensure we have a session
-            await self.api.ensure_session()
-            
-            async with self.api.session.get(f"{self.api_url}/api/songs") as response:
-                if response.status != 200:
-                    return []
-                
-                songs = await response.json()
-                # Filter songs by name (case-insensitive partial match)
-                song_name_lower = song_name.lower()
-                matching_songs = [
-                    song for song in songs 
-                    if song_name_lower in song.get("name", "").lower()
-                ]
-                
-                # Sort by exact match first, then by popularity
-                matching_songs.sort(key=lambda s: (
-                    0 if s.get("name", "").lower() == song_name_lower else 1,
-                    -(s.get("scores_count", 0) or 0)
-                ))
-                
-                return matching_songs[:10]  # Return top 10 matches
-        except Exception as e:
-            print(f"Error searching songs: {e}")
-            return []
-    
-    async def get_leaderboard(self, song_id: str) -> List[Dict[str, Any]]:
-        """Get leaderboard data for a specific song"""
-        try:
-            # Ensure we have a session
-            await self.api.ensure_session()
-            
-            async with self.api.session.get(f"{self.api_url}/api/leaderboard/{song_id}") as response:
-                if response.status != 200:
-                    return []
-                
-                data = await response.json()
-                return data.get("leaderboard", [])
-        except Exception as e:
-            print(f"Error fetching leaderboard: {e}")
-            return []
-    
-    async def get_user_by_discord_id(self, discord_id: str) -> Optional[Dict[str, Any]]:
-        """Get user profile from their Discord ID"""
-        try:
-            # Ensure we have a session
-            await self.api.ensure_session()
-            
-            async with self.api.session.get(f"{self.api_url}/api/users/discord/{discord_id}") as response:
-                if response.status != 200:
-                    return None
-                
-                return await response.json()
-        except Exception as e:
-            print(f"Error fetching user: {e}")
-            return None
-    
-    async def get_user_scores(self, user_id: str) -> List[Dict[str, Any]]:
-        """Get a user's scores from the API"""
-        try:
-            # Ensure we have a session
-            await self.api.ensure_session()
-            
-            async with self.api.session.get(f"{self.api_url}/api/user/{user_id}/scores") as response:
-                if response.status != 200:
-                    return []
-                
-                data = await response.json()
-                return data.get("scores", [])
-        except Exception as e:
-            print(f"Error fetching user scores: {e}")
-            return []
+        await response_msg.edit(
+            content="Please select a song: (Limited to 25 options)",
+            view=selector
+        )
+        
+        selector.message = response_msg
+        
+        await selector.wait()
+        
+        return selector.selected_song
 
 
 async def setup(bot):

@@ -34,6 +34,11 @@ class Songs(commands.Cog):
         response_msg = await ctx.send(f"🔍 Searching for songs matching '{query}'...")
         
         try:
+            # Check if songs are cached - if not, update message
+            cache_key = self.api._get_cache_key("api/songs", None)
+            if not self.api._is_cache_valid(cache_key):
+                await response_msg.edit(content=f"🔍 Fetching song database (this may take a moment)...")
+            
             matching_songs = await self.api.search_songs(query)
             
             if not matching_songs:
@@ -76,16 +81,22 @@ class Songs(commands.Cog):
             await response_msg.edit(content=f"❌ An error occurred: {str(e)[:1000]}")
     
     @commands.command(name="popular", aliases=["topsongs"], help="Show most played songs")
-    async def popular(self, ctx):
+    async def popular(self, ctx, limit: int = 20):
         """Show the most popular/played songs
         
         Args:
             ctx: Command context
+            limit: Number of songs to show (default 20)
         """
         response_msg = await ctx.send("🎵 Fetching most popular songs...")
         
         try:
-            popular_songs = await self.api.get_popular_songs()
+            # Check if songs are cached - if not, update message
+            cache_key = self.api._get_cache_key("api/songs", None)
+            if not self.api._is_cache_valid(cache_key):
+                await response_msg.edit(content=f"🎵 Fetching song database (this may take a moment)...")
+            
+            popular_songs = await self.api.get_popular_songs(limit)
             
             if not popular_songs:
                 await response_msg.edit(content="❌ No popular songs data available at this time")
@@ -124,27 +135,37 @@ class Songs(commands.Cog):
             await response_msg.edit(content=f"❌ An error occurred: {str(e)[:1000]}")
     
     @commands.command(name="recent", help="Show recently played songs")
-    async def recent(self, ctx):
+    async def recent(self, ctx, unique: bool = False):
         """Show recently played songs across all users
         
         Args:
             ctx: Command context
+            unique: If True, show only one song per user (default: False)
         """
-        response_msg = await ctx.send("🎵 Fetching recently played songs...")
+        response_msg = await ctx.send(f"🎵 Fetching recently played songs{' (unique per user)' if unique else ''}...")
         
         try:
-            recent_songs = await self.api.get_recent_songs()
+            # Check if scores are cached - if not, update message
+            cache_key = self.api._get_cache_key("api/songs", None)
+            if not self.api._is_cache_valid(cache_key):
+                await response_msg.edit(content=f"🎵 Fetching song database (this may take a moment)...")
+            
+            recent_songs = await self.api.get_recent_songs(unique_users=unique)
             
             if not recent_songs:
                 await response_msg.edit(content="❌ No recent song data available at this time")
                 return
             
+            title = "Recently Played Songs"
+            if unique:
+                title += " (One Per User)"
+            
             if len(recent_songs) > 10:
                 def format_page(page_data, page_num):
                     start_idx = page_num * 10 + 1  # 1-based indexing for display
-                    return self.format_song_list_embed(
+                    return self.format_recent_song_list_embed(
                         page_data,
-                        "Recently Played Songs",
+                        title,
                         f"Showing results {start_idx}-{start_idx+len(page_data)-1} of {len(recent_songs)}",
                         start_index=start_idx
                     )
@@ -158,9 +179,9 @@ class Songs(commands.Cog):
                 embed = format_page(recent_songs[:10], 0)
                 await response_msg.edit(content=None, embed=embed, view=view)
             else:
-                embed = self.format_song_list_embed(
+                embed = self.format_recent_song_list_embed(
                     recent_songs,
-                    "Recently Played Songs",
+                    title,
                     "Songs that have been played most recently"
                 )
                 await response_msg.edit(content=None, embed=embed)
@@ -182,6 +203,11 @@ class Songs(commands.Cog):
         response_msg = await ctx.send(f"🔍 Searching for '{song_name}'...")
         
         try:
+            # Check if songs are cached - if not, update message
+            cache_key = self.api._get_cache_key("api/songs", None)
+            if not self.api._is_cache_valid(cache_key):
+                await response_msg.edit(content=f"🔍 Fetching song database (this may take a moment)...")
+            
             matching_songs = await self.api.search_songs(song_name)
             
             if not matching_songs:
@@ -195,11 +221,16 @@ class Songs(commands.Cog):
             
             # Get detailed song info if we have an ID
             if selected_song.get("id"):
-                detailed_song = await self.api.get_song_details(selected_song.get("id"))
+                song_id = selected_song.get("id")
+                detail_cache_key = self.api._get_cache_key(f"api/songs/{song_id}", None)
+                
+                # If not in cache, show fetching message
+                if not self.api._is_cache_valid(detail_cache_key):
+                    await response_msg.edit(content=f"📝 Fetching detailed information for '{selected_song.get('name')}'...")
+                
+                detailed_song = await self.api.get_song_details(song_id)
                 if detailed_song:
                     selected_song = detailed_song
-            
-            await response_msg.edit(content=f"📝 Fetching details for '{selected_song.get('name')}'...")
             
             embed = self.format_song_info_embed(selected_song)
             embed.add_field(
@@ -300,6 +331,63 @@ class Songs(commands.Cog):
             
         return embed
     
+    def format_recent_song_list_embed(self, songs: List[Dict[str, Any]], title: str, description: str = None, start_index: int = 1) -> discord.Embed:
+        """Format a list of recently played songs into a Discord embed with recent player info
+        
+        Args:
+            songs: List of song data
+            title: Embed title
+            description: Optional embed description
+            start_index: Starting index for song numbering (for pagination)
+            
+        Returns:
+            discord.Embed: Formatted embed
+        """
+        embed = discord.Embed(
+            title=title,
+            description=description or "Song list",
+            color=discord.Color.green()
+        )
+        
+        if not songs:
+            embed.add_field(name="No songs found", value="Try again later", inline=False)
+            return embed
+        
+        for i, song in enumerate(songs, start_index):
+            song_name = song.get("name", "Unknown Song")
+            artist = song.get("artist", "Unknown")
+            
+            # Get the most recent player information (set by the API client)
+            recent_player = song.get("most_recent_player", "Unknown Player")
+            recent_date = "Unknown Date"
+            
+            # Format date nicely if available
+            if song.get("most_recent_date"):
+                try:
+                    from datetime import datetime
+                    update_date = datetime.fromisoformat(song.get("most_recent_date").replace("Z", "+00:00"))
+                    recent_date = update_date.strftime("%Y-%m-%d %H:%M")
+                except Exception:
+                    recent_date = song.get("most_recent_date", "Unknown Date")
+            
+            field_value = f"**Artist:** {artist}"
+            field_value += f"\n**Recently played by:** {recent_player}"
+            field_value += f"\n**Date:** {recent_date}"
+            if song.get("scores_count"):
+                field_value += f"\n**Total Scores:** {song.get('scores_count', 0)}"
+            
+            embed.add_field(
+                name=f"{i}. {song_name}",
+                value=field_value,
+                inline=True
+            )
+            
+            # Add an empty field after every second entry
+            if (i - start_index + 1) % 2 == 0 and (i - start_index + 1) < len(songs):
+                embed.add_field(name="\u200b", value="\u200b", inline=True)
+        
+        return embed
+    
     # Helper methods
     async def handle_song_selection(self, ctx, response_msg, matching_songs):
         """Handle selection from multiple matching songs using SongSelector
@@ -319,7 +407,7 @@ class Songs(commands.Cog):
         selector = SongSelector(matching_songs[:25])  # Discord limits to 25 options
         
         await response_msg.edit(
-            content="Please select a song:",
+            content="Please select a song: (Limited to 25 options)",
             view=selector
         )
         

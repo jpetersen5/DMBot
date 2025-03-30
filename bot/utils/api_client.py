@@ -200,31 +200,86 @@ class DMBotAPI:
             print(f"Error getting popular songs: {e}")
             return []
     
-    async def get_recent_songs(self, limit: int = 20) -> List[Dict[str, Any]]:
-        """Get recently played songs"""
+    async def get_recent_songs(self, limit: int = 20, unique_users: bool = False) -> List[Dict[str, Any]]:
+        """Get recently played songs
+        
+        Args:
+            limit: Maximum number of songs to return
+            unique_users: If True, only return the most recent song per user
+            
+        Returns:
+            List of recent songs
+        """
         try:
-            scores = await self.request("GET", "api/scores", 
-                                       params={"limit": 100, "sort": "recent"},
-                                       use_cache=True)
+            songs = await self.request("GET", "api/songs", use_cache=True)
             
-            # Extract unique song_ids from scores
-            song_ids = []
-            song_id_set = set()
+            # Filter out songs without a leaderboard
+            recent_songs = [
+                song for song in songs 
+                if song.get("leaderboard")
+            ]
             
-            for score in scores:
-                song_id = score.get("song_id")
-                if song_id and song_id not in song_id_set:
-                    song_ids.append(song_id)
-                    song_id_set.add(song_id)
-                    if len(song_ids) >= limit:
-                        break
+            # Process songs to extract most recent play
+            for song in recent_songs:
+                leaderboard = song.get("leaderboard", [])
+                # Sort leaderboard by posted timestamp (most recent first)
+                if leaderboard:
+                    try:
+                        # Parse leaderboard entries if they're stored as JSON strings
+                        parsed_leaderboard = []
+                        for entry in leaderboard:
+                            if isinstance(entry, str):
+                                try:
+                                    parsed_entry = json.loads(entry)
+                                    parsed_leaderboard.append(parsed_entry)
+                                except (json.JSONDecodeError, TypeError):
+                                    # If entry can't be parsed as JSON, use as is
+                                    parsed_leaderboard.append(entry)
+                            else:
+                                parsed_leaderboard.append(entry)
+                                
+                        # Sort by posted date (most recent first)
+                        sorted_leaderboard = sorted(
+                            parsed_leaderboard,
+                            key=lambda e: e.get("posted", ""),
+                            reverse=True
+                        )
+                        
+                        # Store the most recent player and date for this song
+                        if sorted_leaderboard:
+                            most_recent = sorted_leaderboard[0]
+                            song["most_recent_player"] = most_recent.get("username", "Unknown Player")
+                            song["most_recent_date"] = most_recent.get("posted", "")
+                            song["most_recent_user_id"] = most_recent.get("user_id", "")
+                    except Exception as e:
+                        print(f"Error processing leaderboard for song {song.get('name')}: {e}")
+                        song["most_recent_player"] = "Unknown Player"
+                        song["most_recent_date"] = ""
+                        song["most_recent_user_id"] = ""
+                else:
+                    song["most_recent_player"] = "Unknown Player"
+                    song["most_recent_date"] = ""
+                    song["most_recent_user_id"] = ""
             
-            # Get song details for the extracted song_ids
-            if song_ids:
-                recent_songs = await self.get_songs_by_ids(song_ids)
-                return list(recent_songs.values())
+            # Sort songs by the most recent play date
+            recent_songs.sort(key=lambda s: s.get("most_recent_date", ""), reverse=True)
             
-            return []
+            # If unique_users is True, filter to only show one song per user
+            if unique_users:
+                seen_users = set()
+                filtered_songs = []
+                
+                for song in recent_songs:
+                    user_id = song.get("most_recent_user_id")
+                    if user_id and user_id not in seen_users:
+                        seen_users.add(user_id)
+                        filtered_songs.append(song)
+                        if len(filtered_songs) >= limit:
+                            break
+                
+                return filtered_songs[:limit]
+            
+            return recent_songs[:limit]
         except Exception as e:
             print(f"Error getting recent songs: {e}")
             return []

@@ -206,6 +206,12 @@ class SongDropdown(discord.ui.Select):
                 song_name = song_name[:77] + "..."
             
             description = f"By {artist}"
+            charters = song.get("charter_refs", [])
+            if charters:
+                charter_text = ", ".join(charters)
+                description += f" | Charter: {charter_text}"
+            
+            # Ensure the description isn't too long for Discord
             if len(description) > 100:
                 description = description[:97] + "..."
             
