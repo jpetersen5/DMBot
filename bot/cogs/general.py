@@ -7,18 +7,15 @@ import time
 class HelpCategoryView(discord.ui.View):
     """Interactive view for help command categories"""
     
-    def __init__(self, help_command=None, mapping=None, timeout=180.0, persistent=False):
-        # For persistent views, we need timeout=None
-        super().__init__(timeout=None if persistent else timeout)
+    def __init__(self, help_command=None, mapping=None, timeout=180.0):
+        super().__init__(timeout=timeout)
         
         self.help_command = help_command
         self.mapping = mapping or {}
         self.message = None
-        self.persistent = persistent
         
-        # Only add buttons when not in persistent registration mode
-        if not persistent and help_command and mapping:
-            # Add buttons for each cog/category
+        # Add buttons for each cog/category
+        if help_command and mapping:
             button_index = 0  # Add an index to ensure unique custom_ids
             for cog in mapping.keys():
                 if cog:
@@ -74,31 +71,27 @@ class HelpCategoryView(discord.ui.View):
     
     async def on_timeout(self):
         """Disable all buttons when the view times out"""
-        if not self.persistent:
-            for item in self.children:
-                item.disabled = True
-            
-            if self.message:
-                try:
-                    await self.message.edit(view=self)
-                except:
-                    pass
+        for item in self.children:
+            item.disabled = True
+        
+        if self.message:
+            try:
+                await self.message.edit(view=self)
+            except:
+                pass
 
 
 class BackToMainHelpView(discord.ui.View):
     """View with a button to go back to main help menu"""
     
-    def __init__(self, help_command=None, mapping=None, timeout=180.0, persistent=False):
-        # For persistent views, we need timeout=None
-        super().__init__(timeout=None if persistent else timeout)
+    def __init__(self, help_command=None, mapping=None, timeout=180.0):
+        super().__init__(timeout=timeout)
             
         self.help_command = help_command
         self.mapping = mapping or {}
         self.message = None
-        self.persistent = persistent
         
-        # Only add button when not in persistent registration mode
-        if not persistent and help_command and mapping:
+        if help_command and mapping:
             back_button = discord.ui.Button(
                 label="Back to Categories",
                 style=discord.ButtonStyle.primary,
@@ -130,15 +123,14 @@ class BackToMainHelpView(discord.ui.View):
     
     async def on_timeout(self):
         """Disable all buttons when the view times out"""
-        if not self.persistent:
-            for item in self.children:
-                item.disabled = True
-            
-            if self.message:
-                try:
-                    await self.message.edit(view=self)
-                except:
-                    pass
+        for item in self.children:
+            item.disabled = True
+        
+        if self.message:
+            try:
+                await self.message.edit(view=self)
+            except:
+                pass
 
 
 class CustomHelpCommand(commands.HelpCommand):

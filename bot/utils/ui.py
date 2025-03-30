@@ -282,9 +282,3 @@ class ConfirmationView(discord.ui.View):
                 await self.message.edit(content="Confirmation timed out.", view=self)
             except:
                 pass
-
-
-# Test UI components for development
-if __name__ == "__main__":
-    # Add example code for testing UI components
-    pass 

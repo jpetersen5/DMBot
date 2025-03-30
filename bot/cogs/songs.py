@@ -3,7 +3,7 @@ from discord.ext import commands
 import asyncio
 from typing import List, Dict, Any
 from bot.utils.api_client import DMBotAPI
-from bot.utils.ui import SongSelector
+from bot.utils.ui import SongSelector, PaginatedView
 
 class Songs(commands.Cog):
     """Commands for searching and displaying song information"""
@@ -34,19 +34,40 @@ class Songs(commands.Cog):
         response_msg = await ctx.send(f"🔍 Searching for songs matching '{query}'...")
         
         try:
-            matching_songs = await self.search_songs_by_name(query)
+            matching_songs = await self.api.search_songs(query)
             
             if not matching_songs:
                 await response_msg.edit(content=f"❌ No songs found matching '{query}'")
                 return
             
-            embed = self.format_song_list_embed(
-                matching_songs[:10],
-                f"Search Results for '{query}'",
-                f"Found {len(matching_songs)} songs matching your search"
-            )
+            total_found = len(matching_songs)
+            description = f"Found {total_found} songs matching your search"
             
-            await response_msg.edit(content=None, embed=embed)
+            if total_found > 10:
+                def format_page(page_data, page_num):
+                    start_idx = page_num * 10 + 1  # 1-based indexing for display
+                    return self.format_song_list_embed(
+                        page_data,
+                        f"Search Results for '{query}'",
+                        f"Showing results {start_idx}-{start_idx+len(page_data)-1} of {total_found}",
+                        start_index=start_idx
+                    )
+                
+                view = PaginatedView(
+                    data=matching_songs,
+                    format_page_func=format_page
+                )
+                view.message = response_msg
+                
+                embed = format_page(matching_songs[:10], 0)
+                await response_msg.edit(content=None, embed=embed, view=view)
+            else:
+                embed = self.format_song_list_embed(
+                    matching_songs,
+                    f"Search Results for '{query}'",
+                    description
+                )
+                await response_msg.edit(content=None, embed=embed)
             
         except Exception as e:
             import traceback
@@ -61,8 +82,46 @@ class Songs(commands.Cog):
         Args:
             ctx: Command context
         """
-        # TODO: Implementation
-        await ctx.send("🎵 Fetching most popular songs...")
+        response_msg = await ctx.send("🎵 Fetching most popular songs...")
+        
+        try:
+            popular_songs = await self.api.get_popular_songs()
+            
+            if not popular_songs:
+                await response_msg.edit(content="❌ No popular songs data available at this time")
+                return
+            
+            if len(popular_songs) > 10:
+                def format_page(page_data, page_num):
+                    start_idx = page_num * 10 + 1  # 1-based indexing for display
+                    return self.format_song_list_embed(
+                        page_data,
+                        "Most Popular Songs",
+                        f"Showing results {start_idx}-{start_idx+len(page_data)-1} of {len(popular_songs)}",
+                        start_index=start_idx
+                    )
+                
+                view = PaginatedView(
+                    data=popular_songs,
+                    format_page_func=format_page
+                )
+                view.message = response_msg
+                
+                embed = format_page(popular_songs[:10], 0)
+                await response_msg.edit(content=None, embed=embed, view=view)
+            else:
+                embed = self.format_song_list_embed(
+                    popular_songs,
+                    "Most Popular Songs",
+                    "Songs with the most plays across all users"
+                )
+                await response_msg.edit(content=None, embed=embed)
+            
+        except Exception as e:
+            import traceback
+            print(f"Error in popular command: {type(e).__name__}: {e}")
+            print(traceback.format_exc())
+            await response_msg.edit(content=f"❌ An error occurred: {str(e)[:1000]}")
     
     @commands.command(name="recent", help="Show recently played songs")
     async def recent(self, ctx):
@@ -71,8 +130,46 @@ class Songs(commands.Cog):
         Args:
             ctx: Command context
         """
-        # TODO: Implementation
-        await ctx.send("🎵 Fetching recently played songs...")
+        response_msg = await ctx.send("🎵 Fetching recently played songs...")
+        
+        try:
+            recent_songs = await self.api.get_recent_songs()
+            
+            if not recent_songs:
+                await response_msg.edit(content="❌ No recent song data available at this time")
+                return
+            
+            if len(recent_songs) > 10:
+                def format_page(page_data, page_num):
+                    start_idx = page_num * 10 + 1  # 1-based indexing for display
+                    return self.format_song_list_embed(
+                        page_data,
+                        "Recently Played Songs",
+                        f"Showing results {start_idx}-{start_idx+len(page_data)-1} of {len(recent_songs)}",
+                        start_index=start_idx
+                    )
+                
+                view = PaginatedView(
+                    data=recent_songs,
+                    format_page_func=format_page
+                )
+                view.message = response_msg
+                
+                embed = format_page(recent_songs[:10], 0)
+                await response_msg.edit(content=None, embed=embed, view=view)
+            else:
+                embed = self.format_song_list_embed(
+                    recent_songs,
+                    "Recently Played Songs",
+                    "Songs that have been played most recently"
+                )
+                await response_msg.edit(content=None, embed=embed)
+            
+        except Exception as e:
+            import traceback
+            print(f"Error in recent command: {type(e).__name__}: {e}")
+            print(traceback.format_exc())
+            await response_msg.edit(content=f"❌ An error occurred: {str(e)[:1000]}")
     
     @commands.command(name="songinfo", help="Display information about a song")
     async def songinfo_command(self, ctx, *, song_name: str):
@@ -85,7 +182,7 @@ class Songs(commands.Cog):
         response_msg = await ctx.send(f"🔍 Searching for '{song_name}'...")
         
         try:
-            matching_songs = await self.search_songs_by_name(song_name)
+            matching_songs = await self.api.search_songs(song_name)
             
             if not matching_songs:
                 await response_msg.edit(content=f"❌ No songs found matching '{song_name}'")
@@ -95,6 +192,12 @@ class Songs(commands.Cog):
             selected_song = await self.handle_song_selection(ctx, response_msg, matching_songs)
             if not selected_song:
                 return
+            
+            # Get detailed song info if we have an ID
+            if selected_song.get("id"):
+                detailed_song = await self.api.get_song_details(selected_song.get("id"))
+                if detailed_song:
+                    selected_song = detailed_song
             
             await response_msg.edit(content=f"📝 Fetching details for '{selected_song.get('name')}'...")
             
@@ -113,13 +216,14 @@ class Songs(commands.Cog):
             print(traceback.format_exc())
             await response_msg.edit(content=f"❌ An error occurred: {str(e)[:1000]}")
     
-    def format_song_list_embed(self, songs: List[Dict[str, Any]], title: str, description: str = None) -> discord.Embed:
+    def format_song_list_embed(self, songs: List[Dict[str, Any]], title: str, description: str = None, start_index: int = 1) -> discord.Embed:
         """Format a list of songs into a Discord embed
         
         Args:
             songs: List of song data
             title: Embed title
             description: Optional embed description
+            start_index: Starting index for song numbering (for pagination)
             
         Returns:
             discord.Embed: Formatted embed
@@ -134,7 +238,7 @@ class Songs(commands.Cog):
             embed.add_field(name="No songs found", value="Try a different search term", inline=False)
             return embed
         
-        for i, song in enumerate(songs, 1):
+        for i, song in enumerate(songs, start_index):
             song_name = song.get("name", "Unknown Song")
             artist = song.get("artist", "Unknown")
             
@@ -151,7 +255,7 @@ class Songs(commands.Cog):
             )
             
             # Add an empty field after every second entry
-            if i % 2 == 0 and i < len(songs):
+            if (i - start_index + 1) % 2 == 0 and (i - start_index + 1) <= len(songs):
                 embed.add_field(name="\u200b", value="\u200b", inline=True)
         
         return embed
@@ -224,36 +328,6 @@ class Songs(commands.Cog):
         await selector.wait()
         
         return selector.selected_song
-
-    # Temporary API methods until DMBotAPI is fully implemented
-    async def search_songs_by_name(self, song_name: str) -> List[Dict[str, Any]]:
-        """Search for songs by name from the API"""
-        try:
-            await self.api.ensure_session()
-            
-            async with self.api.session.get(f"{self.api_url}/api/songs") as response:
-                if response.status != 200:
-                    return []
-                
-                songs = await response.json()
-                # Filter songs by name (case-insensitive partial match)
-                song_name_lower = song_name.lower()
-                matching_songs = [
-                    song for song in songs 
-                    if song_name_lower in song.get("name", "").lower()
-                ]
-                
-                # Sort by exact match first, then by popularity
-                matching_songs.sort(key=lambda s: (
-                    0 if s.get("name", "").lower() == song_name_lower else 1,
-                    -(s.get("scores_count", 0) or 0)
-                ))
-                
-                return matching_songs[:10]  # Return top 10 matches
-        except Exception as e:
-            print(f"Error searching songs: {e}")
-            return []
-
 
 async def setup(bot):
     await bot.add_cog(Songs(bot)) 

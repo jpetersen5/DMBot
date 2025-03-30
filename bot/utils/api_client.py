@@ -119,26 +119,31 @@ class DMBotAPI:
             songs = await self.request("GET", "api/songs", use_cache=True)
             
             # Filter songs by the query (case-insensitive partial match)
-            query_lower = query.lower().split(" ")
-            matching_songs = [
-                song for song in songs 
-                if any(query_lower in part.lower()
-                       for part in [song.get("name", ""),
-                                    song.get("artist", ""),
-                                    song.get("album", ""),
-                                    song.get("playlist", "")])
-            ]
+            query_terms = query.lower().split()
+            matching_songs = []
             
-            # Sort by exact match first, then by popularity
+            for song in songs:
+                song_parts = [
+                    song.get("name", "").lower(),
+                    song.get("artist", "").lower(),
+                    song.get("album", "").lower(),
+                    song.get("playlist", "").lower() if song.get("playlist") else ""
+                ]
+                
+                # Check if all query terms appear in at least one song part
+                if all(any(term in part for part in song_parts) for term in query_terms):
+                    matching_songs.append(song)
+            
+            # Sort by relevance and popularity
+            original_query = query.lower()
             matching_songs.sort(key=lambda s: (
-                0 if s.get("name", "").lower() == query_lower else 1,
-                0 if query_lower in s.get("artist", "").lower() else 2,
-                0 if query_lower in s.get("album", "").lower() else 3,
-                0 if query_lower in s.get("playlist", "").lower() else 4,
+                0 if s.get("name", "").lower() == original_query else 1,
+                0 if s.get("artist", "").lower() == original_query else 2,
+                0 if s.get("album", "").lower() == original_query else 3,
                 -(s.get("scores_count", 0) or 0)
             ))
             
-            return matching_songs[:20]  # Return top 20 matches
+            return matching_songs
         except Exception as e:
             print(f"Error searching songs: {e}")
             return []
@@ -182,9 +187,15 @@ class DMBotAPI:
     async def get_popular_songs(self, limit: int = 20) -> List[Dict[str, Any]]:
         """Get list of popular songs"""
         try:
-            # TODO: Implement /api/songs/popular endpoint
-            songs = await self.request("GET", "api/songs/popular", params={"limit": limit}, use_cache=True)
-            return songs
+            songs = await self.request("GET", "api/songs", use_cache=True)
+            
+            # Sort by number of scores (popularity)
+            popular_songs = sorted(
+                songs, 
+                key=lambda s: -(s.get("scores_count", 0) or 0)
+            )
+            
+            return popular_songs[:limit]
         except Exception as e:
             print(f"Error getting popular songs: {e}")
             return []
@@ -192,9 +203,28 @@ class DMBotAPI:
     async def get_recent_songs(self, limit: int = 20) -> List[Dict[str, Any]]:
         """Get recently played songs"""
         try:
-            # TODO: Implement /api/songs/recent endpoint
-            songs = await self.request("GET", "api/songs/recent", params={"limit": limit}, use_cache=True)
-            return songs
+            scores = await self.request("GET", "api/scores", 
+                                       params={"limit": 100, "sort": "recent"},
+                                       use_cache=True)
+            
+            # Extract unique song_ids from scores
+            song_ids = []
+            song_id_set = set()
+            
+            for score in scores:
+                song_id = score.get("song_id")
+                if song_id and song_id not in song_id_set:
+                    song_ids.append(song_id)
+                    song_id_set.add(song_id)
+                    if len(song_ids) >= limit:
+                        break
+            
+            # Get song details for the extracted song_ids
+            if song_ids:
+                recent_songs = await self.get_songs_by_ids(song_ids)
+                return list(recent_songs.values())
+            
+            return []
         except Exception as e:
             print(f"Error getting recent songs: {e}")
             return []
