@@ -89,19 +89,41 @@ class AchievementProcessor:
             })
             
         charter_types = [
-            ("onyxite", "Jazz Apprentice", "Onyxite"),
-            ("boo", "Prog Apprentice", "Boo"),
-            ("xane60", "Metal Apprentice", "Xane60"),
-            ("bloodline", "Variety Apprentice", "Bloodline"),
-            ("hoph2o", "Punk Apprentice", "Hoph2o"),
-            ("dichotic_rhythmassacre", "Hardcore Apprentice", "Dichotic or Rhythmassacre"),
-            ("remix", "Remix Apprentice", "remixes"),
-            ("tomato_ganonmetroid", "Math Rock Apprentice", "tomato or GanonMetroid"),
-            ("recharts", "Hurray, Recharts!", "recharts of songs from official games"),
-            ("jameos", "???", "Jameos")
+            ("onyxite", "Jazz Apprentice", "Onyxite", ["Onyxite"]),
+            ("boo", "Prog Apprentice", "Boo", ["Boo"]),
+            ("xane60", "Metal Apprentice", "Xane60", ["Xane60"]),
+            ("bloodline", "Variety Apprentice", "Bloodline", ["Bloodline"]),
+            ("hoph2o", "Punk Apprentice", "Hoph2o", ["Hoph2o"]),
+            ("dichotic_rhythmassacre", "Hardcore Apprentice", "Dichotic or Rhythmassacre", ["Dichotic", "Rhythmassacre"]),
+            ("tomato_ganonmetroid", "Math Rock Apprentice", "tomato or GanonMetroid", ["tomato", "GanonMetroid"]),
+            ("jameos", "???", "Jameos", ["Jameos"]),
+        ]
+
+        recharts_charter_refs = [
+            "Harmonix",
+            "Neversoft",
+            "RhythmAuthors",
+            "RockGamer",
+            "ThatAuthoringGroup",
+            "OffbeatEntertainment",
+            "TheAuthority",
+            "WaveGroup",
+            "NoisyPuppet",
+            "EaracheRecords",
+            "wesjett08",
+            "Fairwood Studios",
+            "realityofjonah",
+            "Alt-StrumProductions",
+            "RideTheLights",
+            "fauxharmonic",
+            "ChartToppers"
+        ]
+
+        remix_artists = [
+            "Xane60", "SoundHaven", "LethalLasagna", "Luke Holland", "Matt McGuire"
         ]
         
-        for achievement_id, name, charter_name in charter_types:
+        for achievement_id, name, charter_name, charters in charter_types:
             threshold = 25 if achievement_id != "jameos" else 1
             
             self.achievements.append({
@@ -111,9 +133,31 @@ class AchievementProcessor:
                 "rank": 1,
                 "category": "general",
                 "check_function": self._check_charter_count,
-                "charter": achievement_id,
+                "charter_refs": charters,
                 "threshold": threshold
             })
+
+        self.achievements.append({
+            "id": "remix",
+            "name": "Remix Apprentice",
+            "description": "Play 25 remixes.",
+            "rank": 1,
+            "category": "general",
+            "check_function": self._check_remix_count,
+            "remix_artists": remix_artists,
+            "threshold": 25
+        })
+        
+        self.achievements.append({
+            "id": "recharts",
+            "name": "Hurray, Recharts!",
+            "description": "Play 25 recharts of songs from official games.",
+            "rank": 1,
+            "category": "general",
+            "check_function": self._check_recharts_count,
+            "recharts_charter_refs": recharts_charter_refs,
+            "threshold": 25
+        })
         
         if "special" in self.achievement_songs:
             if "funny_number" in self.achievement_songs["special"]:
@@ -212,17 +256,56 @@ class AchievementProcessor:
         return total_fcs >= achievement_def["threshold"]
     
     def _check_charter_count(self, user_data, achievement_def):
-        """Check if user has played enough charts from a certain charter"""
+        """Check if user has played enough charts from specified charters using charter_refs"""
         if isinstance(user_data, list) and len(user_data) > 0:
             user_data = user_data[0]
             
-        charter = achievement_def["charter"]
+        charter_refs = achievement_def["charter_refs"]
         threshold = achievement_def["threshold"]
         
         count = 0
         scores = user_data.get("scores", [])
         for score in scores:
-            if charter in score.get("charter", "").lower():
+            score_charter_refs = score.get("charter_refs", [])
+            if any(charter in score_charter_refs for charter in charter_refs):
+                count += 1
+        
+        return count >= threshold
+    
+    def _check_remix_count(self, user_data, achievement_def):
+        """Check if user has played enough remix charts"""
+        if isinstance(user_data, list) and len(user_data) > 0:
+            user_data = user_data[0]
+            
+        remix_artists = achievement_def["remix_artists"]
+        threshold = achievement_def["threshold"]
+        
+        count = 0
+        scores = user_data.get("scores", [])
+        for score in scores:
+            song_name = score.get("song_name", "").lower()
+            score_artists = score.get("artists", [])
+            for artist in score_artists:
+                if any(remix_artist in artist.lower() for remix_artist in remix_artists):
+                    count += 1
+                    break
+        
+        return count >= threshold
+    
+    def _check_recharts_count(self, user_data, achievement_def):
+        """Check if user has played enough recharts from official games"""
+        if isinstance(user_data, list) and len(user_data) > 0:
+            user_data = user_data[0]
+            
+        recharts_charter_refs = achievement_def["recharts_charter_refs"]
+        threshold = achievement_def["threshold"]
+        
+        count = 0
+        scores = user_data.get("scores", [])
+        for score in scores:
+            score_charter_refs = score.get("charter_refs", [])
+            # if at least one score charter ref is in recharts_charter_refs AND at least one score charter ref is not in recharts_charter_refs
+            if any(charter in recharts_charter_refs for charter in score_charter_refs) and not all(charter in recharts_charter_refs for charter in score_charter_refs):
                 count += 1
         
         return count >= threshold
@@ -303,7 +386,7 @@ class AchievementProcessor:
                 achievement_copy.pop("threshold", None)
                 achievement_copy.pop("song_md5", None)
                 achievement_copy.pop("requires_fc", None)
-                achievement_copy.pop("charter", None)
+                achievement_copy.pop("charter_refs", None)
                 achievement_copy.pop("score", None)
                 achievement_copy.pop("song_types", None)
                 

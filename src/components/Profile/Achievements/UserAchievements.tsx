@@ -34,7 +34,43 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
     }
   };
 
-  const achievementsByCategory = achievements.reduce((acc, achievement) => {
+  const processedAchievements = React.useMemo(() => {
+    const achievementGroups: Record<string, Achievement[]> = {};
+    
+    achievements.forEach(achievement => {
+      if (achievement.name.includes("Score") || achievement.name.includes("FC")) {
+        if (!achievementGroups[achievement.id]) {
+          achievementGroups[achievement.id] = [];
+        }
+        achievementGroups[achievement.id].push(achievement);
+        return;
+      }
+      
+      const baseId = achievement.id.replace(/_\d+$/, '');
+      if (!achievementGroups[baseId]) {
+        achievementGroups[baseId] = [];
+      }
+      achievementGroups[baseId].push(achievement);
+    });
+    
+    return Object.values(achievementGroups).flatMap(group => {
+      if (group.length > 0 && (
+          group[0].name.includes("Score") || 
+          group[0].name.includes("FC"))) {
+        return group;
+      }
+      
+      const achievedItems = group.filter(a => a.achieved);
+      if (achievedItems.length > 0) {
+        const highestRank = Math.max(...achievedItems.map(a => a.rank));
+        return [achievedItems.find(a => a.rank === highestRank)!];
+      }
+      
+      return group;
+    });
+  }, [achievements]);
+
+  const achievementsByCategory = processedAchievements.reduce((acc, achievement) => {
     const category = achievement.category;
     if (!acc[category]) {
       acc[category] = [];
@@ -44,7 +80,7 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
   }, {} as Record<AchievementCategory, Achievement[]>);
 
   const filteredAchievements = activeCategory === "all" 
-    ? achievements 
+    ? processedAchievements 
     : achievementsByCategory[activeCategory] || [];
 
   return (

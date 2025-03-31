@@ -66,6 +66,14 @@
     @include theme("background", "color-sidebar");
     @include theme("color", "color-sidebar-text");
     @include theme("border-color", "color-text");
+    
+    &.threshold {
+      width: auto;
+      min-width: 25px;
+      padding: 0 4px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+    }
   }
 }
 

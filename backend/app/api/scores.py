@@ -180,6 +180,7 @@ def process_and_save_scores(result, user_id):
                     "identifier": song["identifier"],
                     "song_name": song_info["name"] if song_info else f"Unknown Song: {song['identifier']}",
                     "artist": song_info["artist"] if song_info else "Unknown Artist",
+                    "charter_refs": song_info["charter_refs"] if song_info else [],
                     "percent": score["percent"],
                     "is_fc": score["is_fc"],
                     "speed": score["speed"],
