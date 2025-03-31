@@ -241,3 +241,30 @@ def get_user_by_discord_id(discord_id):
     except Exception as e:
         logger.error(f"Error fetching user by Discord ID: {str(e)}")
         return jsonify({"error": f"An error occurred while fetching user: {str(e)}"}), 500
+
+@bp.route("/api/user/<string:user_id>/achievements", methods=["GET"])
+def get_user_achievements(user_id):
+    """
+    Retrieves achievements for a specific user
+    
+    Args:
+        user_id (str): The ID of the user to retrieve achievements for
+        
+    Returns:
+        JSON: List of user achievements
+    """
+    supabase = get_supabase()
+    logger = current_app.logger
+    
+    try:
+        response = supabase.table("users").select("achievements").eq("id", user_id).execute()
+        
+        if not response.data:
+            return jsonify({"error": "User not found"}), 404
+            
+        achievements = response.data[0].get("achievements", [])
+        
+        return jsonify({"achievements": achievements})
+    except Exception as e:
+        logger.error(f"Error fetching user achievements: {str(e)}")
+        return jsonify({"error": f"An error occurred while fetching achievements: {str(e)}"}), 500

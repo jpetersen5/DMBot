@@ -8,6 +8,7 @@ from datetime import datetime, UTC
 import os
 import re
 import jwt
+from ..utils.achievement_processor import achievement_processor
 
 bp = Blueprint("scores", __name__)
 exec(get_process_songs_script())
@@ -62,14 +63,14 @@ def sort_and_rank_leaderboard(leaderboard):
 
 def process_and_save_scores(result, user_id):
     """
-    processes score data and saves it to the database
-
-    params:
-        result (dict): parsed score data
-        user_id (str): Discord ID of the user
+    Process scoredata.bin content and save scores to the database
     
-    returns:
-        None
+    Args:
+        result: Result from PSDF.parse()
+        user_id: Discord ID of the user
+        
+    Returns:
+        count: Number of scores processed
     """
     supabase = get_supabase()
     logger = current_app.logger
@@ -272,15 +273,42 @@ def process_and_save_scores(result, user_id):
 
     updated_unknown_scores = list(existing_unknown_scores_dict.values())
     updated_unknown_scores.sort(key=lambda x: x["score"], reverse=True)
+
+    logger.info(f"Processing achievements for user {user_id}")
+    # socketio.emit("score_processing_processing_achievements",
+    #               {"message": f"Processing achievements for user {username}"},
+    #               room=str(user_id))
     
-    logger.info(f"Updating scores for user {user_id}")
-    socketio.emit("score_processing_uploading",
-                  {"message": f"Updating scores for user {username}"},
-                  room=str(user_id))
-    supabase.table("users").update({
+    user_stats_response = supabase.table("users").select("stats").eq("id", user_id).execute()
+    if user_stats_response.data and len(user_stats_response.data) > 0:
+        user_stats = user_stats_response.data[0].get("stats", {})
+    else:
+        user_stats = {}
+    
+    # Prepare user data for achievement processing
+    user_achievement_data = {
+        "id": user_id,
         "scores": updated_scores,
-        "unknown_scores": updated_unknown_scores
-    }).eq("id", user_id).execute()
+        "unknown_scores": updated_unknown_scores,
+        "stats": user_stats,
+        "last_updated": datetime.now(UTC).isoformat()
+    }
+    
+    achievements = achievement_processor.process_achievements(user_achievement_data)
+    
+    # Update user with new scores and achievements
+    update_data = {
+        "scores": updated_scores,
+        "unknown_scores": updated_unknown_scores,
+        "achievements": achievements
+    }
+
+    logger.info(f"Updating scores and achievements for user {user_id}")
+    socketio.emit("score_processing_uploading",
+                  {"message": f"Updating scores and achievements for user {username}"},
+                  room=str(user_id))
+    
+    supabase.table("users").update(update_data).eq("id", user_id).execute()
 
     update_processing_status(user_id, "completed", 100, total_songs, total_songs)
     socketio.emit("score_processing_complete", 
