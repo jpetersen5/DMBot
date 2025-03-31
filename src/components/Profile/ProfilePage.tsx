@@ -6,6 +6,7 @@ import UserScores from "./Scores/UserScores";
 import ProfileStats from "./ProfileStats";
 import CharterStats from "./Charter/CharterStats";
 import CharterSongs from "./Charter/CharterSongs";
+import UserAchievements from "./Achievements/UserAchievements";
 import { UserAvatar } from "../UserList/UserList";
 import { Charter } from "../../utils/charter";
 import { renderSafeHTML } from "../../utils/safeHTML";
@@ -14,7 +15,7 @@ import { useAuth } from "../../context/AuthContext";
 import { API_URL } from "../../App";
 import "./ProfilePage.scss";
 
-type TabType = "scores" | "charter_stats" | "charter_songs";
+type TabType = "scores" | "charter_stats" | "charter_songs" | "achievements";
 
 const ProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -27,22 +28,17 @@ const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Set active tab based on URL path
   useEffect(() => {
-    // For the new charter-song URL pattern in user profile
-    if (location.pathname.includes('/charter-song/')) {
+    if (location.pathname.includes("/charter-song/")) {
       setActiveTab("charter_songs");
     }
-    // For normal song URLs in user profile, set to scores tab
-    else if (location.pathname.includes('/user/') && location.pathname.split('/').length > 3 && !location.pathname.includes('/charter-song/')) {
+    else if (location.pathname.includes("/user/") && location.pathname.split("/").length > 3 && !location.pathname.includes("/charter-song/")) {
       setActiveTab("scores");
     }
   }, [location.pathname]);
 
-  // Close song modal when changing tabs
   const handleTabChange = (tab: TabType) => {
-    // If there's a song modal open (URL contains songId), navigate back to base profile
-    if (location.pathname.includes('/charter-song/')) {
+    if (location.pathname.includes("/charter-song/")) {
       navigate(`/user/${userId}`);
     }
     setActiveTab(tab);
@@ -161,6 +157,13 @@ const ProfilePage: React.FC = () => {
                   User Scores
                 </button>
                 
+                <button 
+                  className={`tab-button ${activeTab === "achievements" ? "active" : ""}`}
+                  onClick={() => handleTabChange("achievements")}
+                >
+                  Achievements
+                </button>
+                
                 {selectedCharter && (
                   <>
                     <button 
@@ -185,6 +188,12 @@ const ProfilePage: React.FC = () => {
                 {activeTab === "scores" && (
                   <div className="profile-scores">
                     <UserScores userId={profileUser.id} />
+                  </div>
+                )}
+                
+                {activeTab === "achievements" && (
+                  <div className="profile-achievements">
+                    <UserAchievements userId={profileUser.id} />
                   </div>
                 )}
                 

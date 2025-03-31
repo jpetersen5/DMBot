@@ -1,0 +1,94 @@
+@import "../../../styles/themes";
+@import "../../../styles/mixins";
+
+.achievement-icon {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
+  
+  .icon-background {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    border: 3px solid;
+    @include theme("border-color", "color-text");
+    
+    .icon {
+      font-size: 2.25rem;
+      line-height: 1; 
+    }
+  }
+  
+  &.achieved {
+    .icon-background {
+      @include theme("background", "color-button");
+      @include theme("color", "color-button-text");
+    }
+  }
+  
+  &.locked {
+    opacity: 0.5;
+    
+    .icon-background {
+      @include theme("background", "color-box-secondary");
+      @include theme("color", "color-text-secondary");
+    }
+  }
+  
+  .rank-overlay {
+    position: absolute;
+    bottom: 0;
+    right: 5px;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+    border: 2px solid;
+    @include theme("background", "color-sidebar");
+    @include theme("color", "color-sidebar-text");
+    @include theme("border-color", "color-text");
+  }
+}
+
+.achievement-tooltip {
+  min-width: 200px;
+  max-width: 300px;
+  padding: 0.5rem;
+  
+  .achievement-name {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+    font-weight: bold;
+  }
+  
+  .achievement-description {
+    margin: 0 0 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .achievement-timestamp {
+    margin: 0;
+    font-size: 0.8rem;
+    font-style: italic;
+    opacity: 0.8;
+  }
+} 
