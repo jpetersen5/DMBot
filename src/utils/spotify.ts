@@ -42,7 +42,6 @@ export const fetchSongData = async (
         }
 
         const data = await response.json();
-        console.log(data);
         return data as SongData;
     } catch (error) {
         console.error("Error fetching song data:", error);
