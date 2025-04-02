@@ -157,6 +157,7 @@ dist-ssr
 *.sw?
 
 # ignore data and sensitive scripts
-data
 utils/process_songs.py
+/data
+backend/app/migrations/data
 backend/app/scripts/process_songs.py

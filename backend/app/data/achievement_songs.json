@@ -1,0 +1,1120 @@
+{
+  "hands": {
+    "level1": {
+      "humble_beginnings": {
+        "name": "Humble Beginnings",
+        "description": "Get {} on Rhinestone Eyes by Gorillaz.",
+        "md5": ["92053dd39e2f04cb2b67926bc99eff11"]
+      },
+      "little_spies": {
+        "name": "Little Spies",
+        "description": "Get {} on crushcrushcrush by Paramore (Hoph2o rechart).",
+        "md5": ["ab03036b195cebf23ef98984402e0ebf"]
+      },
+      "sitting_in_silence": {
+        "name": "Sitting in Silence",
+        "description": "Get {} on Car Radio by Twenty One Pilots.",
+        "md5": ["dcbbce6f417f6ec21ad7a00d790fb5bd"]
+      }
+    },
+    "level2": {
+      "silver_lining": {
+        "name": "Silver Lining",
+        "description": "Get {} on R U Mine? by Arctic Monkeys.",
+        "md5": ["62710a0cc981a6363004c1811c498e4f"]
+      },
+      "unbreakable": {
+        "name": "Unbreakable",
+        "description": "Get {} on Bulletproof Love by Pierce the Veil.",
+        "md5": ["8d7c417512d631bbc805ac52be90405b"]
+      },
+      "stock_kit_classic": {
+        "name": "The Stock Kit Classic",
+        "description": "Get {} on That's What You Get by Paramore (Hoph2o rechart).",
+        "md5": ["b0df7d06aa790b57229f23b7ff83f9e8"]
+      }
+    },
+    "level3": {
+      "dr_rex_legacy": {
+        "name": "Dr. Rex's Legacy",
+        "description": "Get {} on Host by Haken.",
+        "md5": ["941c6b68b015ff249fd63660608745be"]
+      },
+      "awaken": {
+        "name": "Awaken",
+        "description": "Get {} on Forsaken by Dream Theater.",
+        "md5": ["822d823f6373e66540e4ffe36ffe9804"]
+      },
+      "shrek_is_love": {
+        "name": "Shrek is Love, Shrek Is Life",
+        "description": "Get {} on I'm a Believer by Smash Mouth.",
+        "md5": ["81353e6f7487a4485c7826d60ebc9f3a"]
+      }
+    },
+    "level4": {
+      "kkonabass": {
+        "name": "KKonaBASS",
+        "description": "Get {} on Flirtin' With Disaster by Molly Hatchet (Onyxite rechart).",
+        "md5": ["4853fa3f8c8002eef0f9c6af1dbb7270"]
+      },
+      "enchanted": {
+        "name": "Enchanted",
+        "description": "Get {} on lovespell by Covet.",
+        "md5": ["bf3087ded425a9090f8b1c61c55f8849"]
+      },
+      "so_pretty": {
+        "name": "So Pretty",
+        "description": "Get {} on Tekkers by Three Trapped Tigers.",
+        "md5": ["7acd35c8dcde1b59097d8343be50da56"]
+      },
+      "fear_of_missing_out": {
+        "name": "Fear of Missing Out",
+        "description": "Get {} on Float On by Good Tiger.",
+        "md5": ["0099837906f96ac6fa0c10ef5b8e9907"]
+      }
+    },
+    "level5": {
+      "biggest_throwback": {
+        "name": "The Biggest Throwback",
+        "description": "Get {} on Won't Get Fooled Again by The Who (Onyxite rechart).",
+        "md5": ["af44d5c8d941bb33444d18e7871cdc77", "31a96a0467399127d4f29c4e612d6a4f"]
+      },
+      "learning_to_read": {
+        "name": "Learning to Read",
+        "description": "Get {} on Book by CHON.",
+        "md5": ["f0418d9da20764d237f1b6cd84d5fdd7", "eb9a1e7e9b064e8fe4d04d3e99803e46"]
+      },
+      "odd_times": {
+        "name": "Odd Times",
+        "description": "Get {} on Atlas Stone by Haken.",
+        "md5": ["33c31adeedebf9634900b0de0ba03c04"]
+      },
+      "that_face": {
+        "name": "That Face",
+        "description": "Get {} on IZ-US by Aphex Twin",
+        "md5": ["6dcff22ff4b059adcb0841e701d6283d"]
+      }
+    },
+    "level6": {
+      "the_classic": {
+        "name": "The Classic",
+        "description": "Get {} on Everlong by Foo Fighters (Hoph2o rechart).",
+        "md5": ["8d8a5f190a0e3a26f3b621d2fe4d82a9"]
+      },
+      "incubus_is_back": {
+        "name": "Incubus is Back",
+        "description": "Get {} on Glitching Prisms by Night Verses.",
+        "md5": ["f3ce64eaf8e1c2c61607e8b53edc3f4d"]
+      },
+      "too_much_fun": {
+        "name": "Too Much Fun",
+        "description": "Get {} on Bulls in the Bronx by Pierce the Veil.",
+        "md5": ["6e6009869290dd58f7fdfc343364d97e"]
+      }
+    },
+    "level7": {
+      "feel_the_burn": {
+        "name": "Feel the Burn",
+        "description": "Get {} on Breaking the Habit by Linkin Park. (Hoph2o rechart).",
+        "md5": ["a537de1f79e04d33fffa79f80a8b7219"]
+      },
+      "disco_hell": {
+        "name": "Disco Hell",
+        "description": "Get {} on Calentamiento Global by Dance Gavin Dance.",
+        "md5": ["061ee67c33377214934c894bc6a27c25"]
+      },
+      "ooh_quints": {
+        "name": "Ooh, Quints",
+        "description": "Get {} on Where Are the Birds by Good Tiger.",
+        "md5": ["a3b0c1f01db998c56954411c6482cb3a"]
+      },
+      "love_hate_relationship": {
+        "name": "Love/Hate Relationship",
+        "description": "Get {} on Up All Night by Blink-182 (Hoph2o rechart).",
+        "md5": ["fa948d81a3357552fcd2253f95d3206d"]
+      }
+    },
+    "level8": {
+      "taboot_taboot": {
+        "name": "Taboot Taboot",
+        "description": "Get {} on Llama by Phish (Onyxite rechart).",
+        "md5": ["eed16818105adc8d5d07e122212533f5", "dddb0c74ba761b155c758e627162efe4"]
+      },
+      "destination_speed": {
+        "name": "Destination Speed",
+        "description": "Get {} on Anywhere but Here by Rise Against.",
+        "md5": ["19211e3fff75a708ec6bd19ec34cc4f4"]
+      },
+      "angels_have_fallen": {
+        "name": "The Angels Have Fallen",
+        "description": "Get {} on Vida Seca by Angra.",
+        "md5": ["c4bee16edf17412935d5f63fb9d479ca"]
+      },
+      "one_last_chance": {
+        "name": "One Last Chance",
+        "description": "Get {} on Invasion by Haken",
+        "md5": ["e7a8a36f65ab0da9053afc49722c8aab", "66c000689a8b584b808348207914d8c8"]
+      },
+      "cult_classic": {
+        "name": "Cult Classic",
+        "description": "Get {} on The Complexity of Light by Children of Nova.",
+        "md5": ["ba53ffd150407058669e75dbe9b8c1c1"]
+      }
+    },
+    "level9": {
+      "osfrog": {
+        "name": "OSFROG",
+        "description": "Get {} on Caverns by Thank You Scientist.",
+        "md5": ["b6558f350f888ee8d7f1e2db183df3ec"]
+      },
+      "broken_glass": {
+        "name": "Broken Glass",
+        "description": "Get {} on Fragments by Jason Richardson.",
+        "md5": ["2f4720178adda4b5bda3838cb7e516b6"]
+      },
+      "fickle_fascination": {
+        "name": "The Fickle Fascination",
+        "description": "Get {} on The Everlasting Gaze by Smashing Pumpkins.",
+        "md5": ["ca8a1b2f76c40367672314b622b62b73"]
+      },
+      "zen": {
+        "name": "Zen",
+        "description": "Get {} on Shibuya by Covet.",
+        "md5": ["d5c97d7895826c71dce0d367f8360734"]
+      },
+      "jazz_blitz": {
+        "name": "Jazz Blitz!",
+        "description": "Get {} on Keizoku by Soil and \"Pimp\" Sessions (Tournament Version).",
+        "md5": ["398d28a8d686c416ff36b5d12b02db4f"]
+      }
+    },
+    "level10": {
+      "d_jamming": {
+        "name": "D'Jamming",
+        "description": "Get {} on D'Jamie The Kidd Vs. The Funk Bots From Outer Space by 1.O.M.",
+        "md5": ["a28d969e3a78aa4f42524895660ce36a", "d36cdbf74f005179b40d5fbfc9b6f5e7"]
+      },
+      "staying_in_the_pocket": {
+        "name": "Staying in the Pocket",
+        "description": "Get {} on Arithmophobia by Animals as Leaders.",
+        "md5": ["94be383e35eaa7dcb3d86a7036956f9c"]
+      },
+      "agility_check": {
+        "name": "Agility Check",
+        "description": "Get {} on Devotion Cuts by Hail the Sun.",
+        "md5": ["019abc5381a3336deac55db1356ea13c", "49770266410ede1a1e33655ec4763a3b"]
+      },
+      "only_a_spoonful": {
+        "name": "Only a Spoonful!",
+        "description": "Get {} on A Spoonful of Slurry by Tera Melos.",
+        "md5": ["248d2522cbe51fba6dcd81d0f44ad806"]
+      },
+      "cold_belief": {
+        "name": "The Cold Belief",
+        "description": "Get {} on Omniphobia by Sianvar",
+        "md5": ["e5741f9a602f6252e4a2bb527f80eacb"]
+      },
+      "no_more_silence": {
+        "name": "No More Silence",
+        "description": "Get {} on The Sound of Us by A Lot Like Birds.",
+        "md5": ["f0f57f3410f159a52f6c644133567cbb"]
+      }
+    },
+    "level11": {
+      "no_cap": {
+        "name": "no cap",
+        "description": "Get {} on leviathan by mouse on the keys.",
+        "md5": ["694bd8029034f63860a461563eb7c1e3"]
+      },
+      "floating": {
+        "name": "Floating",
+        "description": "Get {} on Mourning Sickness by Hail the Sun.",
+        "md5": ["ddc6830b599291d7706c3d656f0d107f", "cfe9af854d0dbd832633342c74ca4a73"]
+      },
+      "dichotics_choice": {
+        "name": "Dichotic's Choice",
+        "description": "Get {} on Aimless Arrow by Converge.",
+        "md5": ["8c6b5b5b6538197253c3eb77e1b6fcad"]
+      },
+      "shrapnel_spraying": {
+        "name": "Shrapnel Spraying",
+        "description": "Get {} on Sick Machine by Sianvar.",
+        "md5": ["a1aff531079a60d71664780a7eec1c4c"]
+      }
+    },
+    "level12": {
+      "the_pattern": {
+        "name": "The Pattern",
+        "description": "Get {} on Waterslide by CHON.",
+        "md5": ["a797fb292641b0e8288d02917ed4aea5"]
+      },
+      "rudimenting": {
+        "name": "Rudimenting",
+        "description": "Get {} on Blister by Kinglet.",
+        "md5": ["821e80aa1eed86f5d657a1f2c846e37c"]
+      },
+      "left_leads": {
+        "name": "Left Leads",
+        "description": "Get {} on Prequel to the Sequel by Between the Buried and Me.",
+        "md5": ["a55beb568746f4f0965b226593a9559d", "44d686e6b20cb1651c6894a04340b3b7"]
+      },
+      "casters_curse": {
+        "name": "Caster's Curse",
+        "description": "Get {} on Got a Match by Chick Corea Elektric Band.",
+        "md5": ["575b76f68c1b4f7b292b94c7da2bc79c", "2a3e771b8e84565379f4155e20cf7754"]
+      },
+      "back_in_glory": {
+        "name": "Back In All Its Glory",
+        "description": "Get {} on Papercut by Mike Sangapore.",
+        "md5": ["0a534da127dd7336d7860dd3be03fb2d"]
+      }
+    },
+    "level13": {
+      "sub_to_moochalacho": {
+        "name": "Sub to Moochalacho",
+        "description": "Get {} on Guns of Summer by Coheed and Cambria (Onyxite rechart).",
+        "md5": ["e816b817f9d31d3f0bd06bd6d51932cf", "7eb8bf6867829e9cb3e98edd8b3f0cd1"]
+      },
+      "poly_nightmare": {
+        "name": "Poly Nightmare",
+        "description": "Get {} on Apogee by Satyr.",
+        "md5": ["667e867140ad4f3f985a410df3dc91bf"]
+      },
+      "tired_yet": {
+        "name": "Tired Yet?",
+        "description": "Get {} on Dancing Machines by Nova Collective.",
+        "md5": ["f93d7e464763f011985cddd7f5c83230"]
+      },
+      "cozy": {
+        "name": "Cozy",
+        "description": "Get {} on Sleepy Tea by CHON.",
+        "md5": ["2b9dfc6008eadcfadfaa4c1c187c9c6e", "649b3e2452f7f696a352932d8e3b215a"]
+      },
+      "finish_line": {
+        "name": "Going For the Finish Line",
+        "description": "Get {} on Swallow by Casiopeia.",
+        "md5": ["506898b0fef96609cec44994d56ce242"]
+      },
+      "hands_marathon": {
+        "name": "The Hands Marathon",
+        "description": "Get {} on Sly by Herbie Hancock.",
+        "md5": ["3826500f3e973aeafa72ebb253f8087c"]
+      }
+    },
+    "level14": {
+      "blasting_it_up": {
+        "name": "Blasting It Up",
+        "description": "Get {} on Cinema by Luke Holland.",
+        "md5": ["5dc92701ff641e5a16fbe6e777394fcb"]
+      },
+      "six_stroke_guru": {
+        "name": "6 Stroke Guru",
+        "description": "Get {} on Spread by Xane60.",
+        "md5": ["07fb3abbb4aa3ef0ad73cbe5587a6c6a"]
+      },
+      "dynamics_galore": {
+        "name": "Dynamics Galore",
+        "description": "Get {} on Focus by Soundhaven.",
+        "md5": ["5ed8e5e9cfdf87b57fa479b059f5cbf9"]
+      },
+      "tropical_9_stroke": {
+        "name": "Tropical 9 Stroke",
+        "description": "Get {} on In Three Ways by Senri Kawaguchi.",
+        "md5": ["8052db6bed72288328a40a0c542c877c"]
+      },
+      "face_of_fears": {
+        "name": "The Face of All Your Fears",
+        "description": "Get {} on Blinded by Fear by At the Gates.",
+        "md5": ["334a27ada69677dd1d3bc2514f4ed3bc"]
+      },
+      "the_plate": {
+        "name": "The Plate",
+        "description": "Get {} on 525 by Synovial.",
+        "md5": ["10b1bbb7ee6025dec1ec0cb3e9607536"]
+      },
+      "richard_james": {
+        "name": "The Richard D. James Achievement",
+        "description": "Get {} on 4 by Aphex Twin.",
+        "md5": ["d87bad701bd0c5a694a2062655ec3095"]
+      }
+    },
+    "level15": {
+      "prepare_cymbals": {
+        "name": "Prepare Your Cymbals",
+        "description": "Get {} on Forsaken City by LethalLasagna.",
+        "md5": ["b7a447b76ba736d0653e603769d9cc78"]
+      },
+      "god_of_jazz": {
+        "name": "God of Jazz",
+        "description": "Get {} on In a Trance by Hiromi.",
+        "md5": ["2f24396a0bd64d0c4f4bff2c888aabfb"]
+      },
+      "swing_coordination": {
+        "name": "Swing Coordination",
+        "description": "Get {} on Ain't It Funny by Xane60.",
+        "md5": ["0f026e3c8147d4b835e3c1ecd8ddfe8b"]
+      },
+      "is_this_pop": {
+        "name": "Is this Pop?",
+        "description": "Get {} on Work Shit Out by Dirty Loops.",
+        "md5": ["4eb659963399ee853293e2c4a446be71"]
+      },
+      "blast_lesson": {
+        "name": "The Shortest Blast Lesson",
+        "description": "Get {} on Necrobreed by Benighted.",
+        "md5": ["3cb5186d3c571248a16e9f84770bcf61"]
+      }
+    },
+    "level16": {
+      "lightning_fast": {
+        "name": "Lightning Fast",
+        "description": "Get {} on Toxicity by El Estepario Siberiano.",
+        "md5": ["a9a7512a0541d658bc995fba9c2885e9", "d955a1a528d1c84a2eeada5fb9953c07"]
+      },
+      "tree_trunks": {
+        "name": "Playing with Tree Trunks",
+        "description": "Get {} on Dr. Jackle/Dr. Jekyll by Travis Orbin.",
+        "md5": ["aa8d4d098a8d27caf41f8ef73e127dcb"]
+      },
+      "along_for_the_ride": {
+        "name": "Along for the Ride",
+        "description": "Get {} on Caravan (Whiplash version).",
+        "md5": ["921acf5765e50603998e9cacd2e45b05"]
+      }
+    }
+  },
+  "blend": {
+    "level1": {
+      "green_day": {
+        "name": "Green Day Rock Band Enjoyer",
+        "description": "Get {} on Wake Me Up When September Ends by Green Day (Hoph2o rechart).",
+        "md5": ["e1e8fc3da5bb48138a0620d8b978d9c0"]
+      },
+      "corrosive": {
+        "name": "Corrosive",
+        "description": "Get {} on Aqua Regia by Sleep Token.",
+        "md5": ["baac8c183b39990499e7bab733023fb6"]
+      },
+      "punk_from_the_north": {
+        "name": "Punk From the North",
+        "description": "Get {} on Devil On My Shoulder by Billy Talent (IB23 chart).",
+        "md5": ["df98a82df68212314f4bb778bf289847"]
+      }
+    },
+    "level2": {
+      "gone_too_soon": {
+        "name": "Gone Too Soon",
+        "description": "Get {} on My Hero by Foo Fighters (Hoph2o rechart).",
+        "md5": ["d4b60eac8ef14ec4ad59574c4d98357e"]
+      },
+      "heartbreak_phobia": {
+        "name": "Heartbreak Phobia",
+        "description": "Get {} on Breath by Breaking Benjamin (MMSRhino chart).",
+        "md5": ["e48ad0f6bdd0d60ff55f0bbf04d9440a"]
+      }
+    },
+    "level3": {
+      "appeal_to_reason": {
+        "name": "Appeal to Reason",
+        "description": "Get {} on Savior by Rise Against",
+        "md5": ["57953fef23f5bbd78631cca479770d02", "3a7e897474510a6474e63da83d77c599"]
+      },
+      "losing_myself": {
+        "name": "Losing Myself",
+        "description": "Get {} on Blessed Be by Spiritbox.",
+        "md5": ["3ae84133332391cdc2d16548f991e4a8"]
+      },
+      "sunshine_my_light": {
+        "name": "Sunshine, My Light",
+        "description": "Get {} on Heavener by Invent Animate.",
+        "md5": ["90ea458f2d10faf777a5c3e77384e9a2"]
+      },
+      "make_things_better": {
+        "name": "Make Things Better",
+        "description": "Get {} on Isolation by Alter Bridge.",
+        "md5": ["80ad3a754ee70f4a3b140b20423f9b71", "6d9a9fbb2df2a9a2977338058c203f50"]
+      },
+      "symmetrical": {
+        "name": "Symmetrical",
+        "description": "Get {} on Kaleidoscope by Area 11.",
+        "md5": ["e7049f52cade38ed85d7f5b5320d3c27"]
+      }
+    },
+    "level4": {
+      "make_up_your_mind": {
+        "name": "Make Up Your Mind",
+        "description": "Get {} on Variation by Dance Gavin Dance.",
+        "md5": ["cc1f0fb5bef8feb59b60f0de0be1ff22", "31c015a63c52acd174dbd8d677c99343"]
+      },
+      "seven": {
+        "name": "Seven",
+        "description": "Get {} on Another Year by Animals as Leaders",
+        "md5": ["acf5e3c6ad4ad3aad886b41d59ba8804"]
+      },
+      "down": {
+        "name": "Down",
+        "description": "Get {} on Blood Clots and Black Holes by Thrice.",
+        "md5": ["75dd15a004f9e7e083454bceba696c90"]
+      },
+      "wake_up": {
+        "name": "Wake Up",
+        "description": "Get {} on Chop Suey! by System of a Down (Inventor's rechart)",
+        "md5": ["ff3bb9913c02e8637248d85e4f8163a0"]
+      }
+    },
+    "level5": {
+      "orbins_calmest_song": {
+        "name": "Orbin's Calmest Song",
+        "description": "Get {} on Libra by Intervals.",
+        "md5": ["d755ba88a81342c94edef757cf7500c4", "55be901bb887b34e2629771b9f73b785"]
+      },
+      "desolate": {
+        "name": "Desolate",
+        "description": "Get {} on Until the End by Breaking Benjamin (MMSRhino rechart).",
+        "md5": ["33f8fe201a32036369af4a39590bda6c"]
+      },
+      "linear_drumming_yeah": {
+        "name": "LINEAR DRUMMING YEAH!!",
+        "description": "Get {} on Dark Water by Agent Fresco.",
+        "md5": ["fd67c196bc25ff1885d3194dd0f62ab7"]
+      }
+    },
+    "level6": {
+      "i_was_never_there": {
+        "name": "I Was Never There",
+        "description": "Get {} on I Saw You Hanging by Hail the Sun.",
+        "md5": ["ae04105a16601bd4db7551cbff718b3e", "99ed0efdc427d8e7912a6933e8d13a1c"]
+      },
+      "in_time": {
+        "name": "In Time",
+        "description": "Get {} on Mile Zero by Periphery.",
+        "md5": ["c24eea788f1a1a1061cf87f3d3212785", "a2b104a29052cd214a59c285fdfa299c"]
+      },
+      "unforeseen_consequences": {
+        "name": "Unforeseen Consequences",
+        "description": "Get {} on Brompton Cocktail by Avenged Sevenfold.",
+        "md5": ["a43249fd6a897490dbadd5a6f75c9d34"]
+      },
+      "double_win_opportunity": {
+        "name": "Double Win Opportunity",
+        "description": "Get {} on Love Is a Cat From Hell by Chiodos.",
+        "md5": ["ffc75ce8d69932c66822b9cad129433f"]
+      },
+      "for_those_who_doubted": {
+        "name": "For Those Who Doubted",
+        "description": "Get {} on Bow Down by I Prevail",
+        "md5": ["ea062f3e6c5a02944b958e6e761ba8de"]
+      }
+    },
+    "level7": {
+      "oooobang": {
+        "name": "OOOOBANG",
+        "description": "Get {} on Forced to Stay by Knocked Loose.",
+        "md5": ["9ddcd2b9c7cc3abf32c38ed1a230abcd", "2c5a219dbf7ba52b1d563195184da37b"]
+      },
+      "time_for_a_change": {
+        "name": "Time for a Change",
+        "description": "Get {} on Take the Time by Dream Theater.",
+        "md5": ["24311df72277e772560f10a8b068210c"]
+      },
+      "the_peecis": {
+        "name": "The Peecis",
+        "description": "Get {} on Schism by Tool.",
+        "md5": ["d55ebcd7672b5207aa55318312462f43"]
+      },
+      "the_machines": {
+        "name": "The Machines",
+        "description": "Get {} on Wax Wings by Periphery.",
+        "md5": ["2c1017d861aabed816232b3600b0f6de"]
+      },
+      "decay_disarry": {
+        "name": "Decay, Disarry",
+        "description": "Get {} on Parasitic Cleanse by Hail the Sun.",
+        "md5": ["5c60606ff689e0977397c6e2c5054c5f", "f4124cb93eb37f1beb4a4a85ff1f1d19"]
+      },
+      "let_the_kitsune_guide_you": {
+        "name": "Let the Kitsune Guide You",
+        "description": "Get {} on Megitsune by Babymetal",
+        "md5": ["115a08610710e668005c461a04e7c522"]
+      }
+    },
+    "level8": {
+      "final_stretch": {
+        "name": "Final Stretch",
+        "description": "Get {} on Counterfeit Shrines by Eidola.",
+        "md5": ["a6b8934f4d157186a84b6938b6e6742e"]
+      },
+      "slippermen": {
+        "name": "Slippermen?",
+        "description": "Get {} on Colony of Birchmen by Mastodon (MMSRhino rechart).",
+        "md5": ["3fe7480e4f000a3e93d70a82e9dde660"]
+      },
+      "he_who_makes_a_beast": {
+        "name": "He Who Makes a Beast Out of Himself",
+        "description": "Get {} on Bat Country by Avenged Sevenfold.",
+        "md5": ["3274661556cdbc40921eb742d5f2d6a7"]
+      },
+      "learning_to_count": {
+        "name": "Learning to Count",
+        "description": "Get {} on The Dance of Eternity by Dream Theater.",
+        "md5": ["52ecf0a6cdd4601ac8b993576483f030", "876389159ef438e25962bcc133fe58ce"]
+      },
+      "sinking_further": {
+        "name": "Sinking Further",
+        "description": "Get {} on Invisible Enemy by August Burns Red.",
+        "md5": ["21e17c125a8f476465264d84afc96f3a"]
+      }
+    },
+    "level9": {
+      "andys_gem": {
+        "name": "Andy's Gem",
+        "description": "Get {} on Anything by An Endless Sporadic.",
+        "md5": ["9862bba7eebbfe93b0f971e4e626b920"]
+      },
+      "tortured_insanity": {
+        "name": "Tortured Insanity, Smothering Hell",
+        "description": "Get {} on Panic Attack by Dream Theater (Grinnz rechart).",
+        "md5": ["6a67d89ced3ced315ec15f5065b1bb88", "3f98a1639006296e63ac7925e2f5ab50"]
+      },
+      "bending_the_sky": {
+        "name": "Bending the Sky",
+        "description": "Get {} on The Space for This by Cynic (Onyxite rechart).",
+        "md5": ["597f68912d75e37dde786df427490e85", "560f74e671a3563dd83785a1767fa606"]
+      },
+      "quad_master": {
+        "name": "Quad Master",
+        "description": "Get {} on Levitator by Satyr.",
+        "md5": ["54bd1978330539c8b1d76e68de30a37a", "cb97d876e6e66512b007b60f97da9e52"]
+      },
+      "warrior_or_soldier": {
+        "name": "Warrior or Soldier?",
+        "description": "Get {} on War Eternal by Arch Enemy.",
+        "md5": ["01c1e6ddfee10ae959c573541838db0d"]
+      },
+      "crossing_the_line": {
+        "name": "Crossing the Line",
+        "description": "Get {} on White Washed by August Burns Red.",
+        "md5": ["17d4b0f078a9888041e6a4dec6fef310"]
+      }
+    },
+    "level10": {
+      "subdivisions": {
+        "name": "Subdivisions",
+        "description": "Get {} on Ghost of Karelia (Brann Dailor playthrough) by Mastodon.",
+        "md5": ["b2e438ba1810ad79abcd6524ae5dd08d"]
+      },
+      "that_one_accordion_song": {
+        "name": "That One Accordion Song",
+        "description": "Get {} on Cheval by Igorrr (Advanst's chart).",
+        "md5": ["2c9508357d248e8acc3b7f8efcdc04d0"]
+      },
+      "a_new_type_of_blast": {
+        "name": "A New Type of Blast Approaches",
+        "description": "Get {} on Puzzle Box by Haken.",
+        "md5": ["58338ee4551254df1b1f177301af4bb8"]
+      },
+      "what_genre_is_this": {
+        "name": "What Genre is this Again?",
+        "description": "Get {} on Beguile by Night by Ultima Grace.",
+        "md5": ["6fe54efe3edb448d99fe08bc4d57a375"]
+      },
+      "money": {
+        "name": "$",
+        "description": "Get {} on Ka$cade by Animals as Leaders.",
+        "md5": ["f1f4f2bc0777ad0b81befe0e17088a21"]
+      },
+      "conflict_based_dystopia": {
+        "name": "Conflict Based Dystopia",
+        "description": "Get {} on Blinded in Chains by Avenged Sevenfold.",
+        "md5": ["d25e24353296d7ab24a7f4489be78c5b"]
+      },
+      "erratic": {
+        "name": "Erratic",
+        "description": "Get {} on The Grudge by Tool.",
+        "md5": ["f6d5f77c758134535afa273b95cae3d6"]
+      },
+      "more_quints": {
+        "name": "More Quints!",
+        "description": "Get {} on Bland Street Bloom by SikTh.",
+        "md5": ["144154b15fb2369680921300c828c209"]
+      }
+    },
+    "level11": {
+      "jumpscare": {
+        "name": "Jumpscare",
+        "description": "Get {} on Tendinitis by Jason Richardson.",
+        "md5": ["605b947ebe4cb18e8f16295ccc75f88f"]
+      },
+      "groovin": {
+        "name": "Groovin'",
+        "description": "Get {} on Baby, I Invented the Disco by Fox Vibes.",
+        "md5": ["1c8331ca248eee5aac9cb91f23006f6a", "3239a32dd2c148c501deeef558c9e16a"]
+      },
+      "parallel_universe": {
+        "name": "Parallel Universe",
+        "description": "Get {} on I Speak Astronomy by Jinjer.",
+        "md5": ["c5384bfb2a196ec67af8a3875f4997ec", "26b6c474335d548e3621941e442cb19d"]
+      },
+      "the_nemesis": {
+        "name": "The Nemesis",
+        "description": "Get {} on Inexhaustible Savagery by Conquering Dystopia.",
+        "md5": ["64b9e471bac7e9c99488f30262f839d6", "f5f3cdd356dbf5679e3cce7eb8dab86b"]
+      },
+      "faster_than_light": {
+        "name": "Faster Than the Speed of Light",
+        "description": "Get {} on Travelers of Time by Angra.",
+        "md5": ["1be39e2b39d9a94c97db2dd01856a4e4"]
+      },
+      "awake_and_aware": {
+        "name": "Awake and Aware",
+        "description": "Get {} on Alaska by Between the Buried and Me.",
+        "md5": ["39d950b3b16f618f89249e80f49ec725"]
+      },
+      "the_end_begins": {
+        "name": "The End Begins",
+        "description": "Get {} on Grace by Lamb of God.",
+        "md5": ["072bc986ca2860c22af86555872ed7d5"]
+      }
+    },
+    "level12": {
+      "locking_in": {
+        "name": "Locking In",
+        "description": "Get {} on Your Troubles Will Cease and Fortune Will Smile Upon You by After the Burial.",
+        "md5": ["cf0563d8222fcbe709be6e3e6bc08fe4", "cb25b9f6ff4ded39a0a57d35de58899f"]
+      },
+      "homemade": {
+        "name": "Homemade",
+        "description": "Get {} on Bend by Lockslip.",
+        "md5": ["4db5e7cef5030bdd373b1348737a1247"]
+      },
+      "the_blend_marathon": {
+        "name": "The Blend Marathon",
+        "description": "Get {} on The Last Baron by Mastodon.",
+        "md5": ["1948e245dec6e75591f57ad4faeb1f00"]
+      },
+      "two_night_stand": {
+        "name": "Two Night Stand",
+        "description": "Get {} on One More Night by Brandon Burkhalter.",
+        "md5": ["ce263531fad4f842296ad3267e18562b"]
+      },
+      "the_breakcore_finale": {
+        "name": "The Breakcore Finale",
+        "description": "Get {} on Destroy Create Transform Sublimate by Destrage.",
+        "md5": ["a63a4a7092207768474f2bb6ab4d0b4c"]
+      },
+      "roughed_up": {
+        "name": "Roughed Up",
+        "description": "Get {} on Roughhouse by Travis Orbin.",
+        "md5": ["d092d272f0118c7dc76c17c7f956088d"]
+      },
+      "water_banding": {
+        "name": "Water Banding",
+        "description": "Get {} on I, Atlas by Atlantis Chronicles.",
+        "md5": ["f202b1fda0909795d94b00c2bc179474", "2213d73cd39bd7659ff4218f252cd64a"]
+      }
+    },
+    "level13": {
+      "use_code_mikecaputo": {
+        "name": "Use Code MIKECAPUTO for 10% off at FootBlaster!",
+        "description": "Get {} on Biomorph by Animation Sequence.",
+        "md5": ["9b4df4e9f39bf055f45cf18bcf661c68"]
+      },
+      "my_flesh_is_born_anew": {
+        "name": "My Flesh is Born Anew",
+        "description": "Get {} on Charging the Void by Vektor.",
+        "md5": ["0d4b7cfc155d2cd0b55fd0b10b421461"]
+      },
+      "what_else_can_i_say": {
+        "name": "What Else Can I Say",
+        "description": "Get {} on Dream Genie by Lightning Bolt (GanonMetroid rechart).",
+        "md5": ["351d260456bf2ca2dc017a38795eed6f"]
+      },
+      "tears_of_joy": {
+        "name": "Tears of Joy",
+        "description": "Get {} on Cry for Eternity by Dragonforce.",
+        "md5": ["a40e5102c33310b3817eb3028f5d64f6"]
+      },
+      "push_it": {
+        "name": "Push It!",
+        "description": "Get {} on Leech by Soilwork.",
+        "md5": ["08a5e2fe22a435a13c62604307f1f4a0"]
+      },
+      "japanese_speed": {
+        "name": "Japanese Speed",
+        "description": "Get {} on Fushoku Ressentiment, Fushi Yoku no Sarugakuza by Xane60.",
+        "md5": ["ed84e3d7377787cb395293f892547f5a"]
+      }
+    },
+    "level14": {
+      "for_trevor": {
+        "name": "For Trevor",
+        "description": "Get {} on What a Horrible Night to Have a Curse by The Black Dahlia Murder.",
+        "md5": ["47cf5dfc2eb850be8d5507eb776532b0", "383c993c44e4b02ed785bdff6d9b7d09"]
+      },
+      "the_prospects": {
+        "name": "The Prospects",
+        "description": "Get {} on Extremophile Elite by Between the Buried and Me.",
+        "md5": ["ad03aa5c5ab8d8fe360908beda9ba332"]
+      },
+      "unrelenting": {
+        "name": "Unrelenting",
+        "description": "Get {} on A Beckoning Thrall (No Intro) by Inferi (Benimaru chart).",
+        "md5": ["fda610e9c69e116758d1f6805cd161cc"]
+      },
+      "down_the_drain": {
+        "name": "Down the Drain",
+        "description": "Get {} on Farewell, Mona Lisa by The Dillinger Escape Plan (Onyxite rechart).",
+        "md5": ["a6201e5de2cc5d009db38c477e613d0b", "f7e39552c2b7d4d0b6a0d9721eb37e88"]
+      },
+      "to_infinity_and_beyond": {
+        "name": "To Infinity and Beyond",
+        "description": "Get {} on A Progression to Infinity by The Resonance Project (Boo chart).",
+        "md5": ["d9b46adea2c36fe185048fcb4d85fce2"]
+      }
+    },
+    "level15": {
+      "hes_a_great_drummer": {
+        "name": "He's a Great Drummer, but",
+        "description": "Get {} on CAFO (Live in Las Vegas) by Animals as Leaders.",
+        "md5": ["c5cc6acd725c9cfb1f06098ddd2f673a"]
+      },
+      "come_back_please": {
+        "name": "Come Back Please",
+        "description": "Get {} on The Spark of the Archon by Native Construct.",
+        "md5": ["a094b19e35bb29a4b65cfa501067d7ad"]
+      },
+      "the_poly_blast": {
+        "name": "The Poly Blast",
+        "description": "Get {} on Aliens by Synovial.",
+        "md5": ["763db2407b03ee61ee122bf8ec23d39e"]
+      },
+      "kicks_kicks": {
+        "name": "Kicks… KICKS!",
+        "description": "Get {} on Kekki by Pathogen.",
+        "md5": ["8a233ce8cbb7fd3b6210bfb83385f160"]
+      },
+      "speed_test": {
+        "name": "Speed Test!",
+        "description": "Get {} on The Mountain Top (Jeff Willet Drum Playthrough) by Black Crown Initiate.",
+        "md5": ["9e4a639edb98c10d557e1a3e2da9785e"]
+      },
+      "all_over_the_place": {
+        "name": "All Over the Place",
+        "description": "Get {} on Hos Down by Jason Richardson",
+        "md5": ["fb44d2787ca77eb3b53935199e09f696"]
+      },
+      "the_infamous": {
+        "name": "The Infamous",
+        "description": "Get {} on We Are the Nightmare by Arsis (Inventor rechart).",
+        "md5": ["9ffe66b469f21f91d2598dd991af6028"]
+      }
+    },
+    "level16": {
+      "those_cleans": {
+        "name": "Those Cleans",
+        "description": "Get {} on Absolute Destitute by Cattle Decapitation",
+        "md5": ["c2d161d134341d6bc42ac6b2dea54ded"]
+      },
+      "spencers_gem": {
+        "name": "Spencer's Gem",
+        "description": "Get {} on Drone Corpse Aviator by Archspire",
+        "md5": ["896bc328bf87bdded9a8321375c2ec82"]
+      },
+      "the_stain_on_the_glass": {
+        "name": "The Stain On the Glass",
+        "description": "Get {} on Azure Rain by Greylotus.",
+        "md5": ["128692896a4aa0daf9e2e904fe896198"]
+      },
+      "lets_kick_it_up": {
+        "name": "Let's Kick It Up a Notch",
+        "description": "Get {} on Through the Depths by Inferi.",
+        "md5": ["db50664d93abca466cc1d259c07333a9"]
+      },
+      "final_stretch_2": {
+        "name": "Final Stretch",
+        "description": "Get {} on Intro/My Dying Days/My Fears Have Become Phobias by As Blood Runs Black (Bloodline chart).",
+        "md5": ["a44219c8555d5e0c0ebc5a067af5ad46"]
+      }
+    }
+  },
+  "kicks": {
+    "level4": {
+      "kick_journey": {
+        "name": "The Start of the Kick Journey",
+        "description": "Get {} on Rose of Sharyn by Killswitch Engage.",
+        "md5": ["0cf640606c5f9fe9bcaebde88ddf96b9"]
+      },
+      "refused_by_the_world": {
+        "name": "Refused by the World",
+        "description": "Get {} on Caught in a Web by Dream Theater.",
+        "md5": ["3ef6139d3f6b01e8b0a215de4eb92c2b"]
+      },
+      "deeper_im_falling": {
+        "name": "Deeper, I'm Falling",
+        "description": "Get {} on The Arms of Sorrow by Killswitch Engage (Hoph2o rechart).",
+        "md5": ["03e63eaa4bc9ea4a7f60fc128f2f9efa"]
+      },
+      "imposter_funny_house": {
+        "name": "The Imposter at the Funny House",
+        "description": "Get {} on Pull Me Under by Dream Theater (Onyxite rechart)",
+        "md5": ["1251bab81134cf5ce2a565562cb50576"]
+      }
+    },
+    "level5": {
+      "tread": {
+        "name": "TREAD",
+        "description": "Get {} on Waking the Demon by Bullet for my Valentine (Grinnz rechart).",
+        "md5": ["b888bbd3f8e6667706484e61e823b555", "a6dd2864e8e6e0eb6a0f362f3b5891be"]
+      },
+      "addicted": {
+        "name": "Addicted",
+        "description": "Get {} on The Way Home! by Devin Townsend Project (IB23 chart).",
+        "md5": ["e2a8ea1f61039b10e164fed1f5d52c01"]
+      },
+      "hype_goblin_era": {
+        "name": "The Hype Goblin Era",
+        "description": "Get {} on Right Now by Nekrogoblikon.",
+        "md5": ["54299575cea76051854870043ad94978"]
+      }
+    },
+    "level6": {
+      "my_eyes": {
+        "name": "my EYES",
+        "description": "Get {} on Duality by Slipknot (Grinnz rechart).",
+        "md5": ["5b5c753ba7b8afa12efb489a9236209c"]
+      },
+      "whos_buying": {
+        "name": "Who's Buying?",
+        "description": "Get {} on Peace Sells by Megadeth (MMSRhino rechart).",
+        "md5": ["ec913c1ad9508257a15f1b1037a8ae0d", "a04dd51f83882fa56057da815a234db9"]
+      },
+      "egg_whites": {
+        "name": "Egg Whites",
+        "description": "Get {} on In Waves by Trivium (Onyxite rechart).",
+        "md5": ["9f16c0cd63c66c3a109892c9cfd91abc"]
+      },
+      "dont_let_go": {
+        "name": "Don't Let Go",
+        "description": "Get {} on Chocolate Jackalope by Dance Gavin Dance.",
+        "md5": ["759f13a6107ae28d7169c472fa8709a2"]
+      }
+    },
+    "level7": {
+      "rush_of_fear": {
+        "name": "Rush of Fear",
+        "description": "Get {} on Deception - Concealing Fate Pt. 2 by Tesseract.",
+        "md5": ["1a6f53e78f352cc6ac4f6403c9e6aab0", "f502b27f94795738fd5da4c08afe79be"]
+      },
+      "russell_allens_pride": {
+        "name": "Russell Allen's Pride",
+        "description": "Get {} on Evolution (The Grand Design) by Symphony X.",
+        "md5": ["b3e4c4ac1eec7f444614ae9bf31ea6b4", "5a9a6e1434962b36ed2f371e3fcb7154"]
+      },
+      "the_eucharist": {
+        "name": "The Eucharist",
+        "description": "Get {} on The Monist by Obscura.",
+        "md5": ["aeea4ca89de5718263704ea8e7a9c694"]
+      }
+    },
+    "level8": {
+      "portnoys_side_hustle": {
+        "name": "Portnoy's Side Hustle",
+        "description": "Get {} on Nightmare by Avenged Sevenfold (Grinnz rechart).",
+        "md5": ["4bc7962b57f3fa0f5d17274fb68e9676", "2add52c14422ac318f7744f4fa84d2db"]
+      },
+      "bliss": {
+        "name": "Bliss",
+        "description": "Get {} on Up and Atom by Astronoid (Treefood chart).",
+        "md5": ["49e1c3d5e4fa7453b8542e25d2506f7c"]
+      },
+      "more_mitch_bangers": {
+        "name": "More Mitch Bangers",
+        "description": "Get {} on Overrun by 1.O.M",
+        "md5": ["2843f860e3bae296403668708c5bea96", "bdf3e2b72c3ac8017ef4d781b8f6c1dd"]
+      }
+    },
+    "level9": {
+      "let_the_chaos_reign": {
+        "name": "Let the Chaos Reign",
+        "description": "Get {} on Clouds over California by DevilDriver (Grinnz rechart).",
+        "md5": ["8dc2db0b338b19e783b4b68ef7256c04"]
+      },
+      "jpm": {
+        "name": "JPM",
+        "description": "Get {} on Everlasting by Galneryus (2007 version).",
+        "md5": ["3daf94c9c177273d123cbfa0cf9571fe", "9a7dec4fdbae6ebe7b4620d44a79ae77"]
+      },
+      "gallops_hell": {
+        "name": "Gallops Hell",
+        "description": "Get {} on Ersatz by The Omnific.",
+        "md5": ["63e0aa5be7432536c2508f4a26e7c7f0"]
+      },
+      "yeehaw": {
+        "name": "YEEHAW!",
+        "description": "Get {} on Hosts, Rifles and Coke by Destrage.",
+        "md5": ["2c2ba88f614c3c49146dec57cd7303b6"]
+      }
+    },
+    "level10": {
+      "glorious": {
+        "name": "Glorious",
+        "description": "Get {} on Spread Your Fire by Angra.",
+        "md5": ["e50eeb224e91abfd4603f20a36c19807", "40a349c9c93ec9c51a3f67ce0f0f4467"]
+      },
+      "chris_adlers_paradise": {
+        "name": "Chris Adler's Paradise",
+        "description": "Get {} on Walk With Me in Hell by Lamb of God.",
+        "md5": ["7ebab8a0aed1b456530651bed56a1911", "127fafe260eb37aba71630d70e489d06"]
+      },
+      "hiding_from_yourself": {
+        "name": "Hiding From Yourself",
+        "description": "Get {} on Search Party by Interloper.",
+        "md5": ["fd17f87db55310ffa24e0e7f9a34a61d", "bac9c0ea65faa411dd18ccc04b6b829c"]
+      },
+      "bleeding_shards": {
+        "name": "Bleeding Shards",
+        "description": "Get {} on Are You Dead Yet by Children of Bodom (Grinnz rechart).",
+        "md5": ["0bde38a10cf6455130f143ca450b1900", "0524b08b3762cbc72170eee5511e39f8"]
+      },
+      "bleed_lite": {
+        "name": "Bleed-lite",
+        "description": "Get {} on Lights Out by Car Bomb.",
+        "md5": ["16224f639b4fe2eab7fa2ca28af95fcc"]
+      }
+    },
+    "level11": {
+      "mu": {
+        "name": "MUUUUUUUUUUUUUUUU",
+        "description": "Get {} on Become the Catalyst by All That Remains.",
+        "md5": ["1c516f0fed2021844524d6381074b3b8"]
+      },
+      "scars_that_prove": {
+        "name": "The Scars that Prove",
+        "description": "Get {} on This Calling by All That Remains (Grinnz rechart).",
+        "md5": ["19c2967e2bb691f084b86682257b6c32", "7964498cbfcc9e7390593314586f8703"]
+      },
+      "light_burns_out": {
+        "name": "The Light Burns Out",
+        "description": "Get {} on The Oppressor by Car Bomb.",
+        "md5": ["aac75f6bc0849b059b161083b745f002"]
+      },
+      "not_230": {
+        "name": "This is Not 230",
+        "description": "Get {} on Reaver by Vale of Pnath.",
+        "md5": ["c88ac35ef7819f7a371bba84280d5f01", "0250a871b70fb2cf500df1b2141de671"]
+      },
+      "shout": {
+        "name": "Shout",
+        "description": "Get {} on Save You! by Galneryus.",
+        "md5": ["8cfade146ca5bc63ecc267cc69c98324"]
+      }
+    },
+    "level12": {
+      "determined": {
+        "name": "Determined",
+        "description": "Get {} on The Weak Willed by All That Remains.",
+        "md5": ["80d7025e7fe9b5229311de7ea3e169a9", "09e73b8a3fc6a269790722b4894d501f"]
+      },
+      "we_are": {
+        "name": "We Are",
+        "description": "Get {} on Animal Bones by Protest the Hero.",
+        "md5": ["d9ad355364e90c3d1f3789d73bd9dfd0", "83a6d78d9b406e3e82f411081f82efff"]
+      },
+      "richard_music_conqueror": {
+        "name": "Richard Music Conqueror",
+        "description": "Get {} on When the Sunrise Breaks the Darkness by Pathfinder.",
+        "md5": ["2c1528407f8baef2a2b366c24dae9787"]
+      },
+      "flipped": {
+        "name": "Flipped",
+        "description": "Get {} on Almost Again by Strapping Young Lad.",
+        "md5": ["9f86785bf023c2e8aff99834e695d6c8", "1defa1a21bb26efeaa890d446f25071e"]
+      }
+    },
+    "level13": {
+      "hertaholic": {
+        "name": "Hertaholic",
+        "description": "Get {} on Bleed by Meshuggah (Bloodline chart).",
+        "md5": ["d39ac7569320a9be5602eb1d718086ff"]
+      },
+      "son_of_odin": {
+        "name": "Son of Odin",
+        "description": "Get {} on Twilight of the Thunder God by Amon Amarth (Inventor rechart).",
+        "md5": ["50d73d50b85cc49a583274cfc12e55d5"]
+      },
+      "life_i_dreamed": {
+        "name": "The Life I Dreamed",
+        "description": "Get {} on The Fool by Fleshgod Apocalypse.",
+        "md5": ["0cb38405ca04f599f17359ce353ced33"]
+      },
+      "headless_horror": {
+        "name": "The Headless Horror",
+        "description": "Get {} on Burn by Septicflesh.",
+        "md5": ["64e257d03f64e86722daac69a483bbc8", "14de6ef1e60f1aadda6fc13cd89c799c"]
+      }
+    },
+    "level14": {
+      "w_w_w_w": {
+        "name": "'w^w^^w^w'",
+        "description": "Get {} on The Sentinel by Car Bomb.",
+        "md5": ["90d47b3ca1f8ddce12a9f9252e21d1e8", "5873a332dece44b459684db47f1b2cfd"]
+      },
+      "240_not_225": {
+        "name": "240, not 225",
+        "description": "Get {} on Minotaur (The Wrath of Poseidon) by Fleshgod Apocalypse (Inventor chart).",
+        "md5": ["06e89f52392ed611b3403fb04e5f1afa"]
+      },
+      "austrian_control": {
+        "name": "Austrian Control",
+        "description": "Get {} on Clandestine Stars by Obscura.",
+        "md5": ["71ceb0aff4ae8a295e66c2fcc935b09c"]
+      },
+      "rainbowdragoneyes": {
+        "name": "Rainbowdragoneyes?",
+        "description": "Get {} on Klendathu by Vale of Pnath.",
+        "md5": ["781c119f87e83c7ec15055fb93b178a2", "b588c132db7372ece1805f4559a3c2bb"]
+      },
+      "cute_little_warm_up": {
+        "name": "Cute Little Warm Up",
+        "description": "Get {} on Dog Boots by Bruno Valverde.",
+        "md5": ["26976ebe339cf6ef530d720570fadd30"]
+      },
+      "curse_of_ra": {
+        "name": "The Curse of Ra",
+        "description": "Get {} on Lashed to the Slave Stick by Nile",
+        "md5": ["3d4728fcf1071f3237cf3e6eebeae05b"]
+      }
+    },
+    "level15": {
+      "paradise_found": {
+        "name": "Paradise Found",
+        "description": "Get {} on Tapestry of the Starless Abstract by Ne Obliviscaris.",
+        "md5": ["94d0ff9194629206bea7ba996380baf5"]
+      },
+      "short_and_sweet": {
+        "name": "Short and Sweet",
+        "description": "Get {} on Novae Ruptis by Keep of Kalessin.",
+        "md5": ["cdf8e41519363e247fc13c2ce300186f"]
+      },
+      "cassidyd": {
+        "name": "Cassidy'd",
+        "description": "Get {} on Verminous by The Black Dahlia Murder.",
+        "md5": ["6aeb8b5205b2478029ffbe3b2567b57c"]
+      },
+      "ill_disappear": {
+        "name": "I'll Disappear",
+        "description": "Get {} on Pain Remains II by Lorna Shore.",
+        "md5": ["f9dabe4d6d48ccd912f29e811de458f5"]
+      }
+    }
+  },
+  "special": {
+    "funny_number": {
+      "description": "Get exactly 69,420 points on a song.",
+      "score": 69420
+    },
+    "discography": {
+      "description": "Play a Discography chart."
+    }
+  }
+} 
