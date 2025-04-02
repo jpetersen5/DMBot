@@ -50,7 +50,7 @@ def get_songs():
     supabase = get_supabase()
     logger = current_app.logger
 
-    batch_size = 20000
+    batch_size = 10000
     offset = 0
     songs = []
 
