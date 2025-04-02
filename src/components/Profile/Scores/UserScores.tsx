@@ -209,7 +209,7 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
 
   const handleModalClose = () => {
     setSelectedSong(null);
-    navigate(`/user/${userId}`);
+    navigate(`/user/${userId}/scores`, { replace: true });
   };
 
   const handleUnknownModalClose = () => {
@@ -228,7 +228,7 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
     if (showUnknown) {
       setSelectedUnknownScore(score as UnknownScore);
     } else {
-      navigate(`/user/${userId}/${score.identifier}`);
+      navigate(`/user/${userId}/scores/${score.identifier}`);
     }
   };
 

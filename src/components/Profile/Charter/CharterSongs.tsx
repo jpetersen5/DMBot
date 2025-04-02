@@ -209,12 +209,9 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
   const handleRowClick = (song: Song) => {
     setSelectedSong(song);
     
-    // Check context - are we in a user profile or standalone charter page?
-    if (location.pathname.includes('/user/') && userId) {
-      // User profile with tabbed interface
-      navigate(`/user/${userId}/charter-song/${song.id}`, { replace: true });
+    if (location.pathname.includes("/user/") && userId) {
+      navigate(`/user/${userId}/charter-songs/${song.id}`, { replace: true });
     } else {
-      // Standalone charter page
       navigate(`/charter/${charterId}/${song.id}`, { replace: true });
     }
   };
@@ -222,12 +219,9 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
   const handleModalClose = () => {
     setSelectedSong(null);
     
-    // Check context - are we in a user profile or standalone charter page?
-    if (location.pathname.includes('/user/') && userId) {
-      // Return to user profile with charter_songs tab
-      navigate(`/user/${userId}`, { replace: true });
+    if (location.pathname.includes("/user/") && userId) {
+      navigate(`/user/${userId}/charter-songs`, { replace: true });
     } else {
-      // Return to standalone charter page
       navigate(`/charter/${charterId}`, { replace: true });
     }
   };

@@ -27,7 +27,13 @@ const App: React.FC = () => {
               <Route path="/" element={<Homepage />} />
               <Route path="/user/:userId" element={<ProfilePage />} />
               <Route path="/user/:userId/:songId" element={<ProfilePage />} />
-              <Route path="/user/:userId/charter-song/:songId" element={<ProfilePage />} />
+              <Route path="/user/:userId/scores" element={<ProfilePage />} />
+              <Route path="/user/:userId/scores/:songId" element={<ProfilePage />} />
+              <Route path="/user/:userId/achievements" element={<ProfilePage />} />
+              <Route path="/user/:userId/achievements/:songId" element={<ProfilePage />} />
+              <Route path="/user/:userId/charter-stats" element={<ProfilePage />} />
+              <Route path="/user/:userId/charter-songs" element={<ProfilePage />} />
+              <Route path="/user/:userId/charter-songs/:songId" element={<ProfilePage />} />
               <Route path="/charter/:charterId" element={<CharterPage />} />
               <Route path="/charter/:charterId/:songId" element={<CharterPage />} />
               <Route path="/login" element={<Auth />} />
