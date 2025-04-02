@@ -4,74 +4,63 @@
 .tooltip-container {
   position: relative;
   display: inline-block;
+}
 
-  &:hover .tooltip-content-container {
-    opacity: 1;
-    visibility: visible;
-
-    .tooltip {
-      opacity: 1;
-      visibility: visible;
-    }
+.tooltip-content-container {
+  position: fixed;
+  padding: 8px 12px;
+  background-color: rgba(0, 0, 0, 0.85);
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 10000;
+  max-width: 320px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  
+  .tooltip {
+    font-size: 0.85rem;
+    color: white;
+    white-space: nowrap;
+    display: block;
+  }
+  
+  .tooltip-content {
+    color: white;
+    font-size: 0.85rem;
+    display: block;
   }
 
-  .tooltip-content-container {
-    position: fixed;
-    padding: 5px 10px;
-    background-color: rgba(0, 0, 0, 0.8);
-    border-radius: 4px;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s, visibility 0.2s;
-    pointer-events: none;
-    z-index: 10000;
-
-    .tooltip {
-      font-size: 12px;
-      white-space: nowrap;
-      color: white;
-      transition: opacity 0.2s, visibility 0.2s;
-    }
-
-    &::after {
-      content: "";
-      position: absolute;
-      border-width: 5px;
-      border-style: solid;
-    }
+  &::after {
+    content: "";
+    position: absolute;
+    border-width: 5px;
+    border-style: solid;
   }
 
-  &.top, &.bottom, &.left, &.right {
-    .tooltip-content-container {
-      transform: none;
-    }
-  }
-
-  &.top .tooltip-content-container::after {
+  &.top::after {
     top: 100%;
     left: 50%;
     margin-left: -5px;
-    border-color: $tooltip-background transparent transparent transparent;
+    border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
   }
 
-  &.bottom .tooltip-content-container::after {
+  &.bottom::after {
     bottom: 100%;
     left: 50%;
     margin-left: -5px;
-    border-color: transparent transparent $tooltip-background transparent;
+    border-color: transparent transparent rgba(0, 0, 0, 0.85) transparent;
   }
 
-  &.left .tooltip-content-container::after {
+  &.left::after {
     top: 50%;
     left: 100%;
     margin-top: -5px;
-    border-color: transparent transparent transparent $tooltip-background;
+    border-color: transparent transparent transparent rgba(0, 0, 0, 0.85);
   }
 
-  &.right .tooltip-content-container::after {
+  &.right::after {
     top: 50%;
     right: 100%;
     margin-top: -5px;
-    border-color: transparent $tooltip-background transparent transparent;
+    border-color: transparent rgba(0, 0, 0, 0.85) transparent transparent;
   }
 }
