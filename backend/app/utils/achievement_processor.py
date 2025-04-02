@@ -168,7 +168,7 @@ class AchievementProcessor:
 
         self.achievements.append({
             "id": "remix",
-            "name": "Remix Apprentice",
+            "name": "Remix Fan",
             "description": "Play 25 remixes.",
             "rank": 1,
             "category": "general",

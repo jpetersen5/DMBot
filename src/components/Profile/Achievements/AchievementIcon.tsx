@@ -9,7 +9,7 @@ const getCategoryIcon = (category: AchievementCategory, name: string): string =>
     case AchievementCategory.General:
       if (name.includes("Score")) return "🏆";
       if (name.includes("FC")) return "👑";
-      if (name.includes("Apprentice")) return "📚";
+      if (name.includes("Fan")) return "📚";
       if (name === "First Score") return "🎮";
       if (name === "The Funny Numbers") return "😂";
       if (name === "Bladder of Steel 2") return "🚽";
