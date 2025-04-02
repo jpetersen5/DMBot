@@ -435,11 +435,17 @@ class AchievementProcessor:
         if isinstance(user_data, list) and len(user_data) > 0:
             user_data = user_data[0]
         
+        existing_achievements = user_data.get("achievements", {}) or {}
+        
         for achievement_def in self.achievements:
             check_function = achievement_def["check_function"]
             if check_function(user_data, achievement_def):
                 achievement_id = achievement_def["id"]
-                user_achievements[achievement_id] = user_data.get("last_updated", current_time)
+                
+                if achievement_id in existing_achievements:
+                    user_achievements[achievement_id] = existing_achievements[achievement_id]
+                else:
+                    user_achievements[achievement_id] = current_time
         
         return user_achievements
 

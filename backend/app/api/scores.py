@@ -79,7 +79,7 @@ def process_and_save_scores(result, user_id):
     leaderboard_updates = []
 
     logger.info(f"Fetching user data for user {user_id}")
-    user_data = supabase.table("users").select("username, scores").eq("id", user_id).execute().data
+    user_data = supabase.table("users").select("username, scores, achievements").eq("id", user_id).execute().data
     username = user_data[0]["username"] if user_data else "Unknown User"
 
     existing_scores = user_data[0].get("scores", []) if user_data else []
@@ -290,18 +290,16 @@ def process_and_save_scores(result, user_id):
     else:
         user_stats = {}
     
-    # Prepare user data for achievement processing
     user_achievement_data = {
         "id": user_id,
         "scores": updated_scores,
         "unknown_scores": updated_unknown_scores,
         "stats": user_stats,
-        "last_updated": datetime.now(UTC).isoformat()
+        "achievements": user_data[0].get("achievements", {}) or {},
     }
     
     achievements = achievement_processor.process_achievements(user_achievement_data)
     
-    # Update user with new scores and achievements
     update_data = {
         "scores": updated_scores,
         "unknown_scores": updated_unknown_scores,

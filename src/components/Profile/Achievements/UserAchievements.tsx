@@ -16,16 +16,40 @@ interface UserAchievementsProps {
   userId: string;
 }
 
+interface AchievementCounts {
+  achieved: number;
+  total: number;
+}
+
+interface CategoryCounts {
+  [key: string]: AchievementCounts;
+}
+
+interface GroupCounts {
+  [category: string]: {
+    [group: string]: AchievementCounts;
+  };
+}
+
 const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeCategory, setActiveCategory] = useState<AchievementCategory | "all">("all");
   const [viewMode, setViewMode] = useState<"compact" | "list">("list");
   const [showOnlyAchieved, setShowOnlyAchieved] = useState<boolean>(false);
+  const [totalCounts, setTotalCounts] = useState<AchievementCounts>({ achieved: 0, total: 0 });
+  const [categoryCounts, setCategoryCounts] = useState<CategoryCounts>({});
+  const [groupCounts, setGroupCounts] = useState<GroupCounts>({});
   
   useEffect(() => {
     fetchAchievements();
   }, [userId]);
+
+  useEffect(() => {
+    if (achievements.length > 0) {
+      calculateCounts();
+    }
+  }, [achievements]);
 
   const fetchAchievements = async () => {
     setLoading(true);
@@ -47,6 +71,51 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const calculateCounts = () => {
+    const achieved = achievements.filter(a => a.achieved).length;
+    const total = achievements.length;
+    setTotalCounts({ achieved, total });
+
+    const tempCategoryCounts: CategoryCounts = {};
+    Object.values(AchievementCategory).forEach(category => {
+      const categoryAchievements = achievements.filter(a => a.category === category);
+      const categoryAchieved = categoryAchievements.filter(a => a.achieved).length;
+      tempCategoryCounts[category] = {
+        achieved: categoryAchieved,
+        total: categoryAchievements.length
+      };
+    });
+    setCategoryCounts(tempCategoryCounts);
+
+    const tempGroupCounts: GroupCounts = {};
+    Object.values(AchievementCategory).forEach(category => {
+      if (!tempGroupCounts[category]) {
+        tempGroupCounts[category] = {};
+      }
+
+      const categoryAchievements = achievements.filter(a => a.category === category);
+      const groups = [...new Set(categoryAchievements.map(a => a.group || inferAchievementGroup(a)))];
+      
+      groups.forEach(group => {
+        const groupAchievements = categoryAchievements.filter(a => (a.group || inferAchievementGroup(a)) === group);
+        const groupAchieved = groupAchievements.filter(a => a.achieved).length;
+        tempGroupCounts[category][group] = {
+          achieved: groupAchieved,
+          total: groupAchievements.length
+        };
+      });
+    });
+    setGroupCounts(tempGroupCounts);
+  };
+
+  const renderCountBadge = (counts: AchievementCounts) => {
+    const { achieved, total } = counts;
+    if (achieved === total && total > 0) {
+      return <span className="achievement-count complete">👑</span>;
+    }
+    return <span className="achievement-count">{achieved}/{total}</span>;
   };
 
   const filterRankedAchievements = (achievements: Achievement[]): Achievement[] => {
@@ -154,7 +223,10 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
         {activeCategory === "all" ? (
           Object.entries(achievementsByCategory).map(([category, categoryAchievements]) => (
             <div key={category} className="category-section">
-              <h3>{getCategoryName(category as AchievementCategory)}</h3>
+              <h3>
+                {getCategoryName(category as AchievementCategory)}
+                {categoryCounts[category] && renderCountBadge(categoryCounts[category])}
+              </h3>
               <div className="achievement-items">
                 {categoryAchievements.map(achievement => (
                   <AchievementIcon 
@@ -197,7 +269,10 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
             
             return (
               <div key={category} className="category-section">
-                <h3>{getCategoryName(categoryEnum)}</h3>
+                <h3>
+                  {getCategoryName(categoryEnum)}
+                  {categoryCounts[category] && renderCountBadge(categoryCounts[category])}
+                </h3>
                 
                 {Object.entries(achievementsByGroup).map(([groupKey, groupAchievements]) => {
                   const group = groupKey as AchievementGroup;
@@ -213,9 +288,14 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
                     return a.rank - b.rank;
                   });
                   
+                  const groupCountsData = groupCounts[category]?.[group];
+                  
                   return (
                     <div key={`${category}-${groupKey}`} className="achievement-subgroup">
-                      <h4>{getGroupName(group)}</h4>
+                      <h4>
+                        {getGroupName(group)}
+                        {groupCountsData && renderCountBadge(groupCountsData)}
+                      </h4>
                       <div className="achievement-list-grid">
                         {sortedAchievements.map(renderAchievementListItem)}
                       </div>
@@ -253,9 +333,14 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
               return a.rank - b.rank;
             });
             
+            const groupCountsData = groupCounts[activeCategory]?.[group];
+            
             return (
               <div key={`${activeCategory}-${groupKey}`} className="achievement-subgroup">
-                <h4>{getGroupName(group)}</h4>
+                <h4>
+                  {getGroupName(group)}
+                  {groupCountsData && renderCountBadge(groupCountsData)}
+                </h4>
                 <div className="achievement-list-grid">
                   {sortedAchievements.map(renderAchievementListItem)}
                 </div>
@@ -271,7 +356,10 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
     <div className="user-achievements">
       <div className="achievements-header">
         <div className="header-row">
-          <h2>User Achievements</h2>
+          <h2>
+            User Achievements
+            {!loading && renderCountBadge(totalCounts)}
+          </h2>
           <div className="view-controls">
             <div className="view-toggle">
               <button 
@@ -279,14 +367,14 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
                 onClick={() => setViewMode("list")}
                 title="List View"
               >
-                <span role="img" aria-label="List View">📋</span>
+                <span>List</span>
               </button>
               <button 
                 className={`view-mode-btn ${viewMode === "compact" ? "active" : ""}`} 
                 onClick={() => setViewMode("compact")}
                 title="Compact View"
               >
-                <span role="img" aria-label="Compact View">📱</span>
+                <span>Grid</span>
               </button>
             </div>
             <div className="filter-toggle">
@@ -306,6 +394,7 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
             onClick={() => setActiveCategory("all")}
           >
             All
+            {!loading && renderCountBadge(totalCounts)}
           </button>
           {Object.values(AchievementCategory).map(category => (
             <button 
@@ -314,6 +403,7 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
               onClick={() => setActiveCategory(category)}
             >
               {getCategoryName(category)}
+              {categoryCounts[category] && renderCountBadge(categoryCounts[category])}
             </button>
           ))}
         </div>

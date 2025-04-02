@@ -17,6 +17,9 @@
     h2 {
       font-size: 1.5rem;
       margin-bottom: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
       @include theme("color", "color-text");
     }
     
@@ -31,7 +34,7 @@
       gap: 0.5rem;
       
       .view-mode-btn {
-        width: 40px;
+        min-width: 60px;
         height: 40px;
         display: flex;
         align-items: center;
@@ -40,7 +43,8 @@
         border-radius: 4px;
         cursor: pointer;
         transition: all 0.2s ease;
-        font-size: 1.2rem;
+        font-size: 0.9rem;
+        padding: 0 0.75rem;
         
         @include theme("background", "color-box");
         @include theme("color", "color-text");
@@ -94,6 +98,9 @@
         border-radius: 4px;
         cursor: pointer;
         transition: background-color 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
         @include theme("background", "color-box");
         @include theme("color", "color-text");
         
@@ -106,6 +113,26 @@
           @include theme("background", "color-box-secondary");
         }
       }
+    }
+  }
+  
+  .achievement-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+    margin-left: 0.5rem;
+    font-weight: normal;
+    @include theme("background", "color-box-secondary");
+    @include theme("color", "color-text-secondary");
+
+    &.complete {
+      font-size: 1rem;
+      padding: 0.1rem 0.3rem;
+      @include theme("background", "color-button");
+      @include theme("color", "color-button-text");
     }
   }
   
@@ -127,6 +154,8 @@
         margin-bottom: 1rem;
         padding-bottom: 0.5rem;
         border-bottom: 1px solid;
+        display: flex;
+        align-items: center;
         @include theme("color", "color-text");
         @include theme("border-color", "color-border");
       }
@@ -150,6 +179,8 @@
         margin-bottom: 1rem;
         padding-bottom: 0.5rem;
         border-bottom: 1px solid;
+        display: flex;
+        align-items: center;
         @include theme("color", "color-text");
         @include theme("border-color", "color-border");
       }
@@ -163,6 +194,8 @@
         margin-bottom: 0.75rem;
         padding-left: 0.5rem;
         border-left: 3px solid;
+        display: flex;
+        align-items: center;
         @include theme("color", "color-text");
         @include theme("border-color", "color-button");
       }
@@ -278,6 +311,15 @@
           transform: scale(0.9);
           margin-right: 0.5rem;
         }
+      }
+    }
+    
+    .achievement-count {
+      font-size: 0.7rem;
+      padding: 0.1rem 0.4rem;
+      
+      &.complete {
+        font-size: 0.9rem;
       }
     }
   }
