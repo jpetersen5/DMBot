@@ -120,7 +120,7 @@ class AchievementProcessor:
         ]
 
         remix_artists = [
-            "Xane60", "SoundHaven", "LethalLasagna", "Luke Holland", "Matt McGuire"
+            "Xane60", "SoundHaven", "LethalLasagna", "Luke Holland", "Matt McGuire", "TheCourtOfAPorcupine", "Brandon Burkhalter",
         ]
         
         for achievement_id, name, charter_name, charters in charter_types:
@@ -261,13 +261,22 @@ class AchievementProcessor:
             user_data = user_data[0]
             
         charter_refs = achievement_def["charter_refs"]
+        charter_refs_lower = [charter.lower() for charter in charter_refs]
         threshold = achievement_def["threshold"]
         
         count = 0
         scores = user_data.get("scores", [])
+        
         for score in scores:
             score_charter_refs = score.get("charter_refs", [])
-            if any(charter in score_charter_refs for charter in charter_refs):
+            if not score_charter_refs:
+                continue
+                
+            score_charter_refs_lower = [charter.lower() for charter in score_charter_refs]
+            has_match = any(charter_lower in score_charter_refs_lower for charter_lower in charter_refs_lower)
+            
+            if has_match:
+                matched_charters = [charter for charter in charter_refs if any(charter.lower() == score_charter.lower() for score_charter in score_charter_refs)]
                 count += 1
         
         return count >= threshold
@@ -276,7 +285,7 @@ class AchievementProcessor:
         """Check if user has played enough remix charts"""
         if isinstance(user_data, list) and len(user_data) > 0:
             user_data = user_data[0]
-            
+
         remix_artists = achievement_def["remix_artists"]
         threshold = achievement_def["threshold"]
         
@@ -284,11 +293,9 @@ class AchievementProcessor:
         scores = user_data.get("scores", [])
         for score in scores:
             song_name = score.get("song_name", "").lower()
-            score_artists = score.get("artists", [])
-            for artist in score_artists:
-                if any(remix_artist in artist.lower() for remix_artist in remix_artists):
-                    count += 1
-                    break
+            artist = score.get("artist", "").lower()
+            if any(remix_artist.lower() in artist for remix_artist in remix_artists):
+                count += 1
         
         return count >= threshold
     
@@ -298,14 +305,24 @@ class AchievementProcessor:
             user_data = user_data[0]
             
         recharts_charter_refs = achievement_def["recharts_charter_refs"]
+        recharts_charter_refs_lower = [charter.lower() for charter in recharts_charter_refs]
         threshold = achievement_def["threshold"]
         
         count = 0
         scores = user_data.get("scores", [])
+        
         for score in scores:
             score_charter_refs = score.get("charter_refs", [])
-            # if at least one score charter ref is in recharts_charter_refs AND at least one score charter ref is not in recharts_charter_refs
-            if any(charter in recharts_charter_refs for charter in score_charter_refs) and not all(charter in recharts_charter_refs for charter in score_charter_refs):
+            score_charter_refs_lower = [charter.lower() for charter in score_charter_refs]
+            if not score_charter_refs:
+                continue
+
+            # Check if at least one charter ref is in the official recharts list
+            # AND at least one charter ref is not in that list (meaning it's a rechart)
+            has_official_charter = any(charter_lower in recharts_charter_refs_lower for charter_lower in score_charter_refs_lower)
+            has_community_charter = any(charter_lower not in recharts_charter_refs_lower for charter_lower in score_charter_refs_lower)
+            
+            if has_official_charter and has_community_charter:
                 count += 1
         
         return count >= threshold

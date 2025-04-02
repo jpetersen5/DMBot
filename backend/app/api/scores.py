@@ -191,6 +191,10 @@ def process_and_save_scores(result, user_id):
                 }
 
                 if song_info:
+                    existing_score_data = existing_scores_dict.get(song["identifier"], None)
+                    if existing_score_data and "charter_refs" not in existing_score_data:
+                        existing_score_data["charter_refs"] = score_data["charter_refs"]
+
                     leaderboard = song_info.get("leaderboard", []) or []
                     user_entry = next((entry for entry in leaderboard if entry["user_id"] == user_id), None)
                 
