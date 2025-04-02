@@ -12,15 +12,15 @@ const getCategoryIcon = (category: AchievementCategory, name: string): string =>
       if (name.includes("Fan")) return "📚";
       if (name === "First Score") return "🎮";
       if (name === "The Funny Numbers") return "😂";
-      if (name === "Bladder of Steel 2") return "🚽";
+      if (name.includes("Bladder of Steel")) return "🚽";
       if (name === "???") return "❓";
       return "🎯";
     case AchievementCategory.Hands:
-      return "👐";
+      return "💪";
     case AchievementCategory.Blend:
-      return "🎭";
+      return "🥁";
     case AchievementCategory.Kicks:
-      return "👟";
+      return "🦵";
     default:
       return "🎮";
   }
@@ -52,6 +52,7 @@ const AchievementIcon: React.FC<AchievementIconProps> = ({ achievement }) => {
   const { name, description, rank, achieved, category } = achievement;
   
   const hasRank = rank > 0;
+  const hasSong = achievement.song_md5 !== undefined && category !== AchievementCategory.General;
   
   const isThresholdAchievement = name.includes("Score") || name.includes("FC");
   const rankLabel = isThresholdAchievement ? 
@@ -73,12 +74,15 @@ const AchievementIcon: React.FC<AchievementIconProps> = ({ achievement }) => {
           Achieved on {new Date(achievement.timestamp).toLocaleDateString()}
         </p>
       )}
+      {hasSong && (
+        <p className="has-song-info">Click to view song details</p>
+      )}
     </div>
   );
   
   return (
     <Tooltip content={tooltipContent}>
-      <div className={`achievement-icon ${achieved ? "achieved" : "locked"}`}>
+      <div className={`achievement-icon ${achieved ? "achieved" : "locked"} ${hasSong ? "clickable" : ""}`}>
         <div className="icon-background">
           <span className="icon">{icon}</span>
         </div>

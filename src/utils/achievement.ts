@@ -8,6 +8,7 @@ export interface Achievement {
   timestamp?: string;
   level?: number;
   group?: AchievementGroup;
+  song_md5?: string | string[];
 }
 
 export enum AchievementCategory {

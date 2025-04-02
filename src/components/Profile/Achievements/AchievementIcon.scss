@@ -107,4 +107,15 @@
     font-style: italic;
     color: #f44336;
   }
+  
+  .has-song-info {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    font-style: italic;
+    color: #2196f3;
+    
+    &:before {
+      content: "🎵 ";
+    }
+  }
 } 

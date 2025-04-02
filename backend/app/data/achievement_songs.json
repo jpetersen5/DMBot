@@ -1113,6 +1113,9 @@
       "description": "Get exactly 69,420 points on a song.",
       "score": 69420
     },
+    "album": {
+      "description": "Play an Album chart."
+    },
     "discography": {
       "description": "Play a Discography chart."
     }

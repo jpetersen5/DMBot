@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import LoadingSpinner from "../../Loading/LoadingSpinner";
 import { 
   Achievement, 
@@ -11,6 +12,8 @@ import {
 import AchievementIcon from "./AchievementIcon";
 import { API_URL } from "../../../App";
 import "./UserAchievements.scss";
+import SongModal from "../../SongList/SongModal";
+import { Song } from "../../../utils/song";
 
 interface UserAchievementsProps {
   userId: string;
@@ -40,6 +43,10 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
   const [totalCounts, setTotalCounts] = useState<AchievementCounts>({ achieved: 0, total: 0 });
   const [categoryCounts, setCategoryCounts] = useState<CategoryCounts>({});
   const [groupCounts, setGroupCounts] = useState<GroupCounts>({});
+  const [showSongModal, setShowSongModal] = useState<boolean>(false);
+  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
+  const [loadingSong, setLoadingSong] = useState<boolean>(false);
+  const { songId } = useParams<{ songId: string }>();
   
   useEffect(() => {
     fetchAchievements();
@@ -50,6 +57,12 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
       calculateCounts();
     }
   }, [achievements]);
+
+  useEffect(() => {
+    if (songId) {
+      fetchSong(songId);
+    }
+  }, [songId]);
 
   const fetchAchievements = async () => {
     setLoading(true);
@@ -71,6 +84,38 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchSong = async (id: string) => {
+    setLoadingSong(true);
+    try {
+      const response = await fetch(`${API_URL}/api/songs/${id}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch song");
+      }
+      const song = await response.json();
+      setSelectedSong(song);
+      setShowSongModal(true);
+    } catch (error) {
+      console.error("Error fetching song:", error);
+    } finally {
+      setLoadingSong(false);
+    }
+  };
+
+  const handleAchievementClick = (achievement: Achievement) => {
+    if (achievement.category !== AchievementCategory.General && achievement.song_md5) {
+      const songIdentifier = Array.isArray(achievement.song_md5) 
+        ? achievement.song_md5[0] 
+        : achievement.song_md5;
+        
+      fetchSong(songIdentifier);
+    }
+  };
+
+  const handleHideSongModal = () => {
+    setShowSongModal(false);
+    setSelectedSong(null);
   };
 
   const calculateCounts = () => {
@@ -204,7 +249,11 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
       : "";
     
     return (
-      <div key={achievement.id} className={`achievement-list-item ${achievement.achieved ? "achieved" : "locked"}`}>
+      <div 
+        key={achievement.id} 
+        className={`achievement-list-item ${achievement.achieved ? "achieved" : "locked"}`}
+        onClick={() => handleAchievementClick(achievement)}
+      >
         <div className="achievement-icon-container">
           <AchievementIcon achievement={achievement} />
         </div>
@@ -229,10 +278,14 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
               </h3>
               <div className="achievement-items">
                 {categoryAchievements.map(achievement => (
-                  <AchievementIcon 
+                  <div 
                     key={achievement.id}
-                    achievement={achievement}
-                  />
+                    onClick={() => handleAchievementClick(achievement)}
+                  >
+                    <AchievementIcon 
+                      achievement={achievement}
+                    />
+                  </div>
                 ))}
               </div>
             </div>
@@ -240,10 +293,14 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
         ) : (
           <div className="achievement-items">
             {filteredAchievements.map(achievement => (
-              <AchievementIcon 
+              <div 
                 key={achievement.id}
-                achievement={achievement}
-              />
+                onClick={() => handleAchievementClick(achievement)}
+              >
+                <AchievementIcon 
+                  achievement={achievement}
+                />
+              </div>
             ))}
           </div>
         )}
@@ -421,6 +478,17 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
         </div>
       ) : (
         viewMode === "compact" ? renderCompactView() : renderListView()
+      )}
+      
+      {selectedSong && (
+        <SongModal
+          show={showSongModal}
+          onHide={handleHideSongModal}
+          initialSong={selectedSong}
+          loading={loadingSong}
+          previousSongIds={[]}
+          nextSongIds={[]}
+        />
       )}
     </div>
   );
