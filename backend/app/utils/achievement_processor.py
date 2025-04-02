@@ -116,13 +116,14 @@ class AchievementProcessor:
             })
             
         charter_types = [
-            ("onyxite", "Jazz Apprentice", "Onyxite", ["Onyxite"]),
-            ("boo", "Prog Apprentice", "Boo", ["Boo"]),
-            ("xane60", "Metal Apprentice", "Xane60", ["Xane60"]),
-            ("bloodline", "Variety Apprentice", "Bloodline", ["Bloodline"]),
-            ("hoph2o", "Punk Apprentice", "Hoph2o", ["Hoph2o"]),
-            ("dichotic_rhythmassacre", "Hardcore Apprentice", "Dichotic or Rhythmassacre", ["Dichotic", "Rhythmassacre"]),
-            ("tomato_ganonmetroid", "Math Rock Apprentice", "tomato or GanonMetroid", ["tomato", "GanonMetroid"]),
+            ("onyxite", "Jazz Fan", "Onyxite", ["Onyxite"]),
+            ("boo", "Prog Fan", "Boo", ["Boo"]),
+            ("xane60", "Metal Fan", "Xane60", ["Xane60"]),
+            ("bloodline", "Variety Fan", "Bloodline", ["Bloodline"]),
+            ("hoph2o", "Punk Fan", "Hoph2o", ["Hoph2o"]),
+            ("dichotic_rhythmassacre", "Hardcore Fan", "Dichotic or Rhythmassacre", ["Dichotic", "Rhythmassacre"]),
+            ("tomato_ganonmetroid", "Math Rock Fan", "tomato or GanonMetroid", ["tomato", "GanonMetroid"]),
+            ("satan", "DMBot Fan", "Satan", ["Satan"]),
             ("jameos", "???", "Jameos", ["Jameos"]),
         ]
 
@@ -203,10 +204,22 @@ class AchievementProcessor:
                     "score": funny_number.get("score", 69420)
                 })
             
+            if "album" in self.achievement_songs["special"]:
+                album = self.achievement_songs["special"]["album"]
+                self.achievements.append({
+                    "id": "bladder_of_steel_1",
+                    "name": "Bladder of Steel 1",
+                    "description": album["description"],
+                    "rank": 1,
+                    "category": "general",
+                    "group": "special",
+                    "check_function": self._check_album,
+                })
+            
             if "discography" in self.achievement_songs["special"]:
                 discography = self.achievement_songs["special"]["discography"]
                 self.achievements.append({
-                    "id": "bladder_of_steel",
+                    "id": "bladder_of_steel_2",
                     "name": "Bladder of Steel 2",
                     "description": discography["description"],
                     "rank": 1,
@@ -377,6 +390,19 @@ class AchievementProcessor:
         for score in scores:
             if score.get("score") == target_score:
                 return True
+        return False
+    
+    def _check_album(self, user_data, achievement_def):
+        """Check if user has played an album chart"""
+        if isinstance(user_data, list) and len(user_data) > 0:
+            user_data = user_data[0]
+            
+        scores = user_data.get("scores", [])
+        for score in scores:
+            song_name = score.get("song_name", "")
+            if "Album" in song_name:
+                return True
+        
         return False
     
     def _check_discography(self, user_data, achievement_def):
