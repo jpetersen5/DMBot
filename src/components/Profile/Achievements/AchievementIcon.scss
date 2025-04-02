@@ -47,6 +47,7 @@
     .icon-background {
       @include theme("background", "color-box-secondary");
       @include theme("color", "color-text-secondary");
+      @include theme("border-color", "color-text-secondary");
     }
   }
   
@@ -98,5 +99,12 @@
     font-size: 0.8rem;
     font-style: italic;
     opacity: 0.8;
+  }
+
+  .achievement-locked {
+    margin: 0 0 0.5rem;
+    font-size: 0.8rem;
+    font-style: italic;
+    color: #f44336;
   }
 } 

@@ -7,10 +7,76 @@
   .achievements-header {
     margin-bottom: 1.5rem;
     
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    
     h2 {
       font-size: 1.5rem;
-      margin-bottom: 1rem;
+      margin-bottom: 0;
       @include theme("color", "color-text");
+    }
+    
+    .view-controls {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    
+    .view-toggle {
+      display: flex;
+      gap: 0.5rem;
+      
+      .view-mode-btn {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 1.2rem;
+        
+        @include theme("background", "color-box");
+        @include theme("color", "color-text");
+        
+        &:hover {
+          @include theme("background", "color-box-secondary");
+        }
+        
+        &.active {
+          @include theme("background", "color-button");
+          @include theme("color", "color-button-text");
+        }
+      }
+    }
+    
+    .filter-toggle {
+      .filter-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        
+        @include theme("background", "color-box");
+        @include theme("color", "color-text");
+        
+        &:hover {
+          @include theme("background", "color-box-secondary");
+        }
+        
+        &.active {
+          @include theme("background", "color-button");
+          @include theme("color", "color-button-text");
+        }
+      }
     }
     
     .category-tabs {
@@ -57,7 +123,7 @@
     
     .category-section {
       h3 {
-        font-size: 1.2rem;
+        font-size: 1.5rem;
         margin-bottom: 1rem;
         padding-bottom: 0.5rem;
         border-bottom: 1px solid;
@@ -72,6 +138,100 @@
       gap: 1rem;
     }
   }
+  
+  .achievements-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    
+    .category-section {
+      h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid;
+        @include theme("color", "color-text");
+        @include theme("border-color", "color-border");
+      }
+    }
+    
+    .achievement-subgroup {
+      margin-bottom: 1.5rem;
+      
+      h4 {
+        font-size: 1.1rem;
+        margin-bottom: 0.75rem;
+        padding-left: 0.5rem;
+        border-left: 3px solid;
+        @include theme("color", "color-text");
+        @include theme("border-color", "color-button");
+      }
+    }
+    
+    .achievement-list-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+      gap: 1rem;
+      
+      @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .achievement-list-item {
+      display: flex;
+      padding: 1rem;
+      border-radius: 8px;
+      transition: transform 0.2s ease;
+      @include theme("background", "color-box");
+      
+      &:hover {
+        transform: translateY(-2px);
+        @include theme("background", "color-box-secondary");
+      }
+      
+      &.achieved {
+        @include theme("border-left", "4px solid color-button");
+      }
+      
+      &.locked {
+        opacity: 0.6;
+        @include theme("border-left", "4px solid color-text-secondary");
+        
+        .achievement-title, .achievement-description {
+          @include theme("color", "color-text-secondary");
+        }
+      }
+      
+      .achievement-icon-container {
+        flex-shrink: 0;
+        margin-right: 1rem;
+      }
+      
+      .achievement-details {
+        flex: 1;
+        
+        .achievement-title {
+          margin: 0 0 0.5rem;
+          font-weight: bold;
+          @include theme("color", "color-text");
+        }
+        
+        .achievement-description {
+          margin: 0 0 0.5rem;
+          font-size: 0.9rem;
+          @include theme("color", "color-text");
+        }
+        
+        .achievement-date {
+          margin: 0;
+          font-size: 0.8rem;
+          font-style: italic;
+          @include theme("color", "color-text-secondary");
+        }
+      }
+    }
+  }
 }
 
 @include mobile {
@@ -79,6 +239,17 @@
     padding: 1rem;
     
     .achievements-header {
+      .header-row {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+        
+        .view-controls {
+          width: 100%;
+          justify-content: space-between;
+        }
+      }
+      
       .category-tabs {
         overflow-x: auto;
         padding-bottom: 0.5rem;
@@ -92,6 +263,21 @@
     .achievements-grid {
       .achievement-items {
         grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      }
+    }
+    
+    .achievements-list {
+      .achievement-list-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .achievement-list-item {
+        padding: 0.75rem;
+        
+        .achievement-icon-container {
+          transform: scale(0.9);
+          margin-right: 0.5rem;
+        }
       }
     }
   }

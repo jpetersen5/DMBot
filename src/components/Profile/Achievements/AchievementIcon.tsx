@@ -63,20 +63,21 @@ const AchievementIcon: React.FC<AchievementIconProps> = ({ achievement }) => {
   const displayName = hasRank && rank > 1 && !isThresholdAchievement ? 
     `${name} ${getRankName(rank)}` : name;
   
+  const tooltipContent = (
+    <div className="achievement-tooltip">
+      <h4 className="achievement-name">{displayName}</h4>
+      <p className="achievement-description">{description}</p>
+      {!achieved && <p className="achievement-locked">Not yet achieved</p>}
+      {achievement.timestamp && (
+        <p className="achievement-timestamp">
+          Achieved on {new Date(achievement.timestamp).toLocaleDateString()}
+        </p>
+      )}
+    </div>
+  );
+  
   return (
-    <Tooltip 
-      content={
-        <div className="achievement-tooltip">
-          <h4 className="achievement-name">{displayName}</h4>
-          <p className="achievement-description">{description}</p>
-          {achievement.timestamp && (
-            <p className="achievement-timestamp">
-              Achieved on {new Date(achievement.timestamp).toLocaleDateString()}
-            </p>
-          )}
-        </div>
-      }
-    >
+    <Tooltip content={tooltipContent}>
       <div className={`achievement-icon ${achieved ? "achieved" : "locked"}`}>
         <div className="icon-background">
           <span className="icon">{icon}</span>

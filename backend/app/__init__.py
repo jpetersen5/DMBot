@@ -2,7 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from .extensions import Session, socketio, redis, setup_logging
 from .config import Config
-from .api import auth, users, songs, charters, scores, status, leaderboards, spotify
+from .api import auth, users, songs, charters, scores, status, leaderboards, spotify, achievements
 from .services.supabase_service import init_supabase
 # from .migrations.update_leaderboard_rankings import update_leaderboards
 # from .migrations.populate_songs_new_table import populate_songs_new_table
@@ -37,5 +37,6 @@ def create_app(config_class=Config):
     app.register_blueprint(status.bp)
     app.register_blueprint(leaderboards.bp)
     app.register_blueprint(spotify.bp)
+    app.register_blueprint(achievements.bp)
     
     return app

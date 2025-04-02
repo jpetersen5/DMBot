@@ -11,6 +11,29 @@ PERCENT_THRESHOLDS = [96, 98, 99]  # For levels I, II, III (IV is FC)
 SCORE_THRESHOLDS = [2_000_000, 10_000_000, 50_000_000, 200_000_000, 1_000_000_000, 3_000_000_000]
 FC_THRESHOLDS = [1, 10, 25, 50, 200, 500, 1000]
 
+ACHIEVEMENT_GROUPS = {
+    "score": "score",
+    "fc": "full_combo", 
+    "charter": "charter",
+    "special": "special",
+    "level1": "level1",
+    "level2": "level2",
+    "level3": "level3",
+    "level4": "level4",
+    "level5": "level5",
+    "level6": "level6",
+    "level7": "level7",
+    "level8": "level8",
+    "level9": "level9",
+    "level10": "level10",
+    "level11": "level11",
+    "level12": "level12",
+    "level13": "level13",
+    "level14": "level14",
+    "level15": "level15",
+    "level16": "level16",
+}
+
 class AchievementProcessor:
     """Processes user scores and returns earned achievements"""
     
@@ -48,6 +71,7 @@ class AchievementProcessor:
             "description": "Play a song.",
             "rank": 1,
             "category": "general",
+            "group": "special",
             "check_function": self._check_first_score
         })
         
@@ -61,6 +85,7 @@ class AchievementProcessor:
                 "description": f"Get {threshold:,} Points in total Score.",
                 "rank": 1,
                 "category": "general",
+                "group": "score",
                 "check_function": self._check_total_score,
                 "threshold": threshold
             })
@@ -71,6 +96,7 @@ class AchievementProcessor:
             "description": "Get your first Full Combo.",
             "rank": 1,
             "category": "general",
+            "group": "full_combo",
             "check_function": self._check_first_fc
         })
         
@@ -84,6 +110,7 @@ class AchievementProcessor:
                 "description": f"Get {threshold} Full Combos.",
                 "rank": 1,
                 "category": "general",
+                "group": "full_combo",
                 "check_function": self._check_total_fcs,
                 "threshold": threshold
             })
@@ -132,6 +159,7 @@ class AchievementProcessor:
                 "description": f"Play {threshold} {charter_name} charts.",
                 "rank": 1,
                 "category": "general",
+                "group": "charter",
                 "check_function": self._check_charter_count,
                 "charter_refs": charters,
                 "threshold": threshold
@@ -143,6 +171,7 @@ class AchievementProcessor:
             "description": "Play 25 remixes.",
             "rank": 1,
             "category": "general",
+            "group": "charter",
             "check_function": self._check_remix_count,
             "remix_artists": remix_artists,
             "threshold": 25
@@ -154,6 +183,7 @@ class AchievementProcessor:
             "description": "Play 25 recharts of songs from official games.",
             "rank": 1,
             "category": "general",
+            "group": "charter",
             "check_function": self._check_recharts_count,
             "recharts_charter_refs": recharts_charter_refs,
             "threshold": 25
@@ -168,6 +198,7 @@ class AchievementProcessor:
                     "description": funny_number["description"],
                     "rank": 1,
                     "category": "general",
+                    "group": "special",
                     "check_function": self._check_funny_number,
                     "score": funny_number.get("score", 69420)
                 })
@@ -180,6 +211,7 @@ class AchievementProcessor:
                     "description": discography["description"],
                     "rank": 1,
                     "category": "general",
+                    "group": "special",
                     "check_function": self._check_discography,
                 })
     
@@ -189,17 +221,21 @@ class AchievementProcessor:
             return
         
         category_data = self.achievement_songs[category]
-        for level, achievements in category_data.items():
+        for level_key, achievements in category_data.items():
+            level_num = int(level_key.replace("level", "")) if level_key.startswith("level") else 0
+            
             for achievement_id, achievement_data in achievements.items():
                 self._add_tiered_song_achievement(
                     achievement_id=achievement_id,
                     name=achievement_data["name"],
                     base_description=achievement_data["description"],
                     song_md5=achievement_data["md5"],
-                    category=category
+                    category=category,
+                    level=level_num,
+                    level_key=level_key
                 )
     
-    def _add_tiered_song_achievement(self, achievement_id, name, base_description, song_md5, category):
+    def _add_tiered_song_achievement(self, achievement_id, name, base_description, song_md5, category, level=0, level_key="level1"):
         """Helper to add a tiered song achievement (I, II, III, IV)"""
         for rank in range(1, 5):
             # For ranks 1-3, use percent thresholds
@@ -209,12 +245,16 @@ class AchievementProcessor:
             else:
                 description = base_description.format("an FC")
             
+            group = ACHIEVEMENT_GROUPS.get(level_key, f"level{level}")
+            
             self.achievements.append({
                 "id": f"{achievement_id}_{rank}",
                 "name": name,
                 "description": description,
                 "rank": rank,
                 "category": category,
+                "level": level,
+                "group": group,
                 "check_function": self._check_song_achievement,
                 "song_md5": song_md5,
                 "threshold": PERCENT_THRESHOLDS[rank-1] if rank < 4 else 0,
@@ -387,9 +427,9 @@ class AchievementProcessor:
             user_data: Dict containing user scores and stats, or a list where the first item is such a dict
             
         Returns:
-            List of achievements achieved by the user
+            Dict: Maps achievement ID to timestamp of achievement
         """
-        user_achievements = []
+        user_achievements = {}
         current_time = datetime.now(UTC).isoformat()
         
         if isinstance(user_data, list) and len(user_data) > 0:
@@ -398,19 +438,8 @@ class AchievementProcessor:
         for achievement_def in self.achievements:
             check_function = achievement_def["check_function"]
             if check_function(user_data, achievement_def):
-                achievement_copy = achievement_def.copy()
-                achievement_copy.pop("check_function", None)
-                achievement_copy.pop("threshold", None)
-                achievement_copy.pop("song_md5", None)
-                achievement_copy.pop("requires_fc", None)
-                achievement_copy.pop("charter_refs", None)
-                achievement_copy.pop("score", None)
-                achievement_copy.pop("song_types", None)
-                
-                achievement_copy["achieved"] = True
-                achievement_copy["timestamp"] = user_data.get("last_updated", current_time)
-                
-                user_achievements.append(achievement_copy)
+                achievement_id = achievement_def["id"]
+                user_achievements[achievement_id] = user_data.get("last_updated", current_time)
         
         return user_achievements
 

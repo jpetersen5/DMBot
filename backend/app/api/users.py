@@ -251,7 +251,7 @@ def get_user_achievements(user_id):
         user_id (str): The ID of the user to retrieve achievements for
         
     Returns:
-        JSON: List of user achievements
+        JSON: List of user achievements with achieved status
     """
     supabase = get_supabase()
     logger = current_app.logger
@@ -262,9 +262,29 @@ def get_user_achievements(user_id):
         if not response.data:
             return jsonify({"error": "User not found"}), 404
             
-        achievements = response.data[0].get("achievements", [])
+        user_achievements = response.data[0].get("achievements", {}) or {}
         
-        return jsonify({"achievements": achievements})
+        from ..utils.achievement_processor import AchievementProcessor
+        achievement_processor = AchievementProcessor()
+        
+        all_achievements = [
+            {
+                key: value for key, value in achievement.items() 
+                if key != "check_function" and not key.startswith("_")
+            }
+            for achievement in achievement_processor.achievements
+        ]
+        
+        for achievement in all_achievements:
+            achievement_id = achievement["id"]
+            if achievement_id in user_achievements:
+                achievement["achieved"] = True
+                achievement["timestamp"] = user_achievements[achievement_id]
+            else:
+                achievement["achieved"] = False
+                achievement["timestamp"] = None
+        
+        return jsonify({"achievements": all_achievements})
     except Exception as e:
         logger.error(f"Error fetching user achievements: {str(e)}")
         return jsonify({"error": f"An error occurred while fetching achievements: {str(e)}"}), 500
