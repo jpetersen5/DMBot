@@ -87,6 +87,8 @@ export const useUploadProgress = () => {
     newSocket.on("score_processing_complete", (data) => {
       setState(prev => ({
         ...prev,
+        isProcessing: false,
+        isUploading: false,
         progress: 100,
         completed: true,
         message: data.message,
@@ -96,6 +98,8 @@ export const useUploadProgress = () => {
     newSocket.on("score_processing_error", (data) => {
       setState(prev => ({
         ...prev,
+        isProcessing: false,
+        isUploading: false,
         progress: 0,
         message: data.message,
       }));
@@ -127,6 +131,7 @@ export const useUploadProgress = () => {
     setState(prev => ({
       ...prev,
       isProcessing: false,
+      isUploading: false,
       completed: false,
       message: "",
       progress: 0,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { API_URL } from "../../../App";
 import { useUploadProgress } from "../../../hooks/useUploadProgress";
 import { capitalize } from "../../../utils/safeHTML";
@@ -10,8 +10,9 @@ import CopyIcon from "../../../assets/copy.svg";
 const ScoreUpload: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [copied, setCopied] = useState(false);
-  const { isUploading, isProcessing, message, startUpload, finishUpload } = useUploadProgress();
+  const { isUploading, isProcessing, completed, message, startUpload, finishUpload } = useUploadProgress();
   const [selectedOS, setSelectedOS] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filepaths = {
     windows: "%USERPROFILE%\\AppData\\LocalLow\\srylain Inc_\\Clone Hero",
@@ -34,9 +35,18 @@ const ScoreUpload: React.FC = () => {
     setSelectedOS(os);
   }, []);
 
+  useEffect(() => {
+    if (completed && fileInputRef.current) {
+      setFile(null);
+      fileInputRef.current.value = "";
+    }
+  }, [completed]);
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
+    if (event.target.files && event.target.files.length > 0) {
       setFile(event.target.files[0]);
+    } else {
+      setFile(null);
     }
   };
 
@@ -63,12 +73,19 @@ const ScoreUpload: React.FC = () => {
 
       if (response.ok) {
         finishUpload(`Upload complete. Processing started. Total songs: ${result.total_songs}`);
-        setFile(null);
       } else {
         finishUpload(result.error || "An error occurred while processing the file");
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        setFile(null);
       }
     } catch (error) {
       finishUpload("An error occurred while uploading the file");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      setFile(null);
     }
   };
 
@@ -83,6 +100,7 @@ const ScoreUpload: React.FC = () => {
       <h2>Upload Score Data</h2>
       <input
         type="file"
+        ref={fileInputRef}
         onChange={handleFileChange}
         accept=".bin"
         disabled={isUploading || isProcessing}
