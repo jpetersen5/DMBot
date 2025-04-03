@@ -7,6 +7,7 @@ import {
   AchievementGroup,
   getCategoryName, 
   getGroupName,
+  getRankName,
   inferAchievementGroup
 } from "../../../utils/achievement";
 import AchievementIcon from "./AchievementIcon";
@@ -248,6 +249,13 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
       ? new Date(achievement.timestamp).toLocaleDateString() 
       : "";
     
+    let achievementName = achievement.name;
+    if (achievement.category === AchievementCategory.Hands
+      || achievement.category === AchievementCategory.Kicks 
+      || achievement.category === AchievementCategory.Blend) {
+      achievementName += ` ${getRankName(achievement.rank)}`;
+    }
+    
     return (
       <div 
         key={achievement.id} 
@@ -258,7 +266,7 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
           <AchievementIcon achievement={achievement} />
         </div>
         <div className="achievement-details">
-          <h4 className="achievement-title">{achievement.name}</h4>
+          <h4 className="achievement-title">{achievementName}</h4>
           <p className="achievement-description">{achievement.description}</p>
           {date && <p className="achievement-date">Achieved on {date}</p>}
         </div>
