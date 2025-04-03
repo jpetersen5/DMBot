@@ -289,10 +289,15 @@ def process_and_save_scores(result, user_id):
         user_stats = user_stats_response.data[0].get("stats", {})
     else:
         user_stats = {}
-    
+
+    achievement_filtered_scores = updated_scores
+    for score in achievement_filtered_scores:
+        if score["speed"] < 100:
+            achievement_filtered_scores.remove(score)
+
     user_achievement_data = {
         "id": user_id,
-        "scores": updated_scores,
+        "scores": achievement_filtered_scores,
         "unknown_scores": updated_unknown_scores,
         "stats": user_stats,
         "achievements": user_data[0].get("achievements", {}) or {},
