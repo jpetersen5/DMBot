@@ -7,6 +7,8 @@ interface UploadProgressState {
   isProcessing: boolean;
   message: string;
   progress: number;
+  completed: boolean;
+  userId: string | null;
 }
 
 export const useUploadProgress = () => {
@@ -15,6 +17,8 @@ export const useUploadProgress = () => {
     isProcessing: false,
     message: "",
     progress: 0,
+    completed: false,
+    userId: localStorage.getItem("user_id"),
   });
 
   useEffect(() => {
@@ -28,6 +32,7 @@ export const useUploadProgress = () => {
       const userId = localStorage.getItem("user_id");
       if (userId) {
         newSocket.emit("join", userId);
+        setState(prev => ({ ...prev, userId }));
       }
     });
 
@@ -35,6 +40,7 @@ export const useUploadProgress = () => {
       setState(prev => ({
         ...prev,
         isProcessing: true,
+        completed: false,
         message: "Processing started",
       }));
     });
@@ -67,7 +73,8 @@ export const useUploadProgress = () => {
       setState(prev => ({
         ...prev,
         progress: 100,
-        message: data.message + ". Refresh user profile to see new scores!",
+        completed: true,
+        message: data.message,
       }));
     });
 
@@ -85,7 +92,11 @@ export const useUploadProgress = () => {
   }, []);
 
   const startUpload = () => {
-    setState(prev => ({ ...prev, isUploading: true }));
+    setState(prev => ({ 
+      ...prev, 
+      isUploading: true,
+      completed: false,
+    }));
   };
 
   const finishUpload = (message: string) => {
@@ -96,9 +107,20 @@ export const useUploadProgress = () => {
     }));
   };
 
+  const resetUploadState = () => {
+    setState(prev => ({
+      ...prev,
+      isProcessing: false,
+      completed: false,
+      message: "",
+      progress: 0,
+    }));
+  };
+
   return {
     ...state,
     startUpload,
     finishUpload,
+    resetUploadState,
   };
 };

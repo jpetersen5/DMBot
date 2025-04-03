@@ -56,6 +56,14 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
 
   useEffect(() => {
     fetchScores();
+    const handleScoresRefresh = () => {
+      fetchScores();
+    };
+
+    window.addEventListener("scoresNeedRefresh", handleScoresRefresh);
+    return () => {
+      window.removeEventListener("scoresNeedRefresh", handleScoresRefresh);
+    };
   }, [userId]);
 
   useEffect(() => {
