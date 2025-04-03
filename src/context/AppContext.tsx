@@ -2,6 +2,7 @@ import React, { ReactNode } from "react";
 import AuthProvider from "./AuthContext";
 import CharterProvider from "./CharterContext";
 import SongCacheProvider from "./SongContext";
+import { AchievementProvider } from "./AchievementContext";
 
 interface AppProviderProps {
   children: ReactNode;
@@ -12,7 +13,9 @@ const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     <AuthProvider>
       <SongCacheProvider>
         <CharterProvider>
-          {children}
+          <AchievementProvider>
+            {children}
+          </AchievementProvider>
         </CharterProvider>
       </SongCacheProvider>
     </AuthProvider>

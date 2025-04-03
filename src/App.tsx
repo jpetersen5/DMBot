@@ -9,6 +9,7 @@ import Auth from "./components/Auth/Auth";
 import Sidebar from "./components/Sidebar/Sidebar";
 import SongList from "./components/SongList/SongList";
 import UserList from "./components/UserList/UserList";
+import AchievementToastsWrapper from "./components/Achievements/AchievementToastsWrapper";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./styles/styles.scss";
 
@@ -44,6 +45,7 @@ const App: React.FC = () => {
               {/* <Route path="/settings" element={<SettingsPage />} /> */}
             </Routes>
           </main>
+          <AchievementToastsWrapper />
         </div>
       </Router>
     </AppProvider>

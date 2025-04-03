@@ -1,0 +1,158 @@
+@import "../../styles/themes";
+@import "../../styles/mixins";
+
+.achievement-toast {
+  position: relative;
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  width: 320px;
+  max-width: 100%;
+  transform: translateX(400px);
+  opacity: 0;
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+  z-index: 1000;
+  overflow: hidden;
+  @include theme("background", "color-box");
+  
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    @include theme("background", "color-button");
+  }
+  
+  &.visible {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  
+  &.hiding {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  
+  .achievement-toast-content {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    
+    .achievement-toast-icon {
+      margin-right: 1rem;
+      transform: scale(0.8);
+      
+      .achievement-icon {
+        transform-origin: center;
+        animation: achievement-pulse 1s ease-in-out;
+      }
+    }
+    
+    .achievement-toast-info {
+      flex: 1;
+      
+      .achievement-unlocked {
+        font-size: 0.85rem;
+        margin: 0 0 0.25rem;
+        text-transform: uppercase;
+        font-weight: bold;
+        @include theme("color", "color-button");
+      }
+      
+      .achievement-name {
+        font-size: 1.1rem;
+        margin: 0 0 0.5rem;
+        @include theme("color", "color-text");
+      }
+      
+      .achievement-description {
+        font-size: 0.9rem;
+        margin: 0;
+        @include theme("color", "color-text-secondary");
+      }
+    }
+  }
+  
+  .achievement-toast-close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    @include theme("color", "color-text-secondary");
+    
+    &:hover {
+      @include theme("color", "color-text");
+    }
+  }
+}
+
+.achievement-toasts-container {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  pointer-events: none;
+  max-height: 90vh;
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
+  
+  > * {
+    pointer-events: auto;
+    flex-shrink: 0;
+  }
+  
+  .achievement-toast {
+    flex-shrink: 0;
+    height: auto;
+  }
+  
+  .clear-all-button {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.2s ease;
+    pointer-events: auto;
+    z-index: 9999;
+    @include theme("background", "color-button");
+    @include theme("color", "color-button-text");
+    
+    &:hover {
+      @include theme("background", "color-button-hover");
+    }
+  }
+}
+
+@keyframes achievement-pulse {
+  0% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+} 

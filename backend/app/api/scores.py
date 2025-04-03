@@ -297,8 +297,31 @@ def process_and_save_scores(result, user_id):
         "stats": user_stats,
         "achievements": user_data[0].get("achievements", {}) or {},
     }
+
+    socketio.emit("score_processing_processing_achievements",
+                  {"message": f"Processing achievements for user {username}"},
+                  room=str(user_id))
     
     achievements = achievement_processor.process_achievements(user_achievement_data)
+    
+    existing_achievements = user_data[0].get("achievements", {}) or {}
+    for achievement_id, timestamp in achievements.items():
+        if achievement_id not in existing_achievements:
+            achievement_def = next((a for a in achievement_processor.achievements if a["id"] == achievement_id), None)
+            if achievement_def:
+                client_achievement = {
+                    "id": achievement_id,
+                    "name": achievement_def["name"],
+                    "description": achievement_def["description"],
+                    "rank": achievement_def["rank"],
+                    "category": achievement_def["category"],
+                    "achieved": True,
+                    "timestamp": timestamp,
+                    "group": achievement_def.get("group"),
+                    "song_md5": achievement_def.get("song_md5")
+                }
+                socketio.emit("new_achievement", {"achievement": client_achievement}, room=str(user_id))
+                logger.info(f"User {user_id} earned new achievement: {achievement_def['name']}")
     
     update_data = {
         "scores": updated_scores,

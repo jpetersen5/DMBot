@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 import { API_URL } from "../App";
+import { Achievement } from "../utils/achievement";
 
 interface UploadProgressState {
   isUploading: boolean;
@@ -9,6 +10,7 @@ interface UploadProgressState {
   progress: number;
   completed: boolean;
   userId: string | null;
+  newAchievements: Achievement[];
 }
 
 export const useUploadProgress = () => {
@@ -19,6 +21,7 @@ export const useUploadProgress = () => {
     progress: 0,
     completed: false,
     userId: localStorage.getItem("user_id"),
+    newAchievements: [],
   });
 
   useEffect(() => {
@@ -42,6 +45,7 @@ export const useUploadProgress = () => {
         isProcessing: true,
         completed: false,
         message: "Processing started",
+        newAchievements: [],
       }));
     });
 
@@ -66,6 +70,17 @@ export const useUploadProgress = () => {
         ...prev,
         progress: data.progress,
         message: data.message,
+      }));
+    });
+
+    newSocket.on("score_processing_processing_achievements", (data) => {
+      setState(prev => ({ ...prev, message: data.message }));
+    });
+
+    newSocket.on("new_achievement", (data) => {
+      setState(prev => ({
+        ...prev,
+        newAchievements: [...prev.newAchievements, data.achievement],
       }));
     });
 
@@ -96,6 +111,7 @@ export const useUploadProgress = () => {
       ...prev, 
       isUploading: true,
       completed: false,
+      newAchievements: [],
     }));
   };
 
@@ -117,10 +133,18 @@ export const useUploadProgress = () => {
     }));
   };
 
+  const clearAchievement = (achievementId: string) => {
+    setState(prev => ({
+      ...prev,
+      newAchievements: prev.newAchievements.filter(a => a.id !== achievementId),
+    }));
+  };
+
   return {
     ...state,
     startUpload,
     finishUpload,
     resetUploadState,
+    clearAchievement,
   };
 };
