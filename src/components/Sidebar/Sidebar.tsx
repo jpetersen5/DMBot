@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import UploadProgress from "./UploadProgress";
 import ThemeModal from "./Themes/ThemeModal";
+import ReleaseNotesModal from "./ReleaseNotes/ReleaseNotesModal";
 import KofiWidget from "../KofiWidget";
 import { useAuth } from "../../context/AuthContext";
 import Tooltip from "../../utils/Tooltip/Tooltip";
@@ -12,6 +13,7 @@ import ProfileIcon from "../../assets/profile-icon.svg";
 import SongsIcon from "../../assets/songs-icon.svg";
 import ThemesIcon from "../../assets/themes-icon.svg";
 import UsersIcon from "../../assets/users-icon.svg";
+import ReleaseNotesIcon from "../../assets/release-notes-icon.svg";
 
 interface NavItem {
   path: string;
@@ -24,6 +26,8 @@ const themes = {
   light: "light",
 };
 
+export const CURRENT_VERSION = "v1.10.0";
+
 const staticNavItems: NavItem[] = [
   { path: "/", name: "Home", icon: HomeIcon },
   { path: "/songs", name: "Songs", icon: SongsIcon },
@@ -33,6 +37,7 @@ const staticNavItems: NavItem[] = [
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
+  const [isReleaseNotesModalOpen, setIsReleaseNotesModalOpen] = useState(false);
   const { user } = useAuth();
   const location = useLocation();
 
@@ -41,6 +46,14 @@ const Sidebar: React.FC = () => {
     document.documentElement.className = "";
     document.documentElement.classList.add(`theme-${storedTheme}`);
   }, [storedTheme]);
+
+  useEffect(() => {
+    const lastSeenVersion = localStorage.getItem("lastSeenVersion");
+    if (!lastSeenVersion || lastSeenVersion !== CURRENT_VERSION) {
+      setIsReleaseNotesModalOpen(true);
+      localStorage.setItem("lastSeenVersion", CURRENT_VERSION);
+    }
+  }, []);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -52,6 +65,14 @@ const Sidebar: React.FC = () => {
 
   const closeThemeModal = () => {
     setIsThemeModalOpen(false);
+  };
+
+  const openReleaseNotesModal = () => {
+    setIsReleaseNotesModalOpen(true);
+  };
+
+  const closeReleaseNotesModal = () => {
+    setIsReleaseNotesModalOpen(false);
   };
 
   const isIconActive = (name: string, path: string): boolean => {
@@ -76,7 +97,7 @@ const Sidebar: React.FC = () => {
 
   const navItems = user ? [...staticNavItems, profileNavItem] : staticNavItems;
 
-  const version = "v1.9.1";
+  const version = CURRENT_VERSION;
   const commitDate = import.meta.env.VITE_COMMIT_DATE || "Unknown";
 
   return (
@@ -114,7 +135,12 @@ const Sidebar: React.FC = () => {
         {isOpen && (
           <div className="version-container">
             <Tooltip text={`Last updated: ${commitDate}`}>
-              <div className="version">{version}</div>
+              <div className="version-wrapper">
+                <div className="version">{version}</div>
+                <button onClick={openReleaseNotesModal} className="release-notes-button">
+                  <img src={ReleaseNotesIcon} alt="Release Notes" />
+                </button>
+              </div>
             </Tooltip>
           </div>
         )}
@@ -123,6 +149,10 @@ const Sidebar: React.FC = () => {
         isOpen={isThemeModalOpen}
         onClose={closeThemeModal}
         themes={themes}
+      />
+      <ReleaseNotesModal
+        isOpen={isReleaseNotesModalOpen}
+        onClose={closeReleaseNotesModal}
       />
     </>
   );
