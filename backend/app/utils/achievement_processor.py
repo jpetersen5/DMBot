@@ -399,8 +399,8 @@ class AchievementProcessor:
             
         scores = user_data.get("scores", [])
         for score in scores:
-            song_name = score.get("song_name", "")
-            if "Album" in song_name:
+            song_name: str = score.get("song_name", "")
+            if song_name.lower().find("album") != -1:
                 return True
         
         return False
