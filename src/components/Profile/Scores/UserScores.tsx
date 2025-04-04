@@ -1,24 +1,21 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Pagination, Search } from "../../SongList/TableControls";
 import SongModal from "../../SongList/SongModal";
-import LoadingSpinner from "../../Loading/LoadingSpinner";
 import UnknownSongModal from "./UnknownSongModal";
-import { SongTableCell } from "../../Extras/Tables";
 import { API_URL } from "../../../App";
-import { useKeyPress } from "../../../hooks/useKeyPress";
 import {
   Score,
   Scores,
   UnknownScore,
-  SCORE_TABLE_HEADERS,
   formatRank
 } from "../../../utils/score";
-
-import { TableHeader } from "../../Extras/Tables";
 import { Song } from "../../../utils/song";
 import "./UserScores.scss";
-import ScrollableTable from "../../Extras/ScrollableTable";
+
+import { Table, Column } from "../../Table";
+import { TableToolbar } from "../../Table/TableControls";
+import { useTableData } from "../../../hooks/useTableData";
+import { cellRenderers } from "../../Table/TableCells";
 
 interface UserScoresProps {
   userId: string;
@@ -37,22 +34,62 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
 
   const [scores, setScores] = useState<Scores>({ scores: [], unknown_scores: [] });
   const [loading, setLoading] = useState<boolean>(true);
-  const [page, setPage] = useState<number>(1);
-  const [inputPage, setInputPage] = useState<string>(page.toString());
-  const [sortBy, setSortBy] = useState<string>("posted");
-  const [secondarySortBy, setSecondarySortBy] = useState<string | null>(null);
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const [secondarySortOrder, setSecondarySortOrder] = useState<"asc" | "desc">("desc");
-  const shiftPressed = useKeyPress("Shift");
-  const [search, setSearch] = useState<string>("");
-  const [filters, setFilters] = useState<string[]>([]);
-  const perPage = 100;
-
   const [showUnknown, setShowUnknown] = useState<boolean>(false);
+  
   const [selectedUnknownScore, setSelectedUnknownScore] = useState<UnknownScore | null>(null);
-
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [modalLoading, setModalLoading] = useState<boolean>(false);
+
+  const {
+    page,
+    setPage: originalSetPage,
+    inputPage,
+    setInputPage: originalSetInputPage,
+    perPage,
+    setPerPage: originalSetPerPage,
+    search,
+    setSearch: originalSetSearch,
+    filters,
+    setFilters: originalSetFilters,
+    filteredData,
+    totalPages
+  } = useTableData<Score | UnknownScore>({
+    data: showUnknown ? scores.unknown_scores : scores.scores,
+    defaultSortKey: "posted",
+    defaultSortOrder: "desc",
+    defaultPerPage: 100,
+    getFilterableFields: (item) => ({
+      song_name: item.song_name,
+      artist: item.artist,
+      score: item.score,
+      identifier: item.identifier
+    })
+  });
+
+  const setPage = useCallback((value: React.SetStateAction<number>) => {
+    const newPage = typeof value === "function" ? value(page) : value;
+    originalSetPage(newPage);
+  }, [originalSetPage, page]);
+
+  const setInputPage = useCallback((value: React.SetStateAction<string>) => {
+    const newInputPage = typeof value === "function" ? value(inputPage) : value;
+    originalSetInputPage(newInputPage);
+  }, [originalSetInputPage, inputPage]);
+
+  const setPerPage = useCallback((value: React.SetStateAction<number>) => {
+    const newPerPage = typeof value === "function" ? value(perPage) : value;
+    originalSetPerPage(newPerPage);
+  }, [originalSetPerPage, perPage]);
+
+  const setSearch = useCallback((value: React.SetStateAction<string>) => {
+    const newSearch = typeof value === "function" ? value(search) : value;
+    originalSetSearch(newSearch);
+  }, [originalSetSearch, search]);
+
+  const setFilters = useCallback((value: React.SetStateAction<string[]>) => {
+    const newFilters = typeof value === "function" ? value(filters) : value;
+    originalSetFilters(newFilters);
+  }, [originalSetFilters, filters]);
 
   useEffect(() => {
     fetchScores();
@@ -69,7 +106,7 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   useEffect(() => {
     setPage(1);
     setInputPage("1");
-  }, [search, filters]);
+  }, [showUnknown]);
 
   async function fetchScores() {
     setLoading(true);
@@ -87,109 +124,8 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
     }
   }
 
-  function getSortValues(a: Score, b: Score, sortKey: string) {
-    let aValue = a[sortKey as keyof Score];
-    let bValue = b[sortKey as keyof Score];
-    if (typeof aValue === "string") {
-      aValue = aValue.toLowerCase();
-    }
-    if (typeof bValue === "string") {
-      bValue = bValue.toLowerCase();
-    }
-    if (sortKey === "percent") { // FC's take priority over non-FC's
-      aValue = a.is_fc ? 101 : aValue;
-      bValue = b.is_fc ? 101 : bValue;
-    }
-    if (sortKey === "rank" && sortOrder === "asc") {
-      aValue = a.rank ? aValue : 1000000;
-      bValue = b.rank ? bValue : 1000000;
-    } else if (sortKey === "rank" && sortOrder === "desc") {
-      aValue = a.rank ? aValue : 0;
-      bValue = b.rank ? bValue : 0;
-    }
-    if (sortKey === "posted") {
-      aValue = a.posted ? aValue : new Date(0).toISOString();
-      bValue = b.posted ? bValue : new Date(0).toISOString();
-    }
-    return [aValue, bValue];
-  }
-
-  const filteredAndSortedScores = useMemo(() => {
-    let filteredScores = showUnknown ? scores.unknown_scores : scores.scores;
-    if (!filteredScores) return [];
-
-    if (search) {
-      const searchTermsLower = search.toLowerCase().split(" ");
-      filteredScores = filteredScores.filter(score => {
-        if (filters.length === 0) {
-          return searchTermsLower.every(term => 
-            score.score.toString().includes(term) ||
-            score.song_name.toLowerCase().includes(term) ||
-            score.artist.toLowerCase().includes(term) ||
-            score.identifier.toLowerCase().includes(term)
-          )
-        } else {
-          return searchTermsLower.every(term => 
-            filters.includes("score") && score.score.toString().includes(term) ||
-            filters.includes("song_name") && score.song_name.toLowerCase().includes(term) ||
-            filters.includes("artist") && score.artist.toLowerCase().includes(term) ||
-            filters.includes("identifier") && score.identifier.toLowerCase().includes(term)
-          )
-        }
-      });
-    } else {
-      // I don't know why this is necessary, but it is
-      filteredScores = filteredScores.filter(score => {
-        return score;
-      });
-    }
-
-    return filteredScores.sort((a, b) => {
-      const [aValue, bValue] = getSortValues(a, b, sortBy);
-      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
-      if (secondarySortBy) {
-        const [aSecondaryValue, bSecondaryValue] = getSortValues(a, b, secondarySortBy);
-        if (aSecondaryValue < bSecondaryValue) return secondarySortOrder === "asc" ? -1 : 1;
-        if (aSecondaryValue > bSecondaryValue) return secondarySortOrder === "asc" ? 1 : -1;
-      }
-      return 0;
-    });
-  }, [scores, showUnknown, sortBy, sortOrder, secondarySortBy, secondarySortOrder, search, filters]);
-
-  const paginatedScores = useMemo(() => {
-    const startIndex = (page - 1) * perPage;
-    return filteredAndSortedScores.slice(startIndex, startIndex + perPage);
-  }, [filteredAndSortedScores, page, perPage]);
-
-  const totalPages = Math.ceil(filteredAndSortedScores.length / perPage);
-
-  const handleSort = (column: string) => {
-    if (!shiftPressed) {
-      setSecondarySortBy(null);
-      setSecondarySortOrder("desc");
-      if (sortBy === column) {
-        setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-      } else {
-        setSortBy(column);
-        setSortOrder("desc");
-      }
-    } else {
-      if (secondarySortBy === column) {
-        setSecondarySortOrder(secondarySortOrder === "asc" ? "desc" : "asc");
-      } else {
-        setSecondarySortBy(column);
-        setSecondarySortOrder("desc");
-      }
-    }
-  };
-
   const handleToggleUnknown = () => {
     setShowUnknown(prev => !prev);
-    setPage(1);
-    setInputPage("1");
-    setSortBy("posted");
-    setSortOrder("desc");
   };
 
   useEffect(() => {
@@ -225,10 +161,10 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   };
 
   const getSurroundingSongIds = () => {
-    const currentScoreIndex = filteredAndSortedScores.findIndex(score => score.identifier === songId);
+    const currentScoreIndex = filteredData.findIndex(score => score.identifier === songId);
     if (currentScoreIndex === -1) return { prevSongIds: [], nextSongIds: [] };
-    const prevSongIds = filteredAndSortedScores.slice(0, currentScoreIndex).map(score => score.identifier);
-    const nextSongIds = filteredAndSortedScores.slice(currentScoreIndex + 1).map(score => score.identifier);
+    const prevSongIds = filteredData.slice(0, currentScoreIndex).map(score => score.identifier);
+    const nextSongIds = filteredData.slice(currentScoreIndex + 1).map(score => score.identifier);
     return { prevSongIds, nextSongIds };
   };
 
@@ -240,19 +176,99 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
     }
   };
 
+  const columns: Column<Score | UnknownScore>[] = [
+    {
+      key: "song_name",
+      header: "Song",
+      className: "name",
+      renderCell: (score) => cellRenderers.html(score.song_name),
+      sortable: true
+    },
+    {
+      key: "artist",
+      header: "Artist",
+      className: "artist",
+      renderCell: (score) => cellRenderers.text(score.artist),
+      sortable: true
+    },
+    {
+      key: "score",
+      header: "Score",
+      className: "score column-number",
+      renderCell: (score) => cellRenderers.number(score.score),
+      sortable: true
+    },
+    {
+      key: "percent",
+      header: "Percent",
+      className: "percent column-percent",
+      renderCell: (score) => score.is_fc ? cellRenderers.fc(score.percent) : cellRenderers.percent(score.percent),
+      sortable: true,
+      sortFn: (a, b, direction) => {
+        // FC's take priority over non-FC's
+        const aValue = a.is_fc ? 101 : a.percent;
+        const bValue = b.is_fc ? 101 : b.percent;
+        return direction === "asc" ? aValue - bValue : bValue - aValue;
+      }
+    },
+    {
+      key: "speed",
+      header: "Speed",
+      className: "speed column-percent",
+      renderCell: (score) => cellRenderers.percent(score.speed),
+      sortable: true
+    },
+    {
+      key: "play_count",
+      header: "Plays",
+      className: "play-count column-number",
+      renderCell: (score) => cellRenderers.text(score.play_count || "N/A"),
+      sortable: true
+    },
+    {
+      key: "posted",
+      header: "Posted",
+      className: "posted",
+      renderCell: (score) => cellRenderers.timestamp(score.posted),
+      sortable: true,
+      sortFn: (a, b, direction) => {
+        const aValue = a.posted ? a.posted : new Date(0).toISOString();
+        const bValue = b.posted ? b.posted : new Date(0).toISOString();
+        return direction === "asc" 
+          ? aValue.localeCompare(bValue) 
+          : bValue.localeCompare(aValue);
+      }
+    },
+    {
+      key: "rank",
+      header: "Rank",
+      className: "rank column-rank",
+      renderCell: (score) => cellRenderers.text(formatRank(score.rank)),
+      sortable: true,
+      sortFn: (a, b, direction) => {
+        // Handle special cases for ranks
+        const aRank = a.rank || (direction === "asc" ? 1000000 : 0);
+        const bRank = b.rank || (direction === "asc" ? 1000000 : 0);
+        return direction === "asc" ? aRank - bRank : bRank - aRank;
+      }
+    }
+  ];
+
   return (
     <>
       <div className="user-scores">
         <div className="user-scores-header">
           <h2>{`${showUnknown ? "Unknown" : ""} User Scores`}</h2>
           <div className="control-bar">
-            <Search
-              search={search}
-              filters={filters}
-              filterOptions={filterOptions}
-              setSearch={setSearch}
-              setFilters={setFilters}
-              submitSearch={() => {}}
+            <TableToolbar
+              search={{
+                search,
+                setSearch,
+                filters,
+                setFilters,
+                filterOptions,
+                placeholder: "Search scores..."
+              }}
             />
             <div className="toggle-container">
               <label htmlFor="show-unknown" className="toggle-label" onClick={handleToggleUnknown}>
@@ -271,56 +287,45 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
             </div>
           </div>
         </div>
-        <ScrollableTable>
-          <table>
-            <thead>
-              <tr>
-                {Object.entries(SCORE_TABLE_HEADERS).map(([key, value]) => (
-                  <TableHeader
-                    key={key}
-                    className={key.replace(/_/g, "-")}
-                    content={value}
-                    onClick={() => handleSort(key)}
-                    sort={sortBy === key || secondarySortBy === key}
-                    sortOrder={sortBy === key ? sortOrder : secondarySortOrder}
-                  />
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {loading && (
-                <tr>
-                  <td colSpan={Object.keys(SCORE_TABLE_HEADERS).length}>
-                    <LoadingSpinner message="Loading scores..." />
-                  </td>
-                </tr>
-              )}
-              {!loading && paginatedScores.length === 0 && (
-                <tr>
-                  <td colSpan={Object.keys(SCORE_TABLE_HEADERS).length}>
-                    {`No ${showUnknown ? "unknown" : ""} scores found`}
-                  </td>
-                </tr>
-              )}
-              {!loading && paginatedScores.length > 0 && (
-                paginatedScores.map((score, index) => (
-                  <ScoreTableRow 
-                    key={index} 
-                    score={score}
-                    onClick={() => handleRowClick(score)}
-                  />
-                ))
-              )}
-            </tbody>
-          </table>
-        </ScrollableTable>
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          inputPage={inputPage}
-          setPage={setPage}
-          setInputPage={setInputPage}
+        
+        <Table
+          data={filteredData}
+          columns={columns}
+          keyExtractor={(score) => `${score.identifier}-${score.score}`}
+          defaultSortKey="posted"
+          defaultSortOrder="desc"
+          loading={loading}
+          loadingMessage="Loading scores..."
+          emptyMessage={`No ${showUnknown ? "unknown" : ""} scores found`}
+          onRowClick={handleRowClick}
+          pagination={{
+            page,
+            setPage,
+            inputPage,
+            setInputPage,
+            itemsPerPage: perPage
+          }}
         />
+        
+        {totalPages > 1 && (
+          <div className="page-controls">
+            <TableToolbar
+              pagination={{
+                page,
+                totalPages,
+                inputPage,
+                setPage,
+                setInputPage
+              }}
+              perPage={{
+                perPage,
+                setPerPage,
+                setPage
+              }}
+            />
+          </div>
+        )}
+        
         {(selectedSong || modalLoading) && (
           <SongModal
             show={true}
@@ -331,6 +336,7 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
             nextSongIds={getSurroundingSongIds().nextSongIds}
           />
         )}
+        
         {selectedUnknownScore && showUnknown && (
           <UnknownSongModal
             show={true}
@@ -340,29 +346,6 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
         )}
       </div>
     </>
-  );
-};
-
-// TODO: Consolidate these components into Tables.tsx
-
-interface ScoreTableRowProps {
-  score: Score;
-  onClick: () => void;
-}
-
-const ScoreTableRow: React.FC<ScoreTableRowProps> = ({ score, onClick }) => {
-  return (
-    <tr onClick={onClick} style={{ cursor: "pointer" }}>
-      <SongTableCell className="name" content={score.song_name} />
-      <SongTableCell className="artist" content={score.artist} />
-      <SongTableCell className="score" content={score.score.toLocaleString()} />
-      <SongTableCell className="percent" content={score.percent.toString()} special={score.is_fc ? "fc_percent" : "percent"} />
-      <SongTableCell className="speed" content={score.speed.toString()} special="percent" />
-      <SongTableCell className="is-fc" content={score.is_fc ? "Yes" : "No"} />
-      <SongTableCell className="play-count" content={score.play_count ? score.play_count.toString() : "N/A"} />
-      <SongTableCell className="posted" content={score.posted} special="last_update" />
-      <SongTableCell className="score" content={formatRank(score.rank)} />
-    </tr>
   );
 };
 

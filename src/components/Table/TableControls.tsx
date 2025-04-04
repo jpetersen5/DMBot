@@ -369,15 +369,15 @@ export const TableToolbar: React.FC<TableToolbarProps> = ({
       <div className="table-toolbar-left">
         {search && <Search {...search} />}
       </div>
-      <div className="table-toolbar-right">
-        {multiSelect && <MultiSelectDropdown {...multiSelect} />}
-        {perPage && <PerPageSelector {...perPage} />}
-      </div>
       {pagination && (
         <div className="table-toolbar-pagination">
           <Pagination {...pagination} />
         </div>
       )}
+      <div className="table-toolbar-right">
+        {multiSelect && <MultiSelectDropdown {...multiSelect} />}
+        {perPage && <PerPageSelector {...perPage} />}
+      </div>
     </div>
   );
 }; 

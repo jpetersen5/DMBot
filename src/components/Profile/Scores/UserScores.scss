@@ -21,7 +21,6 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1rem;
       
       .table-controls {
         display: flex;
@@ -91,6 +90,38 @@
       }
     }
   }
+
+  .page-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    
+    .table-toolbar {
+      width: 100%;
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      
+      .table-toolbar-left {
+        flex: 1;
+        order: 1;
+      }
+      
+      .table-toolbar-pagination {
+        flex: 2;
+        margin-top: 0;
+        order: 2;
+      }
+      
+      .table-toolbar-right {
+        flex: 1;
+        justify-content: flex-end;
+        order: 3;
+      }
+    }
+  }
 }
 
 
@@ -114,10 +145,29 @@
     .control-bar {
       flex-direction: column;
       align-items: flex-start;
-      margin-bottom: 1rem;
 
       .table-controls {
         margin-top: 0.5rem;
+      }
+    }
+    
+    .page-controls {
+      .table-toolbar {
+        flex-direction: column;
+        
+        .table-toolbar-pagination {
+          order: 1;
+          margin-bottom: 0.5rem;
+        }
+        
+        .table-toolbar-right {
+          order: 2;
+          justify-content: center;
+        }
+        
+        .table-toolbar-left {
+          order: 3;
+        }
       }
     }
   }
