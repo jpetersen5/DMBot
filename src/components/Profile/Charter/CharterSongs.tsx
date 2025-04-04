@@ -1,22 +1,16 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { API_URL } from "../../../App";
-import { Pagination, Search } from "../../SongList/TableControls";
 import SongModal from "../../SongList/SongModal";
-import { TableHeader } from "../../Extras/Tables";
-import { SongTableRow } from "../../SongList/SongList";
-import LoadingSpinner from "../../Loading/LoadingSpinner";
 import { useCharterData } from "../../../context/CharterContext";
 import { useSongCache } from "../../../context/SongContext";
-import { useKeyPress } from "../../../hooks/useKeyPress";
-import {
-  Song,
-  SONG_TABLE_HEADERS,
-  getSurroundingSongIds,
-  getSortValues
-} from "../../../utils/song";
+import { Song, SONG_TABLE_HEADERS, getSurroundingSongIds, msToTime } from "../../../utils/song";
 import "./CharterSongs.scss";
-import ScrollableTable from "../../Extras/ScrollableTable";
+
+import Table, { Column } from "../../Table/Table";
+import { TableToolbar } from "../../Table/TableControls";
+import { useTableData } from "../../../hooks/useTableData";
+import { cellRenderers } from "../../Table/TableCells";
 
 interface CharterSongsProps {
   charterId: string;
@@ -40,21 +34,39 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
   
   const [songs, setSongs] = useState<Song[]>([]);
   const [songsLoading, setSongsLoading] = useState<boolean>(true);
-  const [page, setPage] = useState<number>(1);
-  const [inputPage, setInputPage] = useState<string>(page.toString());
-  const [sortBy, setSortBy] = useState<string>("last_update");
-  const [secondarySortBy, setSecondarySortBy] = useState<string | null>(null);
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const [secondarySortOrder, setSecondarySortOrder] = useState<"asc" | "desc">("desc");
-  const shiftPressed = useKeyPress("Shift");
-  const [search, setSearch] = useState<string>("");
-  const [filters, setFilters] = useState<string[]>([]);
-  const perPage = 50;
-
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [modalLoading, setModalLoading] = useState<boolean>(false);
   const { isLoading: chartersLoading } = useCharterData();
   const { getCachedResult, setCachedResult } = useSongCache();
+
+  const {
+    page,
+    setPage,
+    inputPage,
+    setInputPage,
+    perPage,
+    setPerPage,
+    search,
+    setSearch,
+    filters,
+    setFilters,
+    filteredData,
+    totalPages
+  } = useTableData<Song>({
+    data: songs,
+    defaultSortKey: "last_update",
+    defaultSortOrder: "desc",
+    defaultPerPage: 50,
+    getFilterableFields: (song: Song) => ({
+      name: song.name,
+      artist: song.artist,
+      album: song.album,
+      year: song.year,
+      genre: song.genre,
+      loading_phrase: song.loading_phrase,
+      playlist_path: song.playlist_path
+    })
+  });
 
   useEffect(() => {
     fetchSongs();
@@ -121,91 +133,6 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
     }
   }
 
-  useEffect(() => {
-    setPage(1);
-  }, [search, filters]);
-
-  const filteredAndSortedSongs = useMemo(() => {
-    let filteredSongs = songs;
-    if (!filteredSongs) return [];
-
-    if (search) {
-      const searchTermsLower = search.toLowerCase().split(" ");
-      filteredSongs = filteredSongs.filter(song => {
-        if (filters.length === 0) {
-          return searchTermsLower.every(term => 
-            Object.values(song).some(value => 
-              (typeof value === "string" || typeof value === "number") && value.toString().toLowerCase().includes(term)
-            )
-          );
-        } else {
-          return searchTermsLower.every(term => 
-            filters.includes("name") && song.name?.toLowerCase().includes(term) ||
-            filters.includes("artist") && song.artist?.toLowerCase().includes(term) ||
-            filters.includes("album") && song.album?.toLowerCase().includes(term) ||
-            filters.includes("year") && song.year?.toString().includes(term) ||
-            filters.includes("genre") && song.genre?.toLowerCase().includes(term) ||
-            filters.includes("loading_phrase") && song.loading_phrase?.toLowerCase().includes(term) ||
-            filters.includes("playlist_path") && song.playlist_path?.toLowerCase().includes(term)
-          );
-        }
-      });
-    } else {
-      // I don't know why this is necessary, but it is
-      filteredSongs = filteredSongs.filter(song => {
-        return song;
-      });
-    }
-
-    const sortedSongs = filteredSongs.sort((a, b) => {
-      const [aValue, bValue] = getSortValues(a, b, sortBy);
-      if (aValue == null || bValue == null) return 0;
-      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
-      if (secondarySortBy) {
-        const [aSecondaryValue, bSecondaryValue] = getSortValues(a, b, secondarySortBy);
-        if (aSecondaryValue == null || bSecondaryValue == null) return 0;
-        if (aSecondaryValue < bSecondaryValue) return secondarySortOrder === "asc" ? -1 : 1;
-        if (aSecondaryValue > bSecondaryValue) return secondarySortOrder === "asc" ? 1 : -1;
-      }
-      return 0;
-    });
-
-    return sortedSongs;
-  }, [songs, search, filters, sortBy, sortOrder, secondarySortBy, secondarySortOrder]);
-
-  const paginatedSongs = useMemo(() => {
-    const startIndex = (page - 1) * perPage;
-    const endIndex = startIndex + perPage;
-    return filteredAndSortedSongs.slice(startIndex, endIndex);
-  }, [filteredAndSortedSongs, page, perPage]);
-
-  const totalPages = Math.ceil(filteredAndSortedSongs.length / perPage);
-
-  const { prevSongIds, nextSongIds } = useMemo(() => {
-    return getSurroundingSongIds(filteredAndSortedSongs, selectedSong?.id.toString() || "");
-  }, [filteredAndSortedSongs, selectedSong]);
-
-  const handleSort = (column: string) => {
-    if (!shiftPressed) {
-      setSecondarySortBy(null);
-      setSecondarySortOrder("desc");
-      if (sortBy === column) {
-        setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-      } else {
-        setSortBy(column);
-        setSortOrder("desc");
-      }
-    } else {
-      if (secondarySortBy === column) {
-        setSecondarySortOrder(secondarySortOrder === "asc" ? "desc" : "asc");
-      } else {
-        setSecondarySortBy(column);
-        setSecondarySortOrder("desc");
-      }
-    }
-  };
-
   const handleRowClick = (song: Song) => {
     setSelectedSong(song);
     
@@ -226,65 +153,132 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
     }
   };
 
+  const { prevSongIds, nextSongIds } = useMemo(() => {
+    return getSurroundingSongIds(filteredData, selectedSong?.id.toString() || "");
+  }, [filteredData, selectedSong]);
+
   const loading = songsLoading || chartersLoading;
+
+  const columns: Column<Song>[] = [
+    {
+      key: "name",
+      header: SONG_TABLE_HEADERS.name,
+      className: "name",
+      renderCell: (song) => cellRenderers.html(song.name || ""),
+      sortable: true
+    },
+    {
+      key: "artist",
+      header: SONG_TABLE_HEADERS.artist,
+      className: "artist",
+      renderCell: (song) => cellRenderers.text(song.artist || ""),
+      sortable: true
+    },
+    {
+      key: "album",
+      header: SONG_TABLE_HEADERS.album,
+      className: "album",
+      renderCell: (song) => cellRenderers.text(song.album || ""),
+      sortable: true
+    },
+    {
+      key: "year",
+      header: SONG_TABLE_HEADERS.year,
+      className: "year column-number",
+      renderCell: (song) => cellRenderers.text(song.year?.toString() || "N/A"),
+      sortable: true
+    },
+    {
+      key: "genre",
+      header: SONG_TABLE_HEADERS.genre,
+      className: "genre",
+      renderCell: (song) => cellRenderers.text(song.genre || ""),
+      sortable: true
+    },
+    {
+      key: "song_length",
+      header: SONG_TABLE_HEADERS.song_length,
+      className: "song-length column-number",
+      renderCell: (song) => cellRenderers.text(song.song_length != null ? msToTime(song.song_length) : "??:??:??"),
+      sortable: true
+    },
+    {
+      key: "charter",
+      header: SONG_TABLE_HEADERS.charter,
+      className: "charter",
+      renderCell: (song) => cellRenderers.charter(song.charter_refs ? song.charter_refs.join(", ") : "Unknown Author"),
+      sortable: true
+    },
+    {
+      key: "scores_count",
+      header: SONG_TABLE_HEADERS.scores_count,
+      className: "scores-count column-number",
+      renderCell: (song) => cellRenderers.text(song.scores_count?.toString() || "0"),
+      sortable: true
+    },
+    {
+      key: "last_update",
+      header: SONG_TABLE_HEADERS.last_update,
+      className: "last-update",
+      renderCell: (song) => cellRenderers.timestamp(song.last_update),
+      sortable: true
+    }
+  ];
 
   return (
     <div className="charter-songs">
       <div className="charter-songs-header">
         <h2>Charter Songs</h2>
         <div className="control-bar">
-          <Search
-            search={search}
-            filters={filters}
-            filterOptions={filterOptions}
-            setSearch={setSearch}
-            setFilters={setFilters}
-            submitSearch={() => {}}
+          <TableToolbar
+            search={{
+              search,
+              setSearch: setSearch as React.Dispatch<React.SetStateAction<string>>,
+              filters,
+              setFilters: setFilters as React.Dispatch<React.SetStateAction<string[]>>,
+              filterOptions,
+              placeholder: "Search songs..."
+            }}
           />
         </div>
       </div>
-      <ScrollableTable>
-        <table>
-          <thead>
-            <tr>
-              {Object.entries(SONG_TABLE_HEADERS).map(([key, value]) => (
-                <TableHeader
-                  key={key}
-                  className={key.replace(/_/g, "-")}
-                  content={value}
-                  onClick={() => handleSort(key)}
-                  sort={sortBy === key || secondarySortBy === key}
-                  sortOrder={sortBy === key ? sortOrder : secondarySortOrder}
-                />
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {loading && (
-              <tr>
-                <td colSpan={Object.keys(SONG_TABLE_HEADERS).length}>
-                  <LoadingSpinner message="Loading songs..." />
-                </td>
-              </tr>
-            )}
-            {!loading && paginatedSongs.length === 0 && (
-              <tr>
-                <td colSpan={Object.keys(SONG_TABLE_HEADERS).length}>No songs found</td>
-              </tr>
-            )}
-            {!loading && paginatedSongs.map((song) => (
-              <SongTableRow key={song.id} song={song} onClick={() => handleRowClick(song)} />
-            ))}
-          </tbody>
-        </table>
-      </ScrollableTable>
-      <Pagination
-        page={page}
-        totalPages={totalPages}
-        inputPage={inputPage}
-        setPage={setPage}
-        setInputPage={setInputPage}
+      
+      <Table
+        data={filteredData}
+        columns={columns}
+        keyExtractor={(song) => song.id.toString()}
+        defaultSortKey="last_update"
+        defaultSortOrder="desc"
+        loading={loading}
+        loadingMessage="Loading songs..."
+        emptyMessage="No songs found"
+        onRowClick={handleRowClick}
+        pagination={{
+          page,
+          setPage: setPage as React.Dispatch<React.SetStateAction<number>>,
+          inputPage,
+          setInputPage: setInputPage as React.Dispatch<React.SetStateAction<string>>,
+          itemsPerPage: perPage
+        }}
       />
+      
+      <div className="pagination-container">
+        <TableToolbar
+          pagination={{
+            page,
+            totalPages,
+            inputPage,
+            setPage: setPage as React.Dispatch<React.SetStateAction<number>>,
+            setInputPage: setInputPage as React.Dispatch<React.SetStateAction<string>>
+          }}
+          perPage={{
+            perPage,
+            setPerPage: setPerPage as React.Dispatch<React.SetStateAction<number>>,
+            setPage: setPage as React.Dispatch<React.SetStateAction<number>>
+          }}
+        />
+      </div>
+      
       {(selectedSong || modalLoading) && (
         <SongModal 
           show={true}
