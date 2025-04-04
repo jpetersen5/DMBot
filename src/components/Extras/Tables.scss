@@ -189,8 +189,8 @@ table {
     th,
     td {
       padding: 0.6rem;
-
-      &.rank        { max-width: 20px; }
+      
+      &.rank        { max-width: 60px; }
       &.speed,
       &.play-count  { max-width: 60px; }
       &.percent     { max-width: 75px; }

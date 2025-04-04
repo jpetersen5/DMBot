@@ -80,4 +80,37 @@
       }
     }
   }
+
+  .table-container {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  table {
+    td {
+      padding: 0.3rem 0.5rem;
+    }
+
+    td.track {
+      width: 40px;
+      text-align: center;
+    }
+
+    td.song-length {
+      width: 80px;
+      text-align: center;
+    }
+    
+    th {
+      cursor: default;
+      
+      &:hover {
+        @include theme("background", "color-table-header");
+      }
+      
+      .sort-arrow {
+        display: none;
+      }
+    }
+  }
 }

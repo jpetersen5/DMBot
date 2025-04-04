@@ -2,12 +2,11 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Nav } from "react-bootstrap";
 import { API_URL } from "../../App";
-import { SimpleTableHeader, SongTableCell } from "../Extras/Tables";
-import LoadingSpinner from "../Loading/LoadingSpinner";
 import { useSongCache } from "../../context/SongContext";
 import { Song, msToTime } from "../../utils/song";
-import ScrollableTable from "../Extras/ScrollableTable";
 import "./RelatedSongs.scss";
+
+import { Table, Column, cellRenderers } from "../Table";
 
 interface RelatedSongs {
   album_songs: Song[];
@@ -46,6 +45,7 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
   const { getCachedResult, setCachedResult } = useSongCache();
 
   const [page, setPage] = useState(1);
+  const [inputPage, setInputPage] = useState("1");
   const perPage = 50;
 
   const updateURL = () => {
@@ -63,6 +63,7 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
 
   useEffect(() => {
     setPage(1);
+    setInputPage("1");
   }, [relationType]);
 
   const getCacheKey = (type: RelatedSongsType) => {
@@ -123,90 +124,119 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
     }
   };
 
-  const paginatedRelatedSongs = useMemo(() => {
+  const processedData = useMemo(() => {
     let sortedSongs = relatedSongs[`${relationType}_songs`];
-    if (relationType === RelatedSongsType.album) {
-      sortedSongs = sortedSongs.sort((a, b) => {
-        const aTrack = a.track ? a.track : 0;
-        const bTrack = b.track ? b.track : 0;
-        return aTrack - bTrack;
-      });
-    } else {
-      sortedSongs = sortedSongs.sort((a, b) => {
-        const aLastUpdate = new Date(a.last_update);
-        const bLastUpdate = new Date(b.last_update);
-        return bLastUpdate.getTime() - aLastUpdate.getTime();
-      });
-    }
-    return sortedSongs.slice((page - 1) * perPage, page * perPage);
-  }, [relatedSongs, relationType, page]);
+    if (!sortedSongs || sortedSongs.length === 0) return [];
+    
+    return [...sortedSongs];
+  }, [relatedSongs, relationType]);
 
   const numCharters = currentSong.charter_refs?.length || 0;
 
-  const renderRelatedSongsTable = () => {
-    let RELATED_SONGS_TABLE_HEADERS;
-    let columns;
+  const getColumns = (): Column<Song>[] => {
     switch (relationType) {
       case RelatedSongsType.album:
-        RELATED_SONGS_TABLE_HEADERS = {
-          "#": "Track",
-          Name: "Name",
-          Length: "Length"
-        };
-        columns = ["#", "Name", "Length"];
-        break;
+        return [
+          {
+            key: "track",
+            header: "#",
+            className: "track column-number",
+            renderCell: (song) => cellRenderers.text(song.track?.toString() || ""),
+            sortable: false,
+            sortFn: (a, b, direction) => {
+              const aTrack = a.track || 0;
+              const bTrack = b.track || 0;
+              return direction === "asc" ? aTrack - bTrack : bTrack - aTrack;
+            }
+          },
+          {
+            key: "name",
+            header: "Name",
+            className: "name",
+            renderCell: (song) => cellRenderers.html(song.name),
+            sortable: false
+          },
+          {
+            key: "song_length",
+            header: "Length",
+            className: "song-length column-number",
+            renderCell: (song) => cellRenderers.text(msToTime(song.song_length || 0)),
+            sortable: false
+          }
+        ];
       case RelatedSongsType.artist:
-        RELATED_SONGS_TABLE_HEADERS = {
-          Name: "Name",
-          Artist: "Artist",
-          Length: "Length"
-        };
-        columns = ["Name", "Album", "Length"];
-        break;
+        return [
+          {
+            key: "name",
+            header: "Name",
+            className: "name",
+            renderCell: (song) => cellRenderers.html(song.name),
+            sortable: false
+          },
+          {
+            key: "album",
+            header: "Album",
+            className: "album",
+            renderCell: (song) => cellRenderers.text(song.album),
+            sortable: false
+          },
+          {
+            key: "song_length",
+            header: "Length",
+            className: "song-length column-number",
+            renderCell: (song) => cellRenderers.text(msToTime(song.song_length || 0)),
+            sortable: false
+          }
+        ];
       case RelatedSongsType.genre:
       case RelatedSongsType.charter:
-        RELATED_SONGS_TABLE_HEADERS = {
-          Name: "Name",
-          Artist: "Artist",
-          Length: "Length"
-        };
-        columns = ["Name", "Artist", "Length"];
-        break;
+      default:
+        return [
+          {
+            key: "name",
+            header: "Name",
+            className: "name",
+            renderCell: (song) => cellRenderers.html(song.name),
+            sortable: false
+          },
+          {
+            key: "artist",
+            header: "Artist",
+            className: "artist",
+            renderCell: (song) => cellRenderers.text(song.artist),
+            sortable: false
+          },
+          {
+            key: "song_length",
+            header: "Length",
+            className: "song-length column-number",
+            renderCell: (song) => cellRenderers.text(msToTime(song.song_length || 0)),
+            sortable: false
+          }
+        ];
     }
-
-    return (
-      <ScrollableTable>
-        <table>
-          <thead>
-            <tr>
-              {Object.entries(RELATED_SONGS_TABLE_HEADERS).map(([key, value]) => (
-                <SimpleTableHeader
-                  key={key}
-                  className={key.replace(/_/g, "-")}
-                  content={value}
-                />
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {relatedLoading && <tr><td colSpan={Object.keys(RELATED_SONGS_TABLE_HEADERS).length}><LoadingSpinner /></td></tr>}
-            {!relatedLoading && paginatedRelatedSongs.map((relatedSong) => (
-              <tr key={relatedSong.id} className={currentSong.id == relatedSong.id ? "selected-row" : ""} onClick={() => handleRelatedSongClick(relatedSong)}>
-                {relationType === RelatedSongsType.album && <SongTableCell className="track" content={relatedSong.track?.toString() || ""} />}
-                <SongTableCell className="name" content={relatedSong.name} />
-                {relationType === RelatedSongsType.artist && <SongTableCell className="album" content={relatedSong.album} />}
-                {(relationType === RelatedSongsType.genre || relationType === RelatedSongsType.charter) && <SongTableCell className="artist" content={relatedSong.artist} />}
-                <SongTableCell className="song-length" content={msToTime(relatedSong.song_length || 0)} />
-              </tr>
-            ))}
-            {!relatedLoading && paginatedRelatedSongs.length === 0 && (
-              <tr><td colSpan={columns.length}>{`No related songs from ${relationType}`}</td></tr>
-            )}
-          </tbody>
-        </table>
-      </ScrollableTable>
-    );
   };
+
+  const isSelectedRow = (song: Song) => {
+    return currentSong.id === song.id;
+  };
+
+  const getDefaultSortConfig = () => {
+    switch (relationType) {
+      case RelatedSongsType.album:
+        return {
+          key: "track",
+          order: "asc" as "asc" | "desc"
+        };
+      default:
+        return {
+          key: "last_update",
+          order: "desc" as "asc" | "desc"
+        };
+    }
+  };
+
+  const sortConfig = getDefaultSortConfig();
 
   return (
     <div className="related-songs">
@@ -229,7 +259,26 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
           )}
         </Nav>
       </div>
-      {renderRelatedSongsTable()}
+      
+      <Table
+        data={processedData}
+        columns={getColumns()}
+        keyExtractor={(song) => song.id}
+        defaultSortKey={sortConfig.key}
+        defaultSortOrder={sortConfig.order}
+        loading={relatedLoading}
+        loadingMessage="Loading related songs..."
+        emptyMessage={`No related songs from ${relationType}`}
+        onRowClick={handleRelatedSongClick}
+        isSelectedRow={isSelectedRow}
+        pagination={{
+          page,
+          setPage,
+          inputPage,
+          setInputPage,
+          itemsPerPage: perPage
+        }}
+      />
     </div>
   );
 };
