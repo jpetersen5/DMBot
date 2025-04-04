@@ -91,6 +91,11 @@
     flex-direction: row;
   }
 
+  table {
+    td {
+      padding: 0.6rem;
+    }
+  }
 }
 
 @include mobile {
