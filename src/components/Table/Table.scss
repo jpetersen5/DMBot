@@ -1,0 +1,157 @@
+@import "../../styles/themes";
+@import "../../styles/mixins";
+
+.table-container {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  --header-height: 40px;
+  @include theme("background", "color-box");
+  @include scrollbar;
+
+  &.scrollable-top::before,
+  &.scrollable-bottom::after {
+    content: "";
+    position: absolute;
+    display: block;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: 40px;
+    height: 15px;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 1;
+    transition: opacity 0.3s;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  }
+
+  &.scrollable-top::before {
+    top: var(--header-height);
+    position: sticky;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, transparent 100%);
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    margin-top: 0;
+  }
+
+  &.scrollable-bottom::after {
+    bottom: 10px;
+    position: sticky;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, transparent 100%);
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    transform: rotate(180deg);
+    margin-bottom: 5px;
+  }
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  @include theme("background", "color-table-background-2");
+  @include theme("color", "color-table-text");
+
+  thead {
+    top: 0;
+    position: sticky;
+    z-index: 1;
+  }
+
+  th {
+    font-weight: bold;
+    white-space: nowrap;
+    position: relative;
+    @include theme("background", "color-table-header");
+    @include theme("color", "color-table-header-text");
+
+    &.sortable {
+      cursor: pointer;
+      user-select: none;
+
+      &:hover {
+        @include theme("background", "color-table-header-hover");
+      }
+    }
+
+    .sort-arrow {
+      padding-left: 2px;
+    }
+
+    .header-content {
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  tr {
+    @include theme("background", "color-table-background-1");
+  }
+
+  tr:nth-child(even) {
+    @include theme("background", "color-table-background-2");
+  }
+
+  tr.selected-row {
+    @include theme("background", "color-table-selected-background");
+    @include theme("color", "color-table-selected-text");
+  }
+
+  tr:hover {
+    @include theme("background", "color-table-hover");
+  }
+
+  tr.selected-row:hover {
+    @include theme("background", "color-table-selected-hover");
+  }
+
+  .empty-message {
+    text-align: center;
+    padding: 2rem;
+    font-style: italic;
+    @include theme("color", "color-text-secondary");
+  }
+}
+
+.column {
+  &-number, 
+  &-percent, 
+  &-rank, 
+  &-score, 
+  &-year, 
+  &-count {
+    text-align: center;
+  }
+}
+
+.score-difference-negative {
+  @include theme("color", "color-text-error");
+}
+
+.score-difference-positive {
+  @include theme("color", "color-text-success");
+}
+
+.fc-crown {
+  width: 20px;
+  height: 20px;
+  align-items: center;
+  vertical-align: middle;
+}
+
+@include mobile {
+  table {
+    min-width: 100%;
+    font-size: 0.75rem;
+
+    th,
+    td {
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .fc-crown {
+      width: 15px;
+      height: 15px;
+    }
+  }
+} 
