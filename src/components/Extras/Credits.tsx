@@ -18,13 +18,13 @@ const contributors: Contributor[] = [
   },
   {
     name: "Hababa2",
-    role: "Dark Mode, Mobile Support (WIP)",
+    role: "Dark Mode, New Rank Icons (WIP)",
     avatarUrl: "https://cdn.discordapp.com/avatars/325387888072196097/f76044af9bf88495a294ff66e9851f92.png",
     profileUrl: "https://github.com/zachqpeterson",
   },
   {
     name: "Dichotic",
-    role: "Spotify Integration, Song Info, Domain Hosting",
+    role: "Spotify Integration, Song Info, Domain Hosting, Mobile Support",
     avatarUrl: "https://cdn.discordapp.com/avatars/225072566400712704/0653bfe218ab1ba5791a7326d69091e4.png",
     profileUrl: "https://github.com/noahbaxter",
   },

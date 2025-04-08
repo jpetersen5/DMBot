@@ -23,6 +23,7 @@ const ReleaseNotesModal: React.FC<ReleaseNotesModalProps> = ({ isOpen, onClose }
       date: "4/3/2025",
       notes: [
         "Added 840 achievements",
+        "- Thanka beud",
         "- New achievements tab",
         "- Overall achievements (score, FCs)",
         "- Hands, Blend, and Kicks song categories",
