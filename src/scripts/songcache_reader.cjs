@@ -31,15 +31,22 @@ function cleanUpSongsData(songs) {
     const md5Groups = {};
     const cleanedSongs = [];
     const deletedSongs = [];
+    const playlistPathMap = {};
     // Group songs by MD5
     for (const song of songs) {
         if (!md5Groups[song.md5]) {
             md5Groups[song.md5] = [];
+            playlistPathMap[song.md5] = new Set();
         }
         md5Groups[song.md5].push(song);
+        // Store the playlist path if it exists
+        if (song.playlistPath) {
+            playlistPathMap[song.md5].add(song.playlistPath);
+        }
     }
     // Process each MD5 group
-    for (const group of Object.values(md5Groups)) {
+    for (const md5 in md5Groups) {
+        const group = md5Groups[md5];
         if (group.length === 1) {
             cleanedSongs.push(group[0]);
         }
@@ -72,6 +79,12 @@ function cleanUpSongsData(songs) {
                 }
             }
             logging.info(`Found ${songsToKeep.size} distinct songs in group of ${group.length} with same MD5`);
+        }
+    }
+    // After identifying all the songs to keep, combine all playlist paths for each MD5
+    for (const song of cleanedSongs) {
+        if (playlistPathMap[song.md5] && playlistPathMap[song.md5].size > 0) {
+            song.playlistPath = Array.from(playlistPathMap[song.md5]).join(",");
         }
     }
     logging.info(`Cleaned up ${deletedSongs.length} duplicate songs`);
