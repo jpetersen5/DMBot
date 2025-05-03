@@ -1,13 +1,15 @@
+@use "sass:map";
+
 $sidebar-width: 44px;
 $sidebar-width-expanded: 200px;
 
 $screen-mobile-max: 768px;
 $screen-tablet-max: 1200px;
 
-@mixin scrollbar {
+@mixin scrollbar($size: 8px) {
   &::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: $size;
+    height: $size;
   }
 
   &::-webkit-scrollbar-track {
@@ -15,7 +17,7 @@ $screen-tablet-max: 1200px;
   }
 
   &::-webkit-scrollbar-thumb {
-    border-radius: 4px;
+    border-radius: calc($size / 2);
     @include theme("background", "color-table-header");
 
     &:hover {
@@ -49,17 +51,25 @@ $screen-tablet-max: 1200px;
 }
 
 @mixin theme($key, $color) {
-  @each $theme-name, $theme-color in $themes {
-      .theme-#{$theme-name} & {
-          #{$key}: map-get(map-get($themes, $theme-name), $color)
-      }
+  @if global-variable-exists(themes) {
+    @each $theme-name, $theme-map in $themes {
+        .theme-#{$theme-name} & {
+            #{$key}: map.get($theme-map, $color);
+        }
+    }
+  } @else {
+    @warn "Variable $themes is not defined. The 'theme' mixin will not apply styles.";
   }
 }
 
 @mixin master-theme($key, $color) {
-  @each $theme-name, $theme-color in $themes {
-      .theme-#{$theme-name} {
-          #{$key}: map-get(map-get($themes, $theme-name), $color)
-      }
+   @if global-variable-exists(themes) {
+    @each $theme-name, $theme-map in $themes {
+        .theme-#{$theme-name} {
+            #{$key}: map.get($theme-map, $color);
+        }
+    }
+  } @else {
+    @warn "Variable $themes is not defined. The 'master-theme' mixin will not apply styles.";
   }
 }

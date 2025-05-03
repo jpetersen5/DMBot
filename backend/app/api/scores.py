@@ -280,9 +280,9 @@ def process_and_save_scores(result, user_id):
     updated_unknown_scores.sort(key=lambda x: x["score"], reverse=True)
 
     logger.info(f"Processing achievements for user {user_id}")
-    # socketio.emit("score_processing_processing_achievements",
-    #               {"message": f"Processing achievements for user {username}"},
-    #               room=str(user_id))
+    socketio.emit("score_processing_processing_achievements",
+                  {"message": f"Processing achievements for user {username}"},
+                  room=str(user_id))
     
     user_stats_response = supabase.table("users").select("stats").eq("id", user_id).execute()
     if user_stats_response.data and len(user_stats_response.data) > 0:
@@ -303,12 +303,16 @@ def process_and_save_scores(result, user_id):
         "achievements": user_data[0].get("achievements", {}) or {},
     }
 
-    socketio.emit("score_processing_processing_achievements",
-                  {"message": f"Processing achievements for user {username}"},
-                  room=str(user_id))
-    
-    achievements = achievement_processor.process_achievements(user_achievement_data)
-    
+    try:
+        achievements, achievement_errors = achievement_processor.process_achievements(user_achievement_data)
+    except Exception as e:
+        logger.error(f"Fatal error during achievement processing for user {user_id}: {str(e)}", exc_info=True)
+        update_processing_status(user_id, "error", 100, processed_songs, total_songs)
+        socketio.emit("score_processing_error",
+                      {"message": f"Fatal error during achievement processing: {str(e)}"},
+                      room=str(user_id))
+        return
+
     existing_achievements = user_data[0].get("achievements", {}) or {}
     for achievement_id, timestamp in achievements.items():
         if achievement_id not in existing_achievements:
@@ -327,7 +331,7 @@ def process_and_save_scores(result, user_id):
                 }
                 socketio.emit("new_achievement", {"achievement": client_achievement}, room=str(user_id))
                 logger.info(f"User {user_id} earned new achievement: {achievement_def['name']}")
-    
+
     update_data = {
         "scores": updated_scores,
         "unknown_scores": updated_unknown_scores,
@@ -336,16 +340,27 @@ def process_and_save_scores(result, user_id):
 
     logger.info(f"Updating scores and achievements for user {user_id}")
     socketio.emit("score_processing_uploading",
-                  {"message": f"Updating scores and achievements for user {username}"},
+                  {"message": f"Updating final scores and achievements for user {username}"},
                   room=str(user_id))
-    
-    supabase.table("users").update(update_data).eq("id", user_id).execute()
 
-    update_processing_status(user_id, "completed", 100, total_songs, total_songs)
-    socketio.emit("score_processing_complete", 
-                  {"message": "Score processing completed"}, 
+    try:
+        supabase.table("users").update(update_data).eq("id", user_id).execute()
+    except Exception as e:
+        logger.error(f"Failed to update user profile for user {user_id}: {str(e)}", exc_info=True)
+        update_processing_status(user_id, "error", 100, processed_songs, total_songs)
+        socketio.emit("score_processing_error",
+                      {"message": f"Failed to save final scores/achievements to profile: {str(e)}"},
+                      room=str(user_id))
+        return
+
+    final_status = "completed_with_errors" if achievement_errors else "completed"
+    final_message = "Score processing completed with some achievement errors." if achievement_errors else "Score processing completed successfully."
+
+    update_processing_status(user_id, final_status, 100, total_songs, total_songs)
+    socketio.emit("score_processing_complete",
+                  {"message": final_message, "status": final_status, "errors": achievement_errors},
                   room=str(user_id))
-    logger.info("Score processing completed successfully")
+    logger.info(final_message)
 
 @bp.route("/api/upload_scoredata", methods=["POST"])
 def upload_scoredata():
