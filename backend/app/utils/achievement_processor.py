@@ -447,15 +447,18 @@ class AchievementProcessor:
     
     def process_achievements(self, user_data):
         """
-        Process user data and return list of achieved achievements
-        
+        Process user data and return list of achieved achievements and any errors encountered.
+
         Args:
             user_data: Dict containing user scores and stats, or a list where the first item is such a dict
-            
+
         Returns:
-            Dict: Maps achievement ID to timestamp of achievement
+            Tuple[Dict, List[Dict]]:
+                - Dict: Maps achievement ID to timestamp of achievement
+                - List[Dict]: List of errors encountered during processing, each with 'id' and 'error'
         """
         user_achievements = {}
+        achievement_errors = []
         current_time = datetime.now(UTC).isoformat()
         
         if isinstance(user_data, list) and len(user_data) > 0:
@@ -464,15 +467,23 @@ class AchievementProcessor:
         existing_achievements = user_data.get("achievements", {}) or {}
         
         for achievement_def in self.achievements:
-            check_function = achievement_def["check_function"]
-            if check_function(user_data, achievement_def):
-                achievement_id = achievement_def["id"]
-                
-                if achievement_id in existing_achievements:
-                    user_achievements[achievement_id] = existing_achievements[achievement_id]
-                else:
+            achievement_id = achievement_def["id"]
+            if achievement_id in existing_achievements:
+                user_achievements[achievement_id] = existing_achievements[achievement_id]
+                continue
+            
+            try:
+                check_function = achievement_def["check_function"]
+                if check_function(user_data, achievement_def):
                     user_achievements[achievement_id] = current_time
-        
-        return user_achievements
+            except Exception as e:
+                logger.error(f"Error processing achievement '{achievement_id}' for user {user_data.get('id', 'unknown')}: {str(e)}", exc_info=True)
+                achievement_errors.append({
+                    "id": achievement_id,
+                    "name": achievement_def.get("name", "Unknown Achievement"),
+                    "error": str(e)
+                })
+    
+        return user_achievements, achievement_errors
 
 achievement_processor = AchievementProcessor() 

@@ -163,20 +163,23 @@ def prepare_song_data(song):
     }
 
 def get_existing_md5s(supabase):
-    existing_md5s = set()
+    existing_md5s = {}  # Changed to dict to store md5 -> name mapping
     offset = 0
     batch_size = 10000
     
     while True:
         result = (supabase.table("songs_new")
-                 .select("md5")
+                 .select("md5,name")  # Also fetch name
                  .range(offset, offset + batch_size - 1)
                  .execute())
         
         if not result.data:
             break
             
-        existing_md5s.update(row["md5"] for row in result.data)
+        # Store md5 -> name mapping
+        for row in result.data:
+            existing_md5s[row["md5"]] = row["name"]
+            
         offset += batch_size
         
         print(f"Fetched {len(existing_md5s)} existing md5s so far...")
@@ -192,33 +195,138 @@ def populate_songs_new_table():
 
     existing_md5s = get_existing_md5s(supabase)
 
-    new_songs = [song for song in songs_data if song["md5"] not in existing_md5s]
-    prepared_songs = [prepare_song_data(song) for song in new_songs]
+    # Separate songs into categories
+    new_songs = []
+    update_songs = []
+    skip_songs = []
+    
+    for song in songs_data:
+        md5 = song["md5"]
+        if md5 not in existing_md5s:
+            # New song, insert it
+            new_songs.append(song)
+        elif existing_md5s[md5] != song["name"]:
+            # MD5 exists but name is different, update it
+            update_songs.append(song)
+        else:
+            # MD5 exists with same name, skip it
+            skip_songs.append(song)
+    
+    # Prepare data for insertion and updates
+    prepared_new_songs = [prepare_song_data(song) for song in new_songs]
+    prepared_update_songs = [prepare_song_data(song) for song in update_songs]
     
     print(f"Found {len(songs_data)} total songs")
     print(f"Found {len(existing_md5s)} existing songs")
-    print(f"Inserting {len(prepared_songs)} new songs")
+    print(f"Attempting to insert {len(prepared_new_songs)} new songs")
+    print(f"Updating {len(prepared_update_songs)} songs with different names")
+    print(f"Skipping {len(skip_songs)} songs with same MD5 and name")
 
+    # Process new songs in batches - handle failures by moving to update list
+    failed_inserts = []
     batch_size = 500
-    for i in range(0, len(prepared_songs), batch_size):
-        batch = prepared_songs[i:i+batch_size]
-        result = supabase.table("songs_new").insert(batch).execute()
+    for i in range(0, len(prepared_new_songs), batch_size):
+        batch = prepared_new_songs[i:i+batch_size]
         
-        if hasattr(result, "error") and result.error:
-            print(f"Error inserting batch {i//batch_size + 1} into songs_new: {result.error}")
-            continue
-
-        extra_batch = [
-            {
-                "md5": new_songs[i+j]["md5"],
-                "song_data": new_songs[i+j]
-            }
-            for j in range(len(batch))
-        ]
-        
-        extra_result = supabase.table("songs_extra").insert(extra_batch).execute()
-        
-        if hasattr(extra_result, "error") and extra_result.error:
-            print(f"Error inserting batch {i//batch_size + 1} into songs_extra: {extra_result.error}")
-        else:
-            print(f"Successfully inserted batch {i//batch_size + 1} into both tables")
+        try:
+            # Use upsert with on_conflict=do_nothing for safety
+            result = supabase.table("songs_new").upsert(batch, on_conflict="md5").execute()
+            
+            # Check if we had fewer inserts than expected
+            if hasattr(result, "data") and len(result.data) < len(batch):
+                print(f"Warning: Only inserted {len(result.data)} out of {len(batch)} songs in batch")
+                
+            # Find the songs that were successfully inserted
+            inserted_md5s = set(item["md5"] for item in result.data) if hasattr(result, "data") else set()
+            current_batch_original = new_songs[i:i+batch_size]
+            
+            # Identify successfully inserted songs for songs_extra table
+            successful_inserts = []
+            for j, song in enumerate(current_batch_original):
+                if song["md5"] in inserted_md5s:
+                    successful_inserts.append({
+                        "md5": song["md5"],
+                        "song_data": song
+                    })
+                else:
+                    # Move failed inserts to the update list for retry
+                    failed_inserts.append(song)
+                    
+            if successful_inserts:
+                extra_result = supabase.table("songs_extra").upsert(successful_inserts, on_conflict="md5").execute()
+                if hasattr(extra_result, "error") and extra_result.error:
+                    print(f"Error inserting batch {i//batch_size + 1} into songs_extra: {extra_result.error}")
+                else:
+                    print(f"Successfully inserted/updated {len(successful_inserts)} songs in both tables")
+            
+        except Exception as e:
+            print(f"Error processing batch {i//batch_size + 1}: {str(e)}")
+            # Move all songs in this batch to failed_inserts for retry
+            failed_inserts.extend(new_songs[i:i+batch_size])
+    
+    if failed_inserts:
+        print(f"Moving {len(failed_inserts)} failed inserts to update list")
+        update_songs.extend(failed_inserts)
+        prepared_update_songs.extend([prepare_song_data(song) for song in failed_inserts])
+    
+    # Update songs with different names in batches - one at a time to avoid errors
+    print(f"Processing {len(prepared_update_songs)} songs for update")
+    for song in prepared_update_songs:
+        try:
+            # First, check if the song exists in songs_new
+            check_result = supabase.table("songs_new").select("md5").eq("md5", song["md5"]).execute()
+            song_exists = hasattr(check_result, "data") and len(check_result.data) > 0
+            
+            if not song_exists:
+                # Song doesn't exist in songs_new, so we need to insert it first
+                try:
+                    insert_result = supabase.table("songs_new").insert(song).execute()
+                    if hasattr(insert_result, "error") and insert_result.error:
+                        print(f"Error inserting song {song['md5']} into songs_new: {insert_result.error}")
+                        continue  # Skip to next song if insert fails
+                    song_exists = True
+                    print(f"Inserted new song {song['md5']} into songs_new")
+                except Exception as e:
+                    print(f"Error inserting song {song['md5']} into songs_new: {str(e)}")
+                    continue  # Skip to next song if insert fails
+            
+            if song_exists:
+                # Now update the song data if needed
+                update_result = (supabase.table("songs_new")
+                            .update({
+                                "name": song["name"],
+                                "artist": song["artist"],
+                                "album": song["album"],
+                                "genre": song["genre"],
+                                "year": song["year"],
+                                "charter_refs": song["charter_refs"],
+                                "song_length": song["song_length"],
+                                "difficulties": song["difficulties"],
+                                "loading_phrase": song["loading_phrase"],
+                                "track": song["track"],
+                                "playlist_path": song["playlist_path"],
+                                "has_2x_kick": song["has_2x_kick"],
+                                "note_counts": song["note_counts"],
+                                "instruments": song["instruments"]
+                            })
+                            .eq("md5", song["md5"])
+                            .execute())
+                
+                if hasattr(update_result, "error") and update_result.error:
+                    print(f"Error updating song {song['md5']} in songs_new: {update_result.error}")
+                    continue
+                
+                # Only update songs_extra if the song exists in songs_new
+                original_song = next((s for s in update_songs if s["md5"] == song["md5"]), None)
+                if original_song:
+                    extra_result = supabase.table("songs_extra").upsert({
+                        "md5": song["md5"],
+                        "song_data": original_song
+                    }, on_conflict="md5").execute()
+                    
+                    if hasattr(extra_result, "error") and extra_result.error:
+                        print(f"Error updating song {song['md5']} in songs_extra: {extra_result.error}")
+        except Exception as e:
+            print(f"Error processing update for {song['md5']}: {str(e)}")
+    
+    print("Song population completed.")

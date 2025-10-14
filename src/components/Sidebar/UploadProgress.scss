@@ -20,9 +20,11 @@
   }
 
   .drag-handle {
+    cursor: grab;
     padding-bottom: 0.5rem;
     margin-bottom: 0.5rem;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid;
+    @include theme("border-color", "color-border");
   }
 
   h3 {
@@ -102,10 +104,64 @@
       @include theme("color", "color-button-hover");
     }
   }
+
+  .achievement-errors {
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid;
+    max-height: 100px;
+    overflow-y: auto;
+    @include theme("border-color", "color-border");
+    @include scrollbar(4px);
+
+    h4 {
+      font-size: 0.9rem;
+      margin: 0 0 0.25rem 0;
+      @include theme("color", "color-warning");
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+
+      li {
+        font-size: 0.8rem;
+        margin-bottom: 0.2rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        @include theme("color", "color-text-secondary");
+      }
+    }
+  }
+
+  &.status-error {
+    border-left: 4px solid;
+    @include theme("border-color", "color-error");
+  }
+
+  &.status-completed_with_errors {
+    border-left: 4px solid;
+    @include theme("border-color", "color-warning");
+  }
+
+  &.status-completed {
+    border-left: 4px solid;
+    @include theme("border-color", "color-success");
+  }
 }
 
 @media (min-width: 768px) {
   .upload-progress .close-button {
     display: flex !important;
   }
+}
+
+.draggable-container.is-dragging {
+  cursor: grabbing !important;
+}
+
+.draggable-container.is-dragging .draggable-handle-element {
+  cursor: grabbing !important;
 }
