@@ -58,6 +58,7 @@
   }
 
   .user-card-grid-container {
+    padding-top: 10px;
     height: calc(100% - 100px);
     overflow-y: auto;
     @include scrollbar;
