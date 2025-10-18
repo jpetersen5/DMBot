@@ -8,26 +8,44 @@ import { User, getUserImageSrc, getFallbackImage } from "../../utils/user";
 import { useAuth } from "../../context/AuthContext";
 import "./UserList.scss";
 
-import Rank1 from "../../assets/rank1.png";
-import Rank2 from "../../assets/rank2.png";
-import RankTop5 from "../../assets/ranktop5.png";
-import RankTop10 from "../../assets/ranktop10.png";
-import RankTop25 from "../../assets/ranktop25.png";
-import RankTop50 from "../../assets/ranktop50.png";
+import Ribbon from "../../assets/Ribbon.png";
+import Ribbon1 from "../../assets/Ribbon1.png";
+import Ribbon2 from "../../assets/Ribbon2.png";
+import Ribbon3 from "../../assets/Ribbon3.png";
+import BronzeRank from "../../assets/BronzeRank.png";
+import SilverRank from "../../assets/SilverRank.png";
+import GoldRank from "../../assets/GoldRank.png";
+import GoldRank1 from "../../assets/GoldRank1.png";
+import GoldRank2 from "../../assets/GoldRank2.png";
+import GoldRank3 from "../../assets/GoldRank3.png";
 
 export const UserAvatar: React.FC<{ user: User }> = ({ user }) => {
-  const getRankOverlay = (rank: number | undefined) => {
+  const getBorder = (rank: number | undefined) => {
+    //TODO: Get custom border
+
     if (!rank) return null;
-    if (rank === 1) return Rank1;
-    if (rank === 2) return Rank2;
-    if (rank <= 5) return RankTop5;
-    if (rank <= 10) return RankTop10;
-    if (rank <= 25) return RankTop25;
-    if (rank <= 50) return RankTop50;
+    if (rank == 1) return GoldRank1;
+    if (rank <= 2) return GoldRank2;
+    if (rank <= 3) return GoldRank3;
+    if (rank <= 10) return GoldRank;
+    if (rank <= 25) return SilverRank;
+    if (rank <= 50) return BronzeRank;
     return null;
   };
 
-  const rankOverlay = getRankOverlay(user.stats?.rank);
+  const getRibbon = (rank: number | undefined) => {
+    //TODO: Custom ribbons maybe?
+
+    if (!rank) return null;
+    if (rank == 1) return Ribbon1;
+    if (rank <= 2) return Ribbon2;
+    if (rank <= 3) return Ribbon3;
+    if (rank <= 100) return Ribbon;
+    return null;
+  };
+
+  const border = getBorder(user.stats?.rank);
+  const ribbon = getRibbon(user.stats?.rank);
 
   return (
     <div className="user-avatar-container">
@@ -40,16 +58,23 @@ export const UserAvatar: React.FC<{ user: User }> = ({ user }) => {
         alt={user.username}
         className="user-avatar"
       />
-      {rankOverlay && (
         <div className="rank-overlay-container">
-          <img 
-            src={rankOverlay} 
+          {border && (
+            <img 
+            src={border} 
             alt={`Rank ${user.stats?.rank}`} 
-            className="rank-overlay"
+            className="border-overlay"
           />
+          )}
+          {ribbon && (
+            <img 
+            src={ribbon} 
+            alt={`Rank ${user.stats?.rank}`} 
+            className="ribbon-overlay"
+          />
+          )}
           <span className="rank-overlay-text">{user.stats?.rank}</span>
         </div>
-      )}
     </div>
   );
 };

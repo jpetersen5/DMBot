@@ -58,6 +58,7 @@
   }
 
   .user-card-grid-container {
+    padding-top: 10px;
     height: calc(100% - 100px);
     overflow-y: auto;
     @include scrollbar;
@@ -119,16 +120,29 @@
         height: 100%;
         border-radius: 50%;
         object-fit: cover;
+        outline: 3px solid;
+        @include theme("outline-color", "color-text");
       }
     
       .rank-overlay-container {
-        .rank-overlay {
+        .border-overlay {
           position: absolute;
           top: 0;
           left: 0;
           width: 200%;
           height: 200%;
-          transform: translate(-25%, -22%);
+          transform: translate(-25%, -25%);
+          object-fit: contain;
+          pointer-events: none;
+        }
+
+        .ribbon-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 200%;
+          height: 200%;
+          transform: translate(-25%, -25%);
           object-fit: contain;
           pointer-events: none;
         }
@@ -137,7 +151,7 @@
           position: absolute;
           top: 50%;
           left: 50%;
-          transform: translate(-50%, 70%);
+          transform: translate(-50%, 97%);
           font-size: 1rem;
           font-weight: bold;
           font-family: Verdana, Geneva, Tahoma, sans-serif;
