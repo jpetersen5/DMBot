@@ -51,13 +51,24 @@
   }
 
   .rank-overlay-container {
-    .rank-overlay {
+    .border-overlay {
       position: absolute;
       top: 0;
       left: 0;
       width: 200%;
       height: 200%;
-      transform: translate(-25%, -22%);
+      transform: translate(-25%, -25%);
+      object-fit: contain;
+      pointer-events: none;
+    }
+
+    .ribbon-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 200%;
+      height: 200%;
+      transform: translate(-25%, -25%);
       object-fit: contain;
       pointer-events: none;
     }
@@ -66,8 +77,8 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, 105%);
-      font-size: 1rem;
+      transform: translate(-50%, 100%);
+      font-size: 1.3rem;
       font-weight: bold;
       font-family: Verdana, Geneva, Tahoma, sans-serif;
       color: white;
