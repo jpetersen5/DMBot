@@ -1,17 +1,15 @@
 from flask import Blueprint, jsonify, request, redirect, session, current_app
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 import jwt
 import secrets
 import datetime
 import requests
 from postgrest.exceptions import APIError
+from ..extensions import limiter
 from ..utils.helpers import token_required
 from ..services.supabase_service import get_supabase
 from ..config import Config
 
 bp = Blueprint("auth", __name__)
-limiter = Limiter(get_remote_address, app=current_app, default_limits=[])
 
 @bp.route("/api/auth/login")
 def login():

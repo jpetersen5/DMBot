@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
-from .extensions import Session, socketio, redis, setup_logging
+from .extensions import Session, limiter, socketio, redis, setup_logging
 from .config import Config
 from .api import auth, users, songs, charters, scores, status, leaderboards, spotify, achievements
 from .services.supabase_service import init_supabase
@@ -21,6 +21,7 @@ def create_app(config_class=Config):
     Session(app)
     socketio.init_app(app, cors_allowed_origins=app.config["ALLOWED_ORIGINS"])
     redis.init_app(app)
+    limiter.init_app(app)
 
     init_supabase(app)
 

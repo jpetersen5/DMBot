@@ -1,14 +1,22 @@
 from flask import Flask
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from flask_session import Session
 from flask_socketio import SocketIO, join_room
 from flask_redis import FlaskRedis
 import logging
+import os
 
 cors = CORS()
 session = Session()
 socketio = SocketIO(async_mode="eventlet")
 redis = FlaskRedis()
+limiter = Limiter(
+    get_remote_address,
+    default_limits=["200 per minute"],
+    storage_uri=os.getenv("REDIS_URL", "memory://"),
+)
 
 def setup_logging(app: Flask) -> logging.Logger:
     logger = logging.getLogger(app.name)
