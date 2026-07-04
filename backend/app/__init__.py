@@ -11,7 +11,7 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
-    logger = setup_logging(app)
+    _ = setup_logging(app)
 
     CORS(app, resources={r"/api/*": {
         "origins": app.config["ALLOWED_ORIGINS"],
@@ -19,7 +19,7 @@ def create_app(config_class=Config):
         "allow_headers": ["Content-Type", "Authorization"]
     }})
     Session(app)
-    socketio.init_app(app, cors_allowed_origins="*")
+    socketio.init_app(app, cors_allowed_origins=app.config["ALLOWED_ORIGINS"])
     redis.init_app(app)
 
     init_supabase(app)

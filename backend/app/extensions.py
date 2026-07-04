@@ -7,7 +7,7 @@ import logging
 
 cors = CORS()
 session = Session()
-socketio = SocketIO(cors_allowed_origins="*", async_mode="eventlet", logger=True, engineio_logger=True)
+socketio = SocketIO(async_mode="eventlet")
 redis = FlaskRedis()
 
 def setup_logging(app: Flask) -> logging.Logger:
