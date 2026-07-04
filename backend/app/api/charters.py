@@ -1,6 +1,5 @@
 from flask import Blueprint, jsonify, request, current_app
 from ..services.supabase_service import get_supabase
-from ..utils.helpers import sanitize_input
 
 bp = Blueprint("charters", __name__)
 
@@ -68,7 +67,7 @@ def get_charters_colors():
     logger = current_app.logger
     try:
         names = request.args.get("names", "").split(",")
-        names = [sanitize_input(name).strip() for name in names]
+        names = [name.strip() for name in names]
         
         if not names:
             return jsonify({"error": "No charter names provided"}), 400

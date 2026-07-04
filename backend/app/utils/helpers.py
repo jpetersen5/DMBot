@@ -1,22 +1,9 @@
-import re
 import os
 import base64
 import jwt
 from functools import wraps
 from flask import request, jsonify, current_app
 from ..config import Config
-
-def sanitize_input(input_string):
-    """
-    remove dangerous SQL characters from input string
-
-    params:
-        input_string (str): string to sanitize
-    
-    returns:
-        str: sanitized string
-    """
-    return re.sub(r"[^\w\s-]", "", input_string)
 
 def get_process_songs_script():
     """
@@ -61,7 +48,7 @@ def token_required(f):
         try:
             data = jwt.decode(token, current_app.config["JWT_SECRET"], algorithms=["HS256"])
             current_user = data["user_id"]
-        except:
+        except (jwt.PyJWTError, KeyError):
             return jsonify({"message": "Token is invalid!"}), 401
         return f(current_user, *args, **kwargs)
     return decorated
