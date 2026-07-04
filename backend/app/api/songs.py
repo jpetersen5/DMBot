@@ -260,7 +260,7 @@ def upload_song_ini():
     
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        filepath = os.path.join(Config.UPLOAD_FOLDER, filename)
+        filepath = os.path.join("unused", filename)
         file.save(filepath)
         
         try:

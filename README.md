@@ -3,6 +3,7 @@
 Drummer's Monthly Discord bot and web app for tracking Clone Hero scores
 
 ## Table of Contents
+
 1. [Introduction](#introduction)
 2. [Prerequisites](#prerequisites)
 3. [Local Development Setup](#local-development-setup)
@@ -24,6 +25,7 @@ DMBot is a Discord bot and web application designed to track Clone Hero scores f
 This guide is created by me, a Windows user, so it's not universal. Please contribute to this guide if you are experienced in another OS and have successfully set up this project for local development.
 
 It's assumed you have the following installed on your system:
+
 - Git
 - A text editor of your choice (VSCode, Notepad++, etc.)
   - Building the Docker containers requires a terminal so VSCode is recommended
@@ -46,28 +48,34 @@ Docker is a platform that allows users to develop, ship, and run applications in
 1. Open a terminal/command prompt (or integrated VSCode terminal)
 2. Navigate to the directory where you want to store the project
 3. Run the following command:
-   ```
+
+   ```bash
    git clone https://github.com/jpetersen5/DMBot.git
    ```
+
    - Or if you have GitHub CLI set up:
-   ```
+
+   ```bash
    gh repo clone jpetersen5/DMBot
    ```
+
 4. Navigate into the project directory:
-   ```
+
+   ```bash
    cd DMBot
    ```
 
 ### Configuration
 
 1. Navigate into the backend directory:
-  ```
-  cd backend
-  ```
+
+   ```bash
+   cd backend
+   ```
 
 2. Create a file named `.env.dev` and add this to its content or rename `.env.dev.example` to `.env.dev`:
 
-   ```
+   ```env
    FLASK_APP=app.py
    FLASK_ENV=development
 
@@ -86,8 +94,6 @@ Docker is a platform that allows users to develop, ship, and run applications in
    FRONTEND_URL=http://localhost:3000
 
    REDIS_URL=redis://redis:6379
-
-   UPLOAD_FOLDER=uploads
    
    VITE_SPOTIFY_CLIENT_ID=
    VITE_SPOTIFY_CLIENT_SECRET=
@@ -110,33 +116,41 @@ Docker is a platform that allows users to develop, ship, and run applications in
 1. Launch Docker
 2. Open a terminal/command prompt (or integrate terminal in your IDE) and navigate to the project root directory
 3. Build and start the Docker containers:
-   ```
+
+   ```bash
    docker-compose up --build
    ```
+
 4. Wait for the build process to complete. This may take a few minutes the first time.
 5. Once complete, you should see output indicating that the services are running and green containers in the Docker UI
 6. Open a web browser and navigate to `http://localhost:3000` to view the site
 7. The backend API is accessible to the frontend at `http://localhost:5000` (or `http://localhost:5001` for Mac)
 
 To stop the application, press `Ctrl+C` in the terminal where Docker is running or open another terminal and run:
-```
+
+```bash
 docker-compose down
 ```
 
 ## Troubleshooting
 
 If you encounter issues:
+
 1. Ensure all required ports (3000, 5000 or 5001, 6379) are free and not used by other applications
 2. Check the Docker logs for any error messages:
-   ```
+
+   ```bash
    docker-compose logs
    ```
+
 3. Ensure all environment variables in `.env.dev` are correctly set
 4. Try rebuilding the containers:
-   ```
+
+   ```bash
    docker-compose down
    docker-compose up --build
    ```
+
 5. Contact me `@._satan` on Discord to try to help you get set up
 
 ## Production Environments

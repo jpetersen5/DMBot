@@ -11,7 +11,6 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY")
     JWT_SECRET = os.getenv("JWT_SECRET")
     SESSION_TYPE = "filesystem"
-    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "uploads")
     ALLOWED_EXTENSIONS = {"bin", "ini"}
     ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
     SUPABASE_URL = os.getenv("SUPABASE_URL")

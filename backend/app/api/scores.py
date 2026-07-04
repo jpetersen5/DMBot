@@ -3,9 +3,7 @@ from ..services.supabase_service import get_supabase
 from ..utils.helpers import allowed_file, get_process_songs_script
 from ..config import Config
 from ..extensions import socketio, redis
-from werkzeug.utils import secure_filename
 from datetime import datetime, UTC
-import os
 import re
 import jwt
 from ..utils.achievement_processor import achievement_processor
@@ -108,7 +106,7 @@ def process_and_save_scores(result, user_id):
         logger.info(f"Fetching batch of {len(batch)} songs")
         socketio.emit("score_processing_fetching_songs",
                         {"message": f"Fetching user scores for songs {i+1} - {i+len(batch)}"},
-                        room=str(user_id))
+                        to=str(user_id))
         batch_songs_info = supabase.table("songs_new").select("*").in_("md5", batch).execute().data
         songs_dict.update({song["md5"]: song for song in batch_songs_info})
 
@@ -322,21 +320,21 @@ def process_and_save_scores(result, user_id):
         update_processing_status(user_id, "in_progress", progress, processed_songs, total_songs)
         socketio.emit("score_processing_progress",
                         {"progress": progress, "processed": processed_songs, "total": total_songs},
-                        room=str(user_id))
+                        to=str(user_id))
 
     if leaderboard_updates:
         try:
             logger.info(f"Updating leaderboards for {len(leaderboard_updates)} songs")
             socketio.emit("score_processing_uploading",
                         {"message": f"Updating leaderboards for {len(leaderboard_updates)} songs"},
-                        room=str(user_id))
+                        to=str(user_id))
             socketio.sleep(1)
             
             for update, i in zip(leaderboard_updates, range(len(leaderboard_updates))):
                 progress = (i / len(leaderboard_updates)) * 100
                 socketio.emit("score_processing_updating_progress",
                             {"message": f"Updating leaderboard for {i+1} / {len(leaderboard_updates)}: {update['name']}", "progress": progress},
-                            room=str(user_id))
+                            to=str(user_id))
                 supabase.table("songs_new").update({
                     "leaderboard": update["leaderboard"],
                     "last_update": update["last_update"]
@@ -355,7 +353,7 @@ def process_and_save_scores(result, user_id):
     logger.info(f"Processing achievements for user {user_id}")
     socketio.emit("score_processing_processing_achievements",
                   {"message": f"Processing achievements for user {username}"},
-                  room=str(user_id))
+                  to=str(user_id))
     
     user_stats_response = supabase.table("users").select("stats").eq("id", user_id).execute()
     if user_stats_response.data and len(user_stats_response.data) > 0:
@@ -383,7 +381,7 @@ def process_and_save_scores(result, user_id):
         update_processing_status(user_id, "error", 100, processed_songs, total_songs)
         socketio.emit("score_processing_error",
                       {"message": f"Fatal error during achievement processing: {str(e)}"},
-                      room=str(user_id))
+                      to=str(user_id))
         return
 
     existing_achievements = user_data[0].get("achievements", {}) or {}
@@ -402,7 +400,7 @@ def process_and_save_scores(result, user_id):
                     "group": achievement_def.get("group"),
                     "song_md5": achievement_def.get("song_md5")
                 }
-                socketio.emit("new_achievement", {"achievement": client_achievement}, room=str(user_id))
+                socketio.emit("new_achievement", {"achievement": client_achievement}, to=str(user_id))
                 logger.info(f"User {user_id} earned new achievement: {achievement_def['name']}")
 
     update_data = {
@@ -414,7 +412,7 @@ def process_and_save_scores(result, user_id):
     logger.info(f"Updating scores and achievements for user {user_id}")
     socketio.emit("score_processing_uploading",
                   {"message": f"Updating final scores and achievements for user {username}"},
-                  room=str(user_id))
+                  to=str(user_id))
 
     try:
         supabase.table("users").update(update_data).eq("id", user_id).execute()
@@ -423,7 +421,7 @@ def process_and_save_scores(result, user_id):
         update_processing_status(user_id, "error", 100, processed_songs, total_songs)
         socketio.emit("score_processing_error",
                       {"message": f"Failed to save final scores/achievements to profile: {str(e)}"},
-                      room=str(user_id))
+                      to=str(user_id))
         return
 
     final_status = "completed_with_errors" if achievement_errors else "completed"
@@ -432,7 +430,7 @@ def process_and_save_scores(result, user_id):
     update_processing_status(user_id, final_status, 100, total_songs, total_songs)
     socketio.emit("score_processing_complete",
                   {"message": final_message, "status": final_status, "errors": achievement_errors},
-                  room=str(user_id))
+                  to=str(user_id))
     logger.info(final_message)
 
 @bp.route("/api/upload_scoredata", methods=["POST"])
@@ -462,7 +460,7 @@ def upload_scoredata():
     if "file" not in request.files:
         return jsonify({"error": "No file part"}), 400
     file = request.files["file"]
-    if file.filename == "":
+    if file.filename == "" or file.filename is None:
         return jsonify({"error": "No selected file"}), 400
     if file and allowed_file(file.filename):
         if file.filename != "scoredata.bin":
@@ -470,19 +468,10 @@ def upload_scoredata():
         if int(request.headers.get("Content-Length", 0)) > MAX_SCOREDATA_FILE_SIZE:
             return jsonify({"error": "File size exceeds 1 MB limit"}), 400
         
-        filename = secure_filename(file.filename)
-        upload_folder = Config.UPLOAD_FOLDER
-        if not os.path.exists(upload_folder):
-            os.makedirs(upload_folder)
-        filepath = os.path.join(upload_folder, filename)
-        file.save(filepath)
-        
         try:
-            with open(filepath, "rb") as f:
-                socketio.emit("score_processing_start",
-                                room=str(user_id))
-                # from process_songs.py, encoded and saved in env
-                result = parse_score_data(f) # type: ignore
+            socketio.emit("score_processing_start", to=str(user_id))
+            # from process_songs.py, encoded and saved in env
+            result = parse_score_data(file.stream)  # type: ignore
             
             if not result:
                 return jsonify({"error": "Invalid score data"}), 400
@@ -490,12 +479,11 @@ def upload_scoredata():
             if result["version"] != 20211009:
                 return jsonify({"error": "Score data is outdated"}), 400
             
-            app = current_app._get_current_object()
-            def run_with_app_context(app, result, user_id):
-                with app.app_context():
+            def run_with_app_context(current_app, result, user_id):
+                with current_app.app_context():
                     process_and_save_scores(result, user_id)
             
-            socketio.start_background_task(run_with_app_context, app, result, user_id)
+            socketio.start_background_task(run_with_app_context, current_app, result, user_id)
             
             return jsonify({"message": "Score processing started", "total_songs": len(result["songs"])}), 202
         except ValueError as e:
@@ -504,9 +492,6 @@ def upload_scoredata():
         except Exception as e:
             logger.error(f"Unexpected error processing score data: {str(e)}", exc_info=True)
             return jsonify({"error": str(e)}), 500
-        finally:
-            if os.path.exists(filepath):
-                os.remove(filepath)
     logger.warning("Invalid file in upload request")
     return jsonify({"error": "Invalid file"}), 400
 
@@ -592,7 +577,7 @@ def upload_songcache():
     if "file" not in request.files:
         return jsonify({"error": "No file part"}), 400
     file = request.files["file"]
-    if file.filename == "":
+    if file.filename == "" or file.filename is None:
         return jsonify({"error": "No selected file"}), 400
     if file and allowed_file(file.filename):
         if file.filename != "songcache.bin":
@@ -600,20 +585,12 @@ def upload_songcache():
         if int(request.headers.get("Content-Length", 0)) > MAX_SONGCACHE_FILE_SIZE:
             return jsonify({"error": "File size exceeds 10 MB limit"}), 400
         
-        filename = secure_filename(file.filename)
-        upload_folder = Config.UPLOAD_FOLDER
-        if not os.path.exists(upload_folder):
-            os.makedirs(upload_folder)
-        filepath = os.path.join(upload_folder, filename)
-        file.save(filepath)
-        
         try:
             supabase = get_supabase()
             user_data = supabase.table("users").select("unknown_scores").eq("id", user_id).execute().data
             unknown_scores = user_data[0].get("unknown_scores", []) if user_data else []
-            
-            with open(filepath, "rb") as f:
-                file_content = f.read()
+
+            file_content = file.read()
             
             updated_scores = []
             for score in unknown_scores:
@@ -628,9 +605,6 @@ def upload_songcache():
         except Exception as e:
             logger.error(f"Error processing songcache: {str(e)}", exc_info=True)
             return jsonify({"error": str(e)}), 500
-        finally:
-            if os.path.exists(filepath):
-                os.remove(filepath)
     
     logger.warning("Invalid file in upload request")
     return jsonify({"error": "Invalid file"}), 400
