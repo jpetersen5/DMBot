@@ -19,7 +19,6 @@ const AuthHandler: React.FC = () => {
         navigate("/");
       }
     } else {
-      console.log("No token found in URL");
       navigate("/");
     }
   }, [location, navigate, user]);

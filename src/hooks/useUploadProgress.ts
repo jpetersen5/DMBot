@@ -50,13 +50,13 @@ export const useUploadProgress = () => {
           if (response.ok) {
             const statusData = await response.json();
             if (statusData.status === "in_progress" || statusData.status === "pending") {
-               setState(prev => ({
-                 ...prev,
-                 isProcessing: true,
-                 status: statusData.status,
-                 progress: statusData.progress || 0,
-                 message: `Resuming previous processing state... (${Math.round(statusData.progress || 0)}%)`
-               }));
+              setState(prev => ({
+                ...prev,
+                isProcessing: true,
+                status: statusData.status,
+                progress: statusData.progress || 0,
+                message: `Resuming previous processing state... (${Math.round(statusData.progress || 0)}%)`
+              }));
             }
           }
         } catch (error) {
@@ -74,18 +74,10 @@ export const useUploadProgress = () => {
     setSocket(newSocket);
 
     newSocket.on("connect", () => {
-      console.log("Socket connected:", newSocket.id);
       const userId = localStorage.getItem("user_id");
       if (userId) {
-        console.log("Emitting join for user:", userId);
         newSocket.emit("join", userId);
-      } else {
-        console.log("No user ID found to join room.");
       }
-    });
-
-    newSocket.on("disconnect", (reason) => {
-      console.log("Socket disconnected:", reason);
     });
 
     newSocket.on("connect_error", (error) => {
@@ -93,7 +85,6 @@ export const useUploadProgress = () => {
     });
 
     return () => {
-      console.log("Disconnecting socket");
       newSocket.disconnect();
       setSocket(null);
     };
@@ -161,7 +152,6 @@ export const useUploadProgress = () => {
     });
 
     socket.on("score_processing_achievement_errors", (data) => {
-      console.log("Received achievement errors:", data.errors);
       setState(prev => ({
         ...prev,
         achievementErrors: data.errors || [],
@@ -169,7 +159,6 @@ export const useUploadProgress = () => {
     });
 
     socket.on("score_processing_complete", (data) => {
-      console.log("Processing complete:", data);
       setState(prev => ({
         ...prev,
         isProcessing: false,
@@ -243,11 +232,11 @@ export const useUploadProgress = () => {
   }, []);
 
   const clearAllNotifications = useCallback(() => {
-     setState(prev => ({
-       ...prev,
-       newAchievements: [],
-       achievementErrors: [],
-     }));
+    setState(prev => ({
+      ...prev,
+      newAchievements: [],
+      achievementErrors: [],
+    }));
   }, []);
 
   return {
