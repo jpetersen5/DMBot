@@ -106,6 +106,8 @@ def get_all_users():
 @bp.route("/api/users/compare", methods=["POST"])
 def compare_users():
     data = request.json
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
     user1_id = data.get("user1_id")
     user2_id = data.get("user2_id")
 
@@ -152,11 +154,8 @@ def compare_users():
     
 def get_user_scores_by_id(user_id):
     supabase = get_supabase()
-    try:
-        response = supabase.table("users").select("scores, unknown_scores").eq("id", user_id).execute()
-        return response.data[0] if response.data else None
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    response = supabase.table("users").select("scores, unknown_scores").eq("id", user_id).execute()
+    return response.data[0] if response.data else None
 
 def compare_user_scores(user1_scores, user2_scores):
     user1_dict = {score["identifier"]: score for score in user1_scores}

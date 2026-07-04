@@ -134,10 +134,14 @@ def get_songs_by_ids():
         JSON: list of songs
     """
     supabase = get_supabase()
-    logger = current_app.logger
     
     data = request.json
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
     ids = data.get("ids", [])
+    if not ids:
+        return jsonify({"error": "No IDs provided"}), 400
 
     songs = []
     for i in range(0, len(ids), 500):
@@ -255,7 +259,7 @@ def upload_song_ini():
     file = request.files["file"]
     identifier = request.form.get("identifier")
     
-    if file.filename == "":
+    if file.filename is None or file.filename == "":
         return jsonify({"error": "No selected file"}), 400
     
     if file and allowed_file(file.filename):
@@ -350,6 +354,8 @@ def admin_song_action(song_id):
     auth_header = request.headers.get("Authorization")
     if not auth_header:
         return jsonify({"error": "No token provided"}), 401
+    if not request.json:
+        return jsonify({"error": "No JSON data provided"}), 400
     try:
         token = auth_header.split(" ")[1]
         payload = jwt.decode(token, Config.JWT_SECRET, algorithms=["HS256"])
@@ -377,7 +383,7 @@ def admin_song_action(song_id):
                 return jsonify({"message": "Song verified successfully"}), 200
             else:
                 return jsonify({"error": "Failed to verify song"}), 500
-        elif action == "remove":
+        else:
             delete_response = supabase.table("songs_new").delete().eq("id", song_id).execute()
             if delete_response.data:
                 return jsonify({"message": "Song removed successfully"}), 200

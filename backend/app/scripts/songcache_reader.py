@@ -231,7 +231,7 @@ def format_song_length(milliseconds):
 
 if __name__ == "__main__":
     base_path = "E:\\Songs"
-    binary_file_path = "C:\\Users\\jason\\AppData\\LocalLow\\srylain Inc_\Clone Hero\\songcache.bin"
+    binary_file_path = "C:\\Users\\jason\\AppData\\LocalLow\\srylain Inc_\\Clone Hero\\songcache.bin"
     output_file = "data\\songs_with_md5.json"
     
     process_songs(base_path, binary_file_path, output_file)

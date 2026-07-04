@@ -254,8 +254,9 @@ def populate_songs_new_table():
                     
             if successful_inserts:
                 extra_result = supabase.table("songs_extra").upsert(successful_inserts, on_conflict="md5").execute()
-                if hasattr(extra_result, "error") and extra_result.error:
-                    print(f"Error inserting batch {i//batch_size + 1} into songs_extra: {extra_result.error}")
+                extra_error = getattr(extra_result, "error", None)
+                if extra_error:
+                    print(f"Error inserting batch {i//batch_size + 1} into songs_extra: {extra_error}")
                 else:
                     print(f"Successfully inserted/updated {len(successful_inserts)} songs in both tables")
             
@@ -281,8 +282,9 @@ def populate_songs_new_table():
                 # Song doesn't exist in songs_new, so we need to insert it first
                 try:
                     insert_result = supabase.table("songs_new").insert(song).execute()
-                    if hasattr(insert_result, "error") and insert_result.error:
-                        print(f"Error inserting song {song['md5']} into songs_new: {insert_result.error}")
+                    insert_error = getattr(insert_result, "error", None)
+                    if insert_error:
+                        print(f"Error inserting song {song['md5']} into songs_new: {insert_error}")
                         continue  # Skip to next song if insert fails
                     song_exists = True
                     print(f"Inserted new song {song['md5']} into songs_new")
@@ -312,8 +314,9 @@ def populate_songs_new_table():
                             .eq("md5", song["md5"])
                             .execute())
                 
-                if hasattr(update_result, "error") and update_result.error:
-                    print(f"Error updating song {song['md5']} in songs_new: {update_result.error}")
+                update_error = getattr(update_result, "error", None)
+                if update_error:
+                    print(f"Error updating song {song['md5']} in songs_new: {update_error}")
                     continue
                 
                 # Only update songs_extra if the song exists in songs_new
@@ -324,8 +327,9 @@ def populate_songs_new_table():
                         "song_data": original_song
                     }, on_conflict="md5").execute()
                     
-                    if hasattr(extra_result, "error") and extra_result.error:
-                        print(f"Error updating song {song['md5']} in songs_extra: {extra_result.error}")
+                    extra_error = getattr(extra_result, "error", None)
+                    if extra_error:
+                        print(f"Error updating song {song['md5']} in songs_extra: {extra_error}")
         except Exception as e:
             print(f"Error processing update for {song['md5']}: {str(e)}")
     

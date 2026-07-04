@@ -83,7 +83,7 @@ def callback():
         result = supabase.table("users").upsert(user_data).execute()
 
         if not result.data:
-            raise APIError("Failed to upsert user data")
+            raise APIError({"message": "Failed to upsert user data"})
     
         token: str = jwt.encode({
             "user_id": user_data["id"],
@@ -93,12 +93,12 @@ def callback():
         return redirect(f"{Config.FRONTEND_URL}/auth?token={token}")
     
     except requests.RequestException as e:
-       if e.response.status_code == 429:
-           retry_after = int(e.response.headers.get("Retry-After", "unknown"))
-           return jsonify({"error": f"Rate limited by Discord. Please try again after {retry_after // 60 // 60}:{retry_after // 60 % 60}:{retry_after % 60}."}), 429
-       else:
-           logger.error(f"Error during Discord API request: {str(e)}")
-           return jsonify({"error": "Failed to authenticate with Discord"}), 500
+        if e.response is not None and e.response.status_code == 429:
+            retry_after = int(e.response.headers.get("Retry-After", "unknown"))
+            return jsonify({"error": f"Rate limited by Discord. Please try again after {retry_after // 60 // 60}:{retry_after // 60 % 60}:{retry_after % 60}."}), e.response.status_code
+        else:
+            logger.error(f"Error during Discord API request: {str(e)}")
+            return jsonify({"error": "Failed to authenticate with Discord"}), 500
     except APIError as e:
         logger.error(f"Supabase API error: {str(e)}")
         return jsonify({"error": "Database operation failed"}), 500
