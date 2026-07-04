@@ -13,12 +13,10 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
-    "@types/dompurify": "^3.0.5",
     "bootstrap": "^5.3.3",
     "chart.js": "^4.4.4",
     "chartjs-adapter-date-fns": "^3.0.0",
     "dompurify": "^3.2.4",
-    "nodejs": "^0.0.0",
     "react": "^18.3.1",
     "react-bootstrap": "^2.10.4",
     "react-chartjs-2": "^5.2.0",
