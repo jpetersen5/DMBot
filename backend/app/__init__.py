@@ -3,9 +3,8 @@ from flask_cors import CORS
 from .extensions import Session, limiter, socketio, redis, setup_logging
 from .config import Config
 from .api import auth, users, songs, charters, scores, status, leaderboards, spotify, achievements
+from .cli import register_cli
 from .services.supabase_service import init_supabase
-# from .migrations.update_leaderboard_rankings import update_leaderboards
-# from .migrations.populate_songs_new_table import populate_songs_new_table
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -23,12 +22,8 @@ def create_app(config_class=Config):
     redis.init_app(app)
     limiter.init_app(app)
 
+    register_cli(app)
     init_supabase(app)
-
-    # Uncomment when running migrations
-    # with app.app_context():
-        # populate_songs_new_table()
-        # update_leaderboards()
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(users.bp)
