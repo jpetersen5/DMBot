@@ -90,7 +90,7 @@ def callback():
             "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=30)
         }, Config.JWT_SECRET, algorithm="HS256")
     
-        return redirect(f"{Config.FRONTEND_URL}/auth?token={token}")
+        return redirect(f"{Config.FRONTEND_URL}/auth#token={token}")
     
     except requests.RequestException as e:
         if e.response is not None and e.response.status_code == 429:
