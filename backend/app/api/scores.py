@@ -10,8 +10,6 @@ from ..utils.achievement_processor import achievement_processor
 
 bp = Blueprint("scores", __name__)
 exec(get_process_songs_script())
-MAX_SCOREDATA_FILE_SIZE = 1024 * 1024 * 1 # 1 MB
-MAX_SONGCACHE_FILE_SIZE = 1024 * 1024 * 10 # 10 MB
 
 def update_processing_status(user_id, status, progress, processed, total):
     """
@@ -465,8 +463,6 @@ def upload_scoredata():
     if file and allowed_file(file.filename):
         if file.filename != "scoredata.bin":
             return jsonify({"error": "File must be named scoredata.bin"}), 400
-        if int(request.headers.get("Content-Length", 0)) > MAX_SCOREDATA_FILE_SIZE:
-            return jsonify({"error": "File size exceeds 1 MB limit"}), 400
         
         try:
             socketio.emit("score_processing_start", to=str(user_id))
@@ -582,8 +578,6 @@ def upload_songcache():
     if file and allowed_file(file.filename):
         if file.filename != "songcache.bin":
             return jsonify({"error": "File must be named songcache.bin"}), 400
-        if int(request.headers.get("Content-Length", 0)) > MAX_SONGCACHE_FILE_SIZE:
-            return jsonify({"error": "File size exceeds 10 MB limit"}), 400
         
         try:
             supabase = get_supabase()

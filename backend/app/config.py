@@ -12,6 +12,7 @@ class Config:
     JWT_SECRET = os.getenv("JWT_SECRET")
     SESSION_TYPE = "filesystem"
     ALLOWED_EXTENSIONS = {"bin", "ini"}
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024
     ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
     SUPABASE_URL = os.getenv("SUPABASE_URL")
     SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
