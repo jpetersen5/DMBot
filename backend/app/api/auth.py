@@ -6,6 +6,7 @@ import secrets
 import datetime
 import requests
 from postgrest.exceptions import APIError
+from ..utils.helpers import token_required
 from ..services.supabase_service import get_supabase
 from ..config import Config
 
@@ -87,7 +88,7 @@ def callback():
     
         token: str = jwt.encode({
             "user_id": user_data["id"],
-            "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=30)
+            "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=7)
         }, Config.JWT_SECRET, algorithm="HS256")
     
         return redirect(f"{Config.FRONTEND_URL}/auth#token={token}")
@@ -116,3 +117,13 @@ def logout():
     """
     session.pop("user", None)
     return jsonify({"message": "Logged out successfully"})
+
+@bp.route("/api/auth/refresh", methods=["POST"])
+@token_required
+def refresh_token(user_id):
+    """Issue a fresh 7-day token to a caller holding a valid token."""
+    token = jwt.encode({
+        "user_id": user_id,
+        "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=7)
+    }, Config.JWT_SECRET, algorithm="HS256")
+    return jsonify({"token": token}), 200

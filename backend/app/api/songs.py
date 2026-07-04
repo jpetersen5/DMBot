@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, request, current_app
 from typing import List
 from ..config import Config
 from ..services.supabase_service import get_supabase
-from ..utils.helpers import allowed_file
+from ..utils.helpers import allowed_file, token_required
 from werkzeug.utils import secure_filename
 
 bp = Blueprint("songs", __name__)
@@ -337,7 +337,8 @@ def upload_song_ini():
     return jsonify({"error": "Invalid file"}), 400
 
 @bp.route("/api/songs/<int:song_id>/admin", methods=["POST"])
-def admin_song_action(song_id):
+@token_required
+def admin_song_action(user_id, song_id):
     """
     Handles admin actions for songs (verify or remove)
 
@@ -350,21 +351,11 @@ def admin_song_action(song_id):
     """
     supabase = get_supabase()
     logger = current_app.logger
-
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        return jsonify({"error": "No token provided"}), 401
     if not request.json:
         return jsonify({"error": "No JSON data provided"}), 400
-    try:
-        token = auth_header.split(" ")[1]
-        payload = jwt.decode(token, Config.JWT_SECRET, algorithms=["HS256"])
-        user_id = payload["user_id"]
-        user_response = supabase.table("users").select("permissions").eq("id", user_id).execute()
-        if not user_response.data or user_response.data[0]["permissions"] != "admin":
-            return jsonify({"error": "Unauthorized"}), 403
-    except Exception as e:
-        logger.error(f"Error checking user permissions: {str(e)}")
+
+    user_response = supabase.table("users").select("permissions").eq("id", user_id).execute()
+    if not user_response.data or user_response.data[0]["permissions"] != "admin":
         return jsonify({"error": "Unauthorized"}), 403
 
     action = request.json.get("action")

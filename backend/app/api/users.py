@@ -2,11 +2,13 @@ from flask import Blueprint, jsonify, request, current_app
 import jwt
 from ..services.supabase_service import get_supabase
 from ..config import Config
+from ..utils.helpers import token_required
 
 bp = Blueprint("users", __name__)
 
 @bp.route("/api/user")
-def get_user():
+@token_required
+def get_user(user_id):
     """
     retrieves current user's information based on their JWT token
     
@@ -16,20 +18,7 @@ def get_user():
     authentication:
         requires valid JWT token in the Authorization header
     """
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        return jsonify({"error": "No token provided"}), 401
-    try:
-        token = auth_header.split(" ")[1]
-        payload = jwt.decode(token, Config.JWT_SECRET, algorithms=["HS256"])
-        user_id = payload["user_id"]
-        return get_user_by_id(user_id)
-    except jwt.ExpiredSignatureError:
-        return jsonify({"error": "Token has expired"}), 401
-    except jwt.InvalidTokenError:
-        return jsonify({"error": "Invalid token"}), 401
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return get_user_by_id(user_id)
 
 @bp.route("/api/user/<string:user_id>")
 def get_user_by_id(user_id):

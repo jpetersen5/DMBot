@@ -1,12 +1,11 @@
 from flask import Blueprint, jsonify, request, current_app
 from ..services.supabase_service import get_supabase
 from ..utils.helpers import allowed_file, get_process_songs_script
-from ..config import Config
 from ..extensions import socketio, redis
 from datetime import datetime, UTC
 import re
-import jwt
 from ..utils.achievement_processor import achievement_processor
+from ..utils.helpers import token_required
 
 bp = Blueprint("scores", __name__)
 exec(get_process_songs_script())
@@ -432,7 +431,8 @@ def process_and_save_scores(result, user_id):
     logger.info(final_message)
 
 @bp.route("/api/upload_scoredata", methods=["POST"])
-def upload_scoredata():
+@token_required
+def upload_scoredata(user_id):
     """
     uploads a scoredata.bin file for processing
 
@@ -442,18 +442,7 @@ def upload_scoredata():
     returns:
         JSON: async message indicating the start of score processing
     """
-    auth_header = request.headers.get("Authorization")
     logger = current_app.logger
-    if not auth_header:
-        return jsonify({"error": "No token provided"}), 401
-    try:
-        token = auth_header.split(" ")[1]
-        payload = jwt.decode(token, Config.JWT_SECRET, algorithms=["HS256"])
-        user_id = payload["user_id"]
-    except jwt.ExpiredSignatureError:
-        return jsonify({"error": "Token has expired"}), 401
-    except jwt.InvalidTokenError:
-        return jsonify({"error": "Invalid token"}), 401
     
     if "file" not in request.files:
         return jsonify({"error": "No file part"}), 400
@@ -492,25 +481,14 @@ def upload_scoredata():
     return jsonify({"error": "Invalid file"}), 400
 
 @bp.route("/api/processing_status", methods=["GET"])
-def processing_status():
+@token_required
+def processing_status(user_id):
     """
     Retrieves the current processing status for the user
 
     returns:
         JSON: Current processing status
     """
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        return jsonify({"error": "No token provided"}), 401
-    try:
-        token = auth_header.split(" ")[1]
-        payload = jwt.decode(token, Config.JWT_SECRET, algorithms=["HS256"])
-        user_id = payload["user_id"]
-    except jwt.ExpiredSignatureError:
-        return jsonify({"error": "Token has expired"}), 401
-    except jwt.InvalidTokenError:
-        return jsonify({"error": "Invalid token"}), 401
-    
     status: dict = redis.hgetall(f"processing_status:{user_id}")
     
     if status:
@@ -556,19 +534,9 @@ def find_file_path_for_md5(file_content, md5_hex, search_back=1024):
         start = index + len(md5_bytes)
 
 @bp.route("/api/upload_songcache", methods=["POST"])
-def upload_songcache():
-    auth_header = request.headers.get("Authorization")
+@token_required
+def upload_songcache(user_id):
     logger = current_app.logger
-    if not auth_header:
-        return jsonify({"error": "No token provided"}), 401
-    try:
-        token = auth_header.split(" ")[1]
-        payload = jwt.decode(token, Config.JWT_SECRET, algorithms=["HS256"])
-        user_id = payload["user_id"]
-    except jwt.ExpiredSignatureError:
-        return jsonify({"error": "Token has expired"}), 401
-    except jwt.InvalidTokenError:
-        return jsonify({"error": "Invalid token"}), 401
     
     if "file" not in request.files:
         return jsonify({"error": "No file part"}), 400

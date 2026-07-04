@@ -18,6 +18,26 @@ const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    const refreshToken = async () => {
+      const token = localStorage.getItem("auth_token");
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_URL}/api/auth/refresh`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          localStorage.setItem("auth_token", data.token);
+        } else if (res.status === 401) {
+          localStorage.removeItem("auth_token");
+          localStorage.removeItem("user_id");
+        }
+      } catch {
+        // network error: keep existing token, retry next load
+      }
+    };
+
     const checkAuth = async () => {
       const token = localStorage.getItem("auth_token");
       if (token) {
@@ -46,6 +66,7 @@ const AuthProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
       setLoading(false);
     };
 
+    refreshToken();
     checkAuth();
   }, []);
 
