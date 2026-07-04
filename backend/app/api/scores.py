@@ -330,7 +330,7 @@ def process_and_save_scores(result, user_id):
                         to=str(user_id))
             socketio.sleep(1)
             
-            for update, i in zip(leaderboard_updates, range(len(leaderboard_updates))):
+            for i, update in enumerate(leaderboard_updates):
                 progress = (i / len(leaderboard_updates)) * 100
                 socketio.emit("score_processing_updating_progress",
                             {"message": f"Updating leaderboard for {i+1} / {len(leaderboard_updates)}: {update['name']}", "progress": progress},
