@@ -14,7 +14,7 @@ export interface Song {
   instruments: string[] | null;
   song_length: number | null;
   charter_refs: string[] | null;
-  leaderboard: LeaderboardEntry[] | null;
+  leaderboard?: LeaderboardEntry[] | null;
   scores_count: number | null;
   last_update: string;
 }

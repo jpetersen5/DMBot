@@ -19,6 +19,7 @@ import { useSongCache, SongCacheItem } from "../../context/SongContext";
 import { useKeyPress } from "../../hooks/useKeyPress";
 import { useSongModal } from "../../hooks/useSongModal";
 import { User } from "../../utils/user";
+import { Score } from "../../utils/score";
 import {
   Song,
   SONG_TABLE_HEADERS,
@@ -46,6 +47,13 @@ async function fetchUser(id: string): Promise<User> {
   const response = await fetch(`${API_URL}/api/user/${id}`);
   if (!response.ok) throw new Error("Failed to fetch user");
   return await response.json();
+}
+
+async function fetchUserScores(id: string): Promise<Map<string, number>> {
+  const response = await fetch(`${API_URL}/api/user/${id}/scores`);
+  if (!response.ok) return new Map();
+  const data: { scores: Score[] } = await response.json();
+  return new Map(data.scores.map(score => [score.identifier, score.score]));
 }
 
 const SongList: React.FC = () => {
@@ -86,6 +94,8 @@ const SongList: React.FC = () => {
 
   const [leftUser, setLeftUser] = useState<User | null>(null);
   const [rightUser, setRightUser] = useState<User | null>(null);
+  const [leftScores, setLeftScores] = useState<Map<string, number> | null>(null);
+  const [rightScores, setRightScores] = useState<Map<string, number> | null>(null);
 
   const readSongCache = useEffectEvent((key: string) => getCachedResult(key));
   const writeSongCache = useEffectEvent((key: string, item: SongCacheItem) => setCachedResult(key, item));
@@ -222,6 +232,30 @@ const SongList: React.FC = () => {
   const leftUserId = leftUser?.id;
   const rightUserId = rightUser?.id;
 
+  useEffect(() => {
+    if (!leftUserId) {
+      setLeftScores(null);
+      return;
+    }
+    let cancelled = false;
+    fetchUserScores(leftUserId).then(scores => {
+      if (!cancelled) setLeftScores(scores);
+    });
+    return () => { cancelled = true; };
+  }, [leftUserId]);
+
+  useEffect(() => {
+    if (!rightUserId) {
+      setRightScores(null);
+      return;
+    }
+    let cancelled = false;
+    fetchUserScores(rightUserId).then(scores => {
+      if (!cancelled) setRightScores(scores);
+    });
+    return () => { cancelled = true; };
+  }, [rightUserId]);
+
   const filteredAndSortedSongs = useMemo(() => {
     let filteredSongs = songs;
     if (!filteredSongs) return [];
@@ -275,10 +309,10 @@ const SongList: React.FC = () => {
 
     const sortedSongs = filteredSongs.sort((a, b) => {
       if (sortBy === "score_difference") {
-        const leftScoreA = a.leaderboard?.find(entry => entry.user_id === leftUserId)?.score;
-        const rightScoreA = a.leaderboard?.find(entry => entry.user_id === rightUserId)?.score;
-        const leftScoreB = b.leaderboard?.find(entry => entry.user_id === leftUserId)?.score;
-        const rightScoreB = b.leaderboard?.find(entry => entry.user_id === rightUserId)?.score;
+        const leftScoreA = leftScores?.get(a.md5);
+        const rightScoreA = rightScores?.get(a.md5);
+        const leftScoreB = leftScores?.get(b.md5);
+        const rightScoreB = rightScores?.get(b.md5);
         if (leftScoreA == null || rightScoreA == null) {
           return 1;
         } else if (leftScoreB == null || rightScoreB == null) {
@@ -315,8 +349,8 @@ const SongList: React.FC = () => {
     secondarySortOrder,
     selectedInstruments,
     selectedDifficulties,
-    leftUserId,
-    rightUserId
+    leftScores,
+    rightScores
   ]);
 
   const paginatedSongs = useMemo(() => {
@@ -442,12 +476,14 @@ const SongList: React.FC = () => {
               )}
               {paginatedSongs.length > 0 && (
                 paginatedSongs.map((song) => (
-                  <SongTableRow 
-                    key={song.id} 
-                    song={song} 
+                  <SongTableRow
+                    key={song.id}
+                    song={song}
                     onClick={() => handleRowClick(song)}
                     leftUser={leftUser}
-                    rightUser={rightUser}/>
+                    rightUser={rightUser}
+                    leftScores={leftScores}
+                    rightScores={rightScores}/>
                 ))
               )}
             </tbody>
@@ -483,12 +519,14 @@ interface SongTableRowProps {
   onClick: () => void;
   leftUser?: User | null;
   rightUser?: User | null;
+  leftScores?: Map<string, number> | null;
+  rightScores?: Map<string, number> | null;
 }
 
-export const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick, leftUser, rightUser }) => {
-  const leftScore = leftUser ? song.leaderboard?.find(entry => entry.user_id === leftUser.id) : null;
-  const rightScore = rightUser ? song.leaderboard?.find(entry => entry.user_id === rightUser.id) : null;
-  const scoreDifference = leftScore && rightScore ? leftScore.score - rightScore.score : null;
+export const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick, leftUser, rightUser, leftScores, rightScores }) => {
+  const leftScore = leftScores?.get(song.md5);
+  const rightScore = rightScores?.get(song.md5);
+  const scoreDifference = leftScore != null && rightScore != null ? leftScore - rightScore : null;
 
   return (
     <tr onClick={onClick} style={{ cursor: "pointer" }}>

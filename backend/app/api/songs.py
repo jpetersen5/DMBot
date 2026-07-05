@@ -13,6 +13,9 @@ bp = Blueprint("songs", __name__)
 ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "charter", "song_length", "last_update", "scores_count", "md5"}
 ALLOWED_FILTERS = {"name", "artist", "album", "genre", "charter"}
 
+# every songs_new column except the heavy leaderboard JSONB; compare data comes from /api/user/<id>/scores
+SONG_LIST_COLUMNS = "id,md5,name,artist,album,track,year,genre,difficulties,has_2x_kick,instruments,note_counts,loading_phrase,playlist_path,song_length,charter_refs,scores_count,last_update"
+
 @bp.route("/api/songs/<string:identifier>", methods=["GET"])
 def get_song(identifier):
     """
@@ -54,7 +57,7 @@ def get_songs():
         first = True
         yield "["
         while True:
-            query = supabase.table("songs_new").select("*").order("id").limit(batch_size).offset(offset)
+            query = supabase.table("songs_new").select(SONG_LIST_COLUMNS).order("id").limit(batch_size).offset(offset)
             result = query.execute()
             rows = result.data
             if rows:
