@@ -1,6 +1,5 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, current_app
 from ..services.supabase_service import get_supabase
-import os
 
 bp = Blueprint("status", __name__)
 
@@ -24,7 +23,8 @@ def db_status():
     """
     supabase = get_supabase()
     try:
-        result = supabase.table("users").select("id").limit(1).execute()
+        _ = supabase.table("users").select("id").limit(1).execute()
         return jsonify({"status": "Connected", "message": "Functional"})
     except Exception as e:
-        return jsonify({"status": "Error", "message": str(e)})
+        current_app.logger.error(f"Database status check failed: {str(e)}", exc_info=True)
+        return jsonify({"status": "Error", "message": "Database connection failed"})

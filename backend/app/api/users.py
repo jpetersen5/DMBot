@@ -1,7 +1,5 @@
 from flask import Blueprint, jsonify, request, current_app
-import jwt
 from ..services.supabase_service import get_supabase, rows
-from ..config import Config
 from ..utils.helpers import token_required
 
 bp = Blueprint("users", __name__)
@@ -51,8 +49,9 @@ def get_user_by_id(user_id):
         else:
             return jsonify({"error": "User not found"}), 404
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
+        current_app.logger.error(f"Error fetching user data: {str(e)}", exc_info=True)
+        return jsonify({"error": "An error occurred while fetching user data"}), 500
+
 @bp.route("/api/user/<string:user_id>/has-scores", methods=["GET"])
 def user_has_scores(user_id):
     supabase = get_supabase()
@@ -139,7 +138,8 @@ def compare_users():
 
         return jsonify(comparison_results)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        current_app.logger.error(f"Error comparing users: {str(e)}", exc_info=True)
+        return jsonify({"error": "An error occurred while comparing users"}), 500
     
 def get_user_scores_by_id(user_id):
     supabase = get_supabase()
@@ -227,8 +227,8 @@ def get_user_by_discord_id(discord_id):
             "elo_history": elo_history_data
         })
     except Exception as e:
-        logger.error(f"Error fetching user by Discord ID: {str(e)}")
-        return jsonify({"error": f"An error occurred while fetching user: {str(e)}"}), 500
+        logger.error(f"Error fetching user by Discord ID: {str(e)}", exc_info=True)
+        return jsonify({"error": "An error occurred while fetching user"}), 500
 
 @bp.route("/api/user/<string:user_id>/achievements", methods=["GET"])
 def get_user_achievements(user_id):
@@ -274,5 +274,5 @@ def get_user_achievements(user_id):
         
         return jsonify({"achievements": all_achievements})
     except Exception as e:
-        logger.error(f"Error fetching user achievements: {str(e)}")
-        return jsonify({"error": f"An error occurred while fetching achievements: {str(e)}"}), 500
+        logger.error(f"Error fetching user achievements: {str(e)}", exc_info=True)
+        return jsonify({"error": "An error occurred while fetching achievements"}), 500

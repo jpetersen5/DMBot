@@ -377,7 +377,7 @@ def process_and_save_scores(result, user_id):
         logger.error(f"Fatal error during achievement processing for user {user_id}: {str(e)}", exc_info=True)
         update_processing_status(user_id, "error", 100, processed_songs, total_songs)
         socketio.emit("score_processing_error",
-                      {"message": f"Fatal error during achievement processing: {str(e)}"},
+                      {"message": "A fatal error occurred during achievement processing"},
                       to=str(user_id))
         return
 
@@ -417,7 +417,7 @@ def process_and_save_scores(result, user_id):
         logger.error(f"Failed to update user profile for user {user_id}: {str(e)}", exc_info=True)
         update_processing_status(user_id, "error", 100, processed_songs, total_songs)
         socketio.emit("score_processing_error",
-                      {"message": f"Failed to save final scores/achievements to profile: {str(e)}"},
+                      {"message": "Failed to save final scores/achievements to profile"},
                       to=str(user_id))
         return
 
@@ -473,11 +473,11 @@ def upload_scoredata(user_id):
             
             return jsonify({"message": "Score processing started", "total_songs": len(result["songs"])}), 202
         except ValueError as e:
-            logger.error(f"Error parsing score data: {str(e)}")
-            return jsonify({"error": str(e)}), 400
+            logger.error(f"Error parsing score data: {str(e)}", exc_info=True)
+            return jsonify({"error": "Invalid or corrupted score data file"}), 400
         except Exception as e:
             logger.error(f"Unexpected error processing score data: {str(e)}", exc_info=True)
-            return jsonify({"error": str(e)}), 500
+            return jsonify({"error": "An error occurred while processing score data"}), 500
     logger.warning("Invalid file in upload request")
     return jsonify({"error": "Invalid file"}), 400
 
@@ -567,7 +567,7 @@ def upload_songcache(user_id):
             return jsonify({"message": "Songcache processed successfully", "updated_scores": len(updated_scores)}), 200
         except Exception as e:
             logger.error(f"Error processing songcache: {str(e)}", exc_info=True)
-            return jsonify({"error": str(e)}), 500
+            return jsonify({"error": "An error occurred while processing the song cache"}), 500
     
     logger.warning("Invalid file in upload request")
     return jsonify({"error": "Invalid file"}), 400

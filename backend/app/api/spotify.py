@@ -1,5 +1,5 @@
 import requests
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request
 from ..config import Config
 from base64 import b64encode
 
@@ -21,8 +21,6 @@ def get_spotify_access_token():
 
 @bp.route("/api/spotify/fetch_song_data", methods=["GET"])
 def fetch_song_data():
-    logger = current_app.logger
-
     artist = request.args.get("artist", "")
     title = request.args.get("title", "")
     album = request.args.get("album", "")

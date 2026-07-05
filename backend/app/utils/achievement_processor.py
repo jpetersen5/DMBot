@@ -1,6 +1,4 @@
-from typing import List, Dict, Any
 import json
-import os
 import logging
 from datetime import datetime, UTC
 from pathlib import Path
@@ -274,7 +272,7 @@ class AchievementProcessor:
                 "requires_fc": rank == 4
             })
     
-    def _check_first_score(self, user_data, achievement_def):
+    def _check_first_score(self, user_data):
         """Check if user has at least one score"""
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
@@ -289,7 +287,7 @@ class AchievementProcessor:
         total_score = user_data.get("stats", {}).get("total_score", 0)
         return total_score >= achievement_def["threshold"]
     
-    def _check_first_fc(self, user_data, achievement_def):
+    def _check_first_fc(self, user_data):
         """Check if user has at least one FC"""
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
@@ -329,7 +327,6 @@ class AchievementProcessor:
             has_match = any(charter_lower in score_charter_refs_lower for charter_lower in charter_refs_lower)
             
             if has_match:
-                matched_charters = [charter for charter in charter_refs if any(charter.lower() == score_charter.lower() for score_charter in score_charter_refs)]
                 count += 1
         
         return count >= threshold
@@ -345,7 +342,6 @@ class AchievementProcessor:
         count = 0
         scores = user_data.get("scores", [])
         for score in scores:
-            song_name = score.get("song_name", "").lower()
             artist = score.get("artist", "").lower()
             if any(remix_artist.lower() in artist for remix_artist in remix_artists):
                 count += 1
@@ -392,7 +388,7 @@ class AchievementProcessor:
                 return True
         return False
     
-    def _check_album(self, user_data, achievement_def):
+    def _check_album(self, user_data):
         """Check if user has played an album chart"""
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
@@ -405,7 +401,7 @@ class AchievementProcessor:
         
         return False
     
-    def _check_discography(self, user_data, achievement_def):
+    def _check_discography(self, user_data):
         """Check if user has played a discography chart"""
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
@@ -481,7 +477,7 @@ class AchievementProcessor:
                 achievement_errors.append({
                     "id": achievement_id,
                     "name": achievement_def.get("name", "Unknown Achievement"),
-                    "error": str(e)
+                    "error": "Failed to evaluate this achievement"
                 })
     
         return user_achievements, achievement_errors

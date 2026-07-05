@@ -1,5 +1,6 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
+from werkzeug.exceptions import HTTPException
 from .extensions import Session, limiter, socketio, redis, setup_logging
 from .config import Config
 from .api import auth, users, songs, charters, scores, status, leaderboards, spotify, achievements
@@ -34,5 +35,12 @@ def create_app(config_class=Config):
     app.register_blueprint(leaderboards.bp)
     app.register_blueprint(spotify.bp)
     app.register_blueprint(achievements.bp)
-    
+
+    @app.errorhandler(Exception)
+    def handle_unexpected_error(e):
+        if isinstance(e, HTTPException):
+            return e
+        app.logger.error(f"Unhandled exception: {str(e)}", exc_info=True)
+        return jsonify({"error": "An unexpected error occurred"}), 500
+
     return app

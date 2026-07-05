@@ -335,8 +335,8 @@ def upload_song_ini():
                 return jsonify({"error": "Failed to add song to database"}), 500
             
         except Exception as e:
-            current_app.logger.error(f"Error processing song.ini: {str(e)}")
-            return jsonify({"error": str(e)}), 500
+            current_app.logger.error(f"Error processing song.ini: {str(e)}", exc_info=True)
+            return jsonify({"error": "An error occurred while processing the song file"}), 500
         finally:
             if os.path.exists(filepath):
                 os.remove(filepath)

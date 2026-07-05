@@ -86,7 +86,7 @@ def map_song_paths(base_path):
     Map all valid song paths by searching for song.ini files.
     """
     song_paths = []
-    for root, dirs, files in os.walk(base_path):
+    for root, _, files in os.walk(base_path):
         if "song.ini" in files:
             song_paths.append(os.path.normpath(root).lower().replace("/", "\\"))
     logging.info(f"Found {len(song_paths)} song paths")
