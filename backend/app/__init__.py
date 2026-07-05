@@ -7,7 +7,7 @@ from .api import auth, users, songs, charters, scores, status, leaderboards, spo
 from .cli import register_cli
 from .services.supabase_service import init_supabase
 
-def create_app(config_class=Config):
+def create_app(config_class: type[Config] = Config) -> Flask:
     app = Flask(__name__)
     app.config.from_object(config_class)
 
@@ -37,7 +37,7 @@ def create_app(config_class=Config):
     app.register_blueprint(achievements.bp)
 
     @app.errorhandler(Exception)
-    def handle_unexpected_error(e):
+    def handle_unexpected_error(e: Exception):
         if isinstance(e, HTTPException):
             return e
         app.logger.error(f"Unhandled exception: {str(e)}", exc_info=True)

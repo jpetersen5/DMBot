@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { API_URL } from "../../App";
-import { Search } from "../SongList/TableControls";
+import { Search } from "../Table/TableControls";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import UserCompareModal from "./UserCompareModal";
 import { User, getUserImageSrc, getFallbackImage } from "../../utils/user";
@@ -175,7 +175,6 @@ const UserList: React.FC = () => {
         <Search
           search={search}
           setSearch={setSearch}
-          submitSearch={() => {}}
         />
       </div>
       {loading ? (

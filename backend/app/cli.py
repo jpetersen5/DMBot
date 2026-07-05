@@ -1,10 +1,11 @@
 import importlib
 import click
+from flask import Flask
 
-def register_cli(app):
+def register_cli(app: Flask) -> None:
     @app.cli.command("run-migration")
     @click.argument("name")
-    def run_migration(name):
+    def run_migration(name: str) -> None:
         """Run a migration module by name, e.g. flask run-migration update_leaderboard_rankings"""
         module = importlib.import_module(f"app.migrations.{name}")
         entry = getattr(module, name, None) or getattr(module, "run", None)

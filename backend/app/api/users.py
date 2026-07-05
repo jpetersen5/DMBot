@@ -1,12 +1,14 @@
+from typing import List, Optional
 from flask import Blueprint, jsonify, request, current_app
-from ..services.supabase_service import get_supabase, rows
+from ..services.supabase_service import get_supabase, rows, rows_as
 from ..utils.helpers import token_required
+from ..types import ComparisonResult, FlaskResponse, ScoreEntry, UserRow
 
 bp = Blueprint("users", __name__)
 
 @bp.route("/api/user")
 @token_required
-def get_user(user_id):
+def get_user(user_id: str) -> FlaskResponse:
     """
     retrieves current user's information based on their JWT token
     
@@ -19,7 +21,7 @@ def get_user(user_id):
     return get_user_by_id(user_id)
 
 @bp.route("/api/user/<string:user_id>")
-def get_user_by_id(user_id):
+def get_user_by_id(user_id: str) -> FlaskResponse:
     """
     Retrieves user information based on the provided user ID
     
@@ -53,7 +55,7 @@ def get_user_by_id(user_id):
         return jsonify({"error": "An error occurred while fetching user data"}), 500
 
 @bp.route("/api/user/<string:user_id>/has-scores", methods=["GET"])
-def user_has_scores(user_id):
+def user_has_scores(user_id: str) -> FlaskResponse:
     supabase = get_supabase()
     
     query = supabase.table("users").select("scores").eq("id", user_id)
@@ -66,7 +68,7 @@ def user_has_scores(user_id):
     return jsonify({"has_scores": has_scores})
 
 @bp.route("/api/all-users")
-def get_all_users():
+def get_all_users() -> FlaskResponse:
     """
     retrieves list of all users in the system
     
@@ -92,7 +94,7 @@ def get_all_users():
         return jsonify({"error": "An error occurred while fetching users"}), 500
 
 @bp.route("/api/users/compare", methods=["POST"])
-def compare_users():
+def compare_users() -> FlaskResponse:
     data = request.json
     if not data:
         return jsonify({"error": "No data provided"}), 400
@@ -141,12 +143,14 @@ def compare_users():
         current_app.logger.error(f"Error comparing users: {str(e)}", exc_info=True)
         return jsonify({"error": "An error occurred while comparing users"}), 500
     
-def get_user_scores_by_id(user_id):
+def get_user_scores_by_id(user_id: str) -> Optional[UserRow]:
     supabase = get_supabase()
     response = supabase.table("users").select("scores, unknown_scores").eq("id", user_id).execute()
-    return rows(response.data)[0] if response.data else None
+    return rows_as(response.data, UserRow)[0] if response.data else None
 
-def compare_user_scores(user1_scores, user2_scores):
+def compare_user_scores(
+    user1_scores: List[ScoreEntry], user2_scores: List[ScoreEntry]
+) -> Optional[ComparisonResult]:
     user1_dict = {score["identifier"]: score for score in user1_scores}
     user2_dict = {score["identifier"]: score for score in user2_scores}
 
@@ -191,7 +195,7 @@ def compare_user_scores(user1_scores, user2_scores):
     }
 
 @bp.route("/api/users/discord/<string:discord_id>")
-def get_user_by_discord_id(discord_id):
+def get_user_by_discord_id(discord_id: str) -> FlaskResponse:
     """
     Retrieves user information based on the provided Discord ID
     
@@ -231,7 +235,7 @@ def get_user_by_discord_id(discord_id):
         return jsonify({"error": "An error occurred while fetching user"}), 500
 
 @bp.route("/api/user/<string:user_id>/achievements", methods=["GET"])
-def get_user_achievements(user_id):
+def get_user_achievements(user_id: str) -> FlaskResponse:
     """
     Retrieves achievements for a specific user
     

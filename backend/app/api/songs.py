@@ -3,9 +3,11 @@ import os
 import re
 from datetime import datetime, UTC
 from flask import Blueprint, jsonify, request, current_app, Response
-from typing import List
+from typing import Any, Dict, Iterator, List
+from supabase import Client
 from ..services.supabase_service import get_supabase, rows
 from ..utils.helpers import allowed_file, token_required
+from ..types import FlaskResponse
 from werkzeug.utils import secure_filename
 
 bp = Blueprint("songs", __name__)
@@ -17,7 +19,7 @@ ALLOWED_FILTERS = {"name", "artist", "album", "genre", "charter"}
 SONG_LIST_COLUMNS = "id,md5,name,artist,album,track,year,genre,difficulties,has_2x_kick,instruments,note_counts,loading_phrase,playlist_path,song_length,charter_refs,scores_count,last_update"
 
 @bp.route("/api/songs/<string:identifier>", methods=["GET"])
-def get_song(identifier):
+def get_song(identifier: str) -> FlaskResponse:
     """
     retrieves a single song from the database by its ID or MD5 identifier
 
@@ -42,7 +44,7 @@ def get_song(identifier):
     return jsonify(song)
 
 @bp.route("/api/songs", methods=["GET"])
-def get_songs():
+def get_songs() -> Response:
     """
     retrieves songs from the database
 
@@ -52,19 +54,19 @@ def get_songs():
     supabase = get_supabase()
     batch_size = 1000
 
-    def generate():
+    def generate() -> Iterator[str]:
         offset = 0
         first = True
         yield "["
         while True:
             query = supabase.table("songs_new").select(SONG_LIST_COLUMNS).order("id").limit(batch_size).offset(offset)
             result = query.execute()
-            rows = result.data
-            if rows:
-                chunk = json.dumps(rows, separators=(",", ":"))[1:-1]
+            batch = result.data
+            if batch:
+                chunk = json.dumps(batch, separators=(",", ":"))[1:-1]
                 yield chunk if first else "," + chunk
                 first = False
-            if len(rows) < batch_size:
+            if len(batch) < batch_size:
                 break
             offset += batch_size
         yield "]"
@@ -72,7 +74,7 @@ def get_songs():
     return Response(generate(), mimetype="application/json")
 
 @bp.route("/api/related-songs", methods=["GET"])
-def get_related_songs():
+def get_related_songs() -> FlaskResponse:
     """
     retrieves songs related by album, artist, genre, and charter
 
@@ -130,7 +132,7 @@ def get_related_songs():
     })
 
 @bp.route("/api/songs-by-ids", methods=["POST"])
-def get_songs_by_ids():
+def get_songs_by_ids() -> FlaskResponse:
     """
     retrieves songs from the database by their IDs
 
@@ -163,7 +165,7 @@ def get_songs_by_ids():
     return jsonify(songs)
 
 @bp.route("/api/songs/<string:md5>/extra", methods=["GET"])
-def get_song_extra(md5):
+def get_song_extra(md5: str) -> FlaskResponse:
     """
     Retrieves extra song data from the songs_extra table by MD5
 
@@ -225,16 +227,16 @@ def split_charters(charter_string: str) -> List[str]:
 
     return [charter.strip() for charter in result if charter.strip()]
 
-def fetch_existing_charters(supabase):
+def fetch_existing_charters(supabase: Client) -> Dict[str, Any]:
     response = supabase.table("charters").select("id", "name").execute()
-    return {charter["name"]: charter["id"] for charter in response.data}
+    return {charter["name"]: charter["id"] for charter in rows(response.data)}
 
-def parse_ini_file(ini_path):
+def parse_ini_file(ini_path: str) -> Dict[str, str]:
     """
     Parse the song.ini file to extract required fields, attempting to handle different encodings.
     """
     logger = current_app.logger
-    data = {}
+    data: Dict[str, str] = {}
     required_fields = [
         "artist", "name", "album", "track", "year",
         "genre", "diff_drums", "song_length", "charter"
@@ -260,12 +262,15 @@ def parse_ini_file(ini_path):
 
 # Unused until I update it to use geo's scan chart
 @bp.route("/api/songs/upload_ini", methods=["POST"])
-def upload_song_ini():
+def upload_song_ini() -> FlaskResponse:
     if "file" not in request.files:
         return jsonify({"error": "No file part"}), 400
     file = request.files["file"]
     identifier = request.form.get("identifier")
-    
+
+    if not identifier:
+        return jsonify({"error": "No identifier provided"}), 400
+
     if file.filename is None or file.filename == "":
         return jsonify({"error": "No selected file"}), 400
     
@@ -345,7 +350,7 @@ def upload_song_ini():
 
 @bp.route("/api/songs/<int:song_id>/admin", methods=["POST"])
 @token_required
-def admin_song_action(user_id, song_id):
+def admin_song_action(user_id: str, song_id: int) -> FlaskResponse:
     """
     Handles admin actions for songs (verify or remove)
 

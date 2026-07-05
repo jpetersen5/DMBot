@@ -1,10 +1,11 @@
 from flask import Blueprint, jsonify, current_app
 from ..services.supabase_service import get_supabase
+from ..types import FlaskResponse
 
 bp = Blueprint("status", __name__)
 
 @bp.route("/api/hello", methods=["GET"])
-def hello():
+def hello() -> FlaskResponse:
     """
     health check endpoint
     
@@ -14,7 +15,7 @@ def hello():
     return jsonify({"message": "Functional"})
 
 @bp.route("/api/db-status", methods=["GET"])
-def db_status():
+def db_status() -> FlaskResponse:
     """
     checks status of the database connection
     

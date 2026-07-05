@@ -1,10 +1,11 @@
 from flask import Blueprint, jsonify
 from ..services.supabase_service import get_supabase, rows
+from ..types import FlaskResponse
 
 bp = Blueprint("leaderboard", __name__)
 
 @bp.route("/api/leaderboard/<string:song_id>", methods=["GET"])
-def get_leaderboard(song_id):
+def get_leaderboard(song_id: str) -> FlaskResponse:
     supabase = get_supabase()
 
     query = supabase.table("songs_new").select("leaderboard").eq("id", song_id)
@@ -20,7 +21,7 @@ def get_leaderboard(song_id):
     return jsonify({"leaderboard": leaderboard})
 
 @bp.route("/api/user/<string:user_id>/scores", methods=["GET"])
-def get_user_scores(user_id):
+def get_user_scores(user_id: str) -> FlaskResponse:
     supabase = get_supabase()
 
     query = supabase.table("users").select("scores, unknown_scores").eq("id", user_id)
@@ -35,7 +36,7 @@ def get_user_scores(user_id):
     return jsonify({"scores": scores, "unknown_scores": unknown_scores})
 
 @bp.route("/api/user/<string:user_id>/stats", methods=["GET"])
-def get_user_stats(user_id):
+def get_user_stats(user_id: str) -> FlaskResponse:
     supabase = get_supabase()
     
     query = supabase.table("users").select("stats").eq("id", user_id)

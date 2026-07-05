@@ -1,10 +1,11 @@
 from flask import Blueprint, jsonify
 from ..utils.achievement_processor import AchievementProcessor
+from ..types import FlaskResponse
 
 bp = Blueprint("achievements", __name__)
 
 @bp.route("/api/achievements", methods=["GET"])
-def get_all_achievements():
+def get_all_achievements() -> FlaskResponse:
     """
     Retrieve the complete list of all possible achievements
     

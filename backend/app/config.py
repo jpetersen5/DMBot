@@ -1,4 +1,5 @@
 import os
+from flask import Flask
 from dotenv import load_dotenv
 
 FLASK_ENV = os.getenv("FLASK_ENV", "development")
@@ -36,7 +37,7 @@ class Config:
     )
 
     @classmethod
-    def init_app(cls, app):
+    def init_app(cls, app: Flask) -> None:
         missing = [v for v in cls.REQUIRED_VARS if not getattr(cls, v)]
         if missing:
             raise RuntimeError(f"Missing required environment variables: {', '.join(missing)}")

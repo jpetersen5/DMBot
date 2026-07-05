@@ -2,6 +2,9 @@ import json
 import logging
 from datetime import datetime, UTC
 from pathlib import Path
+from typing import Any, Dict, List, Tuple
+
+from ..types import AchievementDef, AchievementError
 
 logger = logging.getLogger(__name__)
 
@@ -35,12 +38,12 @@ ACHIEVEMENT_GROUPS = {
 class AchievementProcessor:
     """Processes user scores and returns earned achievements"""
     
-    def __init__(self):
-        self.achievements = []
-        self.achievement_songs = self._load_achievement_songs()
+    def __init__(self) -> None:
+        self.achievements: List[AchievementDef] = []
+        self.achievement_songs: Dict[str, Any] = self._load_achievement_songs()
         self._initialize_achievements()
-        
-    def _load_achievement_songs(self):
+
+    def _load_achievement_songs(self) -> Dict[str, Any]:
         """Load achievement song definitions from JSON file"""
         try:
             file_path = Path(__file__).parent.parent / "data" / "achievement_songs.json"
@@ -49,18 +52,18 @@ class AchievementProcessor:
         except Exception as e:
             logger.error(f"Error loading achievement songs: {e}")
             return {}
-        
-    def _initialize_achievements(self):
+
+    def _initialize_achievements(self) -> None:
         """Initialize all possible achievements"""
         self.achievements = []
-        
+
         self._add_general_achievements()
-        
+
         self._add_song_category_achievements("hands")
         self._add_song_category_achievements("blend")
         self._add_song_category_achievements("kicks")
-    
-    def _add_general_achievements(self):
+
+    def _add_general_achievements(self) -> None:
         """Add general category achievements"""
         
         self.achievements.append({
@@ -226,7 +229,7 @@ class AchievementProcessor:
                     "check_function": self._check_discography,
                 })
     
-    def _add_song_category_achievements(self, category):
+    def _add_song_category_achievements(self, category: str) -> None:
         """Add achievements for a specific category from the JSON file"""
         if category not in self.achievement_songs:
             return
@@ -246,7 +249,16 @@ class AchievementProcessor:
                     level_key=level_key
                 )
     
-    def _add_tiered_song_achievement(self, achievement_id, name, base_description, song_md5, category, level=0, level_key="level1"):
+    def _add_tiered_song_achievement(
+        self,
+        achievement_id: str,
+        name: str,
+        base_description: str,
+        song_md5: Any,
+        category: str,
+        level: int = 0,
+        level_key: str = "level1",
+    ) -> None:
         """Helper to add a tiered song achievement (I, II, III, IV)"""
         for rank in range(1, 5):
             # For ranks 1-3, use percent thresholds
@@ -272,14 +284,14 @@ class AchievementProcessor:
                 "requires_fc": rank == 4
             })
     
-    def _check_first_score(self, user_data):
+    def _check_first_score(self, user_data: Any) -> bool:
         """Check if user has at least one score"""
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
             
         return len(user_data.get("scores", [])) > 0
     
-    def _check_total_score(self, user_data, achievement_def):
+    def _check_total_score(self, user_data: Any, achievement_def: AchievementDef) -> bool:
         """Check if user's total score meets threshold"""
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
@@ -287,7 +299,7 @@ class AchievementProcessor:
         total_score = user_data.get("stats", {}).get("total_score", 0)
         return total_score >= achievement_def["threshold"]
     
-    def _check_first_fc(self, user_data):
+    def _check_first_fc(self, user_data: Any) -> bool:
         """Check if user has at least one FC"""
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
@@ -298,7 +310,7 @@ class AchievementProcessor:
                 return True
         return False
     
-    def _check_total_fcs(self, user_data, achievement_def):
+    def _check_total_fcs(self, user_data: Any, achievement_def: AchievementDef) -> bool:
         """Check if user's FC count meets threshold"""
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
@@ -306,7 +318,7 @@ class AchievementProcessor:
         total_fcs = user_data.get("stats", {}).get("total_fcs", 0)
         return total_fcs >= achievement_def["threshold"]
     
-    def _check_charter_count(self, user_data, achievement_def):
+    def _check_charter_count(self, user_data: Any, achievement_def: AchievementDef) -> bool:
         """Check if user has played enough charts from specified charters using charter_refs"""
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
@@ -331,7 +343,7 @@ class AchievementProcessor:
         
         return count >= threshold
     
-    def _check_remix_count(self, user_data, achievement_def):
+    def _check_remix_count(self, user_data: Any, achievement_def: AchievementDef) -> bool:
         """Check if user has played enough remix charts"""
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
@@ -348,7 +360,7 @@ class AchievementProcessor:
         
         return count >= threshold
     
-    def _check_recharts_count(self, user_data, achievement_def):
+    def _check_recharts_count(self, user_data: Any, achievement_def: AchievementDef) -> bool:
         """Check if user has played enough recharts from official games"""
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
@@ -376,7 +388,7 @@ class AchievementProcessor:
         
         return count >= threshold
     
-    def _check_funny_number(self, user_data, achievement_def):
+    def _check_funny_number(self, user_data: Any, achievement_def: AchievementDef) -> bool:
         """Check if user has a score of exactly 69,420"""
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
@@ -388,7 +400,7 @@ class AchievementProcessor:
                 return True
         return False
     
-    def _check_album(self, user_data):
+    def _check_album(self, user_data: Any) -> bool:
         """Check if user has played an album chart"""
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
@@ -401,7 +413,7 @@ class AchievementProcessor:
         
         return False
     
-    def _check_discography(self, user_data):
+    def _check_discography(self, user_data: Any) -> bool:
         """Check if user has played a discography chart"""
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
@@ -414,7 +426,7 @@ class AchievementProcessor:
         
         return False
     
-    def _check_song_achievement(self, user_data, achievement_def):
+    def _check_song_achievement(self, user_data: Any, achievement_def: AchievementDef) -> bool:
         """Check if user has achieved a specific threshold on a song"""
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
@@ -441,7 +453,9 @@ class AchievementProcessor:
             
         return False
     
-    def process_achievements(self, user_data):
+    def process_achievements(
+        self, user_data: Any
+    ) -> Tuple[Dict[str, str], List[AchievementError]]:
         """
         Process user data and return list of achieved achievements and any errors encountered.
 

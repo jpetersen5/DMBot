@@ -1,6 +1,7 @@
 import requests
 from flask import Blueprint, jsonify, request
 from ..config import Config
+from ..types import FlaskResponse
 from base64 import b64encode
 
 bp = Blueprint("spotify", __name__)
@@ -9,7 +10,7 @@ CLIENT_ID = Config.SPOTIFY_CLIENT_ID
 CLIENT_SECRET = Config.SPOTIFY_CLIENT_SECRET
 
 @bp.route("/api/spotify/get_access_token", methods=["GET"])
-def get_spotify_access_token():
+def get_spotify_access_token() -> FlaskResponse:
     auth_header = b64encode(f"{CLIENT_ID}:{CLIENT_SECRET}".encode()).decode()
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -20,7 +21,7 @@ def get_spotify_access_token():
     return jsonify({"access_token": response.json().get("access_token")})
 
 @bp.route("/api/spotify/fetch_song_data", methods=["GET"])
-def fetch_song_data():
+def fetch_song_data() -> FlaskResponse:
     artist = request.args.get("artist", "")
     title = request.args.get("title", "")
     album = request.args.get("album", "")
