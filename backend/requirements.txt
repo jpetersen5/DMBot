@@ -6,7 +6,7 @@ Flask-SocketIO==5.6.1
 Flask-redis==0.4.0
 python-dotenv==1.2.2
 gunicorn==26.0.0
-psycopg[binary]>=3.0.0
+psycopg[binary]>=3.3.4
 supabase==2.31.0
 requests==2.34.2
 PyJWT==2.13.0
