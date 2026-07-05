@@ -128,6 +128,7 @@ const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) =>
 
     getAlbumArt();
     
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [extraData.artist, song.name]);
 
   return (

@@ -74,12 +74,13 @@ export const SongTableCell: React.FC<SongTableCellProps> = ({ className, content
       }
       cellContent = content;
       break;
-    default:
+    default: {
       const processedContent = typeof content === "string"
         ? processColorTags(content)
         : String(content);
       cellContent = <span dangerouslySetInnerHTML={renderSafeHTML(processedContent)} />;
       break;
+    }
   }
 
   return <td className={cellClassName}>{cellContent}</td>;

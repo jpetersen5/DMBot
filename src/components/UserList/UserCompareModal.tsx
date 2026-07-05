@@ -78,12 +78,14 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
         setLeftUser(user);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
   useEffect(() => {
     if (leftUser && rightUser) {
       fetchComparisonResults();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leftUser, rightUser]);
 
   const fetchComparisonResults = async () => {

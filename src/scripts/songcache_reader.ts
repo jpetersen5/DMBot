@@ -156,10 +156,13 @@ function findMd5ForPath(fileContent: Buffer, path: string, skipMd5s: Set<string>
     const pathBytes = Buffer.from(path.toLowerCase());
     let start = 0;
     let md5Hash: string | null = null;
-
-    while (true) {
+    let hasMore = true;
+    while (hasMore) {
         const index = fileContent.indexOf(pathBytes, start);
-        if (index === -1) break;
+        if (index === -1) {
+            hasMore = false;
+            break;
+        }
 
         const nextPathStart = fileContent.indexOf(Buffer.from("d:\\songs"), index + pathBytes.length);
         const endIndex = nextPathStart === -1 ? fileContent.length : nextPathStart;

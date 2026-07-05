@@ -93,12 +93,12 @@ export function useTableData<T>({
     }
   };
 
-  const getValueByPath = (obj: any, path: string): any => {
+  const getValueByPath = (obj: unknown, path: string): unknown => {
     if (!obj || !path) return undefined;
     
     const keys = path.split(".");
-    return keys.reduce(
-      (value, key) => (value && typeof value === "object" ? value[key] : undefined),
+    return keys.reduce<unknown>(
+      (value, key) => (value && typeof value === "object" ? (value as Record<string, unknown>)[key] : undefined),
       obj
     );
   };
@@ -133,7 +133,7 @@ export function useTableData<T>({
         } else {
           if (filters.length === 0) {
             return searchTermsLower.every(term => 
-              Object.entries(item as any).some(([_, value]) => 
+              Object.values(item as Record<string, unknown>).some((value) => 
                 value != null && value.toString().toLowerCase().includes(term)
               )
             );

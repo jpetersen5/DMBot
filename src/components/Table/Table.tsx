@@ -37,19 +37,20 @@ export interface TableProps<T> {
   };
 }
 
-interface TableHeaderProps {
-  column: Column<any>;
+interface TableHeaderProps<T> {
+  column: Column<T>;
   onClick: () => void;
   isSorted: boolean;
   sortOrder: "asc" | "desc";
 }
 
-const TableHeader: React.FC<TableHeaderProps> = ({ 
+function TableHeader<T>({ 
   column, 
   onClick, 
   isSorted, 
   sortOrder 
-}) => (
+}: TableHeaderProps<T>) {
+  return (
   <th 
     onClick={column.sortable !== false ? onClick : undefined} 
     className={`${column.className || ""} ${column.sortable !== false ? "sortable" : ""}`}
@@ -62,7 +63,8 @@ const TableHeader: React.FC<TableHeaderProps> = ({
       )}
     </div>
   </th>
-);
+  );
+}
 
 function Table<T>({
   data,
@@ -109,11 +111,11 @@ function Table<T>({
   const sortedData = useMemo(() => {
     if (!data) return [];
 
-    const getValueByKey = (item: T, key: string): any => {
+    const getValueByKey = (item: T, key: string): unknown => {
       const keys = key.split(".");
-      return keys.reduce(
-        (obj, key) => (obj && typeof obj === "object" ? obj[key as keyof typeof obj] : undefined),
-        item as any
+      return keys.reduce<unknown>(
+        (obj, key) => (obj && typeof obj === "object" ? (obj as Record<string, unknown>)[key] : undefined),
+        item
       );
     };
 
@@ -167,10 +169,11 @@ function Table<T>({
     
     const startIndex = (pagination.page - 1) * pagination.itemsPerPage;
     return sortedData.slice(startIndex, startIndex + pagination.itemsPerPage);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sortedData, pagination?.page, pagination?.itemsPerPage]);
 
   const getRowClassName = (item: T): string => {
-    let classes = [];
+    const classes: string[] = [];
     
     if (typeof rowClassName === "function") {
       classes.push(rowClassName(item));
@@ -225,7 +228,7 @@ function Table<T>({
                     >
                       {column.renderCell 
                         ? column.renderCell(item)
-                        : getValueByKey(item, column.key)}
+                        : getValueByKey(item, column.key) as React.ReactNode}
                     </td>
                   ))}
                 </tr>
@@ -240,10 +243,10 @@ function Table<T>({
 
 export default Table;
 
-function getValueByKey<T>(obj: T, key: string): any {
+function getValueByKey<T>(obj: T, key: string): unknown {
   const keys = key.split(".");
-  return keys.reduce(
-    (result, key) => (result && typeof result === "object" ? result[key as keyof typeof result] : undefined),
-    obj as any
+  return keys.reduce<unknown>(
+    (result, key) => (result && typeof result === "object" ? (result as Record<string, unknown>)[key] : undefined),
+    obj
   );
-} 
+}

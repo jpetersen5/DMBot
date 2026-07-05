@@ -1,8 +1,8 @@
 // src/assets/icons/index.ts
-const importAll = async (r: Record<string, () => Promise<any>>) => {
-    let images: { [key: string]: string } = {};
+const importAll = async (r: Record<string, () => Promise<unknown>>) => {
+    const images: { [key: string]: string } = {};
     for (const path in r) {
-        const module = await r[path]();
+        const module = await r[path]() as Record<string, string>;
         const basename = path.replace(/^.*[\\/]/, "").replace(/\.[^/.]+$/, "");
         images[basename] = module.default;
     }

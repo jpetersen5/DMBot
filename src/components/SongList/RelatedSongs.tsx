@@ -59,6 +59,7 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
       fetchRelatedSongs();
       updateURL();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSong, relationType]);
 
   useEffect(() => {
@@ -125,7 +126,7 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
   };
 
   const processedData = useMemo(() => {
-    let sortedSongs = relatedSongs[`${relationType}_songs`];
+    const sortedSongs = relatedSongs[`${relationType}_songs`];
     if (!sortedSongs || sortedSongs.length === 0) return [];
     
     return [...sortedSongs];

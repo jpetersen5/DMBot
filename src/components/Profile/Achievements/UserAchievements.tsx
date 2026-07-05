@@ -51,12 +51,14 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
   
   useEffect(() => {
     fetchAchievements();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   useEffect(() => {
     if (achievements.length > 0) {
       calculateCounts();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [achievements]);
 
   useEffect(() => {
