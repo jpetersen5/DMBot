@@ -10,7 +10,7 @@ import os
 
 cors = CORS()
 session = Session()
-socketio = SocketIO(async_mode="eventlet")
+socketio = SocketIO(async_mode="gevent")
 redis = FlaskRedis()
 limiter = Limiter(
     get_remote_address,

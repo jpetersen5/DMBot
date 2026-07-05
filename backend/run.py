@@ -1,10 +1,10 @@
-import eventlet
-import eventlet.wsgi
-eventlet.monkey_patch()
-
 from app import create_app
+from gevent import monkey
+from gevent.pywsgi import WSGIServer
+from geventwebsocket.handler import WebSocketHandler
 
+monkey.patch_all()
 app = create_app()
 
 if __name__ == "__main__":
-    eventlet.wsgi.server(eventlet.listen(("", 5000)), app)
+    WSGIServer(("", 5000), app, handler_class=WebSocketHandler).serve_forever()
