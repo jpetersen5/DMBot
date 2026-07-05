@@ -1,9 +1,10 @@
-from app import create_app
 from gevent import monkey
+monkey.patch_all()
+
+from app import create_app
 from gevent.pywsgi import WSGIServer
 from geventwebsocket.handler import WebSocketHandler
 
-monkey.patch_all()
 app = create_app()
 
 if __name__ == "__main__":
