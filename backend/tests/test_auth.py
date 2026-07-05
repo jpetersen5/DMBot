@@ -41,5 +41,5 @@ def test_expired_token_rejected(client, jwt_secret):
 
 def test_wrong_secret_rejected(client):
     r = client.get("/protected",
-                   headers={"Authorization": f"Bearer {make_token('other-secret')}"})
+                   headers={"Authorization": f"Bearer {make_token('other-secret-at-least-32-bytes-long')}"})
     assert r.status_code == 401

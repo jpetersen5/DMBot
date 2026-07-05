@@ -2,7 +2,7 @@ import os
 import pytest
 
 os.environ.setdefault("SECRET_KEY", "test")
-os.environ.setdefault("JWT_SECRET", "test-jwt-secret")
+os.environ.setdefault("JWT_SECRET", "test-jwt-secret-which-must-be-at-least-32-bytes")
 os.environ.setdefault("SUPABASE_URL", "http://localhost")
 os.environ.setdefault("SUPABASE_SERVICE_ROLE_KEY", "test")
 os.environ.setdefault("DISCORD_CLIENT_ID", "test")
