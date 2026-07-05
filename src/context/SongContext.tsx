@@ -2,7 +2,7 @@
 import React, { createContext, useState, useContext, ReactNode } from "react";
 import { Song } from "../utils/song";
 
-interface SongCacheItem {
+export interface SongCacheItem {
   songs: Song[];
   total: number;
   timestamp: number;

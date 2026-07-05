@@ -24,33 +24,18 @@ const ProfilePage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [charters, setCharters] = useState<Charter[]>([]);
   const [selectedCharterId, setSelectedCharterId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<TabType>("scores");
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    if (location.pathname.includes("/scores")) {
-      setActiveTab("scores");
-    }
-    else if (location.pathname.includes("/achievements")) {
-      setActiveTab("achievements");
-    }
-    else if (location.pathname.includes("/charter-stats")) {
-      setActiveTab("charter-stats");
-    }
-    else if (location.pathname.includes("/charter-songs")) {
-      setActiveTab("charter-songs");
-    }
-    else if (location.pathname.includes("/user/") && location.pathname.split("/").length > 3 && !location.pathname.includes("/charter-songs/")) {
-      setActiveTab("scores");
-    }
-  }, [location.pathname]);
+  const activeTab: TabType = location.pathname.includes("/achievements") ? "achievements"
+    : location.pathname.includes("/charter-stats") ? "charter-stats"
+    : location.pathname.includes("/charter-songs") ? "charter-songs"
+    : "scores";
 
   const handleTabChange = (tab: TabType) => {
     if (location.pathname.includes("/charter-songs/")) {
       navigate(`/user/${userId}`);
     }
-    setActiveTab(tab);
     navigate(`/user/${userId}/${tab}`);
   };
 

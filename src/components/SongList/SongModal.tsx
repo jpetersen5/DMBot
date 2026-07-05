@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Modal } from "react-bootstrap";
 import { API_URL } from "../../App";
@@ -20,25 +20,27 @@ interface SongModalProps {
   nextSongIds: string[];
 }
 
-const SongModal: React.FC<SongModalProps> = ({ 
-  show, 
-  onHide, 
-  initialSong, 
-  loading, 
-  previousSongIds, 
-  nextSongIds 
+const SongModal: React.FC<SongModalProps> = ({
+  show,
+  onHide,
+  initialSong,
+  loading,
+  previousSongIds,
+  nextSongIds
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [currentSong, setCurrentSong] = useState<Song | null>(null);
+  const [currentSong, setCurrentSong] = useState<Song | null>(initialSong);
   const [previousSongs, setPreviousSongs] = useState<Song[]>([]);
+  const [prevSync, setPrevSync] = useState({ song: initialSong, search: location.search });
 
-  useEffect(() => {
+  if (prevSync.song !== initialSong || prevSync.search !== location.search) {
+    setPrevSync({ song: initialSong, search: location.search });
     if (initialSong) {
       setCurrentSong(initialSong);
     }
-  }, [initialSong, location.search]);
+  }
 
   if (loading) {
     return (
@@ -60,44 +62,44 @@ const SongModal: React.FC<SongModalProps> = ({
 
   const navigateToSong = (songId: number | string) => {
     const params = new URLSearchParams(location.search);
-    
+
     let basePath = location.pathname.split("/").slice(0, -1).join("/");
-    
-    if (location.pathname.includes("/user/") && 
-        (location.pathname.includes("/scores") || 
-         location.pathname.includes("/achievements") || 
-         location.pathname.includes("/charter-stats") || 
-         location.pathname.includes("/charter-songs"))) {
-      
+
+    if (location.pathname.includes("/user/") &&
+      (location.pathname.includes("/scores") ||
+        location.pathname.includes("/achievements") ||
+        location.pathname.includes("/charter-stats") ||
+        location.pathname.includes("/charter-songs"))) {
+
       if (location.pathname.includes("/scores/")) {
         const userId = location.pathname.split("/")[2];
         navigate(`/user/${userId}/scores/${songId}?${params.toString()}`);
         return;
       }
-      
+
       if (location.pathname.includes("/achievements/")) {
         const userId = location.pathname.split("/")[2];
         navigate(`/user/${userId}/achievements/${songId}?${params.toString()}`);
         return;
       }
-      
+
       if (location.pathname.includes("/charter-songs")) {
         const userId = location.pathname.split("/")[2];
         navigate(`/user/${userId}/charter-songs/${songId}?${params.toString()}`);
         return;
       }
-      
+
       const userId = location.pathname.split("/")[2];
       navigate(`/user/${userId}/${songId}?${params.toString()}`);
       return;
     }
-    
+
     if (location.pathname.includes("/charter/")) {
       basePath = location.pathname.split("/").slice(0, -1).join("/");
       navigate(`${basePath}/${songId}?${params.toString()}`);
       return;
     }
-    
+
     // Default case: regular song navigation
     navigate(`${basePath}/${songId}?${params.toString()}`);
   }

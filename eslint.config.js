@@ -28,14 +28,6 @@ export default [
         "warn",
         { allowConstantExport: true },
       ],
-      // TODO: eslint-plugin-react-hooks v7 added these rules and they flag ~52
-      // pre-existing patterns across the codebase (setState-in-effect, direct
-      // state/prop mutation, ref access, missing deps). Disabled for now, will
-      // re-enable and fix in a follow-up.
-      "react-hooks/immutability": "off",
-      "react-hooks/set-state-in-effect": "off",
-      "react-hooks/exhaustive-deps": "off",
-      "react-hooks/refs": "off",
     },
   },
 ];

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import SongModal from "../../SongList/SongModal";
 import UnknownSongModal from "./UnknownSongModal";
@@ -9,12 +9,12 @@ import {
   UnknownScore,
   formatRank
 } from "../../../utils/score";
-import { Song } from "../../../utils/song";
 import "./UserScores.scss";
 
 import { Table, Column } from "../../Table";
 import { TableToolbar } from "../../Table/TableControls";
 import { useTableData } from "../../../hooks/useTableData";
+import { useSongModal } from "../../../hooks/useSongModal";
 import { cellRenderers } from "../../Table/TableCells";
 
 interface UserScoresProps {
@@ -37,20 +37,19 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   const [showUnknown, setShowUnknown] = useState<boolean>(false);
   
   const [selectedUnknownScore, setSelectedUnknownScore] = useState<UnknownScore | null>(null);
-  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
-  const [modalLoading, setModalLoading] = useState<boolean>(false);
+  const { selectedSong, setSelectedSong, modalLoading } = useSongModal(songId);
 
   const {
     page,
-    setPage: originalSetPage,
+    setPage,
     inputPage,
-    setInputPage: originalSetInputPage,
+    setInputPage,
     perPage,
-    setPerPage: originalSetPerPage,
+    setPerPage,
     search,
-    setSearch: originalSetSearch,
+    setSearch,
     filters,
-    setFilters: originalSetFilters,
+    setFilters,
     filteredData,
     totalPages
   } = useTableData<Score | UnknownScore>({
@@ -66,32 +65,23 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
     })
   });
 
-  const setPage = useCallback((value: React.SetStateAction<number>) => {
-    const newPage = typeof value === "function" ? value(page) : value;
-    originalSetPage(newPage);
-  }, [originalSetPage, page]);
-
-  const setInputPage = useCallback((value: React.SetStateAction<string>) => {
-    const newInputPage = typeof value === "function" ? value(inputPage) : value;
-    originalSetInputPage(newInputPage);
-  }, [originalSetInputPage, inputPage]);
-
-  const setPerPage = useCallback((value: React.SetStateAction<number>) => {
-    const newPerPage = typeof value === "function" ? value(perPage) : value;
-    originalSetPerPage(newPerPage);
-  }, [originalSetPerPage, perPage]);
-
-  const setSearch = useCallback((value: React.SetStateAction<string>) => {
-    const newSearch = typeof value === "function" ? value(search) : value;
-    originalSetSearch(newSearch);
-  }, [originalSetSearch, search]);
-
-  const setFilters = useCallback((value: React.SetStateAction<string[]>) => {
-    const newFilters = typeof value === "function" ? value(filters) : value;
-    originalSetFilters(newFilters);
-  }, [originalSetFilters, filters]);
-
   useEffect(() => {
+    const fetchScores = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/api/user/${userId}/scores`);
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data: Scores = await response.json();
+        setScores(data);
+      } catch (error) {
+        console.error("Error fetching scores:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchScores();
     const handleScoresRefresh = () => {
       fetchScores();
@@ -101,56 +91,12 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
     return () => {
       window.removeEventListener("scoresNeedRefresh", handleScoresRefresh);
     };
-   
   }, [userId]);
-
-  useEffect(() => {
-    setPage(1);
-    setInputPage("1");
-   
-  }, [showUnknown]);
-
-  async function fetchScores() {
-    setLoading(true);
-    try {
-      const response = await fetch(`${API_URL}/api/user/${userId}/scores`);
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      const data: Scores = await response.json();
-      setScores(data);
-    } catch (error) {
-      console.error("Error fetching scores:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   const handleToggleUnknown = () => {
     setShowUnknown(prev => !prev);
-  };
-
-  useEffect(() => {
-    if (songId) {
-      fetchSong(songId);
-    } else {
-      setSelectedSong(null);
-    }
-  }, [songId]);
-
-  const fetchSong = async (id: string) => {
-    setModalLoading(true);
-    try {
-      const response = await fetch(`${API_URL}/api/songs/${id}`);
-      if (!response.ok) throw new Error("Failed to fetch song");
-      const song = await response.json();
-      setSelectedSong(song);
-    } catch (error) {
-      console.error("Error fetching song:", error);
-      setSelectedSong(null);
-    } finally {
-      setModalLoading(false);
-    }
+    setPage(1);
+    setInputPage("1");
   };
 
   const handleModalClose = () => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { API_URL } from "../../App";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import CharterName from "./CharterName";
@@ -127,9 +127,7 @@ const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) =>
     }
 
     getAlbumArt();
-    
-   
-  }, [extraData.artist, song.name]);
+  }, [song.artist, song.name, song.album, extraData.icon]);
 
   return (
     <div className="song-box">
@@ -367,30 +365,50 @@ interface SongDataGenresProps {
 }
 
 const SongDataGenres: React.FC<SongDataGenresProps> = ({ genres }) => {
-  const [scrollPosition, setScrollPosition] = useState(0);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
   const genresRef = useRef<HTMLDivElement>(null);
 
+  useLayoutEffect(() => {
+    const el = genresRef.current;
+    if (!el) return;
+
+    const updateScrollButtons = () => {
+      setCanScrollLeft(el.scrollLeft > 0);
+      setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth);
+    };
+
+    updateScrollButtons();
+    el.addEventListener("scroll", updateScrollButtons);
+    const observer = new ResizeObserver(updateScrollButtons);
+    observer.observe(el);
+    return () => {
+      el.removeEventListener("scroll", updateScrollButtons);
+      observer.disconnect();
+    };
+  }, []);
+
   const scroll = (direction: "left" | "right") => {
-    if (genresRef.current) {
+    const el = genresRef.current;
+    if (el) {
       const scrollAmount = 100;
-      const newPosition = direction === "left" 
-        ? scrollPosition - scrollAmount 
-        : scrollPosition + scrollAmount;
-      
-      genresRef.current.scrollTo({
+      const newPosition = direction === "left"
+        ? el.scrollLeft - scrollAmount
+        : el.scrollLeft + scrollAmount;
+
+      el.scrollTo({
         left: newPosition,
         behavior: "smooth"
       });
-      setScrollPosition(newPosition);
     }
   };
 
   return (
     <div className="spotify-genres-container">
-      <button 
-        className="scroll-button left" 
+      <button
+        className="scroll-button left"
         onClick={() => scroll("left")}
-        style={{ visibility: scrollPosition > 0 ? "visible" : "hidden" }}
+        style={{ visibility: canScrollLeft ? "visible" : "hidden" }}
       >
         <img src={ChevronLeft} />
       </button>
@@ -399,10 +417,10 @@ const SongDataGenres: React.FC<SongDataGenresProps> = ({ genres }) => {
           <span key={index} className="genre-tag">{genre}</span>
         ))}
       </div>
-      <button 
-        className="scroll-button right" 
+      <button
+        className="scroll-button right"
         onClick={() => scroll("right")}
-        style={{ visibility: scrollPosition < (genresRef.current?.scrollWidth || 0) - (genresRef.current?.clientWidth || 0) ? "visible" : "hidden" }}
+        style={{ visibility: canScrollRight ? "visible" : "hidden" }}
       >
         <img src={ChevronRight} />
       </button>

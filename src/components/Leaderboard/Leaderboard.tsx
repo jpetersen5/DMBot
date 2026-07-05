@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../../App";
 import { useAuth } from "../../context/AuthContext";
@@ -34,11 +34,11 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
   
   const {
     page,
-    setPage: originalSetPage,
+    setPage,
     inputPage,
-    setInputPage: originalSetInputPage,
+    setInputPage,
     perPage,
-    setPerPage: originalSetPerPage,
+    setPerPage,
     filteredData,
     totalPages
   } = useTableData<LeaderboardEntry>({
@@ -48,41 +48,24 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
     defaultPerPage: 50
   });
 
-  const setPage = useCallback((value: React.SetStateAction<number>) => {
-    const newPage = typeof value === "function" ? value(page) : value;
-    originalSetPage(newPage);
-  }, [originalSetPage, page]);
-
-  const setInputPage = useCallback((value: React.SetStateAction<string>) => {
-    const newInputPage = typeof value === "function" ? value(inputPage) : value;
-    originalSetInputPage(newInputPage);
-  }, [originalSetInputPage, inputPage]);
-
-  const setPerPage = useCallback((value: React.SetStateAction<number>) => {
-    const newPerPage = typeof value === "function" ? value(perPage) : value;
-    originalSetPerPage(newPerPage);
-  }, [originalSetPerPage, perPage]);
-
   useEffect(() => {
-    fetchLeaderboard();
-   
-  }, [songId]);
-
-  async function fetchLeaderboard() {
-    setLoading(true);
-    try {
-      const response = await fetch(`${API_URL}/api/leaderboard/${songId}`);
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
+    async function fetchLeaderboard() {
+      setLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/api/leaderboard/${songId}`);
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const { leaderboard } = await response.json();
+        setEntries(leaderboard ? leaderboard : []);
+      } catch (error) {
+        console.error("Error fetching leaderboard:", error);
+      } finally {
+        setLoading(false);
       }
-      const { leaderboard } = await response.json();
-      setEntries(leaderboard ? leaderboard : []);
-    } catch (error) {
-      console.error("Error fetching leaderboard:", error);
-    } finally {
-      setLoading(false);
     }
-  }
+    fetchLeaderboard();
+  }, [songId]);
 
   const handleRowClick = (entry: LeaderboardEntry) => {
     navigate(`/user/${entry.user_id}`);

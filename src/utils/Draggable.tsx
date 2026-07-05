@@ -44,30 +44,24 @@ const Draggable: React.FC<DraggableProps> = ({ children, handleSelector }) => {
     }
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging) {
+  useEffect(() => {
+    const currentDragRef = dragRef.current;
+
+    const handleMouseMove = (e: MouseEvent) => {
       const newX = e.clientX - dragStartRef.current.x;
       const newY = e.clientY - dragStartRef.current.y;
       setPosition({ x: newX, y: newY });
-    }
-  };
+    };
 
-  const handleMouseUp = () => {
-    if (isDragging) {
+    const handleMouseUp = () => {
       setIsDragging(false);
-    }
-  };
-
-  useEffect(() => {
-    const currentDragRef = dragRef.current;
+    };
 
     if (isDragging) {
       window.addEventListener("mousemove", handleMouseMove);
       window.addEventListener("mouseup", handleMouseUp);
       currentDragRef?.classList.add("is-dragging");
     } else {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
       currentDragRef?.classList.remove("is-dragging");
     }
     return () => {
@@ -75,7 +69,6 @@ const Draggable: React.FC<DraggableProps> = ({ children, handleSelector }) => {
       window.removeEventListener("mouseup", handleMouseUp);
       currentDragRef?.classList.remove("is-dragging");
     };
-   
   }, [isDragging]);
 
   return (

@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useEffectEvent, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Nav } from "react-bootstrap";
 import { API_URL } from "../../App";
-import { useSongCache } from "../../context/SongContext";
+import { useSongCache, SongCacheItem } from "../../context/SongContext";
 import { Song, msToTime } from "../../utils/song";
 import "./RelatedSongs.scss";
 
@@ -27,6 +27,23 @@ interface RelatedSongsProps {
   handleRelatedSongClick: (song: Song) => void;
 }
 
+const getCacheKey = (song: Song, type: RelatedSongsType) => {
+  if (type === RelatedSongsType.charter) {
+    const charterRefs = song.charter_refs ?? ["Unknown Author"];
+    return `related_charter_${charterRefs.join(",")}`;
+  }
+  if (type === RelatedSongsType.album) {
+    return `related_album_${song.album || "Unknown Album"}`;
+  }
+  if (type === RelatedSongsType.artist) {
+    return `related_artist_${song.artist || "Unknown Artist"}`;
+  }
+  if (type === RelatedSongsType.genre) {
+    return `related_genre_${song.genre || "Unknown Genre"}`;
+  }
+  return "";
+};
+
 const RelatedSongs: React.FC<RelatedSongsProps> = ({
   currentSong,
   handleRelatedSongClick
@@ -48,81 +65,57 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
   const [inputPage, setInputPage] = useState("1");
   const perPage = 50;
 
-  const updateURL = () => {
+  const updateURL = useEffectEvent(() => {
     if (!currentSong) return;
     const params = new URLSearchParams(location.search);
     navigate(`${location.pathname}?${params.toString()}`, { replace: true });
-  };
+  });
+
+  const readSongCache = useEffectEvent((key: string) => getCachedResult(key));
+  const writeSongCache = useEffectEvent((key: string, item: SongCacheItem) => setCachedResult(key, item));
 
   useEffect(() => {
-    if (currentSong) {
-      fetchRelatedSongs();
-      updateURL();
-    }
-   
+    if (!currentSong) return;
+    const song = currentSong;
+    const type = relationType;
+
+    const fetchRelatedSongs = async () => {
+      setRelatedLoading(true);
+      const cacheKey = getCacheKey(song, type);
+      const cachedResult = readSongCache(cacheKey);
+      if (cachedResult) {
+        setRelatedSongs(prev => ({ ...prev, [`${type}_songs`]: cachedResult.songs }));
+        setRelatedLoading(false);
+        return;
+      }
+
+      try {
+        let url = `${API_URL}/api/related-songs?${type}=`;
+        if (type === "charter") {
+          const charterRefs = song.charter_refs ?? ["Unknown Author"];
+          url += encodeURIComponent(charterRefs.join(","));
+        } else {
+          url += encodeURIComponent(song[type] || `Unknown ${type}`);
+        }
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Failed to fetch related songs");
+        const data: RelatedSongs = await response.json();
+        setRelatedSongs(prev => ({ ...prev, [`${type}_songs`]: data[`${type}_songs`] }));
+        writeSongCache(cacheKey, { songs: data[`${type}_songs`], total: data[`${type}_songs`].length, timestamp: Date.now() });
+      } catch (error) {
+        console.error("Error fetching related songs:", error);
+      } finally {
+        setRelatedLoading(false);
+      }
+    };
+    fetchRelatedSongs();
+    updateURL();
   }, [currentSong, relationType]);
 
-  useEffect(() => {
+  const handleRelationTypeChange = (type: RelatedSongsType) => {
+    setRelationType(type);
     setPage(1);
     setInputPage("1");
-  }, [relationType]);
-
-  const getCacheKey = (type: RelatedSongsType) => {
-    if (currentSong) {
-      if (type === RelatedSongsType.charter) {
-        if (currentSong.charter_refs === null) {
-          currentSong.charter_refs = ["Unknown Author"];
-        }
-        return `related_charter_${currentSong.charter_refs.join(",")}`;
-      }
-      if (type === RelatedSongsType.album) {
-        return `related_album_${currentSong.album || "Unknown Album"}`;
-      }
-      if (type === RelatedSongsType.artist) {
-        return `related_artist_${currentSong.artist || "Unknown Artist"}`;
-      }
-      if (type === RelatedSongsType.genre) {
-        return `related_genre_${currentSong.genre || "Unknown Genre"}`;
-      }
-    }
-    return "";
-  };
-
-  const fetchRelatedSongs = async () => {
-    if (!currentSong) return;
-    setRelatedLoading(true);
-    const cacheKey = getCacheKey(relationType);
-    const cachedResult = getCachedResult(cacheKey);
-    if (cachedResult) {
-      const relatedSongsNew = { ...relatedSongs };
-      relatedSongsNew[`${relationType}_songs`] = cachedResult.songs;
-      setRelatedSongs(relatedSongsNew);
-      setRelatedLoading(false);
-      return;
-    }
-
-    try {
-      let url = `${API_URL}/api/related-songs?${relationType}=`;
-      if (currentSong.charter_refs === null) {
-        currentSong.charter_refs = ["Unknown Author"];
-      }
-      if (relationType === "charter") {
-        url += encodeURIComponent(currentSong.charter_refs.join(","));
-      } else {
-        url += encodeURIComponent(currentSong[relationType] || `Unknown ${relationType}`);
-      }
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("Failed to fetch related songs");
-      const data: RelatedSongs = await response.json();
-      const relatedSongsNew = { ...relatedSongs };
-      relatedSongsNew[`${relationType}_songs`] = data[`${relationType}_songs`];
-      setRelatedSongs(relatedSongsNew);
-      setCachedResult(cacheKey, { songs: data[`${relationType}_songs`], total: data[`${relationType}_songs`].length, timestamp: Date.now() });
-    } catch (error) {
-      console.error("Error fetching related songs:", error);
-    } finally {
-      setRelatedLoading(false);
-    }
   };
 
   const processedData = useMemo(() => {
@@ -243,7 +236,7 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
     <div className="related-songs">
       <h5>Related Songs</h5>
       <div className="related-songs-topbar">
-        <Nav variant="tabs" activeKey={relationType} onSelect={(k) => setRelationType(k as RelatedSongsType)}>
+        <Nav variant="tabs" activeKey={relationType} onSelect={(k) => handleRelationTypeChange(k as RelatedSongsType)}>
           <Nav.Item>
             <Nav.Link eventKey={RelatedSongsType.album}>Album</Nav.Link>
           </Nav.Item>

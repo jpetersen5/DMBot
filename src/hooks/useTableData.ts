@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, Dispatch, SetStateAction } from "react";
 
 export interface UseTableDataOptions<T> {
   data: T[];
@@ -13,23 +13,23 @@ export interface UseTableDataOptions<T> {
 
 export interface UseTableDataReturn<T> {
   page: number;
-  setPage: (page: number) => void;
+  setPage: Dispatch<SetStateAction<number>>;
   inputPage: string;
-  setInputPage: (inputPage: string) => void;
+  setInputPage: Dispatch<SetStateAction<string>>;
   perPage: number;
-  setPerPage: (perPage: number) => void;
+  setPerPage: Dispatch<SetStateAction<number>>;
   sortBy: string;
-  setSortBy: (sortBy: string) => void;
+  setSortBy: Dispatch<SetStateAction<string>>;
   sortOrder: "asc" | "desc";
-  setSortOrder: (sortOrder: "asc" | "desc") => void;
+  setSortOrder: Dispatch<SetStateAction<"asc" | "desc">>;
   secondarySortBy: string | null;
-  setSecondarySortBy: (secondarySortBy: string | null) => void;
+  setSecondarySortBy: Dispatch<SetStateAction<string | null>>;
   secondarySortOrder: "asc" | "desc";
-  setSecondarySortOrder: (secondarySortOrder: "asc" | "desc") => void;
+  setSecondarySortOrder: Dispatch<SetStateAction<"asc" | "desc">>;
   search: string;
-  setSearch: (search: string) => void;
+  setSearch: Dispatch<SetStateAction<string>>;
   filters: string[];
-  setFilters: (filters: string[]) => void;
+  setFilters: Dispatch<SetStateAction<string[]>>;
   totalPages: number;
   filteredData: T[];
   paginatedData: T[];
@@ -61,17 +61,17 @@ export function useTableData<T>({
   const [search, setSearch] = useState<string>(defaultSearch);
   const [filters, setFilters] = useState<string[]>(defaultFilters);
 
-  const handleSearchChange = (newSearch: string) => {
+  const handleSearchChange = useCallback((newSearch: SetStateAction<string>) => {
     setSearch(newSearch);
     setPage(1);
     setInputPage("1");
-  };
+  }, []);
 
-  const handleFiltersChange = (newFilters: string[]) => {
+  const handleFiltersChange = useCallback((newFilters: SetStateAction<string[]>) => {
     setFilters(newFilters);
     setPage(1);
     setInputPage("1");
-  };
+  }, []);
 
   const handleSort = (column: string, withShift = false) => {
     if (!withShift) {
