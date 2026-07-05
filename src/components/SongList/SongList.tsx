@@ -3,11 +3,10 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 
 import { API_URL } from "../../App";
 import {
-  TableControls,
-  Pagination,
   Search,
-  MultiSelectDropdown
-} from "./TableControls";
+  MultiSelectDropdown,
+  TableToolbar
+} from "../Table/TableControls";
 import { TableHeader, SongTableCell } from "../Extras/Tables";
 import SongModal from "./SongModal";
 import LoadingSpinner from "../Loading/LoadingSpinner";
@@ -432,8 +431,7 @@ const SongList: React.FC = () => {
           filters={filters}
           filterOptions={filterOptions}
           setSearch={setSearch}
-          setFilters={setFilters}
-          submitSearch={() => {}}/>
+          setFilters={setFilters}/>
       </div>
       <ScrollableTable>
         {loading && (
@@ -489,13 +487,9 @@ const SongList: React.FC = () => {
       </ScrollableTable>
       {totalPages > 1 && (
         <div className="page-controls">
-          <TableControls perPage={perPage} setPerPage={setPerPage} setPage={setPage} />
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            inputPage={inputPage}
-            setPage={setPage}
-            setInputPage={setInputPage}/>
+          <TableToolbar
+            pagination={{ page, totalPages, inputPage, setPage, setInputPage }}
+            perPage={{ perPage, setPerPage, setPage }}/>
         </div>
       )}
       {(selectedSong || modalLoading) && (
