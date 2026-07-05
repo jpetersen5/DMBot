@@ -1,4 +1,6 @@
 @use "sass:map";
+@use "sass:meta";
+@use "themes" as *;
 
 $sidebar-width: 44px;
 $sidebar-width-expanded: 200px;
@@ -51,7 +53,7 @@ $screen-tablet-max: 1200px;
 }
 
 @mixin theme($key, $color) {
-  @if global-variable-exists(themes) {
+  @if meta.global-variable-exists("themes") {
     @each $theme-name, $theme-map in $themes {
         .theme-#{$theme-name} & {
             #{$key}: map.get($theme-map, $color);
@@ -63,7 +65,7 @@ $screen-tablet-max: 1200px;
 }
 
 @mixin master-theme($key, $color) {
-   @if global-variable-exists(themes) {
+   @if meta.global-variable-exists("themes") {
     @each $theme-name, $theme-map in $themes {
         .theme-#{$theme-name} {
             #{$key}: map.get($theme-map, $color);

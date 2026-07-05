@@ -1,3 +1,6 @@
+@use "../../styles/themes" as *;
+@use "../../styles/mixins" as *;
+
 .table-container {
   flex: 1;
   overflow: auto;

@@ -1,13 +1,13 @@
-@import "../styles/themes";
-@import "../styles/mixins";
+@use "../styles/themes" as *;
+@use "../styles/mixins" as *;
 
-@import "../components/Homepage.scss";
-@import "../components/Auth/Auth.scss";
-@import "../components/Extras/Tables.scss";
-@import "../components/Profile/ProfilePage.scss";
-@import "../components/Sidebar/Sidebar.scss";
-@import "../components/SongList/SongList.scss";
-@import "../components/SongList/SongModal.scss";
+@use "../components/Homepage.scss";
+@use "../components/Auth/Auth.scss";
+@use "../components/Extras/Tables.scss";
+@use "../components/Profile/ProfilePage.scss";
+@use "../components/Sidebar/Sidebar.scss";
+@use "../components/SongList/SongList.scss";
+@use "../components/SongList/SongModal.scss";
 
 .app-container {
   display: flex;

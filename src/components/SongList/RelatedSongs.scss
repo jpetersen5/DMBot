@@ -1,6 +1,6 @@
-@import "../../styles/themes";
-@import "../../styles/mixins";
-@import "../Extras/Tables.scss";
+@use "../../styles/themes" as *;
+@use "../../styles/mixins" as *;
+@use "../Extras/Tables.scss";
 
 .related-songs {
   flex: 1;
