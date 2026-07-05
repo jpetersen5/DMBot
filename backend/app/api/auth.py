@@ -47,6 +47,8 @@ def callback():
     state = request.args.get("state")
     if not state or state != session.get("oauth_state"):
         return jsonify({"error": "Invalid OAuth state"}), 400
+    if not Config.JWT_SECRET:
+        return jsonify({"error": "JWT secret not configured"}), 500
     
     api = Config.DISCORD_API_ENDPOINT
     try:
@@ -101,9 +103,9 @@ def callback():
     except APIError as e:
         logger.error(f"Supabase API error: {str(e)}")
         return jsonify({"error": "Database operation failed"}), 500
-    except Exception as e:
-        logger.error(f"Unexpected error in callback: {str(e)}")
-        return jsonify({"error": "An unexpected error occurred"}), 500
+    except Exception:
+        logger.exception("Unexpected error in callback")
+        raise
 
 @bp.route("/api/auth/logout")
 def logout():
@@ -120,6 +122,8 @@ def logout():
 @token_required
 def refresh_token(user_id):
     """Issue a fresh 7-day token to a caller holding a valid token."""
+    if not Config.JWT_SECRET:
+        return jsonify({"error": "JWT secret not configured"}), 500
     token = jwt.encode({
         "user_id": user_id,
         "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=7)
