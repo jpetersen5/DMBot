@@ -9,6 +9,6 @@ gunicorn==23.0.0
 psycopg[binary]>=3.0.0
 supabase==2.5.1
 requests==2.32.2
-PyJWT==2.8.0
+PyJWT==2.13.0
 eventlet==0.36.1
 redis==5.0.3
