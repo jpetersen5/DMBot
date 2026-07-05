@@ -65,7 +65,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
 
   useEffect(() => {
     fetchLeaderboard();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [songId]);
 
   async function fetchLeaderboard() {

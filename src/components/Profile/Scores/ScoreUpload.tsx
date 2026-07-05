@@ -80,7 +80,7 @@ const ScoreUpload: React.FC = () => {
         }
         setFile(null);
       }
-    } catch (error) {
+    } catch {
       finishUpload("An error occurred while uploading the file");
       if (fileInputRef.current) {
         fileInputRef.current.value = "";

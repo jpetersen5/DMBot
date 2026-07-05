@@ -27,45 +27,46 @@ interface AchievementProviderProps {
 export const AchievementProvider: React.FC<AchievementProviderProps> = ({ children }) => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const { newAchievements, clearAchievement: clearUploadAchievement } = useUploadProgress();
-  
-  React.useEffect(() => {
+
+  const [seenNewAchievements, setSeenNewAchievements] = useState(newAchievements);
+  if (newAchievements !== seenNewAchievements) {
+    setSeenNewAchievements(newAchievements);
     if (newAchievements.length > 0) {
-      const newAchievementsToShow = newAchievements.filter(
-        newAchievement => !achievements.some(a => a.id === newAchievement.id)
-      );
-      
-      if (newAchievementsToShow.length > 0) {
-        setAchievements(prev => [...prev, ...newAchievementsToShow]);
-      }
+      setAchievements(prev => {
+        const toAdd = newAchievements.filter(
+          newAchievement => !prev.some(a => a.id === newAchievement.id)
+        );
+        return toAdd.length > 0 ? [...prev, ...toAdd] : prev;
+      });
     }
-  }, [newAchievements, achievements]);
-  
+  }
+
   const showAchievement = (achievement: Achievement) => {
     if (!achievements.some(a => a.id === achievement.id)) {
       setAchievements(prev => [...prev, achievement]);
     }
   };
-  
+
   const clearAchievement = (achievementId: string) => {
     setAchievements(prev => prev.filter(a => a.id !== achievementId));
     clearUploadAchievement(achievementId);
   };
-  
+
   const clearAllAchievements = () => {
     setAchievements([]);
-    
+
     newAchievements.forEach(achievement => {
       clearUploadAchievement(achievement.id);
     });
   };
-  
+
   const value = {
     showAchievement,
     achievements,
     clearAchievement,
     clearAllAchievements
   };
-  
+
   return (
     <AchievementContext.Provider value={value}>
       {children}

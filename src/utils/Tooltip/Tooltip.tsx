@@ -72,7 +72,7 @@ const Tooltip: React.FC<TooltipProps> = ({ children, text, content, position = "
       const timer = setTimeout(updatePosition, 10);
       return () => clearTimeout(timer);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [isVisible]);
 
   // Create portal for tooltip to avoid parent transform issues

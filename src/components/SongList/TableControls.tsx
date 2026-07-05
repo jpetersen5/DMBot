@@ -105,12 +105,12 @@ export const Pagination: React.FC<PaginationProps> = ({
 
   useEffect(() => {
     setInputPage(page.toString());
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [page]);
 
   useEffect(() => {
     handlePageInputUpdate();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [inputPage]);
 
   return (

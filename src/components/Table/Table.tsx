@@ -169,7 +169,7 @@ function Table<T>({
     
     const startIndex = (pagination.page - 1) * pagination.itemsPerPage;
     return sortedData.slice(startIndex, startIndex + pagination.itemsPerPage);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [sortedData, pagination?.page, pagination?.itemsPerPage]);
 
   const getRowClassName = (item: T): string => {

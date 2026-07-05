@@ -59,7 +59,7 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
       fetchRelatedSongs();
       updateURL();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [currentSong, relationType]);
 
   useEffect(() => {

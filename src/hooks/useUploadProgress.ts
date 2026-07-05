@@ -22,22 +22,21 @@ interface UploadProgressState {
 }
 
 export const useUploadProgress = () => {
-  const [state, setState] = useState<UploadProgressState>({
+  const [state, setState] = useState<UploadProgressState>(() => ({
     isUploading: false,
     isProcessing: false,
     message: "",
     progress: 0,
     completed: false,
-    userId: null,
+    userId: localStorage.getItem("user_id"),
     newAchievements: [],
     achievementErrors: [],
     status: "idle",
-  });
+  }));
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
     const currentUserId = localStorage.getItem("user_id");
-    setState(prev => ({ ...prev, userId: currentUserId }));
 
     const checkInitialStatus = async () => {
       if (currentUserId) {

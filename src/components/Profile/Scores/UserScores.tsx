@@ -101,13 +101,13 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
     return () => {
       window.removeEventListener("scoresNeedRefresh", handleScoresRefresh);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [userId]);
 
   useEffect(() => {
     setPage(1);
     setInputPage("1");
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [showUnknown]);
 
   async function fetchScores() {

@@ -75,7 +75,7 @@ const Draggable: React.FC<DraggableProps> = ({ children, handleSelector }) => {
       window.removeEventListener("mouseup", handleMouseUp);
       currentDragRef?.classList.remove("is-dragging");
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [isDragging]);
 
   return (

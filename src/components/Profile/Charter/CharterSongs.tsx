@@ -70,7 +70,7 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
 
   useEffect(() => {
     fetchSongs();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [charterId, charterSongIds]);
 
   useEffect(() => {

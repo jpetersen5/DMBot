@@ -75,13 +75,7 @@ export interface LeaderboardEntry {
   play_count?: number;
 }
 
-type Difficulty = (typeof difficulties)[number]
-const difficulties = [
-	"expert",
-	"hard",
-	"medium",
-	"easy",
-] as const
+type Difficulty = "expert" | "hard" | "medium" | "easy";
 
 export const SONG_TABLE_HEADERS = {
   name: "Name",

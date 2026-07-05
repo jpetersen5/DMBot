@@ -86,7 +86,7 @@ const SongList: React.FC = () => {
       return;
     }
     fetchSongs();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [location.state]);
 
   useEffect(() => {
@@ -100,12 +100,12 @@ const SongList: React.FC = () => {
     } else if (queryParams.get("right_user")) {
       fetchUser(queryParams.get("right_user") || "").then(user => setRightUser(user));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [location.state, queryParams.get("left_user"), queryParams.get("right_user")]);
 
   useEffect(() => {
     updateURL();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [
     page, 
     perPage, 
@@ -126,7 +126,7 @@ const SongList: React.FC = () => {
     } else {
       setPage(1);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [search, filters, sortBy, sortOrder, secondarySortBy, secondarySortOrder]);
 
   useEffect(() => {
@@ -310,7 +310,7 @@ const SongList: React.FC = () => {
     });
 
     return sortedSongs;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [
     songs, 
     search, 
