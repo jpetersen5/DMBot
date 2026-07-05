@@ -1,10 +1,9 @@
+import json
 import os
 import re
-import jwt
 from datetime import datetime, UTC
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request, current_app, Response
 from typing import List
-from ..config import Config
 from ..services.supabase_service import get_supabase
 from ..utils.helpers import allowed_file, token_required
 from werkzeug.utils import secure_filename
@@ -48,21 +47,26 @@ def get_songs():
         JSON: list of songs
     """
     supabase = get_supabase()
-    logger = current_app.logger
+    batch_size = 1000
 
-    batch_size = 10000
-    offset = 0
-    songs = []
+    def generate():
+        offset = 0
+        first = True
+        yield "["
+        while True:
+            query = supabase.table("songs_new").select("*").order("id").limit(batch_size).offset(offset)
+            result = query.execute()
+            rows = result.data
+            if rows:
+                chunk = json.dumps(rows, separators=(",", ":"))[1:-1]
+                yield chunk if first else "," + chunk
+                first = False
+            if len(rows) < batch_size:
+                break
+            offset += batch_size
+        yield "]"
 
-    while True:
-        query = supabase.table("songs_new").select("*").limit(batch_size).offset(offset)
-        result = query.execute()
-        songs.extend(result.data)
-        if len(result.data) < batch_size:
-            break
-        offset += batch_size
-
-    return jsonify(songs)
+    return Response(generate(), mimetype="application/json")
 
 @bp.route("/api/related-songs", methods=["GET"])
 def get_related_songs():
