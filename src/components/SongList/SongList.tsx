@@ -233,10 +233,7 @@ const SongList: React.FC = () => {
   const rightUserId = rightUser?.id;
 
   useEffect(() => {
-    if (!leftUserId) {
-      setLeftScores(null);
-      return;
-    }
+    if (!leftUserId) return;
     let cancelled = false;
     fetchUserScores(leftUserId).then(scores => {
       if (!cancelled) setLeftScores(scores);
@@ -245,16 +242,16 @@ const SongList: React.FC = () => {
   }, [leftUserId]);
 
   useEffect(() => {
-    if (!rightUserId) {
-      setRightScores(null);
-      return;
-    }
+    if (!rightUserId) return;
     let cancelled = false;
     fetchUserScores(rightUserId).then(scores => {
       if (!cancelled) setRightScores(scores);
     });
     return () => { cancelled = true; };
   }, [rightUserId]);
+
+  const effectiveLeftScores = leftUserId ? leftScores : null;
+  const effectiveRightScores = rightUserId ? rightScores : null;
 
   const filteredAndSortedSongs = useMemo(() => {
     let filteredSongs = songs;
@@ -309,10 +306,10 @@ const SongList: React.FC = () => {
 
     const sortedSongs = filteredSongs.sort((a, b) => {
       if (sortBy === "score_difference") {
-        const leftScoreA = leftScores?.get(a.md5);
-        const rightScoreA = rightScores?.get(a.md5);
-        const leftScoreB = leftScores?.get(b.md5);
-        const rightScoreB = rightScores?.get(b.md5);
+        const leftScoreA = effectiveLeftScores?.get(a.md5);
+        const rightScoreA = effectiveRightScores?.get(a.md5);
+        const leftScoreB = effectiveLeftScores?.get(b.md5);
+        const rightScoreB = effectiveRightScores?.get(b.md5);
         if (leftScoreA == null || rightScoreA == null) {
           return 1;
         } else if (leftScoreB == null || rightScoreB == null) {
@@ -349,8 +346,8 @@ const SongList: React.FC = () => {
     secondarySortOrder,
     selectedInstruments,
     selectedDifficulties,
-    leftScores,
-    rightScores
+    effectiveLeftScores,
+    effectiveRightScores
   ]);
 
   const paginatedSongs = useMemo(() => {
@@ -482,8 +479,8 @@ const SongList: React.FC = () => {
                     onClick={() => handleRowClick(song)}
                     leftUser={leftUser}
                     rightUser={rightUser}
-                    leftScores={leftScores}
-                    rightScores={rightScores}/>
+                    leftScores={effectiveLeftScores}
+                    rightScores={effectiveRightScores}/>
                 ))
               )}
             </tbody>
