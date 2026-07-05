@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, current_app
-from ..services.supabase_service import get_supabase
+from ..services.supabase_service import get_supabase, rows
 from ..utils.helpers import allowed_file, get_process_songs_script
 from ..extensions import socketio, redis
 from datetime import datetime, UTC
@@ -74,7 +74,7 @@ def process_and_save_scores(result, user_id):
     leaderboard_updates = []
 
     logger.info(f"Fetching user data for user {user_id}")
-    user_data = supabase.table("users").select("username, scores, achievements").eq("id", user_id).execute().data
+    user_data = rows(supabase.table("users").select("username, scores, achievements").eq("id", user_id).execute().data)
     username = user_data[0]["username"] if user_data else "Unknown User"
 
     existing_scores = user_data[0].get("scores", []) if user_data else []
@@ -104,7 +104,7 @@ def process_and_save_scores(result, user_id):
         socketio.emit("score_processing_fetching_songs",
                         {"message": f"Fetching user scores for songs {i+1} - {i+len(batch)}"},
                         to=str(user_id))
-        batch_songs_info = supabase.table("songs_new").select("*").in_("md5", batch).execute().data
+        batch_songs_info = rows(supabase.table("songs_new").select("*").in_("md5", batch).execute().data)
         songs_dict.update({song["md5"]: song for song in batch_songs_info})
 
     newly_known_scores = []
@@ -354,7 +354,7 @@ def process_and_save_scores(result, user_id):
     
     user_stats_response = supabase.table("users").select("stats").eq("id", user_id).execute()
     if user_stats_response.data and len(user_stats_response.data) > 0:
-        user_stats = user_stats_response.data[0].get("stats", {})
+        user_stats = rows(user_stats_response.data)[0].get("stats", {})
     else:
         user_stats = {}
 
@@ -468,7 +468,7 @@ def upload_scoredata(user_id):
                 with app.app_context():
                     process_and_save_scores(result, user_id)
             
-            app = current_app._get_current_object()
+            app = current_app._get_current_object()  # type: ignore[attr-defined]
             socketio.start_background_task(run_with_app_context, app, result, user_id)
             
             return jsonify({"message": "Score processing started", "total_songs": len(result["songs"])}), 202
@@ -550,7 +550,7 @@ def upload_songcache(user_id):
         
         try:
             supabase = get_supabase()
-            user_data = supabase.table("users").select("unknown_scores").eq("id", user_id).execute().data
+            user_data = rows(supabase.table("users").select("unknown_scores").eq("id", user_id).execute().data)
             unknown_scores = user_data[0].get("unknown_scores", []) if user_data else []
 
             file_content = file.read()

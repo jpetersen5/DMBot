@@ -2,7 +2,7 @@ import os
 import base64
 import jwt
 from functools import wraps
-from flask import request, jsonify, current_app
+from flask import request, jsonify
 from ..config import Config
 
 def get_process_songs_script():
@@ -42,8 +42,11 @@ def token_required(f):
         parts = auth_header.split(" ")
         if len(parts) != 2 or parts[0] != "Bearer":
             return jsonify({"error": "No token provided"}), 401
+        jwt_secret = Config.JWT_SECRET
+        if not jwt_secret:
+            return jsonify({"error": "Server misconfigured"}), 500
         try:
-            payload = jwt.decode(parts[1], Config.JWT_SECRET, algorithms=["HS256"])
+            payload = jwt.decode(parts[1], jwt_secret, algorithms=["HS256"])
             user_id = payload["user_id"]
         except jwt.ExpiredSignatureError:
             return jsonify({"error": "Token has expired"}), 401

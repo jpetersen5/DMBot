@@ -4,7 +4,7 @@ import re
 from datetime import datetime, UTC
 from flask import Blueprint, jsonify, request, current_app, Response
 from typing import List
-from ..services.supabase_service import get_supabase
+from ..services.supabase_service import get_supabase, rows
 from ..utils.helpers import allowed_file, token_required
 from werkzeug.utils import secure_filename
 
@@ -115,7 +115,7 @@ def get_related_songs():
         charters = charter.split(",")
         charter_query = supabase.table("charters").select("name").in_("name", charters)
         charter_response = charter_query.execute()
-        matching_charters = [charter["name"] for charter in charter_response.data]
+        matching_charters = [charter["name"] for charter in rows(charter_response.data)]
 
         if matching_charters:
             charters_query = supabase.table("songs_new").select("*").overlaps("charter_refs", matching_charters)
@@ -181,7 +181,7 @@ def get_song_extra(md5):
     if not result.data:
         return jsonify({"error": "Song not found"}), 404
 
-    song_data = result.data[0]["song_data"]
+    song_data = rows(result.data)[0]["song_data"]
     return jsonify(song_data)
 
 def strip_color_tags(text: str) -> str:
@@ -362,7 +362,7 @@ def admin_song_action(user_id, song_id):
         return jsonify({"error": "No JSON data provided"}), 400
 
     user_response = supabase.table("users").select("permissions").eq("id", user_id).execute()
-    if not user_response.data or user_response.data[0]["permissions"] != "admin":
+    if not user_response.data or rows(user_response.data)[0]["permissions"] != "admin":
         return jsonify({"error": "Unauthorized"}), 403
 
     action = request.json.get("action")
@@ -374,7 +374,7 @@ def admin_song_action(user_id, song_id):
             song_query = supabase.table("songs_new").select("name").eq("id", song_id).execute()
             if not song_query.data:
                 return jsonify({"error": "Song not found"}), 404
-            current_name = song_query.data[0]["name"]
+            current_name = rows(song_query.data)[0]["name"]
             new_name = current_name.replace(" (Unverified)", "")
             update_response = supabase.table("songs_new").update({"name": new_name}).eq("id", song_id).execute()
             if update_response.data:

@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, current_app
-from ..services.supabase_service import get_supabase
+from ..services.supabase_service import get_supabase, rows
 
 bp = Blueprint("charters", __name__)
 
@@ -45,7 +45,7 @@ def get_all_charters_data():
             "id": str(charter["id"]),
             "name": charter["colorized_name"] or charter["name"],
             "userId": str(charter["user_id"]) if charter["user_id"] else None
-        } for charter in response.data}
+        } for charter in rows(response.data)}
         
         return jsonify(charters_data), 200
     except Exception as e:
@@ -75,7 +75,7 @@ def get_charters_colors():
         query = supabase.table("charters").select("name", "colorized_name").in_("name", names)
         response = query.execute()
         
-        charters_data = {charter["name"]: charter["colorized_name"] or charter["name"] for charter in response.data}
+        charters_data = {charter["name"]: charter["colorized_name"] or charter["name"] for charter in rows(response.data)}
         
         return jsonify(charters_data), 200
     except Exception as e:

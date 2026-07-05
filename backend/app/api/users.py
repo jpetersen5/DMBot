@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, current_app
 import jwt
-from ..services.supabase_service import get_supabase
+from ..services.supabase_service import get_supabase, rows
 from ..config import Config
 from ..utils.helpers import token_required
 
@@ -35,10 +35,10 @@ def get_user_by_id(user_id):
     try:
         response = supabase.table("users").select("*").eq("id", user_id).execute()
         elo_history = supabase.table("elo_history").select("elo, timestamp").eq("user_id", user_id).execute()
-        elo_history_data = sorted(elo_history.data, key=lambda x: x["timestamp"], reverse=False) if elo_history.data else []
+        elo_history_data = sorted(rows(elo_history.data), key=lambda x: x["timestamp"], reverse=False) if elo_history.data else []
 
         if response.data:
-            user = response.data[0]
+            user = rows(response.data)[0]
             return jsonify({
                 "id": str(user["id"]),
                 "username": user["username"],
@@ -63,7 +63,7 @@ def user_has_scores(user_id):
     if not result.data:
         return jsonify({"error": "User not found"}), 404
 
-    has_scores = result.data[0].get("scores") is not None
+    has_scores = rows(result.data)[0].get("scores") is not None
     return jsonify({"has_scores": has_scores})
 
 @bp.route("/api/all-users")
@@ -79,7 +79,7 @@ def get_all_users():
     try:
         result = supabase.table("users").select("id", "username", "avatar", "stats", "elo").execute()
         users = []
-        for user in result.data:
+        for user in rows(result.data):
             users.append({
                 "id": str(user["id"]),
                 "username": user["username"],
@@ -144,7 +144,7 @@ def compare_users():
 def get_user_scores_by_id(user_id):
     supabase = get_supabase()
     response = supabase.table("users").select("scores, unknown_scores").eq("id", user_id).execute()
-    return response.data[0] if response.data else None
+    return rows(response.data)[0] if response.data else None
 
 def compare_user_scores(user1_scores, user2_scores):
     user1_dict = {score["identifier"]: score for score in user1_scores}
@@ -211,11 +211,11 @@ def get_user_by_discord_id(discord_id):
         if not response.data:
             return jsonify({"error": "User not found"}), 404
             
-        user = response.data[0]
-        
+        user = rows(response.data)[0]
+
         # Get user stats and elo history if available
         elo_history = supabase.table("elo_history").select("elo, timestamp").eq("user_id", discord_id).execute()
-        elo_history_data = sorted(elo_history.data, key=lambda x: x["timestamp"], reverse=False) if elo_history.data else []
+        elo_history_data = sorted(rows(elo_history.data), key=lambda x: x["timestamp"], reverse=False) if elo_history.data else []
         
         return jsonify({
             "id": str(user["id"]),
@@ -250,7 +250,7 @@ def get_user_achievements(user_id):
         if not response.data:
             return jsonify({"error": "User not found"}), 404
             
-        user_achievements = response.data[0].get("achievements", {}) or {}
+        user_achievements = rows(response.data)[0].get("achievements", {}) or {}
         
         from ..utils.achievement_processor import AchievementProcessor
         achievement_processor = AchievementProcessor()

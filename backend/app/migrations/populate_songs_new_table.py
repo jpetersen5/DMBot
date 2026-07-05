@@ -127,7 +127,7 @@ import os
 
 load_dotenv()
 
-from app.services.supabase_service import get_supabase
+from app.services.supabase_service import get_supabase, rows
 
 def load_json_data(file_path):
     with open(file_path, "r") as file:
@@ -237,7 +237,7 @@ def populate_songs_new_table():
                 print(f"Warning: Only inserted {len(result.data)} out of {len(batch)} songs in batch")
                 
             # Find the songs that were successfully inserted
-            inserted_md5s = set(item["md5"] for item in result.data) if hasattr(result, "data") else set()
+            inserted_md5s = set(item["md5"] for item in rows(result.data)) if hasattr(result, "data") else set()
             current_batch_original = new_songs[i:i+batch_size]
             
             # Identify successfully inserted songs for songs_extra table

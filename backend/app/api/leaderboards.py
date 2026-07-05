@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from ..services.supabase_service import get_supabase
+from ..services.supabase_service import get_supabase, rows
 
 bp = Blueprint("leaderboard", __name__)
 
@@ -13,7 +13,7 @@ def get_leaderboard(song_id):
     if not result.data:
         return jsonify({"error": "Song not found"}), 404
 
-    leaderboard = result.data[0].get("leaderboard", [])
+    leaderboard = rows(result.data)[0].get("leaderboard", [])
     if not leaderboard:
         return jsonify({"error": "Leaderboard is empty"}), 404
     
@@ -29,7 +29,8 @@ def get_user_scores(user_id):
     if not result.data:
         return jsonify({"error": "User not found"}), 404
 
-    scores, unknown_scores = result.data[0].get("scores", []), result.data[0].get("unknown_scores", [])
+    user_row = rows(result.data)[0]
+    scores, unknown_scores = user_row.get("scores", []), user_row.get("unknown_scores", [])
 
     return jsonify({"scores": scores, "unknown_scores": unknown_scores})
 
@@ -43,7 +44,7 @@ def get_user_stats(user_id):
     if not result.data:
         return jsonify({"error": "User not found"}), 404
 
-    stats = result.data[0].get("stats", {})
+    stats = rows(result.data)[0].get("stats", {})
     if not stats:
         return jsonify({"error": "No stats found"}), 404
 

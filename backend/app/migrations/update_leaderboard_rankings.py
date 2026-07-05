@@ -5,7 +5,7 @@ from datetime import datetime, UTC
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.services.supabase_service import get_supabase
+from app.services.supabase_service import get_supabase, rows
 
 load_dotenv()
 
@@ -49,7 +49,7 @@ def update_leaderboards():
             .range(page * page_size, (page + 1) * page_size - 1) \
             .execute()
         
-        songs = response.data
+        songs = rows(response.data)
         
         if not songs:
             break

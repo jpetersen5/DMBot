@@ -276,23 +276,23 @@ class AchievementProcessor:
     
     def _check_first_score(self, user_data, achievement_def):
         """Check if user has at least one score"""
-        if isinstance(user_data, list) and len(user_data) > 0:
-            user_data = user_data[0]
+        if isinstance(user_data, list):
+            user_data = user_data[0] if user_data else {}
             
         return len(user_data.get("scores", [])) > 0
     
     def _check_total_score(self, user_data, achievement_def):
         """Check if user's total score meets threshold"""
-        if isinstance(user_data, list) and len(user_data) > 0:
-            user_data = user_data[0]
+        if isinstance(user_data, list):
+            user_data = user_data[0] if user_data else {}
             
         total_score = user_data.get("stats", {}).get("total_score", 0)
         return total_score >= achievement_def["threshold"]
     
     def _check_first_fc(self, user_data, achievement_def):
         """Check if user has at least one FC"""
-        if isinstance(user_data, list) and len(user_data) > 0:
-            user_data = user_data[0]
+        if isinstance(user_data, list):
+            user_data = user_data[0] if user_data else {}
             
         scores = user_data.get("scores", [])
         for score in scores:
@@ -302,16 +302,16 @@ class AchievementProcessor:
     
     def _check_total_fcs(self, user_data, achievement_def):
         """Check if user's FC count meets threshold"""
-        if isinstance(user_data, list) and len(user_data) > 0:
-            user_data = user_data[0]
+        if isinstance(user_data, list):
+            user_data = user_data[0] if user_data else {}
             
         total_fcs = user_data.get("stats", {}).get("total_fcs", 0)
         return total_fcs >= achievement_def["threshold"]
     
     def _check_charter_count(self, user_data, achievement_def):
         """Check if user has played enough charts from specified charters using charter_refs"""
-        if isinstance(user_data, list) and len(user_data) > 0:
-            user_data = user_data[0]
+        if isinstance(user_data, list):
+            user_data = user_data[0] if user_data else {}
             
         charter_refs = achievement_def["charter_refs"]
         charter_refs_lower = [charter.lower() for charter in charter_refs]
@@ -336,8 +336,8 @@ class AchievementProcessor:
     
     def _check_remix_count(self, user_data, achievement_def):
         """Check if user has played enough remix charts"""
-        if isinstance(user_data, list) and len(user_data) > 0:
-            user_data = user_data[0]
+        if isinstance(user_data, list):
+            user_data = user_data[0] if user_data else {}
 
         remix_artists = achievement_def["remix_artists"]
         threshold = achievement_def["threshold"]
@@ -354,8 +354,8 @@ class AchievementProcessor:
     
     def _check_recharts_count(self, user_data, achievement_def):
         """Check if user has played enough recharts from official games"""
-        if isinstance(user_data, list) and len(user_data) > 0:
-            user_data = user_data[0]
+        if isinstance(user_data, list):
+            user_data = user_data[0] if user_data else {}
             
         recharts_charter_refs = achievement_def["recharts_charter_refs"]
         recharts_charter_refs_lower = [charter.lower() for charter in recharts_charter_refs]
@@ -382,8 +382,8 @@ class AchievementProcessor:
     
     def _check_funny_number(self, user_data, achievement_def):
         """Check if user has a score of exactly 69,420"""
-        if isinstance(user_data, list) and len(user_data) > 0:
-            user_data = user_data[0]
+        if isinstance(user_data, list):
+            user_data = user_data[0] if user_data else {}
             
         target_score = achievement_def.get("score", 69420)
         scores = user_data.get("scores", [])
@@ -394,8 +394,8 @@ class AchievementProcessor:
     
     def _check_album(self, user_data, achievement_def):
         """Check if user has played an album chart"""
-        if isinstance(user_data, list) and len(user_data) > 0:
-            user_data = user_data[0]
+        if isinstance(user_data, list):
+            user_data = user_data[0] if user_data else {}
             
         scores = user_data.get("scores", [])
         for score in scores:
@@ -407,8 +407,8 @@ class AchievementProcessor:
     
     def _check_discography(self, user_data, achievement_def):
         """Check if user has played a discography chart"""
-        if isinstance(user_data, list) and len(user_data) > 0:
-            user_data = user_data[0]
+        if isinstance(user_data, list):
+            user_data = user_data[0] if user_data else {}
             
         scores = user_data.get("scores", [])
         for score in scores:
@@ -420,8 +420,8 @@ class AchievementProcessor:
     
     def _check_song_achievement(self, user_data, achievement_def):
         """Check if user has achieved a specific threshold on a song"""
-        if isinstance(user_data, list) and len(user_data) > 0:
-            user_data = user_data[0]
+        if isinstance(user_data, list):
+            user_data = user_data[0] if user_data else {}
             
         scores = user_data.get("scores", [])
         song_md5s = achievement_def["song_md5"]
@@ -461,8 +461,8 @@ class AchievementProcessor:
         achievement_errors = []
         current_time = datetime.now(UTC).isoformat()
         
-        if isinstance(user_data, list) and len(user_data) > 0:
-            user_data = user_data[0]
+        if isinstance(user_data, list):
+            user_data = user_data[0] if user_data else {}
         
         existing_achievements = user_data.get("achievements", {}) or {}
         
