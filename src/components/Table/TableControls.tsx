@@ -217,8 +217,15 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({
   setFilters
 }) => {
   const [filtersToSet, setFiltersToSet] = useState<string[]>(filters);
+  const [prevFilters, setPrevFilters] = useState<string[]>(filters);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Reset pending selection when the applied filters change externally.
+  if (prevFilters !== filters) {
+    setPrevFilters(filters);
+    setFiltersToSet(filters);
+  }
 
   const handleFilterToggle = (filter: string) => {
     setFiltersToSet(prevFilters => 
@@ -240,10 +247,6 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({
   };
 
   useClickOutside(dropdownRef, handleDropdownClose);
-
-  useEffect(() => {
-    setFiltersToSet(filters);
-  }, [filters]);
 
   return (
     <>

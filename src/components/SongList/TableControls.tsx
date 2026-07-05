@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useClickOutside } from "../../utils/handleClickOutside";
 import { capitalize } from "../../utils/safeHTML";
 import "./TableControls.scss";
@@ -53,7 +53,7 @@ export const Pagination: React.FC<PaginationProps> = ({
     setInputPage(e.target.value);
   };
 
-  const handlePageInputUpdate = () => {
+  const handlePageInputUpdate = useCallback(() => {
     const newPage = parseInt(inputPage, 10);
     if (!isNaN(newPage)) {
       if (newPage < 1) {
@@ -66,7 +66,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         setPage(newPage);
       }
     }
-  };
+  }, [inputPage, totalPages, setInputPage, setPage]);
 
   const handlePageInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -105,13 +105,11 @@ export const Pagination: React.FC<PaginationProps> = ({
 
   useEffect(() => {
     setInputPage(page.toString());
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [page, setInputPage]);
 
   useEffect(() => {
     handlePageInputUpdate();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inputPage]);
+  }, [handlePageInputUpdate]);
 
   return (
     <div className="pagination">

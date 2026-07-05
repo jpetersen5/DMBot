@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import LoadingSpinner from "../../Loading/LoadingSpinner";
 import { 
@@ -14,7 +14,7 @@ import AchievementIcon from "./AchievementIcon";
 import { API_URL } from "../../../App";
 import "./UserAchievements.scss";
 import SongModal from "../../SongList/SongModal";
-import { Song } from "../../../utils/song";
+import { useSongModal } from "../../../hooks/useSongModal";
 
 interface UserAchievementsProps {
   userId: string;
@@ -41,122 +41,84 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
   const [activeCategory, setActiveCategory] = useState<AchievementCategory | "all">("all");
   const [viewMode, setViewMode] = useState<"compact" | "list">("list");
   const [showOnlyAchieved, setShowOnlyAchieved] = useState<boolean>(false);
-  const [totalCounts, setTotalCounts] = useState<AchievementCounts>({ achieved: 0, total: 0 });
-  const [categoryCounts, setCategoryCounts] = useState<CategoryCounts>({});
-  const [groupCounts, setGroupCounts] = useState<GroupCounts>({});
-  const [showSongModal, setShowSongModal] = useState<boolean>(false);
-  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
-  const [loadingSong, setLoadingSong] = useState<boolean>(false);
   const { songId } = useParams<{ songId: string }>();
-  
+  const { selectedSong, setSelectedSong, modalLoading: loadingSong, fetchSong } = useSongModal(songId);
+
   useEffect(() => {
+    const fetchAchievements = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/api/user/${userId}/achievements`);
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+
+        const processedAchievements = (data.achievements || []).map((achievement: Achievement) => ({
+          ...achievement,
+          group: achievement.group || inferAchievementGroup(achievement)
+        }));
+
+        setAchievements(processedAchievements);
+      } catch (error) {
+        console.error("Error fetching achievements:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchAchievements();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
-
-  useEffect(() => {
-    if (achievements.length > 0) {
-      calculateCounts();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [achievements]);
-
-  useEffect(() => {
-    if (songId) {
-      fetchSong(songId);
-    }
-  }, [songId]);
-
-  const fetchAchievements = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${API_URL}/api/user/${userId}/achievements`);
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      const data = await response.json();
-      
-      const processedAchievements = (data.achievements || []).map((achievement: Achievement) => ({
-        ...achievement,
-        group: achievement.group || inferAchievementGroup(achievement)
-      }));
-      
-      setAchievements(processedAchievements);
-    } catch (error) {
-      console.error("Error fetching achievements:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchSong = async (id: string) => {
-    setLoadingSong(true);
-    try {
-      const response = await fetch(`${API_URL}/api/songs/${id}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch song");
-      }
-      const song = await response.json();
-      setSelectedSong(song);
-      setShowSongModal(true);
-    } catch (error) {
-      console.error("Error fetching song:", error);
-    } finally {
-      setLoadingSong(false);
-    }
-  };
 
   const handleAchievementClick = (achievement: Achievement) => {
     if (achievement.category !== AchievementCategory.General && achievement.song_md5) {
-      const songIdentifier = Array.isArray(achievement.song_md5) 
-        ? achievement.song_md5[0] 
+      const songIdentifier = Array.isArray(achievement.song_md5)
+        ? achievement.song_md5[0]
         : achievement.song_md5;
-        
+
       fetchSong(songIdentifier);
     }
   };
 
   const handleHideSongModal = () => {
-    setShowSongModal(false);
     setSelectedSong(null);
   };
 
-  const calculateCounts = () => {
+  const { totalCounts, categoryCounts, groupCounts } = useMemo(() => {
     const achieved = achievements.filter(a => a.achieved).length;
     const total = achievements.length;
-    setTotalCounts({ achieved, total });
+    const newTotalCounts: AchievementCounts = { achieved, total };
 
-    const tempCategoryCounts: CategoryCounts = {};
+    const newCategoryCounts: CategoryCounts = {};
     Object.values(AchievementCategory).forEach(category => {
       const categoryAchievements = achievements.filter(a => a.category === category);
       const categoryAchieved = categoryAchievements.filter(a => a.achieved).length;
-      tempCategoryCounts[category] = {
+      newCategoryCounts[category] = {
         achieved: categoryAchieved,
         total: categoryAchievements.length
       };
     });
-    setCategoryCounts(tempCategoryCounts);
 
-    const tempGroupCounts: GroupCounts = {};
+    const newGroupCounts: GroupCounts = {};
     Object.values(AchievementCategory).forEach(category => {
-      if (!tempGroupCounts[category]) {
-        tempGroupCounts[category] = {};
+      if (!newGroupCounts[category]) {
+        newGroupCounts[category] = {};
       }
 
       const categoryAchievements = achievements.filter(a => a.category === category);
       const groups = [...new Set(categoryAchievements.map(a => a.group || inferAchievementGroup(a)))];
-      
+
       groups.forEach(group => {
         const groupAchievements = categoryAchievements.filter(a => (a.group || inferAchievementGroup(a)) === group);
         const groupAchieved = groupAchievements.filter(a => a.achieved).length;
-        tempGroupCounts[category][group] = {
+        newGroupCounts[category][group] = {
           achieved: groupAchieved,
           total: groupAchievements.length
         };
       });
     });
-    setGroupCounts(tempGroupCounts);
-  };
+
+    return { totalCounts: newTotalCounts, categoryCounts: newCategoryCounts, groupCounts: newGroupCounts };
+  }, [achievements]);
 
   const renderCountBadge = (counts: AchievementCounts) => {
     const { achieved, total } = counts;
@@ -492,7 +454,7 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
       
       {selectedSong && (
         <SongModal
-          show={showSongModal}
+          show={!!selectedSong}
           onHide={handleHideSongModal}
           initialSong={selectedSong}
           loading={loadingSong}

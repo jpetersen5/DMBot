@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Bar, Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
 import TooltipWrapper from "../../../utils/Tooltip/Tooltip";
 import { CharterStatsData } from "../../../utils/charter";
 import { msToHourMinSec, formatTimeDifference, formatExactTime } from "../../../utils/song";
+import { getStoredTheme } from "../../../utils/theme";
 import "./CharterStats.scss";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend);
@@ -15,22 +16,11 @@ interface CharterStatsProps {
 ChartJS.defaults.color = "#858585";
 
 const CharterStats: React.FC<CharterStatsProps> = ({ stats }) => {
-  const [chartColor, setChartColor] = useState<string>("rgba(255, 255, 255, 0.6)");
-  const [chartBorderColor, setChartBorderColor] = useState<string>("rgba(255, 255, 255, 1)");
-  const [selectedInstrument, setSelectedInstrument] = useState<string>("");
+  const [chosenInstrument, setChosenInstrument] = useState<string>("");
 
-  useEffect(() => {
-    const updateColors = () => {
-      const theme = localStorage.getItem("theme") || "light";
-      setChartColor(theme === "light" ? "rgba(32, 32, 32, 0.6)" : "rgba(255, 255, 255, 0.6)");
-      setChartBorderColor(theme === "light" ? "rgba(32, 32, 32, 1)" : "rgba(255, 255, 255, 1)");
-    };
-    updateColors();
-
-    const instruments = Object.keys(stats.difficulty_distribution);
-    const defaultInstrument = instruments.includes("drums") ? "drums" : instruments.find(i => stats.difficulty_distribution[i] !== null) || "";
-    setSelectedInstrument(defaultInstrument);
-  }, [stats.difficulty_distribution]);
+  const theme = getStoredTheme();
+  const chartColor = theme === "light" ? "rgba(32, 32, 32, 0.6)" : "rgba(255, 255, 255, 0.6)";
+  const chartBorderColor = theme === "light" ? "rgba(32, 32, 32, 1)" : "rgba(255, 255, 255, 1)";
 
   if (!stats) return (
     <div className="charter-stats">
@@ -41,8 +31,14 @@ const CharterStats: React.FC<CharterStatsProps> = ({ stats }) => {
     </div>
   )
 
+  const instruments = Object.keys(stats.difficulty_distribution);
+  const defaultInstrument = instruments.includes("drums") ? "drums" : instruments.find(i => stats.difficulty_distribution[i] !== null) || "";
+  const selectedInstrument = chosenInstrument && instruments.includes(chosenInstrument)
+    ? chosenInstrument
+    : defaultInstrument;
+
   const handleInstrumentChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedInstrument(event.target.value);
+    setChosenInstrument(event.target.value);
   };
 
   return (

@@ -40,11 +40,11 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
   const [comparisonError, setComparisonError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const filteredLeftUsers = users.filter(user => 
+  const filteredLeftUsers = users.filter(user =>
     user.username.toLowerCase().includes(leftSearch.toLowerCase())
   );
 
-  const filteredRightUsers = users.filter(user => 
+  const filteredRightUsers = users.filter(user =>
     user.username.toLowerCase().includes(rightSearch.toLowerCase())
   );
 
@@ -70,71 +70,68 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
     setRightSearch(tempLeftSearch);
   };
 
-  useEffect(() => {
-    if (currentUser) {
-      const user = users.find(user => user.id === currentUser.id);
-      if (user) {
-        setLeftDropdownOpen(false);
-        setLeftUser(user);
-      }
+  const [defaultedUserId, setDefaultedUserId] = useState<string | null>(null);
+  if (currentUser && defaultedUserId !== currentUser.id) {
+    const user = users.find(user => user.id === currentUser.id);
+    if (user) {
+      setDefaultedUserId(currentUser.id);
+      setLeftDropdownOpen(false);
+      setLeftUser(user);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser]);
+  }
 
   useEffect(() => {
-    if (leftUser && rightUser) {
-      fetchComparisonResults();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [leftUser, rightUser]);
-
-  const fetchComparisonResults = async () => {
     if (!leftUser || !rightUser) return;
 
-    setIsLoading(true);
-    try {
-      const response = await fetch(`${API_URL}/api/users/compare`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("auth_token")}`
-        },
-        body: JSON.stringify({
-          user1_id: leftUser.id,
-          user2_id: rightUser.id
-        })
-      });
+    const fetchComparisonResults = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/api/users/compare`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("auth_token")}`
+          },
+          body: JSON.stringify({
+            user1_id: leftUser.id,
+            user2_id: rightUser.id
+          })
+        });
 
-      if (response.status === 404 || response.status === 400) {
-        setComparisonResults(null);
-        const errorMessage = await response.json();
-        setComparisonError(errorMessage.error);
-        return;
+        if (response.status === 404 || response.status === 400) {
+          setComparisonResults(null);
+          const errorMessage = await response.json();
+          setComparisonError(errorMessage.error);
+          return;
+        }
+
+        if (!response.ok) {
+          setComparisonResults(null);
+          const errorMessage = await response.json();
+          setComparisonError(errorMessage.error);
+          throw new Error(errorMessage.error);
+        }
+
+        const data = await response.json();
+        setComparisonError(null);
+        setComparisonResults(data);
+      } catch (error) {
+        console.error("Error fetching comparison results:", error);
+      } finally {
+        setIsLoading(false);
       }
+    };
+    fetchComparisonResults();
+  }, [leftUser, rightUser]);
 
-      if (!response.ok) {
-        setComparisonResults(null);
-        const errorMessage = await response.json();
-        setComparisonError(errorMessage.error);
-        throw new Error(errorMessage.error);
-      }
-
-      const data = await response.json();
-      setComparisonError(null);
-      setComparisonResults(data);
-    } catch (error) {
-      console.error("Error fetching comparison results:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
   const handleCommonSongsClick = () => {
     if (comparisonResults) {
-      navigate("/songs", { state: {
-        leftUser: leftUser,
-        rightUser: rightUser
-      } });
+      navigate("/songs", {
+        state: {
+          leftUser: leftUser,
+          rightUser: rightUser
+        }
+      });
       onHide();
     }
   };
@@ -149,38 +146,38 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
         <h4>Comparison Results</h4>
         {comparisonError && <p className="error">{comparisonError}</p>}
         {comparisonResults && (
-        <>
-          <Tooltip content="Click to compare scores!">
-            <div className="result-item" onClick={handleCommonSongsClick} style={{ cursor: "pointer" }}>
-              <span className="label">Common Songs:</span>
-              <span className="value">{comparisonResults.common_songs.length}</span>
+          <>
+            <Tooltip content="Click to compare scores!">
+              <div className="result-item" onClick={handleCommonSongsClick} style={{ cursor: "pointer" }}>
+                <span className="label">Common Songs:</span>
+                <span className="value">{comparisonResults.common_songs.length}</span>
+              </div>
+            </Tooltip>
+            <div className="result-item">
+              <span className="label">W/L Record:</span>
+              <span className={`value ${comparisonResults.wins > comparisonResults.losses ? "winner" : comparisonResults.wins < comparisonResults.losses ? "loser" : "tie"}`}>
+                {comparisonResults.wins}/{comparisonResults.losses} (Ties: {comparisonResults.ties})
+              </span>
             </div>
-          </Tooltip>
-          <div className="result-item">
-            <span className="label">W/L Record:</span>
-            <span className={`value ${comparisonResults.wins > comparisonResults.losses ? "winner" : comparisonResults.wins < comparisonResults.losses ? "loser" : "tie"}`}>
-              {comparisonResults.wins}/{comparisonResults.losses} (Ties: {comparisonResults.ties})
-            </span>
-          </div>
-          <div className="result-item">
-            <span className="label">FC Difference:</span>
-            <span className={`value ${comparisonResults.fc_diff > 0 ? "winner" : comparisonResults.fc_diff < 0 ? "loser" : "tie"}`}>
-              {comparisonResults.fc_diff}
-            </span>
-          </div>
-          <div className="result-item">
-            <span className="label">Total Score Difference:</span>
-            <span className={`value ${comparisonResults.total_score_diff > 0 ? "winner" : comparisonResults.total_score_diff < 0 ? "loser" : "tie"}`}>
-              {comparisonResults.total_score_diff.toLocaleString()}
-            </span>
-          </div>
-          <div className="result-item">
-            <span className="label">Average Percent Difference:</span>
-            <span className={`value ${comparisonResults.avg_percent_diff > 0 ? "winner" : comparisonResults.avg_percent_diff < 0 ? "loser" : "tie"}`}>
-              {comparisonResults.avg_percent_diff.toFixed(2)}%
-            </span>
-          </div>
-        </>
+            <div className="result-item">
+              <span className="label">FC Difference:</span>
+              <span className={`value ${comparisonResults.fc_diff > 0 ? "winner" : comparisonResults.fc_diff < 0 ? "loser" : "tie"}`}>
+                {comparisonResults.fc_diff}
+              </span>
+            </div>
+            <div className="result-item">
+              <span className="label">Total Score Difference:</span>
+              <span className={`value ${comparisonResults.total_score_diff > 0 ? "winner" : comparisonResults.total_score_diff < 0 ? "loser" : "tie"}`}>
+                {comparisonResults.total_score_diff.toLocaleString()}
+              </span>
+            </div>
+            <div className="result-item">
+              <span className="label">Average Percent Difference:</span>
+              <span className={`value ${comparisonResults.avg_percent_diff > 0 ? "winner" : comparisonResults.avg_percent_diff < 0 ? "loser" : "tie"}`}>
+                {comparisonResults.avg_percent_diff.toFixed(2)}%
+              </span>
+            </div>
+          </>
         )}
       </div>
     );
@@ -220,8 +217,8 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
       <div className={`user-compare-side ${side}`}>
         {user ? (
           <div className="selected-user">
-            <img 
-              src={getUserImageSrc(user)} 
+            <img
+              src={getUserImageSrc(user)}
               onError={(e) => {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = getFallbackImage(user);
@@ -255,8 +252,8 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
                   setUser(user);
                   openDropdown(side);
                 }}>
-                  <img 
-                    src={getUserImageSrc(user)} 
+                  <img
+                    src={getUserImageSrc(user)}
                     onError={(e) => {
                       e.currentTarget.onerror = null;
                       e.currentTarget.src = getFallbackImage(user);

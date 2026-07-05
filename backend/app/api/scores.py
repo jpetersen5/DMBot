@@ -464,11 +464,12 @@ def upload_scoredata(user_id):
             if result["version"] != 20211009:
                 return jsonify({"error": "Score data is outdated"}), 400
             
-            def run_with_app_context(current_app, result, user_id):
-                with current_app.app_context():
+            def run_with_app_context(app, result, user_id):
+                with app.app_context():
                     process_and_save_scores(result, user_id)
             
-            socketio.start_background_task(run_with_app_context, current_app, result, user_id)
+            app = current_app._get_current_object()
+            socketio.start_background_task(run_with_app_context, app, result, user_id)
             
             return jsonify({"message": "Score processing started", "total_songs": len(result["songs"])}), 202
         except ValueError as e:

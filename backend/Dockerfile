@@ -10,4 +10,4 @@ EXPOSE 5000
 ENV FLASK_APP=run.py
 ENV FLASK_ENV=development
 
-CMD ["gunicorn", "--worker-class", "eventlet", "-w", "1", "-b", "0.0.0.0:5000", "run:app"]
+CMD ["gunicorn", "--worker-class", "geventwebsocket.gunicorn.workers.GeventWebSocketWorker", "-w", "1", "-b", "0.0.0.0:5000", "run:app"]

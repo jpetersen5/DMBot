@@ -7,11 +7,20 @@ import "./ScoreUpload.scss";
 
 import CopyIcon from "../../../assets/copy.svg";
 
+const detectOS = () => {
+  const userAgent = window.navigator.userAgent.toLowerCase();
+  if (userAgent.indexOf("win") > -1) return "windows";
+  if (userAgent.indexOf("mac") > -1) return "mac";
+  if (userAgent.indexOf("linux") > -1) return "linux";
+  if (userAgent.indexOf("android") > -1) return "android";
+  return "windows";
+};
+
 const ScoreUpload: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [copied, setCopied] = useState(false);
   const { isUploading, isProcessing, completed, message, startUpload, finishUpload } = useUploadProgress();
-  const [selectedOS, setSelectedOS] = useState<string>("");
+  const [selectedOS, setSelectedOS] = useState<string>(() => detectOS());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filepaths = {
@@ -20,20 +29,6 @@ const ScoreUpload: React.FC = () => {
     linux: "~/.config/unity3d/srylain Inc_/Clone Hero",
     android: "Internal Storage > Android > Data > com.srylain.CloneHero"
   };
-
-  useEffect(() => {
-    const detectOS = () => {
-      const userAgent = window.navigator.userAgent.toLowerCase();
-      if (userAgent.indexOf("win") > -1) return "windows";
-      if (userAgent.indexOf("mac") > -1) return "mac";
-      if (userAgent.indexOf("linux") > -1) return "linux";
-      if (userAgent.indexOf("android") > -1) return "android";
-      return "windows";
-    };
-
-    const os = detectOS();
-    setSelectedOS(os);
-  }, []);
 
   useEffect(() => {
     if (completed && fileInputRef.current) {
@@ -80,7 +75,7 @@ const ScoreUpload: React.FC = () => {
         }
         setFile(null);
       }
-    } catch (error) {
+    } catch {
       finishUpload("An error occurred while uploading the file");
       if (fileInputRef.current) {
         fileInputRef.current.value = "";

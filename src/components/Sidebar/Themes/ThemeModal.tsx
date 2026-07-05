@@ -1,6 +1,7 @@
 import React from "react";
 import { Modal } from "react-bootstrap";
 import { capitalize } from "../../../utils/safeHTML";
+import { applyTheme } from "../../../utils/theme";
 import "./ThemeModal.scss";
 
 import DayIcon from "../../../assets/day.svg";
@@ -14,9 +15,7 @@ interface ThemeModalProps {
 
 const ThemeModal: React.FC<ThemeModalProps> = ({ isOpen, onClose, themes }) => {
   const selectTheme = (theme: string) => {
-    localStorage.setItem("theme", theme);
-    document.documentElement.className = "";
-    document.documentElement.classList.add(`theme-${theme}`);
+    applyTheme(theme);
   };
 
   const getThemeIcon = (theme: string) => {

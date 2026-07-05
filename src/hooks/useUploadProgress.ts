@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { io, Socket } from "socket.io-client";
+import { io } from "socket.io-client";
 import { API_URL } from "../App";
 import { Achievement } from "../utils/achievement";
 
@@ -22,22 +22,19 @@ interface UploadProgressState {
 }
 
 export const useUploadProgress = () => {
-  const [state, setState] = useState<UploadProgressState>({
+  const [state, setState] = useState<UploadProgressState>(() => ({
     isUploading: false,
     isProcessing: false,
     message: "",
     progress: 0,
     completed: false,
-    userId: null,
+    userId: localStorage.getItem("user_id"),
     newAchievements: [],
     achievementErrors: [],
     status: "idle",
-  });
-  const [socket, setSocket] = useState<Socket | null>(null);
-
+  }));
   useEffect(() => {
     const currentUserId = localStorage.getItem("user_id");
-    setState(prev => ({ ...prev, userId: currentUserId }));
 
     const checkInitialStatus = async () => {
       if (currentUserId) {
@@ -71,8 +68,6 @@ export const useUploadProgress = () => {
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
     });
-    setSocket(newSocket);
-
     newSocket.on("connect", () => {
       const userId = localStorage.getItem("user_id");
       if (userId) {
@@ -84,27 +79,7 @@ export const useUploadProgress = () => {
       console.error("Socket connection error:", error);
     });
 
-    return () => {
-      newSocket.disconnect();
-      setSocket(null);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.off("score_processing_start");
-    socket.off("score_processing_fetching_songs");
-    socket.off("score_processing_progress");
-    socket.off("score_processing_uploading");
-    socket.off("score_processing_updating_progress");
-    socket.off("score_processing_processing_achievements");
-    socket.off("new_achievement");
-    socket.off("score_processing_achievement_errors");
-    socket.off("score_processing_complete");
-    socket.off("score_processing_error");
-
-    socket.on("score_processing_start", () => {
+    newSocket.on("score_processing_start", () => {
       setState(prev => ({
         ...prev,
         isProcessing: true,
@@ -117,11 +92,11 @@ export const useUploadProgress = () => {
       }));
     });
 
-    socket.on("score_processing_fetching_songs", (data) => {
+    newSocket.on("score_processing_fetching_songs", (data) => {
       setState(prev => ({ ...prev, message: data.message }));
     });
 
-    socket.on("score_processing_progress", (data) => {
+    newSocket.on("score_processing_progress", (data) => {
       setState(prev => ({
         ...prev,
         progress: data.progress,
@@ -129,36 +104,36 @@ export const useUploadProgress = () => {
       }));
     });
 
-    socket.on("score_processing_uploading", (data) => {
+    newSocket.on("score_processing_uploading", (data) => {
       setState(prev => ({ ...prev, message: data.message }));
     });
 
-    socket.on("score_processing_updating_progress", (data) => {
+    newSocket.on("score_processing_updating_progress", (data) => {
       setState(prev => ({
         ...prev,
         message: data.message,
       }));
     });
 
-    socket.on("score_processing_processing_achievements", (data) => {
+    newSocket.on("score_processing_processing_achievements", (data) => {
       setState(prev => ({ ...prev, progress: 95, message: data.message }));
     });
 
-    socket.on("new_achievement", (data) => {
+    newSocket.on("new_achievement", (data) => {
       setState(prev => ({
         ...prev,
         newAchievements: [...prev.newAchievements, data.achievement],
       }));
     });
 
-    socket.on("score_processing_achievement_errors", (data) => {
+    newSocket.on("score_processing_achievement_errors", (data) => {
       setState(prev => ({
         ...prev,
         achievementErrors: data.errors || [],
       }));
     });
 
-    socket.on("score_processing_complete", (data) => {
+    newSocket.on("score_processing_complete", (data) => {
       setState(prev => ({
         ...prev,
         isProcessing: false,
@@ -171,7 +146,7 @@ export const useUploadProgress = () => {
       }));
     });
 
-    socket.on("score_processing_error", (data) => {
+    newSocket.on("score_processing_error", (data) => {
       console.error("Processing error:", data);
       setState(prev => ({
         ...prev,
@@ -184,7 +159,10 @@ export const useUploadProgress = () => {
       }));
     });
 
-  }, [socket]);
+    return () => {
+      newSocket.disconnect();
+    };
+  }, []);
 
   const startUpload = useCallback(() => {
     setState(prev => ({

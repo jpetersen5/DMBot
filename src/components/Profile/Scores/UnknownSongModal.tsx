@@ -45,7 +45,7 @@ const UnknownSongModal: React.FC<UnknownSongModalProps> = ({ show, onHide, score
           } else {
             alert(result.error || "An error occurred while processing the songcache");
           }
-        } catch (error) {
+        } catch {
           alert("An error occurred while uploading the songcache");
         } finally {
           setIsUploadingCache(false);
@@ -84,7 +84,7 @@ const UnknownSongModal: React.FC<UnknownSongModalProps> = ({ show, onHide, score
           } else {
             alert(result.error || "An error occurred while processing the song.ini");
           }
-        } catch (error) {
+        } catch {
           alert("An error occurred while uploading the song.ini");
         } finally {
           setIsUploadingIni(false);

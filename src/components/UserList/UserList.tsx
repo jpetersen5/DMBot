@@ -91,22 +91,21 @@ const UserList: React.FC = () => {
   const [showCompareModal, setShowCompareModal] = useState(false);
 
   useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/api/all-users`);
+        if (!response.ok) throw new Error("Failed to fetch users");
+        const data = await response.json();
+        setUsers(data);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchUsers();
   }, []);
-
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${API_URL}/api/all-users`);
-      if (!response.ok) throw new Error("Failed to fetch users");
-      const data = await response.json();
-      setUsers(data);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const filteredAndSortedUsers = useMemo(() => {
     let result = [...users];
@@ -136,19 +135,20 @@ const UserList: React.FC = () => {
     return result;
   }, [users, filter, sortBy, sortOrder, search]);
 
-  useEffect(() => {
-    if ((sortBy.includes("stats") || sortBy === "elo") && filter === "all") {
+  const handleSortByChange = (newSortBy: string) => {
+    setSortBy(newSortBy);
+    if ((newSortBy.includes("stats") || newSortBy === "elo") && filter === "all") {
       if (sortOrder === "asc") {
         setSortOrder("desc");
       }
       setFilter("has-stats");
-    } else if (filter === "has-stats" && sortBy === "username") {
+    } else if (filter === "has-stats" && newSortBy === "username") {
       if (sortOrder === "desc") {
         setSortOrder("asc");
       }
       setFilter("all");
     }
-  }, [sortBy, sortOrder, filter, search]);
+  };
 
   return (
     <div className="user-list">
@@ -156,7 +156,7 @@ const UserList: React.FC = () => {
       <div className="user-list-controls">
         <div className="sort-controls">
           <label>
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            <select value={sortBy} onChange={(e) => handleSortByChange(e.target.value)}>
               <option value="username">Username</option>
               <option value="elo">Rank</option>
               <option value="stats_total_score">Total Score</option>

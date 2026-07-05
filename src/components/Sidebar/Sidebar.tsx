@@ -6,6 +6,7 @@ import ReleaseNotesModal from "./ReleaseNotes/ReleaseNotesModal";
 import KofiWidget from "../KofiWidget";
 import { useAuth } from "../../context/AuthContext";
 import Tooltip from "../../utils/Tooltip/Tooltip";
+import { applyTheme, getStoredTheme } from "../../utils/theme";
 import "./Sidebar.scss";
 
 import HomeIcon from "../../assets//home-icon.svg";
@@ -37,22 +38,19 @@ const staticNavItems: NavItem[] = [
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
-  const [isReleaseNotesModalOpen, setIsReleaseNotesModalOpen] = useState(false);
+  const [isReleaseNotesModalOpen, setIsReleaseNotesModalOpen] = useState(
+    () => localStorage.getItem("lastSeenVersion") !== CURRENT_VERSION
+  );
   const { user } = useAuth();
   const location = useLocation();
 
-  const storedTheme = localStorage.getItem("theme") || "light";
+  const storedTheme = getStoredTheme();
   useEffect(() => {
-    document.documentElement.className = "";
-    document.documentElement.classList.add(`theme-${storedTheme}`);
+    applyTheme(storedTheme);
   }, [storedTheme]);
 
   useEffect(() => {
-    const lastSeenVersion = localStorage.getItem("lastSeenVersion");
-    if (!lastSeenVersion || lastSeenVersion !== CURRENT_VERSION) {
-      setIsReleaseNotesModalOpen(true);
-      localStorage.setItem("lastSeenVersion", CURRENT_VERSION);
-    }
+    localStorage.setItem("lastSeenVersion", CURRENT_VERSION);
   }, []);
 
   const toggleSidebar = () => {

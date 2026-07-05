@@ -1,4 +1,4 @@
-import React, { ReactNode, useRef, useState, useEffect } from "react";
+import React, { ReactNode, useRef, useState, useEffect, useEffectEvent } from "react";
 import { createPortal } from "react-dom";
 import "./Tooltip.scss";
 
@@ -15,7 +15,7 @@ const Tooltip: React.FC<TooltipProps> = ({ children, text, content, position = "
   const containerRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
-  const updatePosition = () => {
+  const updatePosition = useEffectEvent(() => {
     if (containerRef.current && tooltipRef.current) {
       const containerRect = containerRef.current.getBoundingClientRect();
       const tooltipRect = tooltipRef.current.getBoundingClientRect();
@@ -56,7 +56,7 @@ const Tooltip: React.FC<TooltipProps> = ({ children, text, content, position = "
 
       setTooltipPosition({ top, left });
     }
-  };
+  });
 
   const handleMouseEnter = () => {
     setIsVisible(true);
@@ -72,7 +72,7 @@ const Tooltip: React.FC<TooltipProps> = ({ children, text, content, position = "
       const timer = setTimeout(updatePosition, 10);
       return () => clearTimeout(timer);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [isVisible]);
 
   // Create portal for tooltip to avoid parent transform issues

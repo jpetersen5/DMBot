@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, Dispatch, SetStateAction } from "react";
 
 export interface UseTableDataOptions<T> {
   data: T[];
@@ -13,23 +13,23 @@ export interface UseTableDataOptions<T> {
 
 export interface UseTableDataReturn<T> {
   page: number;
-  setPage: (page: number) => void;
+  setPage: Dispatch<SetStateAction<number>>;
   inputPage: string;
-  setInputPage: (inputPage: string) => void;
+  setInputPage: Dispatch<SetStateAction<string>>;
   perPage: number;
-  setPerPage: (perPage: number) => void;
+  setPerPage: Dispatch<SetStateAction<number>>;
   sortBy: string;
-  setSortBy: (sortBy: string) => void;
+  setSortBy: Dispatch<SetStateAction<string>>;
   sortOrder: "asc" | "desc";
-  setSortOrder: (sortOrder: "asc" | "desc") => void;
+  setSortOrder: Dispatch<SetStateAction<"asc" | "desc">>;
   secondarySortBy: string | null;
-  setSecondarySortBy: (secondarySortBy: string | null) => void;
+  setSecondarySortBy: Dispatch<SetStateAction<string | null>>;
   secondarySortOrder: "asc" | "desc";
-  setSecondarySortOrder: (secondarySortOrder: "asc" | "desc") => void;
+  setSecondarySortOrder: Dispatch<SetStateAction<"asc" | "desc">>;
   search: string;
-  setSearch: (search: string) => void;
+  setSearch: Dispatch<SetStateAction<string>>;
   filters: string[];
-  setFilters: (filters: string[]) => void;
+  setFilters: Dispatch<SetStateAction<string[]>>;
   totalPages: number;
   filteredData: T[];
   paginatedData: T[];
@@ -61,17 +61,17 @@ export function useTableData<T>({
   const [search, setSearch] = useState<string>(defaultSearch);
   const [filters, setFilters] = useState<string[]>(defaultFilters);
 
-  const handleSearchChange = (newSearch: string) => {
+  const handleSearchChange = useCallback((newSearch: SetStateAction<string>) => {
     setSearch(newSearch);
     setPage(1);
     setInputPage("1");
-  };
+  }, []);
 
-  const handleFiltersChange = (newFilters: string[]) => {
+  const handleFiltersChange = useCallback((newFilters: SetStateAction<string[]>) => {
     setFilters(newFilters);
     setPage(1);
     setInputPage("1");
-  };
+  }, []);
 
   const handleSort = (column: string, withShift = false) => {
     if (!withShift) {
@@ -95,7 +95,7 @@ export function useTableData<T>({
 
   const getValueByPath = (obj: unknown, path: string): unknown => {
     if (!obj || !path) return undefined;
-    
+
     const keys = path.split(".");
     return keys.reduce<unknown>(
       (value, key) => (value && typeof value === "object" ? (value as Record<string, unknown>)[key] : undefined),
@@ -111,19 +111,19 @@ export function useTableData<T>({
 
     if (search) {
       const searchTermsLower = search.toLowerCase().split(" ");
-      
+
       filtered = filtered.filter(item => {
         if (getFilterableFields) {
           const fields = getFilterableFields(item);
-          
+
           if (filters.length === 0) {
-            return searchTermsLower.every(term => 
-              Object.values(fields).some(value => 
+            return searchTermsLower.every(term =>
+              Object.values(fields).some(value =>
                 value != null && value.toString().toLowerCase().includes(term)
               )
             );
           } else {
-            return searchTermsLower.every(term => 
+            return searchTermsLower.every(term =>
               filters.some(field => {
                 const value = fields[field];
                 return value != null && value.toString().toLowerCase().includes(term);
@@ -132,13 +132,13 @@ export function useTableData<T>({
           }
         } else {
           if (filters.length === 0) {
-            return searchTermsLower.every(term => 
-              Object.values(item as Record<string, unknown>).some((value) => 
+            return searchTermsLower.every(term =>
+              Object.values(item as Record<string, unknown>).some((value) =>
                 value != null && value.toString().toLowerCase().includes(term)
               )
             );
           } else {
-            return searchTermsLower.every(term => 
+            return searchTermsLower.every(term =>
               filters.some(field => {
                 const value = getValueByPath(item, field);
                 return value != null && value.toString().toLowerCase().includes(term);
@@ -154,32 +154,32 @@ export function useTableData<T>({
       filtered.sort((a, b) => {
         let aValue = getValueByPath(a, sortBy);
         let bValue = getValueByPath(b, sortBy);
-        
+
         if (typeof aValue === "string") aValue = aValue.toLowerCase();
         if (typeof bValue === "string") bValue = bValue.toLowerCase();
-        
+
         if (aValue == null && bValue == null) return 0;
         if (aValue == null) return sortOrder === "asc" ? -1 : 1;
         if (bValue == null) return sortOrder === "asc" ? 1 : -1;
-        
+
         if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
         if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
-        
+
         if (secondarySortBy) {
           let aSecondaryValue = getValueByPath(a, secondarySortBy);
           let bSecondaryValue = getValueByPath(b, secondarySortBy);
-          
+
           if (typeof aSecondaryValue === "string") aSecondaryValue = aSecondaryValue.toLowerCase();
           if (typeof bSecondaryValue === "string") bSecondaryValue = bSecondaryValue.toLowerCase();
-          
+
           if (aSecondaryValue == null && bSecondaryValue == null) return 0;
           if (aSecondaryValue == null) return secondarySortOrder === "asc" ? -1 : 1;
           if (bSecondaryValue == null) return secondarySortOrder === "asc" ? 1 : -1;
-          
+
           if (aSecondaryValue < bSecondaryValue) return secondarySortOrder === "asc" ? -1 : 1;
           if (aSecondaryValue > bSecondaryValue) return secondarySortOrder === "asc" ? 1 : -1;
         }
-        
+
         return 0;
       });
     }
@@ -187,23 +187,17 @@ export function useTableData<T>({
     return filtered;
   }, [data, search, filters, sortBy, sortOrder, secondarySortBy, secondarySortOrder, getFilterableFields]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / perPage));
+  const clampedPage = Math.min(page, totalPages);
+
   // Paginate data
   const paginatedData = useMemo(() => {
-    const startIndex = (page - 1) * perPage;
+    const startIndex = (clampedPage - 1) * perPage;
     return filteredData.slice(startIndex, startIndex + perPage);
-  }, [filteredData, page, perPage]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredData.length / perPage));
-
-  useMemo(() => {
-    if (page > totalPages) {
-      setPage(totalPages);
-      setInputPage(totalPages.toString());
-    }
-  }, [totalPages, page]);
+  }, [filteredData, clampedPage, perPage]);
 
   return {
-    page,
+    page: clampedPage,
     setPage,
     inputPage,
     setInputPage,

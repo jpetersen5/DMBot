@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useEffectEvent, useMemo } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 
 import { API_URL } from "../../App";
@@ -15,8 +15,9 @@ import { UserAvatar } from "../UserList/UserList";
 import ScrollableTable from "../Extras/ScrollableTable";
 
 import { useCharterData } from "../../context/CharterContext";
-import { useSongCache } from "../../context/SongContext";
+import { useSongCache, SongCacheItem } from "../../context/SongContext";
 import { useKeyPress } from "../../hooks/useKeyPress";
+import { useSongModal } from "../../hooks/useSongModal";
 import { User } from "../../utils/user";
 import {
   Song,
@@ -40,6 +41,12 @@ const filterOptions = [
   { value: "loading_phrase", label: "Loading Phrase" },
   { value: "playlist_path", label: "Playlist" }
 ];
+
+async function fetchUser(id: string): Promise<User> {
+  const response = await fetch(`${API_URL}/api/user/${id}`);
+  if (!response.ok) throw new Error("Failed to fetch user");
+  return await response.json();
+}
 
 const SongList: React.FC = () => {
   const navigate = useNavigate();
@@ -74,70 +81,82 @@ const SongList: React.FC = () => {
     queryParams.get("difficulty")?.split(",") || []
   );
 
-  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
-  const [modalLoading, setModalLoading] = useState<boolean>(false);
+  const { selectedSong, setSelectedSong, modalLoading } = useSongModal(songId);
   const { isLoading: chartersLoading } = useCharterData();
 
   const [leftUser, setLeftUser] = useState<User | null>(null);
   const [rightUser, setRightUser] = useState<User | null>(null);
 
+  const readSongCache = useEffectEvent((key: string) => getCachedResult(key));
+  const writeSongCache = useEffectEvent((key: string, item: SongCacheItem) => setCachedResult(key, item));
+
   useEffect(() => {
     if (songs.length > 0) {
       return;
     }
+    const fetchSongs = async () => {
+      setSongsLoading(true);
+      const cachedSongs = readSongCache("all_songs");
+      if (cachedSongs) {
+        setSongs(cachedSongs.songs);
+        setSongsLoading(false);
+        return;
+      }
+      try {
+        const response = await fetch(`${API_URL}/api/songs`);
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data: Song[] = await response.json();
+        setSongs(data);
+        writeSongCache("all_songs", { songs: data, total: data.length, timestamp: Date.now() });
+      } catch (error) {
+        console.error("Error fetching songs:", error);
+      } finally {
+        setSongsLoading(false);
+      }
+    };
     fetchSongs();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.state]);
+  }, [location.state, songs.length]);
+
+  const leftUserParam = queryParams.get("left_user");
+  const rightUserParam = queryParams.get("right_user");
 
   useEffect(() => {
-    if (location.state?.leftUser) {
-      setLeftUser(location.state.leftUser);
-    } else if (queryParams.get("left_user")) {
-      fetchUser(queryParams.get("left_user") || "").then(user => setLeftUser(user));
-    }
-    if (location.state?.rightUser) {
-      setRightUser(location.state.rightUser);
-    } else if (queryParams.get("right_user")) {
-      fetchUser(queryParams.get("right_user") || "").then(user => setRightUser(user));
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.state, queryParams.get("left_user"), queryParams.get("right_user")]);
+    const applyUsers = async () => {
+      if (location.state?.leftUser) {
+        setLeftUser(location.state.leftUser);
+      } else if (leftUserParam) {
+        setLeftUser(await fetchUser(leftUserParam));
+      }
+      if (location.state?.rightUser) {
+        setRightUser(location.state.rightUser);
+      } else if (rightUserParam) {
+        setRightUser(await fetchUser(rightUserParam));
+      }
+    };
+    applyUsers();
+  }, [location.state, leftUserParam, rightUserParam]);
 
-  useEffect(() => {
-    updateURL();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    page, 
-    perPage, 
-    sortBy, 
-    sortOrder, 
-    secondarySortBy, 
-    secondarySortOrder, 
-    filters, 
-    selectedInstruments, 
-    selectedDifficulties,
-    leftUser,
-    rightUser
-  ]);
-
-  useEffect(() => {
-    if (page === 1) {
-      updateURL();
-    } else {
+  // Jump back to the first page whenever the search/sort/filter criteria change.
+  const [prevCriteria, setPrevCriteria] = useState({
+    search, filters, sortBy, sortOrder, secondarySortBy, secondarySortOrder
+  });
+  if (
+    prevCriteria.search !== search ||
+    prevCriteria.filters !== filters ||
+    prevCriteria.sortBy !== sortBy ||
+    prevCriteria.sortOrder !== sortOrder ||
+    prevCriteria.secondarySortBy !== secondarySortBy ||
+    prevCriteria.secondarySortOrder !== secondarySortOrder
+  ) {
+    setPrevCriteria({ search, filters, sortBy, sortOrder, secondarySortBy, secondarySortOrder });
+    if (page !== 1) {
       setPage(1);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, filters, sortBy, sortOrder, secondarySortBy, secondarySortOrder]);
+  }
 
-  useEffect(() => {
-    if (songId) {
-      fetchSong(songId);
-    } else {
-      setSelectedSong(null);
-    }
-  }, [songId]);
-
-  const updateURL = () => {
+  const updateURL = useEffectEvent(() => {
     const params = new URLSearchParams();
     if (page !== 1) params.set("page", page.toString());
     if (perPage !== 100) params.set("per_page", perPage.toString());
@@ -157,30 +176,24 @@ const SongList: React.FC = () => {
     if (rightUser) params.set("right_user", rightUser.id.toString());
 
     navigate(`/songs${songId ? `/${songId}` : ""}?${params.toString()}`, { replace: true });
-  };
+  });
 
-  async function fetchSongs() {
-    setSongsLoading(true);
-    const cachedSongs = getCachedResult("all_songs");
-    if (cachedSongs) {
-      setSongs(cachedSongs.songs);
-      setSongsLoading(false);
-      return;
-    }
-    try {
-      const response = await fetch(`${API_URL}/api/songs`);
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      const data: Song[] = await response.json();
-      setSongs(data);
-      setCachedResult("all_songs", { songs: data, total: data.length, timestamp: Date.now() });
-    } catch (error) {
-      console.error("Error fetching songs:", error);
-    } finally {
-      setSongsLoading(false);
-    }
-  }
+  useEffect(() => {
+    updateURL();
+  }, [
+    page,
+    perPage,
+    sortBy,
+    sortOrder,
+    secondarySortBy,
+    secondarySortOrder,
+    search,
+    filters,
+    selectedInstruments,
+    selectedDifficulties,
+    leftUser,
+    rightUser
+  ]);
 
   // async function fetchSongsByIds(ids: number[] | string[]) {
   //   setSongsLoading(true);
@@ -206,26 +219,8 @@ const SongList: React.FC = () => {
   //   }
   // }
 
-  async function fetchSong(id: string) {
-    setModalLoading(true);
-    try {
-      const response = await fetch(`${API_URL}/api/songs/${id}`);
-      if (!response.ok) throw new Error("Failed to fetch song");
-      const song = await response.json();
-      setSelectedSong(song);
-    } catch (error) {
-      console.error("Error fetching song:", error);
-      setSelectedSong(null);
-    } finally {
-      setModalLoading(false);
-    }
-  }
-
-  async function fetchUser(id: string) {
-    const response = await fetch(`${API_URL}/api/user/${id}`);
-    if (!response.ok) throw new Error("Failed to fetch user");
-    return await response.json();
-  }
+  const leftUserId = leftUser?.id;
+  const rightUserId = rightUser?.id;
 
   const filteredAndSortedSongs = useMemo(() => {
     let filteredSongs = songs;
@@ -280,10 +275,10 @@ const SongList: React.FC = () => {
 
     const sortedSongs = filteredSongs.sort((a, b) => {
       if (sortBy === "score_difference") {
-        const leftScoreA = a.leaderboard?.find(entry => entry.user_id === leftUser?.id)?.score;
-        const rightScoreA = a.leaderboard?.find(entry => entry.user_id === rightUser?.id)?.score;
-        const leftScoreB = b.leaderboard?.find(entry => entry.user_id === leftUser?.id)?.score;
-        const rightScoreB = b.leaderboard?.find(entry => entry.user_id === rightUser?.id)?.score;
+        const leftScoreA = a.leaderboard?.find(entry => entry.user_id === leftUserId)?.score;
+        const rightScoreA = a.leaderboard?.find(entry => entry.user_id === rightUserId)?.score;
+        const leftScoreB = b.leaderboard?.find(entry => entry.user_id === leftUserId)?.score;
+        const rightScoreB = b.leaderboard?.find(entry => entry.user_id === rightUserId)?.score;
         if (leftScoreA == null || rightScoreA == null) {
           return 1;
         } else if (leftScoreB == null || rightScoreB == null) {
@@ -310,17 +305,18 @@ const SongList: React.FC = () => {
     });
 
     return sortedSongs;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    songs, 
-    search, 
-    filters, 
-    sortBy, 
-    sortOrder, 
-    secondarySortBy, 
-    secondarySortOrder, 
-    selectedInstruments, 
-    selectedDifficulties
+    songs,
+    search,
+    filters,
+    sortBy,
+    sortOrder,
+    secondarySortBy,
+    secondarySortOrder,
+    selectedInstruments,
+    selectedDifficulties,
+    leftUserId,
+    rightUserId
   ]);
 
   const paginatedSongs = useMemo(() => {

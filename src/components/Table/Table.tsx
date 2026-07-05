@@ -164,13 +164,15 @@ function Table<T>({
     });
   }, [data, columns, sortBy, sortOrder, secondarySortBy, secondarySortOrder]);
 
+  const paginationPage = pagination?.page;
+  const paginationItemsPerPage = pagination?.itemsPerPage;
+
   const paginatedData = useMemo(() => {
-    if (!pagination) return sortedData;
-    
-    const startIndex = (pagination.page - 1) * pagination.itemsPerPage;
-    return sortedData.slice(startIndex, startIndex + pagination.itemsPerPage);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sortedData, pagination?.page, pagination?.itemsPerPage]);
+    if (paginationPage === undefined || paginationItemsPerPage === undefined) return sortedData;
+
+    const startIndex = (paginationPage - 1) * paginationItemsPerPage;
+    return sortedData.slice(startIndex, startIndex + paginationItemsPerPage);
+  }, [sortedData, paginationPage, paginationItemsPerPage]);
 
   const getRowClassName = (item: T): string => {
     const classes: string[] = [];

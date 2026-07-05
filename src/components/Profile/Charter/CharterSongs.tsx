@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useEffectEvent } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { API_URL } from "../../../App";
 import SongModal from "../../SongList/SongModal";
 import { useCharterData } from "../../../context/CharterContext";
-import { useSongCache } from "../../../context/SongContext";
+import { useSongCache, SongCacheItem } from "../../../context/SongContext";
 import { Song, SONG_TABLE_HEADERS, getSurroundingSongIds, msToTime } from "../../../utils/song";
 import "./CharterSongs.scss";
 
 import Table, { Column } from "../../Table/Table";
 import { TableToolbar } from "../../Table/TableControls";
 import { useTableData } from "../../../hooks/useTableData";
+import { useSongModal } from "../../../hooks/useSongModal";
 import { cellRenderers } from "../../Table/TableCells";
 
 interface CharterSongsProps {
@@ -34,8 +35,7 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
   
   const [songs, setSongs] = useState<Song[]>([]);
   const [songsLoading, setSongsLoading] = useState<boolean>(true);
-  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
-  const [modalLoading, setModalLoading] = useState<boolean>(false);
+  const { selectedSong, setSelectedSong, modalLoading } = useSongModal(songId);
   const { isLoading: chartersLoading } = useCharterData();
   const { getCachedResult, setCachedResult } = useSongCache();
 
@@ -68,71 +68,46 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
     })
   });
 
-  useEffect(() => {
-    fetchSongs();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [charterId, charterSongIds]);
+  const readSongCache = useEffectEvent((key: string) => getCachedResult(key));
+  const writeSongCache = useEffectEvent((key: string, item: SongCacheItem) => setCachedResult(key, item));
 
   useEffect(() => {
-    if (songId) {
-      fetchSong(songId);
-    } else {
-      setSelectedSong(null);
-    }
-  }, [songId]);
+    const cacheKey = `charter_songs_${charterId}`;
 
-  const getCacheKey = () => {
-    return `charter_songs_${charterId}`;
-  };
+    const fetchSongs = async () => {
+      setSongsLoading(true);
+      const cachedResult = readSongCache(cacheKey);
 
-  async function fetchSongs() {
-    setSongsLoading(true);
-    const cacheKey = getCacheKey();
-    const cachedResult = getCachedResult(cacheKey);
-
-    if (cachedResult) {
-      setSongs(cachedResult.songs);
-      setSongsLoading(false);
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_URL}/api/songs-by-ids`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ids: charterSongIds,
-        }),
-      });
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
+      if (cachedResult) {
+        setSongs(cachedResult.songs);
+        setSongsLoading(false);
+        return;
       }
-      const data: Song[] = await response.json();
-      setSongs(data);
-      setCachedResult(cacheKey, { songs: data, total: data.length, timestamp: Date.now() });
-    } catch (error) {
-      console.error("Error fetching songs:", error);
-    } finally {
-      setSongsLoading(false);
-    }
-  }
-  
-  async function fetchSong(id: string) {
-    setModalLoading(true);
-    try {
-      const response = await fetch(`${API_URL}/api/songs/${id}`);
-      if (!response.ok) throw new Error("Failed to fetch song");
-      const song = await response.json();
-      setSelectedSong(song);
-    } catch (error) {
-      console.error("Error fetching song:", error);
-      setSelectedSong(null);
-    } finally {
-      setModalLoading(false);
-    }
-  }
+
+      try {
+        const response = await fetch(`${API_URL}/api/songs-by-ids`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ids: charterSongIds,
+          }),
+        });
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data: Song[] = await response.json();
+        setSongs(data);
+        writeSongCache(cacheKey, { songs: data, total: data.length, timestamp: Date.now() });
+      } catch (error) {
+        console.error("Error fetching songs:", error);
+      } finally {
+        setSongsLoading(false);
+      }
+    };
+    fetchSongs();
+  }, [charterId, charterSongIds]);
 
   const handleRowClick = (song: Song) => {
     setSelectedSong(song);

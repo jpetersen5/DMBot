@@ -20,17 +20,21 @@ const UploadProgress: React.FC = () => {
     clearAllNotifications,
   } = useUploadProgress();
 
-  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [dismissed, setDismissed] = useState<boolean>(false);
+  const [prevFlags, setPrevFlags] = useState({ isUploading, isProcessing, completed });
   const location = useLocation();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (isUploading || isProcessing || completed) {
-      setIsVisible(true);
-    } else {
-      setIsVisible(false);
-    }
-  }, [isUploading, isProcessing, completed]);
+  if (
+    prevFlags.isUploading !== isUploading ||
+    prevFlags.isProcessing !== isProcessing ||
+    prevFlags.completed !== completed
+  ) {
+    setPrevFlags({ isUploading, isProcessing, completed });
+    setDismissed(false);
+  }
+
+  const isVisible = (isUploading || isProcessing || completed) && !dismissed;
 
   const isOnProfilePage = userId && location.pathname.includes(`/user/${userId}`);
 
@@ -45,7 +49,7 @@ const UploadProgress: React.FC = () => {
       clearAllNotifications();
       resetUploadState();
     }
-    setIsVisible(false);
+    setDismissed(true);
   };
 
   const handleGoToProfile = () => {

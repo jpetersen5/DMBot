@@ -1,5 +1,5 @@
-@import "../../styles/themes";
-@import "../../styles/mixins";
+@use "../../styles/themes" as *;
+@use "../../styles/mixins" as *;
 
 .profile-page {
   margin: 0 auto;
