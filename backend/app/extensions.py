@@ -33,10 +33,10 @@ def setup_logging(app: Flask) -> logging.Logger:
     return logger
 
 @socketio.on("connect")
-def handle_connect():
+def handle_connect() -> None:
     logging.getLogger("socketio").info("Client connected")
 
 @socketio.on("join")
-def on_join(user_id):
+def on_join(user_id: str) -> None:
     join_room(user_id)
     logging.getLogger("socketio").info(f"User {user_id} joined")

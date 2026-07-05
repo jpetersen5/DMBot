@@ -22,6 +22,7 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements.txt
       - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: pyright
       - run: python -m pytest tests/ -v
 
   frontend:

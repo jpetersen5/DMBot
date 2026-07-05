@@ -2,20 +2,22 @@ import datetime
 import jwt
 import pytest
 from flask import Flask, jsonify
+from flask.testing import FlaskClient
+from app.types import FlaskResponse
 from app.utils.helpers import token_required
 
 @pytest.fixture
-def client(jwt_secret):
+def client(jwt_secret: str) -> FlaskClient:
     app = Flask(__name__)
 
     @app.route("/protected")
     @token_required
-    def protected(user_id):
+    def protected(user_id: str) -> FlaskResponse:
         return jsonify({"user_id": user_id})
 
     return app.test_client()
 
-def make_token(secret, user_id=42, delta_days=1):
+def make_token(secret: str, user_id: int = 42, delta_days: int = 1) -> str:
     return jwt.encode(
         {"user_id": user_id,
          "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=delta_days)},

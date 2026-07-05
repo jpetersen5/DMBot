@@ -8,11 +8,12 @@ from ..extensions import limiter
 from ..utils.helpers import token_required
 from ..services.supabase_service import get_supabase
 from ..config import Config
+from ..types import FlaskResponse
 
 bp = Blueprint("auth", __name__)
 
 @bp.route("/api/auth/login")
-def login():
+def login() -> FlaskResponse:
     """
     initiates Discord OAuth2 login process
     
@@ -31,7 +32,7 @@ def login():
 
 @bp.route("/api/auth/callback")
 @limiter.limit("5 per minute")
-def callback():
+def callback() -> FlaskResponse:
     """
     handles OAuth2 callback from Discord, creates or updates user data,
     issues a JWT token for authentication
@@ -108,7 +109,7 @@ def callback():
         raise
 
 @bp.route("/api/auth/logout")
-def logout():
+def logout() -> FlaskResponse:
     """
     log out the current user by clearing their session
     
@@ -120,7 +121,7 @@ def logout():
 
 @bp.route("/api/auth/refresh", methods=["POST"])
 @token_required
-def refresh_token(user_id):
+def refresh_token(user_id: str) -> FlaskResponse:
     """Issue a fresh 7-day token to a caller holding a valid token."""
     if not Config.JWT_SECRET:
         return jsonify({"error": "JWT secret not configured"}), 500

@@ -1,10 +1,11 @@
 from flask import Blueprint, jsonify, request, current_app
 from ..services.supabase_service import get_supabase, rows
+from ..types import FlaskResponse
 
 bp = Blueprint("charters", __name__)
 
 @bp.route("/api/charter/<string:charter_id>", methods=["GET"])
-def get_charter_by_id(charter_id):
+def get_charter_by_id(charter_id: str) -> FlaskResponse:
     """
     retrieves charter data by ID
 
@@ -28,7 +29,7 @@ def get_charter_by_id(charter_id):
         return jsonify({"error": "An error occurred while fetching charter data"}), 500
 
 @bp.route("/api/all-charter-data", methods=["GET"])
-def get_all_charters_data():
+def get_all_charters_data() -> FlaskResponse:
     """
     retrieves all charters with colorized names and user ids
 
@@ -53,7 +54,7 @@ def get_all_charters_data():
         return jsonify({"error": "An error occurred while fetching charter data"}), 500
 
 @bp.route("/api/charter-colors", methods=["GET"])
-def get_charters_colors():
+def get_charters_colors() -> FlaskResponse:
     """
     retrieves colorized names for a list of charters
 
@@ -83,7 +84,7 @@ def get_charters_colors():
         return jsonify({"error": "An error occurred while fetching charter data"}), 500
 
 @bp.route("/api/user/<string:user_id>/charter", methods=["GET"])
-def is_user_charter(user_id):
+def is_user_charter(user_id: str) -> FlaskResponse:
     """
     retrieves charter data for a user 
 

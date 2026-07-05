@@ -10,5 +10,5 @@ os.environ.setdefault("DISCORD_CLIENT_SECRET", "test")
 os.environ.setdefault("DISCORD_REDIRECT_URI", "http://localhost/callback")
 
 @pytest.fixture
-def jwt_secret():
+def jwt_secret() -> str:
     return os.environ["JWT_SECRET"]

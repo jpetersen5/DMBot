@@ -1,0 +1,52 @@
+[tool.pyright]
+pythonVersion = "3.12"
+include = ["app", "tests"]
+exclude = [
+    "**/__pycache__",
+    "**/.pytest_cache",
+]
+typeCheckingMode = "standard"
+
+# Third-party libraries (gevent, flask_socketio, flask_redis, supabase/postgrest)
+# can ship partial or missing type information.
+reportMissingModuleSource = "none"
+reportMissingTypeStubs = "none"
+
+# TODO: Enforce stricter unknown typing for dynamic modules.
+[[tool.pyright.executionEnvironments]]
+root = "app/api/scores.py"
+extraPaths = ["."]
+reportUnknownMemberType = "none"
+reportUnknownArgumentType = "none"
+reportUnknownVariableType = "none"
+reportUnknownParameterType = "none"
+reportMissingParameterType = "warning"
+reportTypedDictNotRequiredAccess = "none"
+
+[[tool.pyright.executionEnvironments]]
+root = "app/utils/achievement_processor.py"
+extraPaths = ["."]
+reportUnknownMemberType = "none"
+reportUnknownArgumentType = "none"
+reportUnknownVariableType = "none"
+reportUnknownParameterType = "none"
+reportMissingParameterType = "warning"
+reportTypedDictNotRequiredAccess = "none"
+
+[[tool.pyright.executionEnvironments]]
+root = "app/scripts"
+extraPaths = ["."]
+reportUnknownMemberType = "none"
+reportUnknownArgumentType = "none"
+reportUnknownVariableType = "none"
+reportUnknownParameterType = "none"
+reportMissingParameterType = "warning"
+
+[[tool.pyright.executionEnvironments]]
+root = "app/migrations"
+extraPaths = ["."]
+reportUnknownMemberType = "none"
+reportUnknownArgumentType = "none"
+reportUnknownVariableType = "none"
+reportUnknownParameterType = "none"
+reportMissingParameterType = "warning"

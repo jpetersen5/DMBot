@@ -4,13 +4,22 @@ from ..utils.helpers import allowed_file, get_process_songs_script
 from ..extensions import socketio, redis
 from datetime import datetime, UTC
 import re
+from typing import Any, BinaryIO, Callable, Dict, List, Optional
 from ..utils.achievement_processor import achievement_processor
 from ..utils.helpers import token_required
+from ..types import FlaskResponse, LeaderboardEntry
 
 bp = Blueprint("scores", __name__)
+
+# parse_score_data is a proprietary parser injected into module globals at import
+# time by exec()-ing the base64 script from PROCESS_SONGS_SCRIPT (see helpers.py).
+# Declare its shape so downstream `result[...]` access is typed instead of Unknown.
+parse_score_data: Callable[[BinaryIO], Dict[str, Any]]
 exec(get_process_songs_script())
 
-def update_processing_status(user_id, status, progress, processed, total):
+def update_processing_status(
+    user_id: str, status: str, progress: float, processed: int, total: int
+) -> None:
     """
     updates the processing status in redis
     """
@@ -21,17 +30,17 @@ def update_processing_status(user_id, status, progress, processed, total):
         "total": total
     })
 
-def sort_and_rank_leaderboard(leaderboard):
+def sort_and_rank_leaderboard(leaderboard: List[LeaderboardEntry]) -> List[LeaderboardEntry]:
     """
     sorts and ranks the leaderboard
 
     params:
         leaderboard (list): list of leaderboard entries
-    
+
     returns:
         list: sorted and ranked leaderboard
     """
-    def sort_key(entry):
+    def sort_key(entry: LeaderboardEntry) -> tuple:
         speed = entry.get("speed", 0)
         score = entry.get("score", 0)
         posted = entry.get("posted", "")
@@ -56,7 +65,7 @@ def sort_and_rank_leaderboard(leaderboard):
     
     return sorted_leaderboard
 
-def process_and_save_scores(result, user_id):
+def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
     """
     Process scoredata.bin content and save scores to the database
     
@@ -432,7 +441,7 @@ def process_and_save_scores(result, user_id):
 
 @bp.route("/api/upload_scoredata", methods=["POST"])
 @token_required
-def upload_scoredata(user_id):
+def upload_scoredata(user_id: str) -> FlaskResponse:
     """
     uploads a scoredata.bin file for processing
 
@@ -464,7 +473,7 @@ def upload_scoredata(user_id):
             if result["version"] != 20211009:
                 return jsonify({"error": "Score data is outdated"}), 400
             
-            def run_with_app_context(app, result, user_id):
+            def run_with_app_context(app: Any, result: Dict[str, Any], user_id: str) -> None:
                 with app.app_context():
                     process_and_save_scores(result, user_id)
             
@@ -483,7 +492,7 @@ def upload_scoredata(user_id):
 
 @bp.route("/api/processing_status", methods=["GET"])
 @token_required
-def processing_status(user_id):
+def processing_status(user_id: str) -> FlaskResponse:
     """
     Retrieves the current processing status for the user
 
@@ -502,7 +511,7 @@ def processing_status(user_id):
     else:
         return jsonify({"status": "no_active_processing"}), 404
 
-def find_file_path_for_md5(file_content, md5_hex, search_back=1024):
+def find_file_path_for_md5(file_content: bytes, md5_hex: str, search_back: int = 1024) -> Optional[str]:
     """
     Searches for the specified MD5 hash in the binary file and extracts the relevant file path.
     """
@@ -536,7 +545,7 @@ def find_file_path_for_md5(file_content, md5_hex, search_back=1024):
 
 @bp.route("/api/upload_songcache", methods=["POST"])
 @token_required
-def upload_songcache(user_id):
+def upload_songcache(user_id: str) -> FlaskResponse:
     logger = current_app.logger
     
     if "file" not in request.files:
