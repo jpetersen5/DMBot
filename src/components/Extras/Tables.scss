@@ -21,10 +21,10 @@
     width: 40px;
     height: 15px;
     pointer-events: none;
-    z-index: 10;
+    z-index: $z-sticky;
     opacity: 1;
     transition: opacity 0.3s;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+    box-shadow: $shadow-edge;
   }
 
   &.scrollable-top::before {
@@ -47,7 +47,7 @@
 
 table {
   border-collapse: collapse;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: $shadow-sm;
   @include theme("background", "color-table-background-2");
   @include theme("color", "color-table-text");
 

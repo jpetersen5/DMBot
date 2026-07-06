@@ -1,6 +1,7 @@
 @use "sass:map";
 @use "sass:meta";
 @use "themes" as *;
+@forward "tokens";
 
 $sidebar-width: 44px;
 $sidebar-width-expanded: 200px;
@@ -55,23 +56,27 @@ $screen-tablet-max: 1200px;
 @mixin theme($key, $color) {
   @if meta.global-variable-exists("themes") {
     @each $theme-name, $theme-map in $themes {
-        .theme-#{$theme-name} & {
-            #{$key}: map.get($theme-map, $color);
-        }
+      .theme-#{$theme-name} & {
+        #{$key}: map.get($theme-map, $color);
+      }
     }
-  } @else {
+  }
+
+  @else {
     @warn "Variable $themes is not defined. The 'theme' mixin will not apply styles.";
   }
 }
 
 @mixin master-theme($key, $color) {
-   @if meta.global-variable-exists("themes") {
+  @if meta.global-variable-exists("themes") {
     @each $theme-name, $theme-map in $themes {
-        .theme-#{$theme-name} {
-            #{$key}: map.get($theme-map, $color);
-        }
+      .theme-#{$theme-name} {
+        #{$key}: map.get($theme-map, $color);
+      }
     }
-  } @else {
+  }
+
+  @else {
     @warn "Variable $themes is not defined. The 'master-theme' mixin will not apply styles.";
   }
 }

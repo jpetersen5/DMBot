@@ -37,7 +37,7 @@
       padding-bottom: 5px;
       background-color: transparent;
       border: none;
-      border-radius: 4px;
+      border-radius: $radius-sm;
       font-size: 1.5rem;
       line-height: 1;
       transition: color 0.3s;
@@ -59,7 +59,7 @@
       button {
         padding: 0.5rem 1rem;
         border: none;
-        border-radius: 4px;
+        border-radius: $radius-sm;
         cursor: pointer;
         transition: background-color 0.3s;
         margin-left: 0.5rem;
@@ -99,7 +99,7 @@
       border: none;
       padding: 0.5rem 1rem;
       font-size: 1rem;
-      border-radius: 4px;
+      border-radius: $radius-sm;
       cursor: pointer;
       transition: background-color 0.3s;
       @include theme("background", "color-button");
@@ -124,7 +124,7 @@
     justify-content: center;
     cursor: pointer;
     transition: background-color 0.3s;
-    z-index: 1060;
+    z-index: $z-modal;
     padding: 0;
     line-height: 1;
     @include theme("background", "color-button");

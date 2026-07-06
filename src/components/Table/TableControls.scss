@@ -31,7 +31,7 @@
   select {
     padding: 0.5rem;
     border: 1px solid;
-    border-radius: 4px;
+    border-radius: $radius-sm;
     font-size: 1rem;
     @include theme("border-color", "color-border");
     @include theme("background", "color-dropdown");
@@ -53,7 +53,7 @@
     border: none;
     cursor: pointer;
     transition: background-color 0.3s;
-    border-radius: 4px;
+    border-radius: $radius-sm;
     @include theme("background", "color-button");
     @include theme("color", "color-button-text");
 
@@ -79,7 +79,7 @@
       margin: 0 0.5rem;
       text-align: center;
       border: 1px solid;
-      border-radius: 4px;
+      border-radius: $radius-sm;
       @include theme("border-color", "color-border");
       @include theme("background", "color-dropdown");
       @include theme("color", "color-dropdown-text");
@@ -124,7 +124,7 @@
       padding: 0.5rem;
       padding-right: 2.5rem;
       border: 1px solid;
-      border-radius: 4px;
+      border-radius: $radius-sm;
       font-size: 1rem;
       min-width: 250px;
       @include theme("border-color", "color-border");
@@ -150,7 +150,7 @@
   .search-button {
     padding: 0.5rem 1rem;
     border: none;
-    border-radius: 4px;
+    border-radius: $radius-sm;
     font-size: 1rem;
     cursor: pointer;
     transition: background-color 0.3s;
@@ -169,10 +169,10 @@
   right: 0;
   width: 200px;
   border: 1px solid;
-  border-radius: 4px;
+  border-radius: $radius-sm;
   padding: 0.5rem;
-  z-index: 10;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  z-index: $z-sticky;
+  box-shadow: $shadow-sm;
   @include theme("color", "color-text");
   @include theme("background", "color-dropdown");
   @include theme("border-color", "color-border");
@@ -198,7 +198,7 @@
     padding: 0.5rem;
     margin-top: 0.5rem;
     border: none;
-    border-radius: 4px;
+    border-radius: $radius-sm;
     font-size: 0.9rem;
     cursor: pointer;
     transition: background-color 0.3s;
@@ -220,7 +220,7 @@
     align-items: center;
     padding: 0.5rem 1rem;
     border: 1px solid;
-    border-radius: 4px;
+    border-radius: $radius-sm;
     font-size: 0.9rem;
     cursor: pointer;
     white-space: nowrap;
@@ -245,12 +245,12 @@
     flex-direction: column;
     top: 100%;
     left: 0;
-    z-index: 10;
+    z-index: $z-sticky;
     min-width: 200px;
     padding: 0.5rem;
     border: 1px solid;
-    border-radius: 4px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: $radius-sm;
+    box-shadow: $shadow-sm;
     @include theme("background", "color-dropdown");
     @include theme("border-color", "color-border");
   }
@@ -277,7 +277,7 @@
     padding: 0.5rem;
     margin-top: 0.5rem;
     border: none;
-    border-radius: 4px;
+    border-radius: $radius-sm;
     font-size: 0.9rem;
     cursor: pointer;
     transition: background-color 0.3s;

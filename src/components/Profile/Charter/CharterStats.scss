@@ -39,7 +39,7 @@
 
   .stat-item {
     padding: 1rem;
-    border-radius: 4px;
+    border-radius: $radius-sm;
     @include theme("background", "color-box-secondary");
 
     .stat-label {
@@ -67,7 +67,7 @@
     min-width: 300px;
     height: 320px;
     padding: 1rem;
-    border-radius: 4px;
+    border-radius: $radius-sm;
     display: flex;
     flex-direction: column;
     @include theme("background", "color-box-secondary");
@@ -94,7 +94,7 @@
       display: flex;
       align-items: center;
       padding: 0.5rem;
-      border-radius: 4px;
+      border-radius: $radius-sm;
       border: 1px solid;
       font-size: 1rem;
       width: 100%;
@@ -105,7 +105,7 @@
 
       &:focus {
         outline: none;
-        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+        box-shadow: $shadow-focus;
       }
     }
   }
@@ -125,7 +125,7 @@
 
       &:hover {
         overflow: visible;
-        z-index: 1000;
+        z-index: $z-floating;
 
         &::after {
           content: attr(data-full-label);
@@ -138,7 +138,7 @@
           padding: 2px 6px;
           border-radius: 3px;
           white-space: nowrap;
-          z-index: 1001;
+          z-index: $z-floating + 1;
           @include theme("background", "color-tooltip");
           @include theme("color", "color-tooltip-text");
         }
@@ -180,7 +180,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@include mobile {
   .charter-stats {
     padding: 1rem;
     

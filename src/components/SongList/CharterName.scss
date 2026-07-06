@@ -7,7 +7,7 @@
     color: inherit;
     border: none;
     background-color: transparent;
-    border-radius: 4px;
+    border-radius: $radius-sm;
     padding: 2px 4px;
     cursor: pointer;
     transition: background-color 0.3s;
@@ -21,13 +21,13 @@
     }
 
     &.active {
-      background-color: #a0a0a0;
+      @include theme("background", "color-button-hover");
       transform: scale(0.95);
     }
 
     &:disabled {
-      background-color: #888;
-      color: #404040;
+      @include theme("background", "color-button-disabled");
+      @include theme("color", "color-text-secondary");
       cursor: not-allowed;
     }
   }

@@ -18,7 +18,7 @@
   .icon-background {
     width: 70px;
     height: 70px;
-    border-radius: 50%;
+    border-radius: $radius-round;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -57,7 +57,7 @@
     right: 5px;
     width: 25px;
     height: 25px;
-    border-radius: 50%;
+    border-radius: $radius-round;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -72,7 +72,7 @@
       width: auto;
       min-width: 25px;
       padding: 0 4px;
-      border-radius: 12px;
+      border-radius: $radius-lg;
       font-size: 0.75rem;
     }
   }
@@ -105,14 +105,14 @@
     margin: 0 0 0.5rem;
     font-size: 0.8rem;
     font-style: italic;
-    color: #f44336;
+    @include theme("color", "color-text-error");
   }
   
   .has-song-info {
     margin-top: 0.5rem;
     font-size: 0.8rem;
     font-style: italic;
-    color: #2196f3;
+    @include theme("color", "color-info");
     
     &:before {
       content: "🎵 ";

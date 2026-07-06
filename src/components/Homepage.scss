@@ -38,7 +38,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 50%;
+      border-radius: $radius-round;
       transition: background-color 0.2s, transform 0.2s;
       border: none;
       @include theme("background", "color-button");
@@ -72,8 +72,8 @@
     justify-content: center;
     gap: 2rem;
     margin-top: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: $radius-md;
+    box-shadow: $shadow-sm;
     @include theme("background", "color-box");
 
     .status {
@@ -94,7 +94,7 @@
 
       .status-value {
         text-align: center;
-        border-radius: 4px;
+        border-radius: $radius-sm;
         font-weight: 500;
 
         &.success {

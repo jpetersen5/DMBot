@@ -1,0 +1,32 @@
+// ─── Border radius ────────────────────────────────────────────────
+$radius-sm: 4px; // inputs, buttons, small cards
+$radius-md: 8px; // cards, panels, modals
+$radius-lg: 12px; // large containers, badges
+$radius-pill: 20px; // pill-shaped chips
+$radius-round: 50%; // circles / avatars
+
+// ─── Elevation / shadow ───────────────────────────────────────────
+$shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1); // resting cards, inputs
+$shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1); // raised cards, dropdowns, modals
+$shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.2); // toasts, floating overlays
+$shadow-focus: 0 0 0 2px rgba(0, 0, 0, 0.1); // focus / selection ring
+$shadow-edge: 0 0 5px rgba(0, 0, 0, 0.3); // sticky-column / scroll edge
+
+// ─── Z-index layering ─────────────────────────────────────────────
+$z-sticky: 10; // sticky table headers & cells
+$z-floating: 1000; // draggable panels, floating widgets, upload toast
+$z-modal: 1060; // custom modals layered above Bootstrap (1040/1050)
+$z-toast: 9999; // achievement toasts / full-screen overlays
+$z-tooltip: 10000; // tooltips always on top
+
+// ─── Motion ───────────────────────────────────────────────────────
+$transition-fast: 0.2s;
+$transition-base: 0.3s;
+$transition-slow: 0.4s;
+
+// ─── Spacing ──────────────────────────────────────────────────────
+$space-xs: 4px;
+$space-sm: 8px;
+$space-md: 16px;
+$space-lg: 24px;
+$space-xl: 32px;

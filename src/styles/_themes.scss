@@ -10,6 +10,7 @@ $dark-green: #155724;
 $very-light-green: #D4EDDA;
 $discord-blue: #7289DA;
 $discord-blue-dark: #5A6EB8;
+$blue: #2196F3;
 $off-white: #F8F9FA;
 $gold: #FFD700;
 $gold-dark-1: #D98A2E;
@@ -76,6 +77,7 @@ $themes: (
     color-primary: $gold,
     color-text-success: $green,
     color-text-error: $red,
+    color-info: $blue,
     color-scrollbar: $dark-grey-3,
     color-scrollbar-hover: $dark-grey-4,
     filter-invert: invert(1),
@@ -124,6 +126,7 @@ $themes: (
     color-primary: $gold,
     color-text-success: $green,
     color-text-error: $red,
+    color-info: $blue,
     color-scrollbar: $light-grey-2,
     color-scrollbar-hover: $light-grey-3,
     filter-invert: invert(0),

@@ -23,7 +23,7 @@
       align-items: center;
       padding: 1rem;
       min-width: 220px;
-      border-radius: 8px;
+      border-radius: $radius-md;
       text-decoration: none;
       transition: transform 0.2s, box-shadow 0.2s;
       @include theme("background", "color-box");
@@ -31,11 +31,11 @@
 
       &:hover {
         transform: translateY(-5px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: $shadow-md;
       }
 
       .avatar {
-        border-radius: 50%;
+        border-radius: $radius-round;
         margin-right: 1rem;
       }
 

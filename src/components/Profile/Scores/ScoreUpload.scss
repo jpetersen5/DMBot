@@ -3,8 +3,8 @@
 
 .score-upload {
   padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: $radius-md;
+  box-shadow: $shadow-sm;
   margin-top: 2rem;
   @include theme("background", "color-box");
   @include theme("color", "color-text");
@@ -27,7 +27,7 @@
       flex-grow: 1;
       padding: 0.5rem;
       border: 1px solid;
-      border-radius: 4px;
+      border-radius: $radius-sm;
       @include theme("border-color", "color-border");
     }
   }
@@ -35,7 +35,7 @@
   button {
     border: none;
     padding: 0.5rem 1rem;
-    border-radius: 4px;
+    border-radius: $radius-sm;
     cursor: pointer;
     transition: background-color 0.3s;
     @include theme("background", "color-button");
@@ -73,10 +73,10 @@
       font-family: monospace;
       font-size: 14px;
       border: 1px solid;
-      border-radius: 4px;
+      border-radius: $radius-sm;
       padding: 0.25rem;
       cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      box-shadow: $shadow-sm;
       transition: background-color 0.3s;
       @include theme("color", "color-button-secondary-text");
       @include theme("background", "color-button-secondary");
@@ -99,7 +99,7 @@
   
     button {
       border: 1px solid;
-      border-radius: 4px;
+      border-radius: $radius-sm;
       padding: 0.25rem 0.5rem;
       cursor: pointer;
       transition: background-color 0.3s;

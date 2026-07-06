@@ -4,8 +4,8 @@
 .release-notes-modal {
   .modal-content {
     border: none;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: $radius-md;
+    box-shadow: $shadow-md;
     @include theme("background", "color-background");
     @include theme("color", "color-text");
   }

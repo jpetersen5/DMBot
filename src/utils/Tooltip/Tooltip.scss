@@ -10,9 +10,9 @@
   position: fixed;
   padding: 8px 12px;
   background-color: rgba(0, 0, 0, 0.85);
-  border-radius: 4px;
+  border-radius: $radius-sm;
   pointer-events: none;
-  z-index: 10000;
+  z-index: $z-tooltip;
   max-width: 320px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   

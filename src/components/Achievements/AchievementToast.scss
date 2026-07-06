@@ -5,14 +5,14 @@
   position: relative;
   margin-top: 1rem;
   padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-radius: $radius-md;
+  box-shadow: $shadow-lg;
   width: 320px;
   max-width: 100%;
   transform: translateX(400px);
   opacity: 0;
   transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-  z-index: 1000;
+  z-index: $z-floating;
   overflow: hidden;
   @include theme("background", "color-box");
   
@@ -98,7 +98,7 @@
   position: fixed;
   bottom: 2rem;
   right: 2rem;
-  z-index: 9999;
+  z-index: $z-toast;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -128,14 +128,14 @@
     right: 2rem;
     margin-top: 1rem;
     padding: 0.5rem 1rem;
-    border-radius: 4px;
+    border-radius: $radius-sm;
     border: none;
     cursor: pointer;
     font-weight: bold;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     transition: background-color 0.2s ease;
     pointer-events: auto;
-    z-index: 9999;
+    z-index: $z-toast;
     @include theme("background", "color-button");
     @include theme("color", "color-button-text");
     

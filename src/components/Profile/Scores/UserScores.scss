@@ -72,7 +72,7 @@
           right: 0;
           bottom: 0;
           transition: 0.4s;
-          border-radius: 20px;
+          border-radius: $radius-pill;
           @include theme("background", "color-toggle-off");
   
           &:before {
@@ -83,7 +83,7 @@
             left: 2px;
             bottom: 2px;
             transition: 0.4s;
-            border-radius: 50%;
+            border-radius: $radius-round;
             @include theme("background", "color-toggle-handle");
           }
         }
