@@ -1,13 +1,7 @@
 @use "../styles/themes" as *;
 @use "../styles/mixins" as *;
 
-@use "../components/Homepage.scss";
-@use "../components/Auth/Auth.scss";
 @use "../components/Extras/Tables.scss";
-@use "../components/Profile/ProfilePage.scss";
-@use "../components/Sidebar/Sidebar.scss";
-@use "../components/SongList/SongList.scss";
-@use "../components/SongList/SongModal.scss";
 
 .app-container {
   display: flex;
@@ -25,7 +19,8 @@
   overflow-y: auto;
   z-index: 1;
   @include scrollbar;
-  & > * {
+
+  &>* {
     height: 100%;
   }
 }

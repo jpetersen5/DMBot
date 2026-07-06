@@ -1,0 +1,11 @@
+{
+  "extends": "stylelint-config-standard-scss",
+  "rules": {
+    "scss/at-mixin-argumentless-call-parentheses": null,
+    "no-descending-specificity": null,
+    "selector-class-pattern": null,
+    "scss/dollar-variable-pattern": null,
+    "scss/no-global-function-names": null,
+    "custom-property-pattern": null
+  }
+}
