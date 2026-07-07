@@ -3,7 +3,8 @@ import { useClickOutside } from "../../utils/handleClickOutside";
 import { capitalize } from "../../utils/safeHTML";
 import "./TableControls.scss";
 
-import FilterIcon from "../../assets/filter.svg";
+import Icon from "../Extras/Icon";
+import FilterIcon from "../../assets/filter.svg?react";
 
 export interface PaginationProps {
   page: number;
@@ -81,9 +82,9 @@ export const Pagination: React.FC<PaginationProps> = ({
 
   return (
     <div className={`pagination ${size === "sm" ? "size-sm" : "size-lg"}`}>
-      <button 
-        onClick={handlePrevPage} 
-        disabled={page === 1 || totalPages === 0} 
+      <button
+        onClick={handlePrevPage}
+        disabled={page === 1 || totalPages === 0}
         className="prev"
       >
         <span className="paginate-large">Previous</span>
@@ -107,9 +108,9 @@ export const Pagination: React.FC<PaginationProps> = ({
         <span className="paginate-small">{totalPages > 0 ? inputPage : "0"}&nbsp;</span>
         <span>{`of ${totalPages}`}</span>
       </div>
-      <button 
-        onClick={handleNextPage} 
-        disabled={page === totalPages || totalPages === 0} 
+      <button
+        onClick={handleNextPage}
+        disabled={page === totalPages || totalPages === 0}
         className="next"
       >
         <span className="paginate-large">Next</span>
@@ -126,9 +127,9 @@ export interface TableControlsProps {
   options?: number[];
 }
 
-export const PerPageSelector: React.FC<TableControlsProps> = ({ 
-  perPage, 
-  setPerPage, 
+export const PerPageSelector: React.FC<TableControlsProps> = ({
+  perPage,
+  setPerPage,
   setPage,
   options = [10, 20, 50, 100]
 }) => {
@@ -228,7 +229,7 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({
   }
 
   const handleFilterToggle = (filter: string) => {
-    setFiltersToSet(prevFilters => 
+    setFiltersToSet(prevFilters =>
       prevFilters.includes(filter)
         ? prevFilters.filter(f => f !== filter)
         : [...prevFilters, filter]
@@ -250,12 +251,12 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({
 
   return (
     <>
-      <button 
-        className="filter-button"
+      <button
+        className={`filter-button ${isDropdownOpen || filters.length > 0 ? "active" : ""}`}
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
         aria-label="Filter options"
       >
-        <img src={FilterIcon} alt="Filter" />
+        <Icon as={FilterIcon} title="Filter" />
       </button>
       {isDropdownOpen && (
         <div className="filter-dropdown" ref={dropdownRef}>
@@ -297,7 +298,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleOptionToggle = (option: string) => {
-    setSelectedOptions(prevOptions => 
+    setSelectedOptions(prevOptions =>
       prevOptions.includes(option)
         ? prevOptions.filter(o => o !== option)
         : [...prevOptions, option]
@@ -317,12 +318,12 @@ export const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
 
   return (
     <div className="multi-select-dropdown">
-      <button 
+      <button
         className="dropdown-button"
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
       >
         {selectedOptions.length === 0 && clearLabel}
-        {selectedOptions.length === 1 && 
+        {selectedOptions.length === 1 &&
           capitalize(selectedOptions[0])
         }
         {selectedOptions.length > 1 &&

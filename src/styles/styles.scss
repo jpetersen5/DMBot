@@ -29,6 +29,32 @@
   @include scrollbar;
 }
 
+.modal-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  padding: 0.25rem;
+  line-height: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.6;
+  color: inherit;
+  transition: opacity 0.3s;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  .icon-svg {
+    display: block;
+    width: 2rem;
+    height: 2rem;
+    color: inherit;
+  }
+}
+
 @include mobile {
   .app-container {
     flex-direction: column;

@@ -16,7 +16,9 @@ import "chartjs-adapter-date-fns"
 import { EloHistory, UserStats } from "../../utils/user";
 import "./ProfileStats.scss";
 
-import historyIcon from "../../assets/history.svg";
+import Icon from "../Extras/Icon";
+import ModalCloseButton from "../Extras/ModalCloseButton";
+import historyIcon from "../../assets/history.svg?react";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, TimeScale);
 
@@ -101,8 +103,8 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ userStats, elo, eloHistory 
 
     while (currentDate <= now) {
       labels.push(currentDate.toLocaleString(undefined, { month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" }));
-      const relevantEntries = filteredHistory.filter(entry => 
-        new Date(entry.timestamp) <= currentDate && 
+      const relevantEntries = filteredHistory.filter(entry =>
+        new Date(entry.timestamp) <= currentDate &&
         new Date(entry.timestamp) > new Date(currentDate.getTime() - interval)
       );
       const dataEntry = {
@@ -134,10 +136,10 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ userStats, elo, eloHistory 
         type: "time" as const,
         time: {
           unit: timeWindow === "12h" ? "hour" as const :
-                timeWindow === "24h" ? "hour" as const :
-                timeWindow === "7d" ? "day" as const :
+            timeWindow === "24h" ? "hour" as const :
+              timeWindow === "7d" ? "day" as const :
                 timeWindow === "30d" ? "day" as const :
-                "month" as const,
+                  "month" as const,
           displayFormats: {
             hour: "HH:mm",
             day: "MMM dd",
@@ -173,7 +175,7 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ userStats, elo, eloHistory 
         <div className="elo-container">
           <h2>{`Elo: ${elo}`}</h2>
           <button className="see-history-btn" onClick={() => setShowEloModal(true)}>
-            <span>See History</span><img src={historyIcon} alt="History" />
+            <span>See History</span><Icon as={historyIcon} title="History" />
           </button>
         </div>
       </div>
@@ -189,8 +191,9 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ userStats, elo, eloHistory 
       )}
 
       <Modal show={showEloModal} onHide={() => setShowEloModal(false)} size="lg" centered className="elo-modal">
-        <Modal.Header closeButton>
+        <Modal.Header>
           <Modal.Title>Elo History</Modal.Title>
+          <ModalCloseButton onClick={() => setShowEloModal(false)} />
         </Modal.Header>
         <Modal.Body>
           {eloData && (

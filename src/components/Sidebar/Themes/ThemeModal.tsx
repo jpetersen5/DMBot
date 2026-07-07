@@ -4,8 +4,10 @@ import { capitalize } from "../../../utils/safeHTML";
 import { applyTheme } from "../../../utils/theme";
 import "./ThemeModal.scss";
 
-import DayIcon from "../../../assets/day.svg";
-import NightIcon from "../../../assets/night.svg";
+import Icon from "../../Extras/Icon";
+import ModalCloseButton from "../../Extras/ModalCloseButton";
+import DayIcon from "../../../assets/day.svg?react";
+import NightIcon from "../../../assets/night.svg?react";
 
 interface ThemeModalProps {
   isOpen: boolean;
@@ -31,17 +33,18 @@ const ThemeModal: React.FC<ThemeModalProps> = ({ isOpen, onClose, themes }) => {
 
   return (
     <Modal show={isOpen} onHide={onClose} centered className="theme-modal">
-      <Modal.Header closeButton>
+      <Modal.Header>
         <Modal.Title>Select Theme</Modal.Title>
+        <ModalCloseButton onClick={onClose} />
       </Modal.Header>
       <Modal.Body>
         <ul className="theme-list">
           {Object.entries(themes).map(([key, value]) => (
             <li key={key} onClick={() => selectTheme(value)} className="theme-option">
               {getThemeIcon(value) && (
-                <img 
-                  src={getThemeIcon(value) || ""} 
-                  alt={`${key} theme icon`} 
+                <Icon
+                  as={getThemeIcon(value)!}
+                  title={`${key} theme icon`}
                   className="theme-icon"
                 />
               )}

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import "./KofiWidget.scss";
 
-import closeIcon from "../assets/close.svg";
+import Icon from "./Extras/Icon";
+import closeIcon from "../assets/close.svg?react";
 
 interface KofiWidgetProps {
   isSidebarOpen: boolean;
@@ -39,7 +40,7 @@ const KofiWidget: React.FC<KofiWidgetProps> = ({ isSidebarOpen }) => {
     >
       {!isMobile && (
         <button className="minimize-button" onClick={toggleMinimize}>
-          <img src={closeIcon} alt="X" />
+          <Icon as={closeIcon} title="X" />
         </button>
       )}
       <button onClick={handleKofiClick} className="kofi-button">

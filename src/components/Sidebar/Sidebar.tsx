@@ -9,17 +9,18 @@ import Tooltip from "../../utils/Tooltip/Tooltip";
 import { applyTheme, getStoredTheme } from "../../utils/theme";
 import "./Sidebar.scss";
 
-import HomeIcon from "../../assets//home-icon.svg";
-import ProfileIcon from "../../assets/profile-icon.svg";
-import SongsIcon from "../../assets/songs-icon.svg";
-import ThemesIcon from "../../assets/themes-icon.svg";
-import UsersIcon from "../../assets/users-icon.svg";
-import ReleaseNotesIcon from "../../assets/release-notes-icon.svg";
+import Icon, { SvgComponent } from "../Extras/Icon";
+import HomeIcon from "../../assets/home-icon.svg?react";
+import ProfileIcon from "../../assets/profile-icon.svg?react";
+import SongsIcon from "../../assets/songs-icon.svg?react";
+import ThemesIcon from "../../assets/themes-icon.svg?react";
+import UsersIcon from "../../assets/users-icon.svg?react";
+import ReleaseNotesIcon from "../../assets/release-notes-icon.svg?react";
 
 interface NavItem {
   path: string;
   name: string;
-  icon: string;
+  icon: SvgComponent;
 }
 
 const themes = {
@@ -78,9 +79,9 @@ const Sidebar: React.FC = () => {
       return location.pathname === "/";
     }
     else if (name === "Users") {
-      return location.pathname.startsWith("/users") || 
-             location.pathname.startsWith("/charter") ||
-             location.pathname.startsWith("/user") && !location.pathname.startsWith("/user/" + user?.id); // Exclude user profile page
+      return location.pathname.startsWith("/users") ||
+        location.pathname.startsWith("/charter") ||
+        location.pathname.startsWith("/user") && !location.pathname.startsWith("/user/" + user?.id);
     }
     else {
       return location.pathname.startsWith(path);
@@ -112,10 +113,10 @@ const Sidebar: React.FC = () => {
               <div className={isIconActive(item.name, item.path) ? "active" : ""}>
                 <Link to={item.path} key={item.path}>
                   <li>
-                      <span className="icon">
-                        <img src={item.icon} alt={item.name} />
-                      </span>
-                      {isOpen && <span className="nav-text">{item.name}</span>}
+                    <span className="icon">
+                      <Icon as={item.icon} title={item.name} />
+                    </span>
+                    {isOpen && <span className="nav-text">{item.name}</span>}
                   </li>
                 </Link>
               </div>
@@ -123,7 +124,7 @@ const Sidebar: React.FC = () => {
             <a onClick={openThemeModal}>
               <li>
                 <span className="icon">
-                  <img src={ThemesIcon} alt="Themes" />
+                  <Icon as={ThemesIcon} title="Themes" />
                   {isOpen && <span className="nav-text">&ensp;Themes</span>}
                 </span>
               </li>
@@ -136,7 +137,7 @@ const Sidebar: React.FC = () => {
               <div className="version-wrapper">
                 <div className="version">{version}</div>
                 <button onClick={openReleaseNotesModal} className="release-notes-button">
-                  <img src={ReleaseNotesIcon} alt="Release Notes" />
+                  <Icon as={ReleaseNotesIcon} title="Release Notes" />
                 </button>
               </div>
             </Tooltip>

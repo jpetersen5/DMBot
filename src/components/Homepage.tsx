@@ -5,11 +5,12 @@ import Auth from "./Auth/Auth";
 import Credits from "./Extras/Credits";
 import Tooltip from "../utils/Tooltip/Tooltip";
 
-import FeatureIcon from "../assets/feature-icon.svg";
-import BugIcon from "../assets/bug-icon.svg";
-import ContributeIcon from "../assets/contribute-icon.svg";
-import DiscordIcon from "../assets/discord-icon.svg";
-import CreditsIcon from "../assets/credits-icon.svg";
+import Icon from "./Extras/Icon";
+import FeatureIcon from "../assets/feature-icon.svg?react";
+import BugIcon from "../assets/bug-icon.svg?react";
+import ContributeIcon from "../assets/contribute-icon.svg?react";
+import DiscordIcon from "../assets/discord-icon.svg?react";
+import CreditsIcon from "../assets/credits-icon.svg?react";
 import BannerImage1 from "../assets/dmbotbanner1.png";
 import BannerImage2 from "../assets/dmbotbanner2.png";
 
@@ -69,27 +70,27 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({ toggleShowCredits, showCr
     <div className="action-buttons">
       <Tooltip text="Request a new feature">
         <a href="https://forms.gle/ceJxzyYEwbDLn6TGA" target="_blank" rel="noopener noreferrer" className="icon-button">
-          <img src={FeatureIcon} alt="Request feature" />
+          <Icon as={FeatureIcon} title="Request feature" />
         </a>
       </Tooltip>
       <Tooltip text="Report a bug">
         <a href="https://github.com/jpetersen5/DMBot/issues" target="_blank" rel="noopener noreferrer" className="icon-button">
-          <img src={BugIcon} alt="Report bug" />
+          <Icon as={BugIcon} title="Report bug" />
         </a>
       </Tooltip>
       <Tooltip text="Contribute to the project">
         <a href="https://github.com/jpetersen5/DMBot" target="_blank" rel="noopener noreferrer" className="icon-button">
-          <img src={ContributeIcon} alt="Contribute" />
+          <Icon as={ContributeIcon} title="Contribute" />
         </a>
       </Tooltip>
       <Tooltip text="Join the Drummer's Monthly Discord">
         <a href="https://discord.gg/Eh8RgrzYbb" target="_blank" rel="noopener noreferrer" className="icon-button">
-          <img src={DiscordIcon} alt="Discord" />
+          <Icon as={DiscordIcon} title="Discord" />
         </a>
       </Tooltip>
       <Tooltip text="Credits">
         <button onClick={toggleShowCredits} className={`icon-button ${showCredits ? "selected" : ""}`} >
-          <img src={CreditsIcon} alt="Credits" />
+          <Icon as={CreditsIcon} title="Credits" />
         </button>
       </Tooltip>
     </div>

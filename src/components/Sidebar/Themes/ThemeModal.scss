@@ -21,16 +21,6 @@
     .modal-title {
       font-weight: bold;
     }
-
-    .btn-close {
-      opacity: 0.6;
-      transition: opacity 0.3s;
-      filter: invert(1);
-
-      &:hover {
-        opacity: 1;
-      }
-    }
   }
 
   .modal-body {
@@ -69,7 +59,7 @@
       width: 24px;
       height: 24px;
       margin-right: 0.75rem;
-      @include theme("filter", "filter-invert");
+      @include theme("color", "color-icon-invert");
     }
   }
 }

@@ -18,7 +18,7 @@ const contributors: Contributor[] = [
   },
   {
     name: "Hababa2",
-    role: "Dark Mode, New Rank Icons (WIP)",
+    role: "Dark Mode, Rank Icons",
     avatarUrl: "https://cdn.discordapp.com/avatars/325387888072196097/f76044af9bf88495a294ff66e9851f92.png",
     profileUrl: "https://github.com/zachqpeterson",
   },

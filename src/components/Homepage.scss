@@ -49,8 +49,8 @@
         @include theme("background", "color-button-hover");
       }
 
-      img {
-        object-fit: contain;
+      .icon-svg {
+        color: $white;
       }
     }
 
@@ -138,14 +138,15 @@
         width: 40px;
         height: 40px;
 
-        img {
+        .icon-svg {
           width: 20px;
           height: 20px;
         }
       }
     }
 
-    .auth-container, .credits {
+    .auth-container,
+    .credits {
       flex: 1;
       min-height: 15rem;
     }
@@ -199,7 +200,7 @@
         width: 60px;
         height: 60px;
 
-        img {
+        .icon-svg {
           width: 30px;
           height: 30px;
         }

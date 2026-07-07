@@ -7,7 +7,9 @@ import { User, getUserImageSrc, getFallbackImage } from "../../utils/user";
 import { useAuth } from "../../context/AuthContext";
 import "./UserCompareModal.scss";
 
-import SwapIcon from "../../assets/swap.svg";
+import Icon from "../Extras/Icon";
+import ModalCloseButton from "../Extras/ModalCloseButton";
+import SwapIcon from "../../assets/swap.svg?react";
 import VS from "../../assets/vs.png";
 
 interface ComparisonResults {
@@ -273,15 +275,16 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
 
   return (
     <Modal show={show} onHide={onHide} size="lg" centered className="user-compare-modal">
-      <Modal.Header closeButton>
+      <Modal.Header>
         <Modal.Title>Compare Users</Modal.Title>
+        <ModalCloseButton onClick={onHide} />
       </Modal.Header>
       <Modal.Body>
         <div className="user-compare-container">
           {renderUserSide("left")}
           <div className="vs-container">
             <button className="swap-button" onClick={swapUsers}>
-              <img src={SwapIcon} alt="Swap users" className="swap-icon" />
+              <Icon as={SwapIcon} title="Swap users" className="swap-icon" />
             </button>
             <div className="vs">
               <img src={VS} alt="VS" className="vs-icon" />

@@ -4,7 +4,8 @@ import { useUploadProgress } from "../../hooks/useUploadProgress";
 import Draggable from "../../utils/Draggable";
 
 import "./UploadProgress.scss";
-import closeIcon from "../../assets/close.svg";
+import Icon from "../Extras/Icon";
+import closeIcon from "../../assets/close.svg?react";
 
 const UploadProgress: React.FC = () => {
   const {
@@ -92,7 +93,7 @@ const UploadProgress: React.FC = () => {
         )}
 
         <button className="close-button" onClick={handleClose}>
-          <img src={closeIcon} alt="Close" />
+          <Icon as={closeIcon} title="Close" />
         </button>
       </div>
     </Draggable>

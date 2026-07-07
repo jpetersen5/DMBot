@@ -29,11 +29,11 @@
     border: none;
     @include theme("background", "color-sidebar");
     @include theme("color", "color-sidebar-text");
+
     .back-button {
-      position: absolute;
       height: 30px;
       width: 30px;
-      right: 1rem;
+      margin-right: 0.75rem;
       padding-bottom: 5px;
       background-color: transparent;
       border: none;
@@ -55,7 +55,7 @@
       display: flex;
       justify-content: flex-end;
       margin-bottom: 1rem;
-    
+
       button {
         padding: 0.5rem 1rem;
         border: none;
@@ -65,18 +65,18 @@
         margin-left: 0.5rem;
         @include theme("background", "color-button");
         @include theme("color", "color-button-text");
-    
+
         &.verify-button {
           background-color: $green;
-    
+
           &:hover {
             background-color: $grey-green;
           }
         }
-    
+
         &.remove-button {
           background-color: $red;
-    
+
           &:hover {
             background-color: $dark-red;
           }
@@ -104,7 +104,7 @@
       transition: background-color 0.3s;
       @include theme("background", "color-button");
       @include theme("color", "color-button-text");
-      
+
       &:hover {
         @include theme("background", "color-button-hover");
       }
@@ -145,7 +145,7 @@
       font-size: 2.5rem;
       padding-left: 5px;
     }
-    
+
     &.next-button {
       right: -40px;
       border-top-right-radius: 40px;
@@ -162,7 +162,7 @@
     position: sticky;
     z-index: 2;
   }
-  
+
   .modal-dialog {
     max-width: 100%;
     margin: 0;
@@ -183,7 +183,7 @@
   .close-button {
     display: none;
   }
-  
+
 }
 
 @include tabletplus {
@@ -201,7 +201,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    
+
     .table-container {
       flex: 1;
       overflow-y: auto;
@@ -212,7 +212,7 @@
     flex: 1;
     min-height: 400px;
     max-height: calc(100vh - 750px);
-    
+
     .loading-spinner {
       min-height: 400px;
       max-height: calc(100vh - 750px);

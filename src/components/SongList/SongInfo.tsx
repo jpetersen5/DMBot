@@ -20,8 +20,9 @@ import IconDrums from "../../assets/rb-drums.png";
 import IconGuitar from "../../assets/rb-guitar.png";
 import IconRhythm from "../../assets/rb-rhythm.png";
 import IconKeys from "../../assets/rb-keys.png";
-import ChevronLeft from "../../assets/chevron-left.svg";
-import ChevronRight from "../../assets/chevron-right.svg";
+import Icon from "../Extras/Icon";
+import ChevronLeft from "../../assets/chevron-left.svg?react";
+import ChevronRight from "../../assets/chevron-right.svg?react";
 import DefaultAlbumArt from "../../assets/default-album-art.jpg";
 
 import { charterAvatars } from "../../assets/charter-avatars";
@@ -134,14 +135,14 @@ const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) =>
       <div className="song-column">
         <div className="song-art-box">
           {songData?.image_url ? (
-            <img className="song-art-image" src={songData.image_url}/>
+            <img className="song-art-image" src={songData.image_url} />
           ) : (
             <LoadingSpinner message="" timeout={0} />
           )}
           {avatarArtUrl && (
-          <div className="song-art-charter" >
-            <img className="user-avatar" src={avatarArtUrl}/>
-          </div>
+            <div className="song-art-charter" >
+              <img className="user-avatar" src={avatarArtUrl} />
+            </div>
           )}
         </div>
 
@@ -152,11 +153,11 @@ const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) =>
             <div className="song-album info-line">
               <span>{extraData.album} ({extraData.year})</span>
             </div>
-            
+
             <div className="song-genre info-line">{extraData.genre}</div>
             <SongInfoLine label="Charter" value={song.charter_refs?.join(",")} />
           </div>
-          
+
           {songData?.tempo && (
             <SongSpotifyData songData={songData} />
           )}
@@ -189,11 +190,11 @@ const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
   else if (label === "Charter") {
     return (
       <div className="charter info-line">
-        <CharterName names={value as string} displayBadges={true}/>
+        <CharterName names={value as string} displayBadges={true} />
       </div>
     );
   }
-  const processedValue = typeof value === "string" 
+  const processedValue = typeof value === "string"
     ? processColorTags(value)
     : String(value);
   return (
@@ -247,7 +248,7 @@ interface SongInfoPartProps {
 
 const SongInfoPart: React.FC<SongInfoPartProps> = ({ name, difficulty, noteCounts, maxNps }) => {
   const hasDifficulty = difficulty !== undefined && difficulty !== -1;
-  
+
   const notesTooltip = (
     <div className="part-notes-info">
       <span className="part-notes-info-name">{name}</span>
@@ -272,12 +273,12 @@ const SongInfoPart: React.FC<SongInfoPartProps> = ({ name, difficulty, noteCount
   return (
     <div className={`part ${!hasDifficulty ? "inactive" : ""}`}>
       <Tooltip content={notesTooltip} position="bottom">
-        <img 
-          src={name == "Drums" ? IconDrums : 
-              name == "Bass" ? IconBass :
+        <img
+          src={name == "Drums" ? IconDrums :
+            name == "Bass" ? IconBass :
               name == "Guitar" ? IconGuitar :
-              name == "Rhythm" ? IconRhythm :
-              name == "Keys" ? IconKeys : ""}
+                name == "Rhythm" ? IconRhythm :
+                  name == "Keys" ? IconKeys : ""}
         />
       </Tooltip>
       <div className="part-difficulty-numeral">
@@ -410,7 +411,7 @@ const SongDataGenres: React.FC<SongDataGenresProps> = ({ genres }) => {
         onClick={() => scroll("left")}
         style={{ visibility: canScrollLeft ? "visible" : "hidden" }}
       >
-        <img src={ChevronLeft} />
+        <Icon as={ChevronLeft} />
       </button>
       <div className="spotify-genres" ref={genresRef}>
         {genres.map((genre, index) => (
@@ -422,7 +423,7 @@ const SongDataGenres: React.FC<SongDataGenresProps> = ({ genres }) => {
         onClick={() => scroll("right")}
         style={{ visibility: canScrollRight ? "visible" : "hidden" }}
       >
-        <img src={ChevronRight} />
+        <Icon as={ChevronRight} />
       </button>
     </div>
   );

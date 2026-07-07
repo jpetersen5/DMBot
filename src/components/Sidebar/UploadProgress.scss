@@ -93,11 +93,10 @@
     cursor: pointer;
     @include theme("color", "color-button-text");
 
-    img {
+    .icon-svg {
       height: 24px;
       width: 24px;
-      object-fit: contain;
-      @include theme("filter", "filter-invert");
+      @include theme("color", "color-icon-invert");
     }
 
     &:hover {

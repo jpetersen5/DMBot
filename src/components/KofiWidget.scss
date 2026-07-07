@@ -20,7 +20,7 @@
     }
 
     .minimize-button {
-      img {
+      .icon-svg {
         transform: rotate(45deg);
       }
     }
@@ -56,26 +56,27 @@
     position: absolute;
     top: 0;
     right: 0;
-    height: 20px;
-    width: 20px;
+    height: 24px;
+    width: 24px;
     padding: 0;
     margin: 4px;
+    line-height: 0;
     background: none;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 1.2rem;
-    transition: rotate 0.3s ease;
-    @include theme("color", "color-button-text");
 
     &:hover {
       @include theme("background", "color-button-hover");
     }
 
-    img {
+    .icon-svg {
+      display: block;
       width: 24px;
       height: 24px;
-      @include theme("filter", "filter-invert");
+      color: $white;
+      transform-origin: center;
+      transition: transform 0.3s ease;
     }
   }
 }

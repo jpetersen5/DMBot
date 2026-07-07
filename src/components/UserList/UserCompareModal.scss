@@ -44,7 +44,7 @@
     .swap-icon {
       width: 24px;
       height: 24px;
-      @include theme("filter", "filter-invert");
+      @include theme("color", "color-icon-invert");
     }
   }
 
@@ -90,16 +90,28 @@
       &.left {
         .stat-row {
           flex-direction: row;
-          .stat-label { text-align: left; }
-          .stat-value { text-align: right; }
+
+          .stat-label {
+            text-align: left;
+          }
+
+          .stat-value {
+            text-align: right;
+          }
         }
       }
 
       &.right {
         .stat-row {
           flex-direction: row-reverse;
-          .stat-label { text-align: right; }
-          .stat-value { text-align: left; }
+
+          .stat-label {
+            text-align: right;
+          }
+
+          .stat-value {
+            text-align: left;
+          }
         }
       }
 
@@ -108,7 +120,8 @@
         justify-content: space-between;
         margin-bottom: 0.5rem;
 
-        .stat-label, .stat-value {
+        .stat-label,
+        .stat-value {
           width: 50%;
         }
 
@@ -170,7 +183,7 @@
     margin-right: auto;
     box-shadow: $shadow-md;
     @include theme("background", "color-box-secondary");
-  
+
     h4 {
       font-size: 1.4rem;
       margin-bottom: 1.5rem;
@@ -180,7 +193,7 @@
     .tooltip-container {
       display: block;
     }
-  
+
     .result-item {
       margin-bottom: 1rem;
       font-size: 1.1rem;
@@ -190,35 +203,35 @@
       padding: 0.5rem 1rem;
       border-radius: $radius-sm;
       @include theme("background", "color-box");
-  
+
       .label {
         font-weight: bold;
         @include theme("color", "color-text");
       }
-  
+
       .value {
         @include theme("color", "color-text-secondary");
-  
+
         &.winner {
           @include theme("color", "color-text-success");
         }
-  
+
         &.loser {
           @include theme("color", "color-text-error");
         }
-  
+
         &.tie {
           @include theme("color", "color-text");
         }
       }
     }
-  
+
     .error {
       color: $red;
       font-style: italic;
     }
   }
-  
+
   .loading {
     text-align: center;
     margin-top: 2rem;

@@ -1,6 +1,7 @@
 import React from "react";
 import { Modal } from "react-bootstrap";
 import { CURRENT_VERSION } from "../Sidebar";
+import ModalCloseButton from "../../Extras/ModalCloseButton";
 
 import "./ReleaseNotesModal.scss";
 
@@ -254,8 +255,9 @@ const ReleaseNotesModal: React.FC<ReleaseNotesModalProps> = ({ isOpen, onClose }
 
   return (
     <Modal show={isOpen} onHide={onClose} centered className="release-notes-modal">
-      <Modal.Header closeButton>
+      <Modal.Header>
         <Modal.Title>Release Notes</Modal.Title>
+        <ModalCloseButton onClick={onClose} />
       </Modal.Header>
       <Modal.Body>
         <div className="release-notes-container">

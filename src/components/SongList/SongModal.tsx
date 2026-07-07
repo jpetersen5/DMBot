@@ -10,6 +10,7 @@ import { Song } from "../../utils/song";
 import { useAuth } from "../../context/AuthContext";
 import "./SongModal.scss";
 import Leaderboard from "../Leaderboard/Leaderboard";
+import ModalCloseButton from "../Extras/ModalCloseButton";
 
 interface SongModalProps {
   show: boolean;
@@ -46,10 +47,8 @@ const SongModal: React.FC<SongModalProps> = ({
     return (
       <Modal show={show} onHide={onHide} size="xl" dialogClassName="song-modal loading">
         <Modal.Header>
-          <button onClick={onHide} className="back-button">
-            &times;
-          </button>
           <Modal.Title>{"Loading..."}</Modal.Title>
+          <ModalCloseButton onClick={onHide} />
         </Modal.Header>
         <Modal.Body>
           <LoadingSpinner message="Loading song details..." />
@@ -144,12 +143,15 @@ const SongModal: React.FC<SongModalProps> = ({
   return (
     <Modal show={show} onHide={onHide} size="xl" dialogClassName="song-modal">
       <Modal.Header>
-        <button onClick={handleBack} className="back-button">
-          {previousSongs.length > 0 ? "←" : "×"}
-        </button>
+        {previousSongs.length > 0 && (
+          <button onClick={handleBack} className="back-button">
+            ←
+          </button>
+        )}
         <Modal.Title>
           <span dangerouslySetInnerHTML={renderSafeHTML(currentSong.name || "")} />
         </Modal.Title>
+        <ModalCloseButton onClick={onHide} />
       </Modal.Header>
       <Modal.Body>
         <AdminControls currentSong={currentSong} onSongUpdate={handleSongUpdate} onHide={onHide} />

@@ -21,16 +21,6 @@
     .modal-title {
       font-weight: bold;
     }
-
-    .btn-close {
-      opacity: 0.6;
-      transition: opacity 0.3s;
-      filter: invert(1);
-
-      &:hover {
-        opacity: 1;
-      }
-    }
   }
 
   .modal-body {
@@ -145,4 +135,4 @@
       }
     }
   }
-} 
+}

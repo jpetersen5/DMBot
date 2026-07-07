@@ -5,6 +5,7 @@ import { API_URL } from "../../../App";
 import { Score } from "../../../utils/score";
 import { formatExactTime, formatTimeDifference } from "../../../utils/song";
 import Tooltip from "../../../utils/Tooltip/Tooltip";
+import ModalCloseButton from "../../Extras/ModalCloseButton";
 import "./UnknownSongModal.scss";
 
 interface UnknownSongModalProps {
@@ -26,7 +27,7 @@ const UnknownSongModal: React.FC<UnknownSongModalProps> = ({ show, onHide, score
       if (file) {
         const formData = new FormData();
         formData.append("file", file);
-  
+
         try {
           setIsUploadingCache(true);
           const response = await fetch(`${API_URL}/api/upload_songcache`, {
@@ -36,9 +37,9 @@ const UnknownSongModal: React.FC<UnknownSongModalProps> = ({ show, onHide, score
               "Authorization": `Bearer ${localStorage.getItem("auth_token")}`
             }
           });
-  
+
           const result = await response.json();
-  
+
           if (response.ok) {
             alert(`Songcache processed successfully. Updated ${result.updated_scores} scores. Refresh the page to see the updated filepaths.`);
             onHide();
@@ -96,8 +97,9 @@ const UnknownSongModal: React.FC<UnknownSongModalProps> = ({ show, onHide, score
 
   return (
     <Modal show={show} onHide={onHide} size="lg" dialogClassName="unknown-song-modal">
-      <Modal.Header closeButton>
+      <Modal.Header>
         <Modal.Title>{score.song_name}</Modal.Title>
+        <ModalCloseButton onClick={onHide} />
       </Modal.Header>
       <Modal.Body>
         <div className="unknown-song-details">

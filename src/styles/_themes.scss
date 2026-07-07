@@ -18,8 +18,6 @@ $gold-dark-2: #E5A82E;
 $gold-dark-3: #F6BF00;
 $tooltip-background: rgba(0, 0, 0, 0.8);
 
-$filter-highlight: brightness(0) saturate(100%) invert(77%) sepia(90%) saturate(2097%) hue-rotate(357deg) brightness(103%) contrast(107%);
-
 // dark mode
 $dark-grey-0: #121212;
 $dark-grey-1: #1E1E1E;
@@ -33,8 +31,7 @@ $very-light-grey-1: #EEEEEE;
 $very-light-grey-2: #F5F5F5;
 
 $themes: (
-  dark: (
-    color-background: $dark-grey-0,
+  dark: (color-background: $dark-grey-0,
     color-box: $dark-grey-2,
     color-box-secondary: $dark-grey-3,
     color-box-tertiary: $light-grey-2,
@@ -52,6 +49,7 @@ $themes: (
     color-sidebar-text: $light-grey-3,
     color-sidebar-hover: $dark-grey-3,
     color-icon: $light-grey-2,
+    color-icon-invert: $white,
     color-table-text: $light-grey-3,
     color-table-header: $dark-grey-1,
     color-table-header-text: $white,
@@ -82,8 +80,7 @@ $themes: (
     color-scrollbar-hover: $dark-grey-4,
     filter-invert: invert(1),
   ),
-  light: (
-    color-background: $off-white,
+  light: (color-background: $off-white,
     color-box: $white,
     color-box-secondary: $very-light-grey-2,
     color-box-tertiary: $dark-grey-2,
@@ -101,6 +98,7 @@ $themes: (
     color-sidebar-text: $white,
     color-sidebar-hover: $dark-grey-3,
     color-icon: $white,
+    color-icon-invert: $black,
     color-table-text: $dark-grey-4,
     color-table-header: $dark-grey-2,
     color-table-header-text: $white,

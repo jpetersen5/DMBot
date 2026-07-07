@@ -5,7 +5,8 @@ import { capitalize } from "../../../utils/safeHTML";
 import Tooltip from "../../../utils/Tooltip/Tooltip";
 import "./ScoreUpload.scss";
 
-import CopyIcon from "../../../assets/copy.svg";
+import Icon from "../../Extras/Icon";
+import CopyIcon from "../../../assets/copy.svg?react";
 
 const detectOS = () => {
   const userAgent = window.navigator.userAgent.toLowerCase();
@@ -109,7 +110,7 @@ const ScoreUpload: React.FC = () => {
       {message && <p>{message}</p>}
       <div className="filepath-section">
         Locate the scoredata.bin file at
-        <img src={CopyIcon} alt="Copy" className="copy-icon" />
+        <Icon as={CopyIcon} title="Copy" className="copy-icon" />
         <Tooltip text={copied ? "Copied to clipboard!" : "Copy to clipboard"}>
           <span className="filepath-text" onClick={handleCopy}>
             {filepaths[selectedOS as keyof typeof filepaths]}
