@@ -1,6 +1,7 @@
 @use "sass:map";
 @use "sass:meta";
 @use "themes" as *;
+@use "tokens" as *;
 @forward "tokens";
 
 $sidebar-width: 44px;
@@ -26,6 +27,28 @@ $screen-tablet-max: 1200px;
     &:hover {
       @include theme("background", "color-table-background-1");
     }
+  }
+}
+
+@mixin stat-card($background, $value-color, $label-block: false) {
+  padding: 1rem;
+  border-radius: $radius-sm;
+  @include theme("background", $background);
+
+  .stat-label {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+
+    @if $label-block {
+      display: block;
+    }
+
+    @include theme("color", "color-text");
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
+    @include theme("color", $value-color);
   }
 }
 

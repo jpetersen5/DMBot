@@ -39,7 +39,7 @@
       border-radius: $radius-md;
       box-shadow: $shadow-sm;
       @include theme("background", "color-box");
-  
+
       .user-avatar-container {
         position: relative;
         min-width: 100px;
@@ -57,17 +57,8 @@
         }
 
         .rank-overlay-container {
-          .border-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 200%;
-            height: 200%;
-            transform: translate(-25%, -25%);
-            object-fit: contain;
-            pointer-events: none;
-          }
 
+          .border-overlay,
           .ribbon-overlay {
             position: absolute;
             top: 0;
@@ -78,7 +69,7 @@
             object-fit: contain;
             pointer-events: none;
           }
-  
+
           .rank-overlay-text {
             position: absolute;
             top: 50%;
@@ -109,7 +100,7 @@
           display: flex;
           align-items: center;
           gap: 0.5rem;
-        
+
           .charter-select {
             padding: 0.25rem;
             border: 1px solid;
@@ -124,13 +115,8 @@
               cursor: pointer;
               @include theme("background", "color-dropdown");
               @include theme("color", "color-dropdown-text");
-
-              /* TODO: This isn't working for some reason */
-              &:hover {
-                @include theme("background", "color-dropdown-highlight");
-              }
             }
-        
+
             &:focus {
               outline: none;
               box-shadow: 0 0 0 2px rgba(32, 32, 32, 0.2);
@@ -148,11 +134,11 @@
             text-decoration: none;
             @include theme("background", "color-button");
             @include theme("color", "color-button-text");
-            
+
             &:hover {
               @include theme("background", "color-button-hover");
             }
-            
+
             .arrow-icon {
               width: 16px;
               @include theme("color", "color-button-text");
@@ -174,11 +160,11 @@
           transition: background-color 0.3s ease;
           @include theme("background", "color-button");
           @include theme("color", "color-button-text");
-        
+
           &:hover {
             @include theme("background", "color-button-hover");
           }
-        
+
           .icon {
             margin-right: 0.5rem;
             font-size: 1.2rem;
@@ -245,16 +231,16 @@
 @include mobile {
   .profile-page {
     padding: 0;
-    
+
     h1 {
       padding: 0.75rem 1rem;
       font-size: 1.5rem;
     }
-    
+
     .profile-content-wrapper {
       padding: 0 1rem 1rem;
     }
-    
+
     .profile-header,
     .profile-info {
       flex-direction: column;
@@ -286,7 +272,7 @@
 
     .profile-tabs {
       overflow-x: auto;
-      
+
       .tab-button {
         padding: 0.75rem 1rem;
         white-space: nowrap;

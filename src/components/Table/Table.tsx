@@ -2,7 +2,6 @@ import React, { useState, useMemo } from "react";
 import { useKeyPress } from "../../hooks/useKeyPress";
 import ScrollableTable from "../Extras/ScrollableTable";
 import LoadingSpinner from "../Loading/LoadingSpinner";
-import "./Table.scss";
 
 export interface Column<T> {
   key: string;
@@ -44,25 +43,25 @@ interface TableHeaderProps<T> {
   sortOrder: "asc" | "desc";
 }
 
-function TableHeader<T>({ 
-  column, 
-  onClick, 
-  isSorted, 
-  sortOrder 
+function TableHeader<T>({
+  column,
+  onClick,
+  isSorted,
+  sortOrder
 }: TableHeaderProps<T>) {
   return (
-  <th 
-    onClick={column.sortable !== false ? onClick : undefined} 
-    className={`${column.className || ""} ${column.sortable !== false ? "sortable" : ""}`}
-    style={{ width: column.width }}
-  >
-    <div className="header-content">
-      <span className="header-text">{column.header}</span>
-      {isSorted && column.sortable !== false && (
-        <span className="sort-arrow">{sortOrder === "asc" ? "▲" : "▼"}</span>
-      )}
-    </div>
-  </th>
+    <th
+      onClick={column.sortable !== false ? onClick : undefined}
+      className={`${column.className || ""} ${column.sortable !== false ? "sortable" : ""}`}
+      style={{ width: column.width }}
+    >
+      <div className="header-content">
+        <span className="header-text">{column.header}</span>
+        {isSorted && column.sortable !== false && (
+          <span className="sort-arrow">{sortOrder === "asc" ? "▲" : "▼"}</span>
+        )}
+      </div>
+    </th>
   );
 }
 
@@ -85,7 +84,7 @@ function Table<T>({
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">(defaultSortOrder);
   const [secondarySortBy, setSecondarySortBy] = useState<string | null>(null);
   const [secondarySortOrder, setSecondarySortOrder] = useState<"asc" | "desc">("desc");
-  
+
   const shiftPressed = useKeyPress("Shift");
 
   const handleSort = (columnKey: string) => {
@@ -121,45 +120,45 @@ function Table<T>({
 
     return [...data].sort((a, b) => {
       const primaryColumn = columns.find(col => col.key === sortBy);
-      
+
       if (primaryColumn?.sortFn) {
         return primaryColumn.sortFn(a, b, sortOrder);
       }
 
       let aValue = getValueByKey(a, sortBy);
       let bValue = getValueByKey(b, sortBy);
-      
+
       if (typeof aValue === "string") aValue = aValue.toLowerCase();
       if (typeof bValue === "string") bValue = bValue.toLowerCase();
-      
+
       if (aValue == null && bValue == null) return 0;
       if (aValue == null) return sortOrder === "asc" ? -1 : 1;
       if (bValue == null) return sortOrder === "asc" ? 1 : -1;
 
       if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
       if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
-      
+
       if (secondarySortBy) {
         const secondaryColumn = columns.find(col => col.key === secondarySortBy);
-        
+
         if (secondaryColumn?.sortFn) {
           return secondaryColumn.sortFn(a, b, secondarySortOrder);
         }
-        
+
         let aSecondaryValue = getValueByKey(a, secondarySortBy);
         let bSecondaryValue = getValueByKey(b, secondarySortBy);
-        
+
         if (typeof aSecondaryValue === "string") aSecondaryValue = aSecondaryValue.toLowerCase();
         if (typeof bSecondaryValue === "string") bSecondaryValue = bSecondaryValue.toLowerCase();
-        
+
         if (aSecondaryValue == null && bSecondaryValue == null) return 0;
         if (aSecondaryValue == null) return secondarySortOrder === "asc" ? -1 : 1;
         if (bSecondaryValue == null) return secondarySortOrder === "asc" ? 1 : -1;
-        
+
         if (aSecondaryValue < bSecondaryValue) return secondarySortOrder === "asc" ? -1 : 1;
         if (aSecondaryValue > bSecondaryValue) return secondarySortOrder === "asc" ? 1 : -1;
       }
-      
+
       return 0;
     });
   }, [data, columns, sortBy, sortOrder, secondarySortBy, secondarySortOrder]);
@@ -176,17 +175,17 @@ function Table<T>({
 
   const getRowClassName = (item: T): string => {
     const classes: string[] = [];
-    
+
     if (typeof rowClassName === "function") {
       classes.push(rowClassName(item));
     } else if (rowClassName) {
       classes.push(rowClassName);
     }
-    
+
     if (isSelectedRow && isSelectedRow(item)) {
       classes.push("selected-row");
     }
-    
+
     return classes.filter(Boolean).join(" ");
   };
 
@@ -218,17 +217,17 @@ function Table<T>({
               </tr>
             ) : (
               paginatedData.map(item => (
-                <tr 
-                  key={keyExtractor(item)} 
+                <tr
+                  key={keyExtractor(item)}
                   onClick={onRowClick ? () => onRowClick(item) : undefined}
                   className={getRowClassName(item)}
                 >
                   {columns.map(column => (
-                    <td 
-                      key={`${keyExtractor(item)}-${column.key}`} 
+                    <td
+                      key={`${keyExtractor(item)}-${column.key}`}
                       className={column.className}
                     >
-                      {column.renderCell 
+                      {column.renderCell
                         ? column.renderCell(item)
                         : getValueByKey(item, column.key) as React.ReactNode}
                     </td>

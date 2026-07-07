@@ -5,7 +5,7 @@
   flex: 1;
   overflow: auto;
   position: relative;
-  --header-height: 40px; /* Default fallback value */
+  --header-height: 40px;
   @include theme("background", "color-box");
   @include scrollbar;
 
@@ -46,6 +46,7 @@
 }
 
 table {
+  width: 100%;
   border-collapse: collapse;
   box-shadow: $shadow-sm;
   @include theme("background", "color-table-background-2");
@@ -78,12 +79,23 @@ table {
       padding-left: 2px;
     }
 
+    .header-content {
+      display: flex;
+      align-items: center;
+    }
+
     &:hover {
       @include theme("background", "color-table-header-hover");
     }
   }
 
-  th, td {
+  td {
+    padding: 0.3rem 0.5rem;
+  }
+
+  th,
+  td {
+
     &.rank,
     &.percent,
     &.speed,
@@ -91,15 +103,21 @@ table {
     &.play-count,
     &.year,
     &.scores-count,
-    &.song-length
-    {
+    &.song-length {
       text-align: center;
     }
   }
-  
+
   .fc-crown {
     align-items: center;
     vertical-align: middle;
+  }
+
+  .empty-message {
+    text-align: center;
+    padding: 2rem;
+    font-style: italic;
+    @include theme("color", "color-text-secondary");
   }
 
   // Row colors
@@ -126,6 +144,22 @@ table {
     cursor: pointer;
     @include theme("background", "color-table-selected-hover");
   }
+}
+
+.column {
+
+  &-number,
+  &-percent,
+  &-rank {
+    text-align: center;
+  }
+}
+
+.fc-crown {
+  width: 20px;
+  height: 20px;
+  align-items: center;
+  vertical-align: middle;
 }
 
 .page-controls {
@@ -158,19 +192,36 @@ table {
     td {
       padding: 0.3rem;
       text-overflow: ellipsis;
+      overflow: hidden;
 
-  
-      &.rank        { max-width: 30px; }
+
+      &.rank {
+        max-width: 30px;
+      }
+
       &.speed,
-      &.play-count  { max-width: 70px; }
-      &.percent     { max-width: 85px; }
-      &.year        { max-width: 60px; }
+      &.play-count {
+        max-width: 70px;
+      }
+
+      &.percent {
+        max-width: 85px;
+      }
+
+      &.year {
+        max-width: 60px;
+      }
+
       &.scores-count,
-      &.length      { max-width: 70px; }
-      &.username    { 
+      &.length {
+        max-width: 70px;
+      }
+
+      &.username {
         min-width: 110px;
         max-width: 110px;
-        word-break: break-all;}
+        word-break: break-all;
+      }
 
       &.posted {
         white-space: nowrap;
@@ -195,17 +246,31 @@ table {
 
     th,
     td {
-      &.rank        { max-width: 60px; }
+      &.rank {
+        max-width: 60px;
+      }
+
       &.speed,
-      &.play-count  { max-width: 60px; }
-      &.percent     { max-width: 75px; }
-      &.year        { max-width: 60px; }
+      &.play-count {
+        max-width: 60px;
+      }
+
+      &.percent {
+        max-width: 75px;
+      }
+
+      &.year {
+        max-width: 60px;
+      }
+
       &.scores-count,
-      &.length      { max-width: 70px; }
+      &.length {
+        max-width: 70px;
+      }
 
     }
 
-   .fc-crown {
+    .fc-crown {
       width: 20px;
       min-height: 20px;
     }

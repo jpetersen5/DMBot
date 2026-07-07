@@ -27,7 +27,7 @@
       display: flex;
       align-items: center;
       gap: 1rem;
-    
+
       .see-history-btn {
         padding: 0.25rem 0.5rem;
         font-size: 0.9rem;
@@ -38,7 +38,7 @@
         transition: background-color 0.3s;
         @include theme("background", "color-button");
         @include theme("color", "color-button-text");
-    
+
         &:hover {
           @include theme("background", "color-button-hover");
         }
@@ -61,20 +61,7 @@
     .stat-item {
       display: flex;
       flex-direction: column;
-      padding: 1rem;
-      border-radius: $radius-sm;
-      @include theme("background", "color-box");
-
-      .stat-label {
-        font-weight: bold;
-        margin-bottom: 0.5rem;
-        @include theme("color", "color-text");
-      }
-
-      .stat-value {
-        font-size: 1.2rem;
-        @include theme("color", "color-text-secondary");
-      }
+      @include stat-card($background: "color-box", $value-color: "color-text-secondary");
     }
   }
 }
@@ -95,7 +82,7 @@
     border: none;
     @include theme("background", "color-sidebar");
     @include theme("color", "color-sidebar-text");
-    
+
     .btn-close {
       @include theme("color", "color-sidebar-text");
     }
@@ -107,7 +94,7 @@
     .elo-chart {
       .chart-controls {
         margin-bottom: 1rem;
-        
+
         select {
           padding: 0.5rem;
           border-radius: $radius-sm;
