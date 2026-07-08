@@ -32,7 +32,7 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
   const navigate = useNavigate();
   const location = useLocation();
   const { userId, songId } = useParams<{ userId: string; songId: string }>();
-  
+
   const [songs, setSongs] = useState<Song[]>([]);
   const [songsLoading, setSongsLoading] = useState<boolean>(true);
   const { selectedSong, setSelectedSong, modalLoading } = useSongModal(songId);
@@ -109,19 +109,18 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
     fetchSongs();
   }, [charterId, charterSongIds]);
 
+  const songPath = (id: string | number) =>
+    location.pathname.includes("/user/") && userId
+      ? `/user/${userId}/charter-songs/${id}`
+      : `/charter/${charterId}/${id}`;
+
   const handleRowClick = (song: Song) => {
-    setSelectedSong(song);
-    
-    if (location.pathname.includes("/user/") && userId) {
-      navigate(`/user/${userId}/charter-songs/${song.id}`, { replace: true });
-    } else {
-      navigate(`/charter/${charterId}/${song.id}`, { replace: true });
-    }
+    navigate(songPath(song.id), { replace: true });
   };
 
   const handleModalClose = () => {
     setSelectedSong(null);
-    
+
     if (location.pathname.includes("/user/") && userId) {
       navigate(`/user/${userId}/charter-songs`, { replace: true });
     } else {
@@ -130,8 +129,8 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
   };
 
   const { prevSongIds, nextSongIds } = useMemo(() => {
-    return getSurroundingSongIds(filteredData, selectedSong?.id.toString() || "");
-  }, [filteredData, selectedSong]);
+    return getSurroundingSongIds(filteredData, songId || "");
+  }, [filteredData, songId]);
 
   const loading = songsLoading || chartersLoading;
 
@@ -218,7 +217,7 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
           />
         </div>
       </div>
-      
+
       <Table
         data={filteredData}
         columns={columns}
@@ -237,7 +236,7 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
           itemsPerPage: perPage
         }}
       />
-      
+
       <div className="pagination-container">
         <TableToolbar
           pagination={{
@@ -254,15 +253,17 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
           }}
         />
       </div>
-      
+
       {(selectedSong || modalLoading) && (
-        <SongModal 
+        <SongModal
           show={true}
-          onHide={handleModalClose} 
-          initialSong={selectedSong}
+          onHide={handleModalClose}
+          song={selectedSong}
           loading={modalLoading}
           previousSongIds={prevSongIds}
           nextSongIds={nextSongIds}
+          songPath={songPath}
+          onSongUpdate={setSelectedSong}
         />
       )}
     </div>

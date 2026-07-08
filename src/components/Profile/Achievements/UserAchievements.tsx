@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import LoadingSpinner from "../../Loading/LoadingSpinner";
-import { 
-  Achievement, 
-  AchievementCategory, 
+import {
+  Achievement,
+  AchievementCategory,
   AchievementGroup,
-  getCategoryName, 
+  getCategoryName,
   getGroupName,
   getRankName,
   inferAchievementGroup
@@ -130,47 +130,47 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
 
   const filterRankedAchievements = (achievements: Achievement[]): Achievement[] => {
     const achievementGroups: { [key: string]: Achievement[] } = {};
-    
+
     achievements.forEach(achievement => {
-      if (achievement.group === AchievementGroup.Score || 
-          achievement.group === AchievementGroup.FullCombo ||
-          achievement.group === AchievementGroup.Charter || 
-          achievement.group === AchievementGroup.Special) {
+      if (achievement.group === AchievementGroup.Score ||
+        achievement.group === AchievementGroup.FullCombo ||
+        achievement.group === AchievementGroup.Charter ||
+        achievement.group === AchievementGroup.Special) {
         return;
       }
-      
+
       let baseName = achievement.name;
       const rankMatch = achievement.name.match(/ (I|II|III|IV)$/);
       if (rankMatch) {
         baseName = achievement.name.substring(0, achievement.name.length - rankMatch[0].length);
       }
-      
+
       const identifier = `${achievement.category}_${achievement.group}_${baseName}`;
-      
+
       if (!achievementGroups[identifier]) {
         achievementGroups[identifier] = [];
       }
       achievementGroups[identifier].push(achievement);
     });
-    
+
     const result: Achievement[] = [];
-    
+
     achievements.forEach(achievement => {
-      if (achievement.group === AchievementGroup.Score || 
-          achievement.group === AchievementGroup.FullCombo ||
-          achievement.group === AchievementGroup.Charter || 
-          achievement.group === AchievementGroup.Special) {
+      if (achievement.group === AchievementGroup.Score ||
+        achievement.group === AchievementGroup.FullCombo ||
+        achievement.group === AchievementGroup.Charter ||
+        achievement.group === AchievementGroup.Special) {
         result.push(achievement);
       }
     });
-    
+
     Object.values(achievementGroups).forEach(group => {
       const sortedGroup = [...group].sort((a, b) => a.rank - b.rank);
-      
+
       const highestAchieved = [...sortedGroup]
         .filter(a => a.achieved)
         .sort((a, b) => b.rank - a.rank)[0];
-      
+
       if (highestAchieved) {
         result.push(highestAchieved);
       } else {
@@ -178,7 +178,7 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
         result.push(lowestRank);
       }
     });
-    
+
     return result;
   };
 
@@ -187,13 +187,13 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
     if (activeCategory !== "all") {
       filtered = filtered.filter(achievement => achievement.category === activeCategory);
     }
-    
+
     if (showOnlyAchieved) {
       filtered = filtered.filter(achievement => achievement.achieved);
     }
-    
+
     filtered = filterRankedAchievements(filtered);
-    
+
     return filtered;
   }, [achievements, activeCategory, showOnlyAchieved]);
 
@@ -209,20 +209,20 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
   }, [filteredAchievements]);
 
   const renderAchievementListItem = (achievement: Achievement) => {
-    const date = achievement.timestamp 
-      ? new Date(achievement.timestamp).toLocaleDateString() 
+    const date = achievement.timestamp
+      ? new Date(achievement.timestamp).toLocaleDateString()
       : "";
-    
+
     let achievementName = achievement.name;
     if (achievement.category === AchievementCategory.Hands
-      || achievement.category === AchievementCategory.Kicks 
+      || achievement.category === AchievementCategory.Kicks
       || achievement.category === AchievementCategory.Blend) {
       achievementName += ` ${getRankName(achievement.rank)}`;
     }
-    
+
     return (
-      <div 
-        key={achievement.id} 
+      <div
+        key={achievement.id}
         className={`achievement-list-item ${achievement.achieved ? "achieved" : "locked"}`}
         onClick={() => handleAchievementClick(achievement)}
       >
@@ -250,11 +250,11 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
               </h3>
               <div className="achievement-items">
                 {categoryAchievements.map(achievement => (
-                  <div 
+                  <div
                     key={achievement.id}
                     onClick={() => handleAchievementClick(achievement)}
                   >
-                    <AchievementIcon 
+                    <AchievementIcon
                       achievement={achievement}
                     />
                   </div>
@@ -265,11 +265,11 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
         ) : (
           <div className="achievement-items">
             {filteredAchievements.map(achievement => (
-              <div 
+              <div
                 key={achievement.id}
                 onClick={() => handleAchievementClick(achievement)}
               >
-                <AchievementIcon 
+                <AchievementIcon
                   achievement={achievement}
                 />
               </div>
@@ -286,7 +286,7 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
         <div className="achievements-list">
           {Object.entries(achievementsByCategory).map(([category, categoryAchievements]) => {
             const categoryEnum = category as AchievementCategory;
-            
+
             const achievementsByGroup = categoryAchievements.reduce((groups, achievement) => {
               const group = achievement.group || inferAchievementGroup(achievement);
               if (!groups[group]) {
@@ -295,30 +295,30 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
               groups[group].push(achievement);
               return groups;
             }, {} as Record<AchievementGroup, Achievement[]>);
-            
+
             return (
               <div key={category} className="category-section">
                 <h3>
                   {getCategoryName(categoryEnum)}
                   {categoryCounts[category] && renderCountBadge(categoryCounts[category])}
                 </h3>
-                
+
                 {Object.entries(achievementsByGroup).map(([groupKey, groupAchievements]) => {
                   const group = groupKey as AchievementGroup;
-                  
+
                   const sortedAchievements = [...groupAchievements].sort((a, b) => {
                     if (a.achieved && !b.achieved) return -1;
                     if (!a.achieved && b.achieved) return 1;
-                    
+
                     if (a.level !== b.level) {
                       return (a.level || 0) - (b.level || 0);
                     }
-                    
+
                     return a.rank - b.rank;
                   });
-                  
+
                   const groupCountsData = groupCounts[category]?.[group];
-                  
+
                   return (
                     <div key={`${category}-${groupKey}`} className="achievement-subgroup">
                       <h4>
@@ -345,25 +345,25 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
         groups[group].push(achievement);
         return groups;
       }, {} as Record<AchievementGroup, Achievement[]>);
-      
+
       return (
         <div className="achievements-list">
           {Object.entries(achievementsByGroup).map(([groupKey, groupAchievements]) => {
             const group = groupKey as AchievementGroup;
-            
+
             const sortedAchievements = [...groupAchievements].sort((a, b) => {
               if (a.achieved && !b.achieved) return -1;
               if (!a.achieved && b.achieved) return 1;
-              
+
               if (a.level !== b.level) {
                 return (a.level || 0) - (b.level || 0);
               }
-              
+
               return a.rank - b.rank;
             });
-            
+
             const groupCountsData = groupCounts[activeCategory]?.[group];
-            
+
             return (
               <div key={`${activeCategory}-${groupKey}`} className="achievement-subgroup">
                 <h4>
@@ -391,15 +391,15 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
           </h2>
           <div className="view-controls">
             <div className="view-toggle">
-              <button 
-                className={`view-mode-btn ${viewMode === "list" ? "active" : ""}`} 
+              <button
+                className={`view-mode-btn ${viewMode === "list" ? "active" : ""}`}
                 onClick={() => setViewMode("list")}
                 title="List View"
               >
                 <span>List</span>
               </button>
-              <button 
-                className={`view-mode-btn ${viewMode === "compact" ? "active" : ""}`} 
+              <button
+                className={`view-mode-btn ${viewMode === "compact" ? "active" : ""}`}
                 onClick={() => setViewMode("compact")}
                 title="Compact View"
               >
@@ -407,7 +407,7 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
               </button>
             </div>
             <div className="filter-toggle">
-              <button 
+              <button
                 className={`filter-btn ${showOnlyAchieved ? "active" : ""}`}
                 onClick={() => setShowOnlyAchieved(!showOnlyAchieved)}
                 title={showOnlyAchieved ? "Show All Achievements" : "Show Only Achieved"}
@@ -418,7 +418,7 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
           </div>
         </div>
         <div className="category-tabs">
-          <button 
+          <button
             className={`category-tab ${activeCategory === "all" ? "active" : ""}`}
             onClick={() => setActiveCategory("all")}
           >
@@ -426,7 +426,7 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
             {!loading && renderCountBadge(totalCounts)}
           </button>
           {Object.values(AchievementCategory).map(category => (
-            <button 
+            <button
               key={category}
               className={`category-tab ${activeCategory === category ? "active" : ""}`}
               onClick={() => setActiveCategory(category)}
@@ -451,15 +451,17 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
       ) : (
         viewMode === "compact" ? renderCompactView() : renderListView()
       )}
-      
+
       {selectedSong && (
         <SongModal
           show={!!selectedSong}
           onHide={handleHideSongModal}
-          initialSong={selectedSong}
+          song={selectedSong}
           loading={loadingSong}
           previousSongIds={[]}
           nextSongIds={[]}
+          songPath={(id) => `/user/${userId}/achievements/${id}`}
+          onSongUpdate={setSelectedSong}
         />
       )}
     </div>

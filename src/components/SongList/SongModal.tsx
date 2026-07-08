@@ -15,33 +15,28 @@ import ModalCloseButton from "../Extras/ModalCloseButton";
 interface SongModalProps {
   show: boolean;
   onHide: () => void;
-  initialSong: Song | null;
+  song: Song | null;
   loading: boolean;
   previousSongIds: string[];
   nextSongIds: string[];
+  songPath: (songId: string | number) => string;
+  onSongUpdate: (song: Song) => void;
 }
 
 const SongModal: React.FC<SongModalProps> = ({
   show,
   onHide,
-  initialSong,
+  song,
   loading,
   previousSongIds,
-  nextSongIds
+  nextSongIds,
+  songPath,
+  onSongUpdate
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [currentSong, setCurrentSong] = useState<Song | null>(initialSong);
-  const [previousSongs, setPreviousSongs] = useState<Song[]>([]);
-  const [prevSync, setPrevSync] = useState({ song: initialSong, search: location.search });
-
-  if (prevSync.song !== initialSong || prevSync.search !== location.search) {
-    setPrevSync({ song: initialSong, search: location.search });
-    if (initialSong) {
-      setCurrentSong(initialSong);
-    }
-  }
+  const [previousSongIdStack, setPreviousSongIdStack] = useState<string[]>([]);
 
   if (loading) {
     return (
@@ -57,51 +52,12 @@ const SongModal: React.FC<SongModalProps> = ({
     );
   }
 
-  if (!currentSong) return null;
+  if (!song) return null;
 
   const navigateToSong = (songId: number | string) => {
     const params = new URLSearchParams(location.search);
-
-    let basePath = location.pathname.split("/").slice(0, -1).join("/");
-
-    if (location.pathname.includes("/user/") &&
-      (location.pathname.includes("/scores") ||
-        location.pathname.includes("/achievements") ||
-        location.pathname.includes("/charter-stats") ||
-        location.pathname.includes("/charter-songs"))) {
-
-      if (location.pathname.includes("/scores/")) {
-        const userId = location.pathname.split("/")[2];
-        navigate(`/user/${userId}/scores/${songId}?${params.toString()}`);
-        return;
-      }
-
-      if (location.pathname.includes("/achievements/")) {
-        const userId = location.pathname.split("/")[2];
-        navigate(`/user/${userId}/achievements/${songId}?${params.toString()}`);
-        return;
-      }
-
-      if (location.pathname.includes("/charter-songs")) {
-        const userId = location.pathname.split("/")[2];
-        navigate(`/user/${userId}/charter-songs/${songId}?${params.toString()}`);
-        return;
-      }
-
-      const userId = location.pathname.split("/")[2];
-      navigate(`/user/${userId}/${songId}?${params.toString()}`);
-      return;
-    }
-
-    if (location.pathname.includes("/charter/")) {
-      basePath = location.pathname.split("/").slice(0, -1).join("/");
-      navigate(`${basePath}/${songId}?${params.toString()}`);
-      return;
-    }
-
-    // Default case: regular song navigation
-    navigate(`${basePath}/${songId}?${params.toString()}`);
-  }
+    navigate(`${songPath(songId)}?${params.toString()}`);
+  };
 
   const handlePrevSong = () => {
     if (previousSongIds.length > 0) {
@@ -117,52 +73,45 @@ const SongModal: React.FC<SongModalProps> = ({
     }
   };
 
-  const handleRelatedSongClick = (song: Song) => {
-    if (currentSong.id === song.id) return;
-    setPreviousSongs([...previousSongs, currentSong]);
-    setCurrentSong(song);
-    navigateToSong(song.id);
-  };
-
-  const handleSongUpdate = (song: Song) => {
-    setCurrentSong(song);
+  const handleRelatedSongClick = (relatedSong: Song) => {
+    if (song.id === relatedSong.id) return;
+    setPreviousSongIdStack(prev => [...prev, song.id.toString()]);
+    navigateToSong(relatedSong.id);
   };
 
   const handleBack = () => {
-    if (previousSongs.length > 0) {
-      const lastSong = previousSongs[previousSongs.length - 1];
-      setCurrentSong(lastSong);
-      setPreviousSongs(prev => prev.slice(0, -1));
-      navigateToSong(lastSong.id);
+    if (previousSongIdStack.length > 0) {
+      const lastSongId = previousSongIdStack[previousSongIdStack.length - 1];
+      setPreviousSongIdStack(prev => prev.slice(0, -1));
+      navigateToSong(lastSongId);
     } else {
       onHide();
-      setPreviousSongs([]);
     }
   };
 
   return (
     <Modal show={show} onHide={onHide} size="xl" dialogClassName="song-modal">
       <Modal.Header>
-        {previousSongs.length > 0 && (
+        {previousSongIdStack.length > 0 && (
           <button onClick={handleBack} className="back-button">
             ←
           </button>
         )}
         <Modal.Title>
-          <span dangerouslySetInnerHTML={renderSafeHTML(currentSong.name || "")} />
+          <span dangerouslySetInnerHTML={renderSafeHTML(song.name || "")} />
         </Modal.Title>
         <ModalCloseButton onClick={onHide} />
       </Modal.Header>
       <Modal.Body>
-        <AdminControls currentSong={currentSong} onSongUpdate={handleSongUpdate} onHide={onHide} />
+        <AdminControls currentSong={song} onSongUpdate={onSongUpdate} onHide={onHide} />
         <div className="song-details">
-          <SongInfo song={currentSong} key={currentSong.id.toString()} />
+          <SongInfo song={song} key={song.id.toString()} />
           <RelatedSongs
-            currentSong={currentSong}
+            currentSong={song}
             handleRelatedSongClick={handleRelatedSongClick}
           />
         </div>
-        <Leaderboard songId={currentSong.id.toString()} key={currentSong.id.toString()} />
+        <Leaderboard songId={song.id.toString()} key={song.id.toString()} />
       </Modal.Body>
       <Modal.Footer>
         <button className="close-button" onClick={onHide}>Close</button>

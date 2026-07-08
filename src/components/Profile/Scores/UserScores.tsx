@@ -35,7 +35,7 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   const [scores, setScores] = useState<Scores>({ scores: [], unknown_scores: [] });
   const [loading, setLoading] = useState<boolean>(true);
   const [showUnknown, setShowUnknown] = useState<boolean>(false);
-  
+
   const [selectedUnknownScore, setSelectedUnknownScore] = useState<UnknownScore | null>(null);
   const { selectedSong, setSelectedSong, modalLoading } = useSongModal(songId);
 
@@ -182,8 +182,8 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
       sortFn: (a, b, direction) => {
         const aValue = a.posted ? a.posted : new Date(0).toISOString();
         const bValue = b.posted ? b.posted : new Date(0).toISOString();
-        return direction === "asc" 
-          ? aValue.localeCompare(bValue) 
+        return direction === "asc"
+          ? aValue.localeCompare(bValue)
           : bValue.localeCompare(aValue);
       }
     },
@@ -235,7 +235,7 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
             </div>
           </div>
         </div>
-        
+
         <Table
           data={filteredData}
           columns={columns}
@@ -254,7 +254,7 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
             itemsPerPage: perPage
           }}
         />
-        
+
         {totalPages > 1 && (
           <div className="page-controls">
             <TableToolbar
@@ -273,18 +273,20 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
             />
           </div>
         )}
-        
+
         {(selectedSong || modalLoading) && (
           <SongModal
             show={true}
             onHide={handleModalClose}
-            initialSong={selectedSong}
+            song={selectedSong}
             loading={modalLoading}
             previousSongIds={getSurroundingSongIds().prevSongIds}
             nextSongIds={getSurroundingSongIds().nextSongIds}
+            songPath={(id) => `/user/${userId}/scores/${id}`}
+            onSongUpdate={setSelectedSong}
           />
         )}
-        
+
         {selectedUnknownScore && showUnknown && (
           <UnknownSongModal
             show={true}

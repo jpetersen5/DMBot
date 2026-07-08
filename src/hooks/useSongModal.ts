@@ -22,15 +22,28 @@ export const useSongModal = (songId: string | undefined) => {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     const syncSong = async () => {
-      if (songId) {
-        await fetchSong(songId);
-      } else {
+      if (!songId) {
         setSelectedSong(null);
+        return;
+      }
+      setModalLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/api/songs/${songId}`);
+        if (!response.ok) throw new Error("Failed to fetch song");
+        const song = await response.json();
+        if (!cancelled) setSelectedSong(song);
+      } catch (error) {
+        console.error("Error fetching song:", error);
+        if (!cancelled) setSelectedSong(null);
+      } finally {
+        if (!cancelled) setModalLoading(false);
       }
     };
     syncSong();
-  }, [songId, fetchSong]);
+    return () => { cancelled = true; };
+  }, [songId]);
 
   return { selectedSong, setSelectedSong, modalLoading, fetchSong };
 };

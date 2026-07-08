@@ -204,30 +204,6 @@ const SongList: React.FC = () => {
     rightUser
   ]);
 
-  // async function fetchSongsByIds(ids: number[] | string[]) {
-  //   setSongsLoading(true);
-  //   try {
-  //     const response = await fetch(`${API_URL}/api/songs-by-ids`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({
-  //         ids: ids,
-  //       }),
-  //     });
-  //     if (!response.ok) {
-  //       throw new Error("Network response was not ok");
-  //     }
-  //     const data: Song[] = await response.json();
-  //     setSongs(data);
-  //   } catch (error) {
-  //     console.error("Error fetching songs:", error);
-  //   } finally {
-  //     setSongsLoading(false);
-  //   }
-  // }
-
   const leftUserId = leftUser?.id;
   const rightUserId = rightUser?.id;
 
@@ -260,13 +236,13 @@ const SongList: React.FC = () => {
       const searchTermsLower = search.toLowerCase().split(" ");
       filteredSongs = filteredSongs.filter(song => {
         if (filters.length === 0) {
-          return searchTermsLower.every(term => 
-            Object.values(song).some(value => 
+          return searchTermsLower.every(term =>
+            Object.values(song).some(value =>
               (typeof value === "string" || typeof value === "number") && value.toString().toLowerCase().includes(term)
             )
           );
         } else {
-          return searchTermsLower.every(term => 
+          return searchTermsLower.every(term =>
             filters.includes("name") && song.name?.toLowerCase().includes(term) ||
             filters.includes("artist") && song.artist?.toLowerCase().includes(term) ||
             filters.includes("album") && song.album?.toLowerCase().includes(term) ||
@@ -287,14 +263,14 @@ const SongList: React.FC = () => {
 
     if (selectedInstruments.length > 0 || selectedDifficulties.length > 0) {
       filteredSongs = filteredSongs.filter(song => {
-        const hasInstrument = selectedInstruments.length === 0 || 
+        const hasInstrument = selectedInstruments.length === 0 ||
           selectedInstruments.every(instrument => song.instruments?.includes(instrument));
-        
-        const hasDifficulty = selectedDifficulties.length === 0 || 
-          selectedDifficulties.every(difficulty => 
-            song.note_counts?.some(nc => 
-              nc.difficulty === difficulty && 
-              (selectedInstruments.length === 0 || 
+
+        const hasDifficulty = selectedDifficulties.length === 0 ||
+          selectedDifficulties.every(difficulty =>
+            song.note_counts?.some(nc =>
+              nc.difficulty === difficulty &&
+              (selectedInstruments.length === 0 ||
                 selectedInstruments.includes(nc.instrument))
             )
           );
@@ -357,8 +333,8 @@ const SongList: React.FC = () => {
   const totalPages = Math.ceil(filteredAndSortedSongs.length / perPage);
 
   const { prevSongIds, nextSongIds } = useMemo(() => {
-    return getSurroundingSongIds(filteredAndSortedSongs, selectedSong?.id.toString() || "");
-  }, [filteredAndSortedSongs, selectedSong]);
+    return getSurroundingSongIds(filteredAndSortedSongs, songId || "");
+  }, [filteredAndSortedSongs, songId]);
 
   const handleSort = (column: string) => {
     if (column === "charter") {
@@ -384,7 +360,6 @@ const SongList: React.FC = () => {
   };
 
   const handleRowClick = (song: Song) => {
-    setSelectedSong(song);
     const currentParams = new URLSearchParams(location.search);
     navigate(`/songs/${song.id}?${currentParams.toString()}`, { replace: true });
   };
@@ -392,7 +367,6 @@ const SongList: React.FC = () => {
   const handleModalClose = () => {
     setSelectedSong(null);
     const currentParams = new URLSearchParams(location.search);
-    currentParams.delete("relation");
     navigate(`/songs?${currentParams.toString()}`, { replace: true });
   };
 
@@ -419,19 +393,19 @@ const SongList: React.FC = () => {
           selectedOptions={selectedInstruments}
           setSelectedOptions={setSelectedInstruments}
           label="Instruments"
-          clearLabel="Any instrument"/>
+          clearLabel="Any instrument" />
         <MultiSelectDropdown
           options={["expert", "hard", "medium", "easy"]}
           selectedOptions={selectedDifficulties}
           setSelectedOptions={setSelectedDifficulties}
           label="Difficulties"
-          clearLabel="Any difficulty"/>
+          clearLabel="Any difficulty" />
         <Search
           search={search}
           filters={filters}
           filterOptions={filterOptions}
           setSearch={setSearch}
-          setFilters={setFilters}/>
+          setFilters={setFilters} />
       </div>
       <ScrollableTable>
         {loading && (
@@ -478,7 +452,7 @@ const SongList: React.FC = () => {
                     leftUser={leftUser}
                     rightUser={rightUser}
                     leftScores={effectiveLeftScores}
-                    rightScores={effectiveRightScores}/>
+                    rightScores={effectiveRightScores} />
                 ))
               )}
             </tbody>
@@ -489,17 +463,19 @@ const SongList: React.FC = () => {
         <div className="page-controls">
           <TableToolbar
             pagination={{ page, totalPages, inputPage, setPage, setInputPage }}
-            perPage={{ perPage, setPerPage, setPage }}/>
+            perPage={{ perPage, setPerPage, setPage }} />
         </div>
       )}
       {(selectedSong || modalLoading) && (
-        <SongModal 
+        <SongModal
           show={true}
-          onHide={handleModalClose} 
-          initialSong={selectedSong}
+          onHide={handleModalClose}
+          song={selectedSong}
           loading={modalLoading}
           previousSongIds={prevSongIds}
-          nextSongIds={nextSongIds}/>
+          nextSongIds={nextSongIds}
+          songPath={(id) => `/songs/${id}`}
+          onSongUpdate={setSelectedSong} />
       )}
     </div>
   );

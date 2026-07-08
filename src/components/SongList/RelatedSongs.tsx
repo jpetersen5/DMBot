@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useEffectEvent, useMemo } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import { Nav } from "react-bootstrap";
 import { API_URL } from "../../App";
 import { useSongCache, SongCacheItem } from "../../context/SongContext";
@@ -48,9 +47,6 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
   currentSong,
   handleRelatedSongClick
 }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
-
   const [relatedSongs, setRelatedSongs] = useState<RelatedSongs>({
     album_songs: [],
     artist_songs: [],
@@ -64,12 +60,6 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
   const [page, setPage] = useState(1);
   const [inputPage, setInputPage] = useState("1");
   const perPage = 50;
-
-  const updateURL = useEffectEvent(() => {
-    if (!currentSong) return;
-    const params = new URLSearchParams(location.search);
-    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
-  });
 
   const readSongCache = useEffectEvent((key: string) => getCachedResult(key));
   const writeSongCache = useEffectEvent((key: string, item: SongCacheItem) => setCachedResult(key, item));
@@ -109,7 +99,6 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
       }
     };
     fetchRelatedSongs();
-    updateURL();
   }, [currentSong, relationType]);
 
   const handleRelationTypeChange = (type: RelatedSongsType) => {
@@ -121,7 +110,7 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
   const processedData = useMemo(() => {
     const sortedSongs = relatedSongs[`${relationType}_songs`];
     if (!sortedSongs || sortedSongs.length === 0) return [];
-    
+
     return [...sortedSongs];
   }, [relatedSongs, relationType]);
 
@@ -253,7 +242,7 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
           )}
         </Nav>
       </div>
-      
+
       <Table
         data={processedData}
         columns={getColumns()}
