@@ -110,7 +110,7 @@
   }
 }
 
-@media (max-width: 600px) {
+@include mobile {
   .profile-stats {
     .stats-grid {
       grid-template-columns: 1fr;

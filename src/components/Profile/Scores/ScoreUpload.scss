@@ -119,7 +119,7 @@
   }
 }
 
-@media (max-width: 600px) {
+@include mobile {
   .score-upload {
     padding: 1rem;
   }

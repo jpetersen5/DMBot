@@ -13,7 +13,7 @@
       display: flex;
       flex-wrap: nowrap;
       border: none;
-      
+
       .nav-link {
         border: none;
         @include theme("color", "color-text");
@@ -42,7 +42,9 @@
         .prev {
           margin-left: 0.4rem;
         }
-        .prev, .next {
+
+        .prev,
+        .next {
           background-color: transparent;
           border: none;
           border-radius: $radius-sm;
@@ -73,7 +75,7 @@
             margin-right: 0.25rem;
             text-align: center;
             border: 1px solid;
-            border-radius: 3px;
+            border-radius: $radius-sm;
             @include theme("border-color", "color-border");
           }
         }
@@ -100,14 +102,14 @@
       width: 80px;
       text-align: center;
     }
-    
+
     th {
       cursor: default;
-      
+
       &:hover {
         @include theme("background", "color-table-header");
       }
-      
+
       .sort-arrow {
         display: none;
       }

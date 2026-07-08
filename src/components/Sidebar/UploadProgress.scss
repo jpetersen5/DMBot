@@ -5,7 +5,7 @@
   position: relative;
   padding: 1rem;
   border-radius: $radius-md;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: $shadow-lg;
   max-width: 300px;
   min-width: 300px;
   max-height: fit-content;

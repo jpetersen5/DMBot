@@ -32,7 +32,7 @@
     border: none;
     padding: 5px;
     padding-right: 30px;
-    border-radius: 5px;
+    border-radius: $radius-sm;
     cursor: pointer;
     font-weight: bold;
     transition: background-color 0.3s ease;
@@ -63,7 +63,7 @@
     line-height: 0;
     background: none;
     border: none;
-    border-radius: 5px;
+    border-radius: $radius-sm;
     cursor: pointer;
 
     &:hover {

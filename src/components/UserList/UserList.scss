@@ -81,13 +81,13 @@
     width: 200px;
     @include theme("background", "color-box");
     @include theme("color", "color-text");
-  
+
     &.has-stats:hover {
       z-index: $z-sticky;
       width: 400px;
       transform: translateY(-5px);
       @include theme("background", "color-box-secondary");
-  
+
       .user-stats {
         opacity: 1;
         visibility: visible;
@@ -99,7 +99,7 @@
       border: 2px solid;
       @include theme("border-color", "color-highlight");
     }
-  
+
     .user-info {
       display: flex;
       flex-direction: column;
@@ -107,14 +107,14 @@
       width: 164px;
       flex-shrink: 0;
     }
-  
+
     .user-avatar-container {
       position: relative;
       width: 75px;
       height: 75px;
       margin-top: 1rem;
       margin-bottom: 1.5rem;
-    
+
       .user-avatar {
         width: 100%;
         height: 100%;
@@ -123,7 +123,7 @@
         outline: 3px solid;
         @include theme("outline-color", "color-text");
       }
-    
+
       .rank-overlay-container {
         .border-overlay {
           position: absolute;
@@ -159,7 +159,7 @@
         }
       }
     }
-  
+
     h3 {
       text-align: center;
       margin: 0;
@@ -172,7 +172,7 @@
       background-color: rgba(0, 0, 0, 0.5);
       color: white;
     }
-  
+
     .user-stats {
       max-width: 0;
       opacity: 0;
@@ -180,7 +180,7 @@
       overflow: hidden;
       transition: all 0.2s ease-in-out;
       margin-left: 1rem;
-  
+
       p {
         margin: 0.25rem 0;
         font-size: 0.8rem;
@@ -207,25 +207,23 @@
     }
 
     .user-info {
-      
+
       max-width: 40%;
     }
+
     &.has-stats {
       width: 100%;
-    
+
       .user-stats {
         opacity: 1;
         visibility: visible;
         max-width: 200px;
       }
     }
-    }
+  }
 }
 
 @include tabletplus {
-  .user-list {
-    background-color: blue;
-  }
 
   .user-card-grid-container,
   .user-list-controls {

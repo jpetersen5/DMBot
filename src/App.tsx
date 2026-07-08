@@ -11,7 +11,7 @@ import Sidebar from "./components/Sidebar/Sidebar";
 import SongList from "./components/SongList/SongList";
 import UserList from "./components/UserList/UserList";
 import AchievementToastsWrapper from "./components/Achievements/AchievementToastsWrapper";
-import "bootstrap/dist/css/bootstrap.min.css";
+import "./styles/bootstrap.scss";
 import "./styles/styles.scss";
 
 export const API_URL = import.meta.env.VITE_API_URL;

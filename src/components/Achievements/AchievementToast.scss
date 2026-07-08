@@ -15,7 +15,7 @@
   z-index: $z-floating;
   overflow: hidden;
   @include theme("background", "color-box");
-  
+
   &::before {
     content: "";
     position: absolute;
@@ -25,35 +25,35 @@
     height: 100%;
     @include theme("background", "color-button");
   }
-  
+
   &.visible {
     transform: translateX(0);
     opacity: 1;
   }
-  
+
   &.hiding {
     transform: translateX(400px);
     opacity: 0;
   }
-  
+
   .achievement-toast-content {
     display: flex;
     align-items: center;
     cursor: pointer;
-    
+
     .achievement-toast-icon {
       margin-right: 1rem;
       transform: scale(0.8);
-      
+
       .achievement-icon {
         transform-origin: center;
         animation: achievement-pulse 1s ease-in-out;
       }
     }
-    
+
     .achievement-toast-info {
       flex: 1;
-      
+
       .achievement-unlocked {
         font-size: 0.85rem;
         margin: 0 0 0.25rem;
@@ -61,13 +61,13 @@
         font-weight: bold;
         @include theme("color", "color-button");
       }
-      
+
       .achievement-name {
         font-size: 1.1rem;
         margin: 0 0 0.5rem;
         @include theme("color", "color-text");
       }
-      
+
       .achievement-description {
         font-size: 0.9rem;
         margin: 0;
@@ -75,7 +75,7 @@
       }
     }
   }
-  
+
   .achievement-toast-close {
     position: absolute;
     top: 0.5rem;
@@ -87,7 +87,7 @@
     padding: 0;
     cursor: pointer;
     @include theme("color", "color-text-secondary");
-    
+
     &:hover {
       @include theme("color", "color-text");
     }
@@ -105,23 +105,23 @@
   pointer-events: none;
   max-height: 90vh;
   overflow-y: auto;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
-  
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
   &::-webkit-scrollbar {
-    display: none; /* Chrome, Safari and Opera */
+    display: none;
   }
-  
-  > * {
+
+  >* {
     pointer-events: auto;
     flex-shrink: 0;
   }
-  
+
   .achievement-toast {
     flex-shrink: 0;
     height: auto;
   }
-  
+
   .clear-all-button {
     position: fixed;
     bottom: 2rem;
@@ -132,13 +132,13 @@
     border: none;
     cursor: pointer;
     font-weight: bold;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: $shadow-sm;
     transition: background-color 0.2s ease;
     pointer-events: auto;
     z-index: $z-toast;
     @include theme("background", "color-button");
     @include theme("color", "color-button-text");
-    
+
     &:hover {
       @include theme("background", "color-button-hover");
     }
@@ -149,10 +149,12 @@
   0% {
     transform: scale(0.8);
   }
+
   50% {
     transform: scale(1.1);
   }
+
   100% {
     transform: scale(1);
   }
-} 
+}

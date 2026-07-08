@@ -123,7 +123,7 @@
           font-weight: bold;
           font-size: 0.8rem;
           padding: 2px 6px;
-          border-radius: 3px;
+          border-radius: $radius-sm;
           white-space: nowrap;
           z-index: $z-floating + 1;
           @include theme("background", "color-tooltip");
@@ -146,7 +146,7 @@
       .bar-container {
         flex-grow: 1;
         height: 15px;
-        border-radius: 7px;
+        border-radius: $radius-md;
         overflow: hidden;
         @include theme("background", "color-box");
       }

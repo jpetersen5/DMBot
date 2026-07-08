@@ -13,14 +13,13 @@ interface CharterStatsProps {
   stats: CharterStatsData;
 }
 
-ChartJS.defaults.color = "#858585";
-
 const CharterStats: React.FC<CharterStatsProps> = ({ stats }) => {
   const [chosenInstrument, setChosenInstrument] = useState<string>("");
 
   const theme = getStoredTheme();
   const chartColor = theme === "light" ? "rgba(32, 32, 32, 0.6)" : "rgba(255, 255, 255, 0.6)";
   const chartBorderColor = theme === "light" ? "rgba(32, 32, 32, 1)" : "rgba(255, 255, 255, 1)";
+  ChartJS.defaults.color = theme === "light" ? "rgba(32, 32, 32, 0.5)" : "rgba(255, 255, 255, 0.5)";
 
   if (!stats) return (
     <div className="charter-stats">
@@ -64,13 +63,13 @@ const CharterStats: React.FC<CharterStatsProps> = ({ stats }) => {
           <div className="distribution-header">
             <h3>Difficulty Distribution</h3>
             <select value={selectedInstrument} onChange={handleInstrumentChange} className="instrument-select">
-            {Object.keys(stats.difficulty_distribution).map(instrument => (
-              stats.difficulty_distribution[instrument] && (
-                <option key={instrument} value={instrument}>
-                  {instrument.charAt(0).toUpperCase() + instrument.slice(1)}
-                </option>
-              )
-            ))}
+              {Object.keys(stats.difficulty_distribution).map(instrument => (
+                stats.difficulty_distribution[instrument] && (
+                  <option key={instrument} value={instrument}>
+                    {instrument.charAt(0).toUpperCase() + instrument.slice(1)}
+                  </option>
+                )
+              ))}
             </select>
           </div>
           <DifficultyChart
@@ -120,7 +119,7 @@ const DistributionChart: React.FC<DistributionChartProps> = ({ data }) => {
   return (
     <div className="distribution-chart">
       {sortedData.map(([key, value]) => (
-        <div key={key} className="chart-bar"  data-full-label={key}>
+        <div key={key} className="chart-bar" data-full-label={key}>
           <div className="bar-label">{key}</div>
           <div className="bar-container">
             <div className="bar" style={{ width: `${(value / total) * 100}%` }}></div>
