@@ -20,69 +20,65 @@ export interface SpecialCellProps {
   type?: "charter" | "timestamp" | "fc" | "percent" | "score-difference" | "html" | "text" | "number";
 }
 
-export const SpecialCell: React.FC<SpecialCellProps> = ({ 
-  className = "", 
-  content, 
-  type = "text" 
-}) => {
+function renderSpecialContent(
+  content: SpecialCellProps["content"],
+  type: SpecialCellProps["type"] = "text"
+): React.ReactNode {
   if (content == null) {
-    return <td className={className}>{"N/A"}</td>;
+    return "N/A";
   }
 
-  let cellContent;
-  let cellClassName = className;
   const contentStr = content.toString();
 
   switch (type) {
     case "number":
-      cellContent = Number(content).toLocaleString();
-      break;
+      return Number(content).toLocaleString();
 
     case "percent":
-      cellContent = contentStr + "%";
-      break;
+      return contentStr + "%";
 
     case "fc":
-      cellContent = <img src={fcIcon} alt="FC" className="fc-crown" />;
-      break;
+      return <img src={fcIcon} alt="FC" className="fc-crown" />;
 
     case "timestamp":
-      cellContent = (
+      return (
         <Tooltip text={formatExactTime(contentStr)}>
           {formatTimeDifference(contentStr)}
         </Tooltip>
       );
-      break;
 
     case "charter":
-      cellContent = <CharterName names={contentStr} />;
-      break;
+      return <CharterName names={contentStr} />;
 
-    case "score-difference":
-      if (contentStr.startsWith("-")) {
-        cellClassName = `${className} score-difference-negative`;
-      } else if (contentStr.startsWith("+")) {
-        cellClassName = `${className} score-difference-positive`;
-      }
-      cellContent = contentStr;
-      break;
+    case "score-difference": {
+      const diffClass = contentStr.startsWith("-")
+        ? "score-difference-negative"
+        : contentStr.startsWith("+")
+          ? "score-difference-positive"
+          : "";
+      return diffClass ? <span className={diffClass}>{contentStr}</span> : contentStr;
+    }
 
     case "html": {
       const processedContent = typeof content === "string"
         ? processColorTags(content)
         : String(content);
-      cellContent = <span dangerouslySetInnerHTML={renderSafeHTML(processedContent)} />;
-      break;
+      return <span dangerouslySetInnerHTML={renderSafeHTML(processedContent)} />;
     }
 
     case "text":
     default:
-      cellContent = contentStr;
-      break;
+      return contentStr;
   }
+}
 
-  return <td className={cellClassName}>{cellContent}</td>;
-};
+export const SpecialCell: React.FC<SpecialCellProps> = ({
+  className = "",
+  content,
+  type = "text"
+}) => (
+  <td className={className}>{renderSpecialContent(content, type)}</td>
+);
 
 export const PercentCell: React.FC<Omit<SpecialCellProps, "type">> = (props) => (
   <SpecialCell {...props} type="percent" />
@@ -114,28 +110,12 @@ export const ScoreDifferenceCell: React.FC<Omit<SpecialCellProps, "type">> = (pr
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const cellRenderers = {
-  text: (content: string | number | null | undefined, className?: string) => (
-    <SpecialCell content={content} className={className} type="text" />
-  ),
-  number: (content: string | number | null | undefined, className?: string) => (
-    <SpecialCell content={content} className={className} type="number" />
-  ),
-  percent: (content: string | number | null | undefined, className?: string) => (
-    <SpecialCell content={content} className={className} type="percent" />
-  ),
-  fc: (content: string | number | null | undefined, className?: string) => (
-    <SpecialCell content={content} className={className} type="fc" />
-  ),
-  timestamp: (content: string | number | null | undefined, className?: string) => (
-    <SpecialCell content={content} className={className} type="timestamp" />
-  ),
-  charter: (content: string | number | null | undefined, className?: string) => (
-    <SpecialCell content={content} className={className} type="charter" />
-  ),
-  html: (content: string | number | null | undefined, className?: string) => (
-    <SpecialCell content={content} className={className} type="html" />
-  ),
-  scoreDifference: (content: string | number | null | undefined, className?: string) => (
-    <SpecialCell content={content} className={className} type="score-difference" />
-  ),
-}; 
+  text: (content: SpecialCellProps["content"]) => renderSpecialContent(content, "text"),
+  number: (content: SpecialCellProps["content"]) => renderSpecialContent(content, "number"),
+  percent: (content: SpecialCellProps["content"]) => renderSpecialContent(content, "percent"),
+  fc: (content: SpecialCellProps["content"]) => renderSpecialContent(content, "fc"),
+  timestamp: (content: SpecialCellProps["content"]) => renderSpecialContent(content, "timestamp"),
+  charter: (content: SpecialCellProps["content"]) => renderSpecialContent(content, "charter"),
+  html: (content: SpecialCellProps["content"]) => renderSpecialContent(content, "html"),
+  scoreDifference: (content: SpecialCellProps["content"]) => renderSpecialContent(content, "score-difference"),
+};

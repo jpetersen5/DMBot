@@ -110,8 +110,8 @@ const Sidebar: React.FC = () => {
         <nav className="nav-menu">
           <ul>
             {navItems.map((item) => (
-              <div className={isIconActive(item.name, item.path) ? "active" : ""}>
-                <Link to={item.path} key={item.path}>
+              <div key={item.path} className={isIconActive(item.name, item.path) ? "active" : ""}>
+                <Link to={item.path}>
                   <li>
                     <span className="icon">
                       <Icon as={item.icon} title={item.name} />
