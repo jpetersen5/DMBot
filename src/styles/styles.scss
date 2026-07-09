@@ -3,6 +3,8 @@
 
 @use "../components/Extras/Tables.scss";
 
+@include theme-variables;
+
 .app-container {
   display: flex;
   position: fixed;

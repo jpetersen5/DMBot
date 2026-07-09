@@ -1,5 +1,4 @@
 @use "sass:map";
-@use "sass:meta";
 @use "themes" as *;
 @use "tokens" as *;
 @forward "tokens";
@@ -76,30 +75,36 @@ $screen-tablet-max: 1200px;
   }
 }
 
-@mixin theme($key, $color) {
-  @if meta.global-variable-exists("themes") {
-    @each $theme-name, $theme-map in $themes {
-      .theme-#{$theme-name} & {
-        #{$key}: map.get($theme-map, $color);
+@mixin theme-variables {
+  @each $theme-name, $theme-map in $themes {
+    .theme-#{$theme-name} {
+      @each $key, $value in $theme-map {
+        --#{$key}: #{$value};
       }
     }
   }
+}
+
+@mixin theme($key, $color) {
+  @if not map.has-key(map.get($themes, "dark"), $color) {
+    @warn "theme(): unknown color key '#{$color}' — skipping (no-op).";
+  }
 
   @else {
-    @warn "Variable $themes is not defined. The 'theme' mixin will not apply styles.";
+    .theme & {
+      #{$key}: var(--#{$color});
+    }
   }
 }
 
 @mixin master-theme($key, $color) {
-  @if meta.global-variable-exists("themes") {
-    @each $theme-name, $theme-map in $themes {
-      .theme-#{$theme-name} {
-        #{$key}: map.get($theme-map, $color);
-      }
-    }
+  @if not map.has-key(map.get($themes, "dark"), $color) {
+    @warn "master-theme(): unknown color key '#{$color}' — skipping (no-op).";
   }
 
   @else {
-    @warn "Variable $themes is not defined. The 'master-theme' mixin will not apply styles.";
+    .theme {
+      #{$key}: var(--#{$color});
+    }
   }
 }

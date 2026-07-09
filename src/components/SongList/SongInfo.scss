@@ -175,7 +175,7 @@
 
       &:hover {
         @include theme("background", "color-button-hover");
-        @include theme("color", "color-text-hover");
+        @include theme("color", "color-button-text");
       }
     }
   }

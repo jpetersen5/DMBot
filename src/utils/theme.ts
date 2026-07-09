@@ -5,5 +5,5 @@ export function getStoredTheme(): string {
 export function applyTheme(theme: string): void {
   localStorage.setItem("theme", theme);
   document.documentElement.className = "";
-  document.documentElement.classList.add(`theme-${theme}`);
+  document.documentElement.classList.add("theme", `theme-${theme}`);
 }

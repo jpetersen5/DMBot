@@ -154,73 +154,71 @@
       padding-right: 5px;
     }
   }
-}
 
-@include mobile {
-  .modal-header {
-    top: 0;
-    position: sticky;
-    z-index: 2;
-  }
-
-  .modal-dialog {
-    max-width: 100%;
-    margin: 0;
-  }
-
-  .modal-body {
-    padding: 1rem;
-
-    .song-details {
-      flex-direction: column;
+  @include mobile {
+    .modal-header {
+      top: 0;
+      position: sticky;
+      z-index: 2;
     }
 
-    .related-songs {
+    .modal-dialog {
+      max-width: 100%;
+      margin: 0;
+    }
+
+    .modal-body {
+      padding: 1rem;
+
+      .song-details {
+        flex-direction: column;
+      }
+
+      .related-songs {
+        display: none;
+      }
+    }
+
+    .close-button {
       display: none;
     }
   }
 
-  .close-button {
-    display: none;
-  }
-
-}
-
-@include tabletplus {
-  .modal-body {
-    padding: 1rem;
-  }
-
-  .song-info,
-  .related-songs {
-    min-height: 430px;
-    max-height: 430px;
-  }
-
-  .related-songs {
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-
-    .table-container {
-      flex: 1;
-      overflow-y: auto;
+  @include tabletplus {
+    .modal-body {
+      padding: 1rem;
     }
-  }
 
-  .leaderboard {
-    flex: 1;
-    min-height: 400px;
-    max-height: calc(100vh - 750px);
+    .song-info,
+    .related-songs {
+      min-height: 430px;
+      max-height: 430px;
+    }
 
-    .loading-spinner {
+    .related-songs {
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+
+      .table-container {
+        flex: 1;
+        overflow-y: auto;
+      }
+    }
+
+    .leaderboard {
+      flex: 1;
       min-height: 400px;
       max-height: calc(100vh - 750px);
+
+      .loading-spinner {
+        min-height: 400px;
+        max-height: calc(100vh - 750px);
+      }
+    }
+
+    .close-button {
+      display: none;
     }
   }
-
-  .close-button {
-    display: none;
-  }
-
 }

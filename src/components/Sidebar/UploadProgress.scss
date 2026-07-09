@@ -137,7 +137,7 @@
 
   &.status-error {
     border-left: 4px solid;
-    @include theme("border-color", "color-error");
+    @include theme("border-color", "color-text-error");
   }
 
   &.status-completed_with_errors {
@@ -147,7 +147,7 @@
 
   &.status-completed {
     border-left: 4px solid;
-    @include theme("border-color", "color-success");
+    @include theme("border-color", "color-text-success");
   }
 }
 
