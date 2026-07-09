@@ -7,7 +7,7 @@ import "./Leaderboard.scss";
 import { Table, Column } from "../Table";
 import { TableToolbar } from "../Table/TableControls";
 import { useTableData } from "../../hooks/useTableData";
-import { cellRenderers } from "../Table/TableCells";
+import { cellRenderers } from "../Table/cellRenderers";
 
 interface LeaderboardEntry {
   is_fc: boolean;
@@ -31,7 +31,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
   const {
     page,
     setPage,
@@ -154,7 +154,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
           itemsPerPage: perPage
         }}
       />
-      
+
       {totalPages > 1 && (
         <div className="page-controls">
           <TableToolbar

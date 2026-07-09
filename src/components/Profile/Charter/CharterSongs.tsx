@@ -11,7 +11,7 @@ import Table, { Column } from "../../Table/Table";
 import { TableToolbar } from "../../Table/TableControls";
 import { useTableData } from "../../../hooks/useTableData";
 import { useSongModal } from "../../../hooks/useSongModal";
-import { cellRenderers } from "../../Table/TableCells";
+import { cellRenderers } from "../../Table/cellRenderers";
 
 interface CharterSongsProps {
   charterId: string;
