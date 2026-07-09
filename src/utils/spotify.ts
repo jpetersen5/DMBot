@@ -36,12 +36,15 @@ export const fetchSongData = async (
 
     try {
         const response = await fetch(`${API_URL}/api/spotify/fetch_song_data?artist=${encodeURIComponent(artist)}&title=${encodeURIComponent(title)}&album=${encodeURIComponent(album)}&access_token=${spotifyAccessToken}`);
-        
+
         if (!response.ok) {
             throw new Error("Failed to fetch song data");
         }
 
         const data = await response.json();
+        if (!data || !data.image_url) {
+            return null;
+        }
         return data as SongData;
     } catch (error) {
         console.error("Error fetching song data:", error);

@@ -23,7 +23,7 @@ export enum AchievementGroup {
   FullCombo = "full_combo",
   Charter = "charter",
   Special = "special",
-  
+
   Level1 = "level1",
   Level2 = "level2",
   Level3 = "level3",
@@ -74,7 +74,7 @@ export function getGroupName(group: AchievementGroup): string {
     case AchievementGroup.FullCombo: return "Full Combo Achievements";
     case AchievementGroup.Charter: return "Charter Achievements";
     case AchievementGroup.Special: return "Special Achievements";
-    
+
     case AchievementGroup.Level1: return "Level 1";
     case AchievementGroup.Level2: return "Level 2";
     case AchievementGroup.Level3: return "Level 3";
@@ -90,6 +90,7 @@ export function getGroupName(group: AchievementGroup): string {
     case AchievementGroup.Level13: return "Level 13";
     case AchievementGroup.Level14: return "Level 14";
     case AchievementGroup.Level15: return "Level 15";
+    case AchievementGroup.Level16: return "Level 16";
     default: return "";
   }
 }
@@ -98,7 +99,7 @@ export function inferAchievementGroup(achievement: Achievement): AchievementGrou
   if (achievement.group) {
     return achievement.group;
   }
-  
+
   if (achievement.category === AchievementCategory.General) {
     if (achievement.name.includes("Score")) {
       return AchievementGroup.Score;
@@ -110,6 +111,6 @@ export function inferAchievementGroup(achievement: Achievement): AchievementGrou
       return AchievementGroup.Special;
     }
   }
-  
+
   return AchievementGroup.Error;
 } 

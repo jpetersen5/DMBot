@@ -97,4 +97,4 @@ def fetch_song_data() -> FlaskResponse:
     if albums:
         return jsonify({"image_url": albums[0]["images"][0]["url"]})
 
-    return jsonify({"error": "No album art or audio features found"}), 404
+    return jsonify({"image_url": None, "genres": []}), 200

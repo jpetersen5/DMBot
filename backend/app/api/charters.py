@@ -99,11 +99,7 @@ def is_user_charter(user_id: str) -> FlaskResponse:
     try:
         query = supabase.table("charters").select("*").eq("user_id", user_id)
         response = query.execute()
-        
-        if response.data:
-            return jsonify(response.data), 200
-        else:
-            return jsonify({"error": "User is not a charter"}), 404
+        return jsonify(response.data if response.data else []), 200
     except Exception as e:
         logger.error(f"Error fetching charter data: {str(e)}")
         return jsonify({"error": "An error occurred while fetching charter data"}), 500

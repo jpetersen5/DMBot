@@ -233,12 +233,12 @@
       }
 
       &.achieved {
-        border-left: 4px solid var(--color-button);
+        border-left: 4px solid var(--color-primary);
       }
 
       &.locked {
         opacity: 0.6;
-        border-left: 4px solid var(--color-text-secondary);
+        border-left: 4px solid var(--color-border);
 
         .achievement-title,
         .achievement-description {

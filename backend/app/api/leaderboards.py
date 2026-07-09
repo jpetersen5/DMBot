@@ -14,10 +14,7 @@ def get_leaderboard(song_id: str) -> FlaskResponse:
     if not result.data:
         return jsonify({"error": "Song not found"}), 404
 
-    leaderboard = rows(result.data)[0].get("leaderboard", [])
-    if not leaderboard:
-        return jsonify({"error": "Leaderboard is empty"}), 404
-    
+    leaderboard = rows(result.data)[0].get("leaderboard", []) or []
     return jsonify({"leaderboard": leaderboard})
 
 @bp.route("/api/user/<string:user_id>/scores", methods=["GET"])

@@ -44,11 +44,13 @@ const Auth: React.FC<AuthProps> = ({ onlyButtons = false }) => {
   }
 
   return (
-    <div className="auth-container" onClick={handleButtonClick}>
+    <div className="auth-container">
       {user ? (
         <div className="auth-user">
           <h2>Welcome, {user.username}!</h2>
-          <UserAvatar user={user} />
+          <div className="avatar-click" onClick={handleButtonClick}>
+            <UserAvatar user={user} />
+          </div>
           <button className="auth-button logout-button" onClick={logout}>Logout</button>
         </div>
       ) : (
@@ -56,7 +58,7 @@ const Auth: React.FC<AuthProps> = ({ onlyButtons = false }) => {
           <button className="auth-button login-button" onClick={login}>Login with Discord</button>
         </div>
       )}
-    <RedirectButton />
+      <RedirectButton />
     </div>
   );
 };

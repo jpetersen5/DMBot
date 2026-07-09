@@ -509,7 +509,7 @@ def processing_status(user_id: str) -> FlaskResponse:
             "total": int(status.get(b"total", 0))
         }), 200
     else:
-        return jsonify({"status": "no_active_processing"}), 404
+        return jsonify({"status": "no_active_processing"}), 200
 
 def find_file_path_for_md5(file_content: bytes, md5_hex: str, search_back: int = 1024) -> Optional[str]:
     """

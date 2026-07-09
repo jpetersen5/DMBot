@@ -30,6 +30,11 @@
     @include theme("background", "color-sidebar");
     @include theme("color", "color-sidebar-text");
 
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
     .back-button {
       height: 30px;
       width: 30px;

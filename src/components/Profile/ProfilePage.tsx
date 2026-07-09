@@ -29,8 +29,8 @@ const ProfilePage: React.FC = () => {
 
   const activeTab: TabType = location.pathname.includes("/achievements") ? "achievements"
     : location.pathname.includes("/charter-stats") ? "charter-stats"
-    : location.pathname.includes("/charter-songs") ? "charter-songs"
-    : "scores";
+      : location.pathname.includes("/charter-songs") ? "charter-songs"
+        : "scores";
 
   const handleTabChange = (tab: TabType) => {
     if (location.pathname.includes("/charter-songs/")) {
@@ -70,7 +70,6 @@ const ProfilePage: React.FC = () => {
           } else {
             setCharters([]);
             setSelectedCharterId(null);
-            console.error("Error checking if user is charter:", charterResponse.statusText);
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
@@ -85,10 +84,12 @@ const ProfilePage: React.FC = () => {
   }, [userId, currentUser, authLoading, navigate]);
 
   const handleCompareClick = () => {
-    navigate("/songs", { state: {
-      leftUser: currentUser,
-      rightUser: profileUser
-    } });
+    navigate("/songs", {
+      state: {
+        leftUser: currentUser,
+        rightUser: profileUser
+      }
+    });
   };
 
   const isOwnProfile = currentUser && currentUser.id === profileUser?.id;
@@ -141,34 +142,34 @@ const ProfilePage: React.FC = () => {
                 eloHistory={profileUser.elo_history}
               />
             </div>
-            
+
             <div className="profile-content">
               {/* Tab navigation */}
               <div className="profile-tabs">
-                <button 
+                <button
                   className={`tab-button ${activeTab === "scores" ? "active" : ""}`}
                   onClick={() => handleTabChange("scores")}
                 >
                   User Scores
                 </button>
-                
-                <button 
+
+                <button
                   className={`tab-button ${activeTab === "achievements" ? "active" : ""}`}
                   onClick={() => handleTabChange("achievements")}
                 >
                   Achievements
                 </button>
-                
+
                 {selectedCharter && (
                   <>
-                    <button 
+                    <button
                       className={`tab-button ${activeTab === "charter-stats" ? "active" : ""}`}
                       onClick={() => handleTabChange("charter-stats")}
                     >
                       Charter Stats
                     </button>
-                    
-                    <button 
+
+                    <button
                       className={`tab-button ${activeTab === "charter-songs" ? "active" : ""}`}
                       onClick={() => handleTabChange("charter-songs")}
                     >
@@ -177,7 +178,7 @@ const ProfilePage: React.FC = () => {
                   </>
                 )}
               </div>
-              
+
               {/* Tab content */}
               <div className="tab-content">
                 {activeTab === "scores" && (
@@ -185,23 +186,23 @@ const ProfilePage: React.FC = () => {
                     <UserScores userId={profileUser.id} />
                   </div>
                 )}
-                
+
                 {activeTab === "achievements" && (
                   <div className="profile-achievements">
                     <UserAchievements userId={profileUser.id} />
                   </div>
                 )}
-                
+
                 {activeTab === "charter-stats" && selectedCharter && (
                   <CharterStats stats={selectedCharter.charter_stats} />
                 )}
-                
+
                 {activeTab === "charter-songs" && selectedCharterId && (
                   <CharterSongs charterId={selectedCharterId} charterSongIds={selectedCharter?.charter_songs || []} />
                 )}
               </div>
             </div>
-            
+
             {isOwnProfile && activeTab === "scores" && <ScoreUpload />}
           </>
         }
