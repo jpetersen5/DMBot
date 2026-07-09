@@ -19,7 +19,7 @@ const CharterStats: React.FC<CharterStatsProps> = ({ stats }) => {
   const theme = getStoredTheme();
   const chartColor = theme === "light" ? "rgba(32, 32, 32, 0.6)" : "rgba(255, 255, 255, 0.6)";
   const chartBorderColor = theme === "light" ? "rgba(32, 32, 32, 1)" : "rgba(255, 255, 255, 1)";
-  ChartJS.defaults.color = theme === "light" ? "rgba(32, 32, 32, 0.5)" : "rgba(255, 255, 255, 0.5)";
+  const chartTextColor = theme === "light" ? "rgba(32, 32, 32, 0.5)" : "rgba(255, 255, 255, 0.5)";
 
   if (!stats) return (
     <div className="charter-stats">
@@ -76,6 +76,7 @@ const CharterStats: React.FC<CharterStatsProps> = ({ stats }) => {
             data={stats.difficulty_distribution[selectedInstrument]}
             chartColor={chartColor}
             chartBorderColor={chartBorderColor}
+            chartTextColor={chartTextColor}
           />
         </div>
         <div className="distribution-block">
@@ -87,6 +88,7 @@ const CharterStats: React.FC<CharterStatsProps> = ({ stats }) => {
           <YearChart
             data={stats.year_distribution}
             chartBorderColor={chartBorderColor}
+            chartTextColor={chartTextColor}
           />
         </div>
       </div>
@@ -110,6 +112,7 @@ interface DistributionChartProps {
   data: { [key: string]: number };
   chartColor?: string;
   chartBorderColor?: string;
+  chartTextColor?: string;
 }
 
 const DistributionChart: React.FC<DistributionChartProps> = ({ data }) => {
@@ -131,7 +134,7 @@ const DistributionChart: React.FC<DistributionChartProps> = ({ data }) => {
   );
 };
 
-const DifficultyChart: React.FC<DistributionChartProps> = ({ data, chartColor, chartBorderColor }) => {
+const DifficultyChart: React.FC<DistributionChartProps> = ({ data, chartColor, chartBorderColor, chartTextColor }) => {
   if (!data) {
     return <div>No data available for this instrument.</div>;
   }
@@ -151,9 +154,12 @@ const DifficultyChart: React.FC<DistributionChartProps> = ({ data, chartColor, c
   };
 
   const options = {
+    color: chartTextColor,
     scales: {
+      x: { ticks: { color: chartTextColor } },
       y: {
-        beginAtZero: true
+        beginAtZero: true,
+        ticks: { color: chartTextColor },
       }
     },
   };
@@ -161,7 +167,7 @@ const DifficultyChart: React.FC<DistributionChartProps> = ({ data, chartColor, c
   return <Bar data={chartData} options={options} />;
 };
 
-const YearChart: React.FC<DistributionChartProps> = ({ data, chartBorderColor }) => {
+const YearChart: React.FC<DistributionChartProps> = ({ data, chartBorderColor, chartTextColor }) => {
   const sortedData = Object.entries(data).sort((a, b) => Number(a[0]) - Number(b[0]));
   const chartData = {
     labels: sortedData.map(([key]) => key),
@@ -177,9 +183,12 @@ const YearChart: React.FC<DistributionChartProps> = ({ data, chartBorderColor })
   };
 
   const options = {
+    color: chartTextColor,
     scales: {
+      x: { ticks: { color: chartTextColor } },
       y: {
-        beginAtZero: true
+        beginAtZero: true,
+        ticks: { color: chartTextColor },
       }
     },
   };
