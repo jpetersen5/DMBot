@@ -147,23 +147,14 @@
         }
 
         .compare-button {
+          @include themed-button;
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 0.5rem 1rem;
           margin-top: 0.5rem;
-          border: none;
-          border-radius: $radius-sm;
           font-size: 1rem;
           font-weight: bold;
-          cursor: pointer;
-          transition: background-color $transition-base ease;
-          @include theme("background", "color-button");
-          @include theme("color", "color-button-text");
-
-          &:hover {
-            @include theme("background", "color-button-hover");
-          }
 
           .icon {
             margin-right: 0.5rem;

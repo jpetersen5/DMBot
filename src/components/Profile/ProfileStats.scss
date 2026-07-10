@@ -29,19 +29,10 @@
       gap: $space-md;
 
       .see-history-btn {
+        @include themed-button;
         padding: 0.25rem 0.5rem;
         font-size: 0.9rem;
-        border: none;
-        border-radius: $radius-sm;
         margin-bottom: 0.35rem;
-        cursor: pointer;
-        transition: background-color $transition-base;
-        @include theme("background", "color-button");
-        @include theme("color", "color-button-text");
-
-        &:hover {
-          @include theme("background", "color-button-hover");
-        }
 
         .icon-svg {
           margin-left: 0.5rem;

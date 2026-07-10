@@ -27,21 +27,12 @@
   }
 
   .kofi-button {
+    @include themed-button;
     display: flex;
     align-items: center;
-    border: none;
     padding: 5px;
     padding-right: 30px;
-    border-radius: $radius-sm;
-    cursor: pointer;
     font-weight: bold;
-    transition: background-color $transition-base ease;
-    @include theme("background", "color-button");
-    @include theme("color", "color-button-text");
-
-    &:hover {
-      @include theme("background", "color-button-hover");
-    }
 
     .hammer-emoji {
       font-size: 1.5em;

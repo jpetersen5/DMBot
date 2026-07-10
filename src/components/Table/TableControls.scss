@@ -160,18 +160,9 @@
   }
 
   .search-button {
+    @include themed-button;
     padding: 0.5rem 1rem;
-    border: none;
-    border-radius: $radius-sm;
     font-size: 1rem;
-    cursor: pointer;
-    transition: background-color $transition-base;
-    @include theme("background", "color-button");
-    @include theme("color", "color-button-text");
-
-    &:hover {
-      @include theme("background", "color-button-hover");
-    }
   }
 }
 
@@ -205,21 +196,12 @@
   }
 
   .clear-filters-button {
+    @include themed-button;
     display: block;
     width: 100%;
     padding: 0.5rem;
     margin-top: 0.5rem;
-    border: none;
-    border-radius: $radius-sm;
     font-size: 0.9rem;
-    cursor: pointer;
-    transition: background-color $transition-base;
-    @include theme("background", "color-button");
-    @include theme("color", "color-button-text");
-
-    &:hover {
-      @include theme("background", "color-button-hover");
-    }
   }
 }
 
@@ -284,21 +266,12 @@
   }
 
   .clear-options-button {
+    @include themed-button;
     display: block;
     width: 100%;
     padding: 0.5rem;
     margin-top: 0.5rem;
-    border: none;
-    border-radius: $radius-sm;
     font-size: 0.9rem;
-    cursor: pointer;
-    transition: background-color $transition-base;
-    @include theme("background", "color-button");
-    @include theme("color", "color-button-text");
-
-    &:hover {
-      @include theme("background", "color-button-hover");
-    }
   }
 }
 

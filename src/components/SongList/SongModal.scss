@@ -62,14 +62,9 @@
       margin-bottom: 1rem;
 
       button {
+        @include themed-button;
         padding: 0.5rem 1rem;
-        border: none;
-        border-radius: $radius-sm;
-        cursor: pointer;
-        transition: background-color $transition-base;
         margin-left: 0.5rem;
-        @include theme("background", "color-button");
-        @include theme("color", "color-button-text");
 
         &.verify-button {
           background-color: $green;
@@ -101,18 +96,9 @@
     border: none;
 
     .close-button {
-      border: none;
+      @include themed-button;
       padding: 0.5rem 1rem;
       font-size: 1rem;
-      border-radius: $radius-sm;
-      cursor: pointer;
-      transition: background-color $transition-base;
-      @include theme("background", "color-button");
-      @include theme("color", "color-button-text");
-
-      &:hover {
-        @include theme("background", "color-button-hover");
-      }
     }
   }
 

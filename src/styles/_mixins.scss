@@ -48,16 +48,55 @@ $screen-mobile-max: 768px;
   @include theme("background", $background);
 }
 
-@mixin themed-button($radius: $radius-sm) {
+@mixin themed-button($radius: $radius-sm, $transition: background-color $transition-base, $variant: "default") {
   border: none;
   border-radius: $radius;
   cursor: pointer;
-  transition: background-color $transition-base;
-  @include theme("background", "color-button");
+  transition: $transition;
   @include theme("color", "color-button-text");
 
-  &:hover {
-    @include theme("background", "color-button-hover");
+  @if $variant =="default" {
+    @include theme("background", "color-button");
+
+    &:hover {
+      @include theme("background", "color-button-hover");
+    }
+  }
+
+  @else if $variant =="login" {
+    background-color: $discord-blue;
+
+    &:hover {
+      background-color: $discord-blue-dark;
+    }
+  }
+
+  @else if $variant =="logout" {
+    background-color: $red;
+
+    &:hover {
+      background-color: $grey-red;
+    }
+  }
+
+  @else if $variant =="verify" {
+    background-color: $green;
+
+    &:hover {
+      background-color: $grey-green;
+    }
+  }
+
+  @else if $variant =="remove" {
+    background-color: $red;
+
+    &:hover {
+      background-color: $dark-red;
+    }
+  }
+
+  @else {
+    @warn "themed-button(): unknown variant '#{$variant}'.";
   }
 }
 

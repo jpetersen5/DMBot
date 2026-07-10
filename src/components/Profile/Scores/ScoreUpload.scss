@@ -33,17 +33,8 @@
   }
 
   button {
-    border: none;
+    @include themed-button;
     padding: 0.5rem 1rem;
-    border-radius: $radius-sm;
-    cursor: pointer;
-    transition: background-color $transition-base;
-    @include theme("background", "color-button");
-    @include theme("color", "color-button-text");
-
-    &:hover {
-      @include theme("background", "color-button-hover");
-    }
 
     &:disabled {
       cursor: not-allowed;

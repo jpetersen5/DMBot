@@ -120,6 +120,7 @@
 }
 
 .main-action-button {
+  @include themed-button($radius: $radius-md, $transition: background-color $transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -127,17 +128,7 @@
   margin-top: 2rem;
   padding: 1rem 2rem;
   font-size: 1.2rem;
-  border: none;
-  border-radius: $radius-md;
-  cursor: pointer;
-  transition: background-color $transition-fast;
   box-shadow: $shadow-sm;
-  @include theme("background", "color-button");
-  @include theme("color", "color-button-text");
-
-  &:hover {
-    @include theme("background", "color-button-hover");
-  }
 
   .loading-spinner {
     filter: invert(1);

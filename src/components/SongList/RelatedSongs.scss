@@ -45,19 +45,9 @@
 
         .prev,
         .next {
-          background-color: transparent;
-          border: none;
-          border-radius: $radius-sm;
+          @include themed-button;
           padding: 0.25rem 0.5rem;
           font-size: 1rem;
-          cursor: pointer;
-          transition: background-color $transition-base;
-          @include theme("background", "color-button");
-          @include theme("color", "color-button-text");
-
-          &:hover {
-            @include theme("background", "color-button-hover");
-          }
 
           &:disabled {
             cursor: not-allowed;
