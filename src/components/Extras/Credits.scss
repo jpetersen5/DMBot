@@ -16,7 +16,7 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 1rem;
+    gap: $space-md;
 
     .contributor {
       display: flex;
@@ -25,7 +25,7 @@
       min-width: 220px;
       border-radius: $radius-md;
       text-decoration: none;
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: transform $transition-fast, box-shadow $transition-fast;
       @include theme("background", "color-box");
       @include theme("color", "color-text");
 
@@ -54,11 +54,11 @@
     h2 {
       margin-top: 1rem;
     }
+
     .contributors-list {
       .contributor {
         min-height: 50px;
         max-height: 50px;
-        // padding: 0;
       }
     }
 

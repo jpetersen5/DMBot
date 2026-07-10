@@ -27,7 +27,7 @@
     .unknown-song-actions {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: $space-md;
 
       .action-button {
         border: none;
@@ -35,7 +35,7 @@
         font-size: 1rem;
         border-radius: $radius-sm;
         cursor: pointer;
-        transition: background-color 0.3s;
+        transition: background-color $transition-base;
         @include theme("background", "color-button");
         @include theme("color", "color-button-text");
 

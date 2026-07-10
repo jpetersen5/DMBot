@@ -6,7 +6,7 @@
   top: 0;
   left: 0;
   height: 100vh;
-  transition: width 0.3s ease;
+  transition: width $transition-base ease;
   width: $sidebar-width;
   overflow-x: hidden;
   @include theme("background", "color-sidebar");
@@ -63,7 +63,7 @@
           .nav-text {
             white-space: nowrap;
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity $transition-base ease;
             flex: 1;
           }
         }
@@ -111,7 +111,7 @@
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: transform 0.2s ease;
+        transition: transform $transition-fast ease;
 
         &:hover {
           transform: scale(1.1);

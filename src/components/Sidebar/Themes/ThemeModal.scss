@@ -39,7 +39,7 @@
     margin-bottom: 0.5rem;
     padding: 0.5rem;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all $transition-base ease;
     border-radius: $radius-sm;
     @include theme("background", "color-box");
     @include theme("color", "color-text");

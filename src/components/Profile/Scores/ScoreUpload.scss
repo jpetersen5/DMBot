@@ -37,7 +37,7 @@
     padding: 0.5rem 1rem;
     border-radius: $radius-sm;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color $transition-base;
     @include theme("background", "color-button");
     @include theme("color", "color-button-text");
 
@@ -77,7 +77,7 @@
       padding: 0.25rem;
       cursor: pointer;
       box-shadow: $shadow-sm;
-      transition: background-color 0.3s;
+      transition: background-color $transition-base;
       @include theme("color", "color-button-secondary-text");
       @include theme("background", "color-button-secondary");
       @include theme("border-color", "color-border");
@@ -94,7 +94,7 @@
     p {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: $space-sm;
     }
 
     button {
@@ -102,7 +102,7 @@
       border-radius: $radius-sm;
       padding: 0.25rem 0.5rem;
       cursor: pointer;
-      transition: background-color 0.3s;
+      transition: background-color $transition-base;
       @include theme("border-color", "color-border");
       @include theme("color", "color-button-secondary-text");
       @include theme("background", "color-button-secondary");

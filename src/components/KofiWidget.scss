@@ -6,7 +6,7 @@
   bottom: 20px;
   left: 20px;
   z-index: $z-floating;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition: transform $transition-base ease, opacity $transition-base ease;
 
   &:hover {
     transform: scale(1.05);
@@ -35,7 +35,7 @@
     border-radius: $radius-sm;
     cursor: pointer;
     font-weight: bold;
-    transition: background-color 0.3s ease;
+    transition: background-color $transition-base ease;
     @include theme("background", "color-button");
     @include theme("color", "color-button-text");
 
@@ -76,7 +76,7 @@
       height: 24px;
       color: $white;
       transform-origin: center;
-      transition: transform 0.3s ease;
+      transition: transform $transition-base ease;
     }
   }
 }

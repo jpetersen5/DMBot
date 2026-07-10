@@ -23,7 +23,7 @@
     pointer-events: none;
     z-index: $z-sticky;
     opacity: 1;
-    transition: opacity 0.3s;
+    transition: opacity $transition-base;
     box-shadow: $shadow-edge;
   }
 

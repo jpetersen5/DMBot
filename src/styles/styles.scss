@@ -43,7 +43,7 @@
   cursor: pointer;
   opacity: 0.6;
   color: inherit;
-  transition: opacity 0.3s;
+  transition: opacity $transition-base;
 
   &:hover {
     opacity: 1;
@@ -84,7 +84,7 @@
   .main-content {
     width: calc(100% - $sidebar-width);
     margin-left: $sidebar-width;
-    transition: width 0.3s ease, margin-left 0.3s ease;
+    transition: width $transition-base ease, margin-left $transition-base ease;
 
     .sidebar.open+& {
       width: calc(100% - $sidebar-width-expanded);

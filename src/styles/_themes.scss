@@ -16,7 +16,6 @@ $gold: #FFD700;
 $gold-dark-1: #D98A2E;
 $gold-dark-2: #E5A82E;
 $gold-dark-3: #F6BF00;
-$tooltip-background: rgba(0, 0, 0, 0.8);
 
 // dark mode
 $dark-grey-0: #121212;
@@ -61,7 +60,6 @@ $themes: (
     color-table-selected-text: $white,
     color-table-selected-background: $gold-dark-2,
     color-table-selected-hover: $gold-dark-1,
-    color-charter-hover: $dark-grey-4,
     color-dropdown: $dark-grey-2,
     color-dropdown-highlight: $dark-grey-3,
     color-dropdown-text: $light-grey-2,
@@ -111,7 +109,6 @@ $themes: (
     color-table-selected-text: $dark-grey-4,
     color-table-selected-background: $gold,
     color-table-selected-hover: $gold-dark-3,
-    color-charter-hover: $dark-grey-3,
     color-dropdown: $white,
     color-dropdown-highlight: $very-light-grey-2,
     color-dropdown-text: $dark-grey-4,

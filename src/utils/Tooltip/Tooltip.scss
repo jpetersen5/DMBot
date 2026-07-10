@@ -9,24 +9,24 @@
 .tooltip-content-container {
   position: fixed;
   padding: 8px 12px;
-  background-color: rgba(0, 0, 0, 0.85);
   border-radius: $radius-sm;
   pointer-events: none;
   z-index: $z-tooltip;
   max-width: 320px;
   box-shadow: $shadow-lg;
+  @include theme("background", "color-tooltip");
 
   .tooltip {
     font-size: 0.85rem;
-    color: white;
     white-space: nowrap;
     display: block;
+    @include theme("color", "color-tooltip-text");
   }
 
   .tooltip-content {
-    color: white;
     font-size: 0.85rem;
     display: block;
+    @include theme("color", "color-tooltip-text");
   }
 
   &::after {
@@ -40,27 +40,27 @@
     top: 100%;
     left: 50%;
     margin-left: -5px;
-    border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
+    border-color: var(--color-tooltip) transparent transparent transparent;
   }
 
   &.bottom::after {
     bottom: 100%;
     left: 50%;
     margin-left: -5px;
-    border-color: transparent transparent rgba(0, 0, 0, 0.85) transparent;
+    border-color: transparent transparent var(--color-tooltip) transparent;
   }
 
   &.left::after {
     top: 50%;
     left: 100%;
     margin-top: -5px;
-    border-color: transparent transparent transparent rgba(0, 0, 0, 0.85);
+    border-color: transparent transparent transparent var(--color-tooltip);
   }
 
   &.right::after {
     top: 50%;
     right: 100%;
     margin-top: -5px;
-    border-color: transparent rgba(0, 0, 0, 0.85) transparent transparent;
+    border-color: transparent var(--color-tooltip) transparent transparent;
   }
 }

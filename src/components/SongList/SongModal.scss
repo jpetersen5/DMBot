@@ -45,7 +45,7 @@
       border-radius: $radius-sm;
       font-size: 1.5rem;
       line-height: 1;
-      transition: color 0.3s;
+      transition: color $transition-base;
       @include theme("background", "color-button");
       @include theme("color", "color-button-text");
 
@@ -66,7 +66,7 @@
         border: none;
         border-radius: $radius-sm;
         cursor: pointer;
-        transition: background-color 0.3s;
+        transition: background-color $transition-base;
         margin-left: 0.5rem;
         @include theme("background", "color-button");
         @include theme("color", "color-button-text");
@@ -93,7 +93,7 @@
       display: flex;
       justify-content: space-between;
       margin-bottom: 2rem;
-      gap: 2rem;
+      gap: $space-xl;
     }
   }
 
@@ -106,7 +106,7 @@
       font-size: 1rem;
       border-radius: $radius-sm;
       cursor: pointer;
-      transition: background-color 0.3s;
+      transition: background-color $transition-base;
       @include theme("background", "color-button");
       @include theme("color", "color-button-text");
 
@@ -128,7 +128,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color $transition-base;
     z-index: $z-modal;
     padding: 0;
     line-height: 1;

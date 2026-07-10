@@ -18,19 +18,18 @@
     margin-bottom: 1rem;
   }
 
-  // So only applies within auth-user
   .user-avatar-container {
-    transition: 0.2s;
-    
-      &:hover {
-        transform: translateY(-5px);
-        transform: scale(1.1);
-        box-shadow: $shadow-md;
-        cursor: pointer;
-      }
+    transition: $transition-fast;
+
+    &:hover {
+      transform: translateY(-5px);
+      transform: scale(1.1);
+      box-shadow: $shadow-md;
+      cursor: pointer;
+    }
   }
 }
-  
+
 .user-avatar-container {
   position: relative;
   width: 100px;
@@ -93,7 +92,7 @@
   border: none;
   border-radius: $radius-sm;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color $transition-base ease;
 }
 
 .login-button {
@@ -117,7 +116,7 @@
 .auth-loading {
   text-align: center;
   font-style: italic;
-  color: $light-grey-1;
+  @include theme("color", "color-text-secondary");
 }
 
 .main-action-button {
@@ -131,7 +130,7 @@
   border: none;
   border-radius: $radius-md;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color $transition-fast;
   box-shadow: $shadow-sm;
   @include theme("background", "color-button");
   @include theme("color", "color-button-text");

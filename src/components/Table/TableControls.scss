@@ -6,13 +6,13 @@
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
+  gap: $space-md;
 
   .table-toolbar-left,
   .table-toolbar-right {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: $space-md;
     flex-wrap: wrap;
   }
 }
@@ -52,7 +52,7 @@
   button {
     border: none;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color $transition-base;
     border-radius: $radius-sm;
     @include theme("background", "color-button");
     @include theme("color", "color-button-text");
@@ -115,7 +115,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 0.5rem;
+  gap: $space-sm;
 
   .search-input-container {
     flex: 1;
@@ -148,7 +148,7 @@
       .icon-svg {
         width: 20px;
         height: 20px;
-        transition: color 0.2s;
+        transition: color $transition-fast;
         @include theme("color", "color-icon-invert");
       }
 
@@ -165,7 +165,7 @@
     border-radius: $radius-sm;
     font-size: 1rem;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color $transition-base;
     @include theme("background", "color-button");
     @include theme("color", "color-button-text");
 
@@ -213,7 +213,7 @@
     border-radius: $radius-sm;
     font-size: 0.9rem;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color $transition-base;
     @include theme("background", "color-button");
     @include theme("color", "color-button-text");
 
@@ -292,7 +292,7 @@
     border-radius: $radius-sm;
     font-size: 0.9rem;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color $transition-base;
     @include theme("background", "color-button");
     @include theme("color", "color-button-text");
 

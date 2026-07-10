@@ -32,14 +32,14 @@
   .action-buttons {
     display: flex;
     justify-content: center;
-    gap: 1rem;
+    gap: $space-md;
 
     .icon-button {
       display: flex;
       align-items: center;
       justify-content: center;
       border-radius: $radius-round;
-      transition: background-color 0.2s, transform 0.2s;
+      transition: background-color $transition-fast, transform $transition-fast;
       border: none;
       @include theme("background", "color-button");
       @include theme("color", "color-icon");
@@ -70,7 +70,7 @@
   .status-container {
     display: flex;
     justify-content: center;
-    gap: 2rem;
+    gap: $space-xl;
     margin-top: 1rem;
     border-radius: $radius-md;
     box-shadow: $shadow-sm;
@@ -79,7 +79,7 @@
     .status {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: $space-md;
       @include theme("color", "color-text-secondary");
 
       .status-label {
@@ -96,15 +96,14 @@
         text-align: center;
         border-radius: $radius-sm;
         font-weight: 500;
+        @include theme("background", "color-box");
 
         &.success {
-          background-color: $very-light-green;
-          color: $dark-green;
+          @include theme("color", "color-text-success");
         }
 
         &.error {
-          background-color: $very-light-red;
-          color: $dark-red;
+          @include theme("color", "color-text-error");
         }
       }
 
@@ -119,7 +118,7 @@
   .homepage {
     .banner-container {
       flex-direction: row;
-      gap: 1rem;
+      gap: $space-md;
 
       .banner-image {
         max-height: 100px;
@@ -158,7 +157,7 @@
       min-width: 310px;
       padding: 0.5rem 0rem;
       margin-top: 1rem;
-      gap: 1rem;
+      gap: $space-md;
 
       .status {
         font-size: 0.7rem;
@@ -210,7 +209,7 @@
     .status-container {
       flex-direction: row;
       padding: 1rem 2rem;
-      gap: 2rem;
+      gap: $space-xl;
       max-height: 60px;
 
       .status {

@@ -26,7 +26,7 @@
     .elo-container {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: $space-md;
 
       .see-history-btn {
         padding: 0.25rem 0.5rem;
@@ -35,7 +35,7 @@
         border-radius: $radius-sm;
         margin-bottom: 0.35rem;
         cursor: pointer;
-        transition: background-color 0.3s;
+        transition: background-color $transition-base;
         @include theme("background", "color-button");
         @include theme("color", "color-button-text");
 
@@ -56,7 +56,7 @@
   .stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
+    gap: $space-md;
 
     .stat-item {
       display: flex;

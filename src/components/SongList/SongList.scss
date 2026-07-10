@@ -11,7 +11,7 @@
     justify-content: flex-start;
     align-items: center;
     margin-bottom: 1rem;
-    gap: 2rem;
+    gap: $space-xl;
 
     h1 {
       font-size: 2rem;
@@ -19,10 +19,11 @@
       @include theme("color", "color-text");
     }
 
-    .song-list-header-left, .song-list-header-right {
+    .song-list-header-left,
+    .song-list-header-right {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: $space-sm;
     }
 
     .user-comparison {
@@ -102,6 +103,7 @@
   .song-list {
     padding: 0 1rem;
   }
+
   .search-bar {
     padding: 0 0 1rem 0;
   }

@@ -19,19 +19,19 @@
       margin-bottom: 0;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: $space-sm;
       @include theme("color", "color-text");
     }
 
     .view-controls {
       display: flex;
-      gap: 1rem;
+      gap: $space-md;
       align-items: center;
     }
 
     .view-toggle {
       display: flex;
-      gap: 0.5rem;
+      gap: $space-sm;
 
       .view-mode-btn {
         min-width: 60px;
@@ -42,7 +42,7 @@
         border: none;
         border-radius: $radius-sm;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all $transition-fast ease;
         font-size: 0.9rem;
         padding: 0 0.75rem;
 
@@ -67,7 +67,7 @@
         border-radius: $radius-sm;
         cursor: pointer;
         font-size: 0.9rem;
-        transition: all 0.2s ease;
+        transition: all $transition-fast ease;
 
         @include theme("background", "color-box");
         @include theme("color", "color-text");
@@ -86,7 +86,7 @@
     .category-tabs {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
+      gap: $space-sm;
       border-bottom: 1px solid;
       padding-bottom: 0.5rem;
       @include theme("border-color", "color-border");
@@ -97,10 +97,10 @@
         border: none;
         border-radius: $radius-sm;
         cursor: pointer;
-        transition: background-color 0.3s;
+        transition: background-color $transition-base;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: $space-sm;
         @include theme("background", "color-box");
         @include theme("color", "color-text");
 
@@ -146,7 +146,7 @@
   .achievements-grid {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: $space-xl;
 
     .category-section {
       h3 {
@@ -164,7 +164,7 @@
     .achievement-items {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-      gap: 1rem;
+      gap: $space-md;
 
       >div {
         cursor: pointer;
@@ -179,7 +179,7 @@
   .achievements-list {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: $space-xl;
 
     .category-section {
       h3 {
@@ -212,7 +212,7 @@
     .achievement-list-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-      gap: 1rem;
+      gap: $space-md;
 
       @include mobile {
         grid-template-columns: 1fr;
@@ -223,7 +223,7 @@
       display: flex;
       padding: 1rem;
       border-radius: $radius-md;
-      transition: transform 0.2s ease;
+      transition: transform $transition-fast ease;
       cursor: pointer;
       @include theme("background", "color-box");
 
@@ -284,7 +284,7 @@
     .achievements-header {
       .header-row {
         flex-direction: column;
-        gap: 1rem;
+        gap: $space-md;
         align-items: flex-start;
 
         .view-controls {

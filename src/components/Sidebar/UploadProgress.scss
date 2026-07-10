@@ -70,7 +70,7 @@
     border-radius: $radius-sm;
     cursor: pointer;
     font-weight: 500;
-    transition: background-color 0.2s;
+    transition: background-color $transition-fast;
     @include theme("background", "color-button");
     @include theme("color", "color-button-text");
 

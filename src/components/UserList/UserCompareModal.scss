@@ -35,7 +35,7 @@
     cursor: pointer;
     padding: 5px;
     margin-bottom: 10px;
-    transition: transform 0.2s;
+    transition: transform $transition-fast;
 
     &:hover {
       transform: scale(1.1);
@@ -69,7 +69,7 @@
     .user-name {
       margin-bottom: 1rem;
       cursor: pointer;
-      transition: color 0.3s;
+      transition: color $transition-base;
 
       &:hover {
         @include theme("color", "color-button-hover");
@@ -198,7 +198,7 @@
       margin-bottom: 1rem;
       font-size: 1.1rem;
       display: flex;
-      gap: 1rem;
+      gap: $space-md;
       align-items: center;
       padding: 0.5rem 1rem;
       border-radius: $radius-sm;

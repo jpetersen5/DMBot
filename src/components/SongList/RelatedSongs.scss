@@ -51,7 +51,7 @@
           padding: 0.25rem 0.5rem;
           font-size: 1rem;
           cursor: pointer;
-          transition: background-color 0.3s;
+          transition: background-color $transition-base;
           @include theme("background", "color-button");
           @include theme("color", "color-button-text");
 

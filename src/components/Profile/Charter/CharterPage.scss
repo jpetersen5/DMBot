@@ -51,7 +51,7 @@
     .charter-header,
     .charter-info {
       flex-direction: column;
-      gap: 1rem;
+      gap: $space-md;
     }
 
     .charter-stats {
@@ -77,16 +77,16 @@
 @include mobile {
   .charter-page {
     padding: 0;
-    
+
     h1 {
       padding: 0.75rem 1rem;
       font-size: 1.5rem;
     }
-    
+
     .charter-content-wrapper {
       padding: 0 1rem 1rem;
     }
-    
+
     .distributions {
       flex-direction: column;
     }

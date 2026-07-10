@@ -10,8 +10,8 @@
     border-radius: $radius-sm;
     padding: 2px 4px;
     cursor: pointer;
-    transition: background-color 0.3s;
-    transition: transform 0.3s;
+    transition: background-color $transition-base;
+    transition: transform $transition-base;
 
     @include theme("color", "color-text");
 

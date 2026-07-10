@@ -11,7 +11,7 @@
   max-width: 100%;
   transform: translateX(400px);
   opacity: 0;
-  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+  transition: transform $transition-base ease-out, opacity $transition-base ease-out;
   z-index: $z-floating;
   overflow: hidden;
   @include theme("background", "color-box");
@@ -133,7 +133,7 @@
     cursor: pointer;
     font-weight: bold;
     box-shadow: $shadow-sm;
-    transition: background-color 0.2s ease;
+    transition: background-color $transition-fast ease;
     pointer-events: auto;
     z-index: $z-toast;
     @include theme("background", "color-button");

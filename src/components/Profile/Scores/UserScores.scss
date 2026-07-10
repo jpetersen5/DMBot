@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: column;
   height: 600px;
-  
+
   .user-scores-header {
     display: flex;
     justify-content: space-between;
@@ -21,12 +21,13 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      
+
       .table-controls {
         display: flex;
         align-items: center;
-        
-        label, select {
+
+        label,
+        select {
           margin-right: 0.5rem;
         }
       }
@@ -36,34 +37,34 @@
         align-items: center;
         margin-left: 1rem;
         cursor: pointer;
-  
+
         .toggle-label {
           margin-right: 0.5rem;
           font-size: 0.9rem;
           user-select: none;
           @include theme("color", "color-text");
         }
-  
+
         .toggle-switch {
           position: relative;
           width: 40px;
           height: 20px;
         }
-  
+
         .toggle-input {
           opacity: 0;
           width: 0;
           height: 0;
-  
-          &:checked + .toggle-slider {
+
+          &:checked+.toggle-slider {
             @include theme("background", "color-toggle-on");
           }
-  
-          &:checked + .toggle-slider:before {
+
+          &:checked+.toggle-slider:before {
             transform: translateX(20px);
           }
         }
-  
+
         .toggle-slider {
           position: absolute;
           cursor: pointer;
@@ -71,10 +72,10 @@
           left: 0;
           right: 0;
           bottom: 0;
-          transition: 0.4s;
+          transition: $transition-slow;
           border-radius: $radius-pill;
           @include theme("background", "color-toggle-off");
-  
+
           &:before {
             position: absolute;
             content: "";
@@ -82,7 +83,7 @@
             width: 16px;
             left: 2px;
             bottom: 2px;
-            transition: 0.4s;
+            transition: $transition-slow;
             border-radius: $radius-round;
             @include theme("background", "color-toggle-handle");
           }
@@ -96,25 +97,25 @@
     justify-content: space-between;
     align-items: center;
     margin-top: 1rem;
-    
+
     .table-toolbar {
       width: 100%;
       margin-bottom: 0;
       display: flex;
       flex-direction: row;
       align-items: center;
-      
+
       .table-toolbar-left {
         flex: 1;
         order: 1;
       }
-      
+
       .table-toolbar-pagination {
         flex: 2;
         margin-top: 0;
         order: 2;
       }
-      
+
       .table-toolbar-right {
         flex: 1;
         justify-content: flex-end;
@@ -150,21 +151,21 @@
         margin-top: 0.5rem;
       }
     }
-    
+
     .page-controls {
       .table-toolbar {
         flex-direction: column;
-        
+
         .table-toolbar-pagination {
           order: 1;
           margin-bottom: 0.5rem;
         }
-        
+
         .table-toolbar-right {
           order: 2;
           justify-content: center;
         }
-        
+
         .table-toolbar-left {
           order: 3;
         }
