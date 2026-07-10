@@ -2,29 +2,7 @@
 @use "../../../styles/mixins" as *;
 
 .release-notes-modal {
-  .modal-content {
-    border: none;
-    border-radius: $radius-md;
-    box-shadow: $shadow-md;
-    @include theme("background", "color-background");
-    @include theme("color", "color-text");
-  }
-
-  .modal-header {
-    border-bottom: none;
-    padding: 1rem 1.5rem;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-    @include theme("background", "color-sidebar");
-    @include theme("color", "color-sidebar-text");
-
-    .modal-title {
-      font-weight: bold;
-    }
-  }
-
   .modal-body {
-    padding: 1.5rem;
     max-height: 70vh;
     overflow-y: auto;
     @include scrollbar;

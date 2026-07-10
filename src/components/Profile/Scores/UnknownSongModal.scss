@@ -2,17 +2,6 @@
 @use "../../../styles/mixins" as *;
 
 .unknown-song-modal {
-  .modal-content {
-    @include theme("background", "color-background");
-    @include theme("color", "color-text");
-  }
-
-  .modal-header {
-    border: none;
-    @include theme("background", "color-sidebar");
-    @include theme("color", "color-sidebar-text");
-  }
-
   .modal-body {
     padding: 2rem;
 

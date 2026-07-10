@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Modal } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../../App";
 import Tooltip from "../../utils/Tooltip/Tooltip";
 import { User, getUserImageSrc, getFallbackImage } from "../../utils/user";
 import { useAuth } from "../../context/AuthContext";
+import Modal from "../ui/Modal/Modal";
 import "./UserCompareModal.scss";
 
 import Icon from "../Extras/Icon";
-import ModalCloseButton from "../Extras/ModalCloseButton";
 import SwapIcon from "../../assets/swap.svg?react";
 import VS from "../../assets/vs.png";
 
@@ -274,30 +273,24 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg" centered className="user-compare-modal">
-      <Modal.Header>
-        <Modal.Title>Compare Users</Modal.Title>
-        <ModalCloseButton onClick={onHide} />
-      </Modal.Header>
-      <Modal.Body>
-        <div className="user-compare-container">
-          {renderUserSide("left")}
-          <div className="vs-container">
-            <button className="swap-button" onClick={swapUsers}>
-              <Icon as={SwapIcon} title="Swap users" className="swap-icon" />
-            </button>
-            <div className="vs">
-              <img src={VS} alt="VS" className="vs-icon" />
-            </div>
+    <Modal show={show} onHide={onHide} size="lg" title="Compare Users" className="user-compare-modal">
+      <div className="user-compare-container">
+        {renderUserSide("left")}
+        <div className="vs-container">
+          <button className="swap-button" onClick={swapUsers}>
+            <Icon as={SwapIcon} title="Swap users" className="swap-icon" />
+          </button>
+          <div className="vs">
+            <img src={VS} alt="VS" className="vs-icon" />
           </div>
-          {renderUserSide("right")}
         </div>
-        {isLoading ? (
-          <div className="loading">Loading comparison results...</div>
-        ) : (
-          renderComparisonResults()
-        )}
-      </Modal.Body>
+        {renderUserSide("right")}
+      </div>
+      {isLoading ? (
+        <div className="loading">Loading comparison results...</div>
+      ) : (
+        renderComparisonResults()
+      )}
     </Modal>
   );
 };

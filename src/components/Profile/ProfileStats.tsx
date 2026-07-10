@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Line } from "react-chartjs-2";
-import { Modal } from "react-bootstrap";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -14,10 +13,10 @@ import {
 } from "chart.js";
 import "chartjs-adapter-date-fns"
 import { EloHistory, UserStats } from "../../utils/user";
+import Modal from "../ui/Modal/Modal";
 import "./ProfileStats.scss";
 
 import Icon from "../Extras/Icon";
-import ModalCloseButton from "../Extras/ModalCloseButton";
 import historyIcon from "../../assets/history.svg?react";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, TimeScale);
@@ -190,26 +189,20 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ userStats, elo, eloHistory 
         <p>No stats available. If you have scores, reupload your scoredata.bin file to update!</p>
       )}
 
-      <Modal show={showEloModal} onHide={() => setShowEloModal(false)} size="lg" centered className="elo-modal">
-        <Modal.Header>
-          <Modal.Title>Elo History</Modal.Title>
-          <ModalCloseButton onClick={() => setShowEloModal(false)} />
-        </Modal.Header>
-        <Modal.Body>
-          {eloData && (
-            <div className="elo-chart">
-              <div className="chart-controls">
-                <select value={timeWindow} onChange={(e) => setTimeWindow(e.target.value)}>
-                  <option value="12h">Last 12 Hours</option>
-                  <option value="24h">Last 24 Hours</option>
-                  <option value="7d">Last 7 Days</option>
-                  <option value="30d">Last 30 Days</option>
-                </select>
-              </div>
-              <Line data={eloData} options={eloChartOptions} />
+      <Modal show={showEloModal} onHide={() => setShowEloModal(false)} size="lg" title="Elo History" className="elo-modal">
+        {eloData && (
+          <div className="elo-chart">
+            <div className="chart-controls">
+              <select value={timeWindow} onChange={(e) => setTimeWindow(e.target.value)}>
+                <option value="12h">Last 12 Hours</option>
+                <option value="24h">Last 24 Hours</option>
+                <option value="7d">Last 7 Days</option>
+                <option value="30d">Last 30 Days</option>
+              </select>
             </div>
-          )}
-        </Modal.Body>
+            <Line data={eloData} options={eloChartOptions} />
+          </div>
+        )}
       </Modal>
     </div>
   );

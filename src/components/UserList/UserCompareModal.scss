@@ -2,16 +2,6 @@
 @use "../../styles/mixins" as *;
 
 .user-compare-modal {
-  .modal-content {
-    @include theme("background", "color-background");
-    @include theme("color", "color-text");
-  }
-
-  .modal-header {
-    @include theme("background", "color-sidebar");
-    @include theme("color", "color-sidebar-text");
-  }
-
   .user-compare-container {
     display: flex;
     justify-content: space-between;

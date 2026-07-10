@@ -1,7 +1,6 @@
 import React from "react";
-import { Modal } from "react-bootstrap";
 import { CURRENT_VERSION } from "../Sidebar";
-import ModalCloseButton from "../../Extras/ModalCloseButton";
+import Modal from "../../ui/Modal/Modal";
 
 import "./ReleaseNotesModal.scss";
 
@@ -254,38 +253,32 @@ const ReleaseNotesModal: React.FC<ReleaseNotesModalProps> = ({ isOpen, onClose }
   };
 
   return (
-    <Modal show={isOpen} onHide={onClose} centered className="release-notes-modal">
-      <Modal.Header>
-        <Modal.Title>Release Notes</Modal.Title>
-        <ModalCloseButton onClick={onClose} />
-      </Modal.Header>
-      <Modal.Body>
-        <div className="release-notes-container">
-          {releaseNotes.map((note, index) => (
-            <div key={index} className="release-note">
-              <div className="release-header">
-                <h3 className="version">{note.version} {note.version === CURRENT_VERSION ? "(New!)" : ""}</h3>
-                <span className="date">{note.date}</span>
-                {note.credit && <span className="credit">Credit: {note.credit}</span>}
-              </div>
-              <ul className="notes-list">
-                {processNotes(note.notes).map((item, i) => (
-                  <li key={i}>
-                    {item.main}
-                    {item.subItems.length > 0 && (
-                      <ul className="sub-notes-list">
-                        {item.subItems.map((subItem, j) => (
-                          <li key={j}>{subItem}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                ))}
-              </ul>
+    <Modal show={isOpen} onHide={onClose} title="Release Notes" className="release-notes-modal">
+      <div className="release-notes-container">
+        {releaseNotes.map((note, index) => (
+          <div key={index} className="release-note">
+            <div className="release-header">
+              <h3 className="version">{note.version} {note.version === CURRENT_VERSION ? "(New!)" : ""}</h3>
+              <span className="date">{note.date}</span>
+              {note.credit && <span className="credit">Credit: {note.credit}</span>}
             </div>
-          ))}
-        </div>
-      </Modal.Body>
+            <ul className="notes-list">
+              {processNotes(note.notes).map((item, i) => (
+                <li key={i}>
+                  {item.main}
+                  {item.subItems.length > 0 && (
+                    <ul className="sub-notes-list">
+                      {item.subItems.map((subItem, j) => (
+                        <li key={j}>{subItem}</li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
     </Modal>
   );
 };

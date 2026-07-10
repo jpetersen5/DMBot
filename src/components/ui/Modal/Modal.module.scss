@@ -1,0 +1,28 @@
+@use "../../../styles/tokens" as *;
+
+.themedModal {
+  :global(.modal-content) {
+    border: none;
+    border-radius: $radius-md;
+    box-shadow: $shadow-md;
+    background: var(--color-background);
+    color: var(--color-text);
+  }
+
+  :global(.modal-header) {
+    border-bottom: none;
+    padding: $space-md $space-lg;
+    border-top-left-radius: $radius-md;
+    border-top-right-radius: $radius-md;
+    background: var(--color-sidebar);
+    color: var(--color-sidebar-text);
+
+    :global(.modal-title) {
+      font-weight: bold;
+    }
+  }
+
+  :global(.modal-body) {
+    padding: $space-lg;
+  }
+}

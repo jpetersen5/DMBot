@@ -1,11 +1,10 @@
 import React, { useState } from "react";
-import { Modal } from "react-bootstrap";
 import LoadingSpinner from "../../Loading/LoadingSpinner";
 import { API_URL } from "../../../App";
 import { Score } from "../../../utils/score";
 import { formatExactTime, formatTimeDifference } from "../../../utils/song";
 import Tooltip from "../../../utils/Tooltip/Tooltip";
-import ModalCloseButton from "../../Extras/ModalCloseButton";
+import Modal from "../../ui/Modal/Modal";
 import "./UnknownSongModal.scss";
 
 interface UnknownSongModalProps {
@@ -96,39 +95,33 @@ const UnknownSongModal: React.FC<UnknownSongModalProps> = ({ show, onHide, score
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="lg" dialogClassName="unknown-song-modal">
-      <Modal.Header>
-        <Modal.Title>{score.song_name}</Modal.Title>
-        <ModalCloseButton onClick={onHide} />
-      </Modal.Header>
-      <Modal.Body>
-        <div className="unknown-song-details">
-          <p><strong>Artist:</strong> {score.artist}</p>
-          <p><strong>Score:</strong> {score.score.toLocaleString()}</p>
-          <p><strong>Percent:</strong> {score.percent}%</p>
-          <p><strong>Speed:</strong> {score.speed}%</p>
-          <p><strong>FC:</strong> {score.is_fc ? "Yes" : "No"}</p>
-          <p><strong>Play Count:</strong> {score.play_count}</p>
-          <p><strong>Posted:</strong> {score.posted ? (
-            <Tooltip text={formatExactTime(score.posted)}>
-              {formatTimeDifference(score.posted)}
-            </Tooltip>
-          ) : "N/A"}</p>
-          <p><strong>Identifier:</strong> {score.identifier}</p>
-          <p><strong>Filepath:</strong> {score.filepath ? score.filepath : "Not yet found"}</p>
-        </div>
-        <div className="unknown-song-actions">
-          {!score.filepath && (
-            <button className="action-button" onClick={handleSongcacheUpload} disabled={isUploadingCache}>
-              {isUploadingCache ? <LoadingSpinner message="Processing..." timeout={0} /> : "Upload songcache.bin to find this song's filepath"}
-            </button>
-          )}
-          <button className="action-button" onClick={handleSongIniUpload} disabled={true}>
-            {isUploadingIni ? <LoadingSpinner message="Processing..." timeout={0} /> : "Know this song? Upload its song.ini!"}
+    <Modal show={show} onHide={onHide} size="lg" title={score.song_name} dialogClassName="unknown-song-modal">
+      <div className="unknown-song-details">
+        <p><strong>Artist:</strong> {score.artist}</p>
+        <p><strong>Score:</strong> {score.score.toLocaleString()}</p>
+        <p><strong>Percent:</strong> {score.percent}%</p>
+        <p><strong>Speed:</strong> {score.speed}%</p>
+        <p><strong>FC:</strong> {score.is_fc ? "Yes" : "No"}</p>
+        <p><strong>Play Count:</strong> {score.play_count}</p>
+        <p><strong>Posted:</strong> {score.posted ? (
+          <Tooltip text={formatExactTime(score.posted)}>
+            {formatTimeDifference(score.posted)}
+          </Tooltip>
+        ) : "N/A"}</p>
+        <p><strong>Identifier:</strong> {score.identifier}</p>
+        <p><strong>Filepath:</strong> {score.filepath ? score.filepath : "Not yet found"}</p>
+      </div>
+      <div className="unknown-song-actions">
+        {!score.filepath && (
+          <button className="action-button" onClick={handleSongcacheUpload} disabled={isUploadingCache}>
+            {isUploadingCache ? <LoadingSpinner message="Processing..." timeout={0} /> : "Upload songcache.bin to find this song's filepath"}
           </button>
-          <h3>NOTICE: Uploading song.ini is currently disabled while things are updated to use the new song structure.</h3>
-        </div>
-      </Modal.Body>
+        )}
+        <button className="action-button" onClick={handleSongIniUpload} disabled={true}>
+          {isUploadingIni ? <LoadingSpinner message="Processing..." timeout={0} /> : "Know this song? Upload its song.ini!"}
+        </button>
+        <h3>NOTICE: Uploading song.ini is currently disabled while things are updated to use the new song structure.</h3>
+      </div>
     </Modal>
   );
 };

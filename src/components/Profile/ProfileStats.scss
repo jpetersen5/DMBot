@@ -72,18 +72,6 @@
     margin: 1.75rem auto;
   }
 
-  .modal-content {
-    border: none;
-    @include theme("background", "color-background");
-    @include theme("color", "color-text");
-  }
-
-  .modal-header {
-    border: none;
-    @include theme("background", "color-sidebar");
-    @include theme("color", "color-sidebar-text");
-  }
-
   .modal-body {
     padding: 2rem;
 
