@@ -27,11 +27,8 @@
   }
 
   .charter-header {
-    padding: 1.5rem;
-    border-radius: $radius-md;
-    box-shadow: $shadow-sm;
+    @include surface($padding: 1.5rem);
     margin-bottom: 2rem;
-    @include theme("background", "color-box");
 
     h2 {
       font-size: 1.8rem;

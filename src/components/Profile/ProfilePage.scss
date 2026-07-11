@@ -35,10 +35,7 @@
       display: flex;
       align-items: center;
       margin-bottom: 2rem;
-      padding: 2rem;
-      border-radius: $radius-md;
-      box-shadow: $shadow-sm;
-      @include theme("background", "color-box");
+      @include surface($padding: 2rem);
 
       .user-avatar-container {
         position: relative;

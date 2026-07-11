@@ -2,11 +2,8 @@
 @use "../../styles/mixins" as *;
 
 .profile-stats {
-  padding: 1.5rem;
-  border-radius: $radius-md;
-  box-shadow: $shadow-sm;
+  @include surface($padding: 1.5rem);
   margin-bottom: 2rem;
-  @include theme("background", "color-box");
   @include theme("color", "color-text");
 
   .stats-header {
