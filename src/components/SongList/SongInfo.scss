@@ -1,35 +1,28 @@
 @use "../../styles/themes" as *;
 @use "../../styles/mixins" as *;
 
-:root {
-  --border-radius: #{$radius-md};
-  --gap-small: 0.5rem;
-  --gap-medium: 1rem;
-  --gap-large: 2rem;
-}
-
 .flex-column {
   display: flex;
   flex-direction: column;
 }
 
 .gap-small {
-  gap: var(--gap-small);
+  gap: $space-sm;
 }
 
 .gap-medium {
-  gap: var(--gap-medium);
+  gap: $space-md;
 }
 
 .margin-bottom-medium {
-  margin-bottom: var(--gap-medium);
+  margin-bottom: $space-md;
 }
 
 .song-info {
   flex: 1;
   overflow-y: auto;
-  padding: var(--gap-medium);
-  border-radius: var(--border-radius);
+  padding: $space-md;
+  border-radius: $radius-md;
   box-shadow: $shadow-sm;
   @include theme("background", "color-box");
   @include scrollbar;
@@ -97,7 +90,7 @@
         left: 0;
         width: 100%;
         transition: height $transition-base ease;
-        border-radius: var(--border-radius);
+        border-radius: $radius-md;
         @include theme("background", "color-text-success");
       }
 
@@ -190,7 +183,7 @@
   text-align: center;
   font-size: 2rem;
   font-weight: bold;
-  margin-bottom: var(--gap-small);
+  margin-bottom: $space-sm;
 }
 
 .song-title {
@@ -258,7 +251,7 @@
 
 .song-art-image {
   width: 100%;
-  border-radius: var(--border-radius);
+  border-radius: $radius-md;
   object-fit: cover;
 }
 
@@ -268,7 +261,7 @@
   height: 55px;
   margin-top: calc(2rem - 110px);
   margin-left: 15px;
-  margin-bottom: var(--gap-small);
+  margin-bottom: $space-sm;
 
   .user-avatar {
     width: 100%;
@@ -288,11 +281,11 @@
 
 .song-info>.tooltip-container {
   display: block;
-  margin-top: var(--gap-medium);
+  margin-top: $space-md;
 
   +.MD5 {
-    padding-top: var(--gap-small);
-    padding-bottom: var(--gap-small);
+    padding-top: $space-sm;
+    padding-bottom: $space-sm;
   }
 }
 
@@ -303,7 +296,7 @@
   margin-bottom: 0;
 
   &.charter {
-    margin-top: var(--gap-small);
+    margin-top: $space-sm;
   }
 
   .label {
@@ -329,8 +322,8 @@
     @extend .flex-column;
     align-items: center;
     width: 50px;
-    margin-right: var(--gap-small);
-    gap: var(--gap-small);
+    margin-right: $space-sm;
+    gap: $space-sm;
 
     &.inactive {
       opacity: 0.5;
@@ -358,14 +351,14 @@
 .part-notes-info {
   display: flex;
   flex-direction: column;
-  gap: var(--gap-small);
+  gap: $space-sm;
   min-width: 170px;
 
   .part-notes-info-name {
     text-align: center;
     font-weight: bold;
     font-size: 1rem;
-    padding-bottom: var(--gap-small);
+    padding-bottom: $space-sm;
     border-bottom: 1px solid;
     @include theme("border-color", "color-border");
   }
@@ -380,8 +373,8 @@
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: var(--gap-medium);
-    padding: var(--gap-small);
+    gap: $space-md;
+    padding: $space-sm;
     text-align: left;
     border-radius: $radius-sm;
     @include theme("background", "color-box-secondary");
@@ -406,7 +399,7 @@
 
 .feature-grid {
   display: grid;
-  gap: var(--gap-small);
+  gap: $space-sm;
 }
 
 .difficulty,
@@ -414,7 +407,7 @@
 .nps-item,
 .feature,
 .note-count-item {
-  padding: var(--gap-small);
+  padding: $space-sm;
   border-radius: $radius-sm;
   text-align: center;
   @include theme("background", "color-box-secondary");
@@ -434,7 +427,7 @@
 .nps-instrument,
 .note-count-instrument {
   font-weight: bold;
-  margin-right: var(--gap-small);
+  margin-right: $space-sm;
 }
 
 .MD5 {
