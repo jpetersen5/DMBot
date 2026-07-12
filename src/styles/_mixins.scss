@@ -9,6 +9,8 @@ $sidebar-width-expanded: 200px;
 $screen-mobile-max: 768px;
 
 @mixin scrollbar($size: 8px) {
+  scrollbar-gutter: stable;
+
   &::-webkit-scrollbar {
     width: $size;
     height: $size;

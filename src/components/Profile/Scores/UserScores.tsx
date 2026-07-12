@@ -280,6 +280,7 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
             onHide={handleModalClose}
             song={selectedSong}
             loading={modalLoading}
+            songId={songId}
             previousSongIds={getSurroundingSongIds().prevSongIds}
             nextSongIds={getSurroundingSongIds().nextSongIds}
             songPath={(id) => `/user/${userId}/scores/${id}`}

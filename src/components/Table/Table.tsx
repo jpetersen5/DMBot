@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { useKeyPress } from "../../hooks/useKeyPress";
 import ScrollableTable from "../Extras/ScrollableTable";
 import LoadingSpinner from "../Loading/LoadingSpinner";
+import Skeleton from "../ui/Skeleton/Skeleton";
 
 export interface Column<T> {
   key: string;
@@ -21,6 +22,8 @@ export interface TableProps<T> {
   defaultSortOrder?: "asc" | "desc";
   loading?: boolean;
   loadingMessage?: string;
+  loadingVariant?: "spinner" | "skeleton";
+  skeletonRows?: number;
   emptyMessage?: string;
   onRowClick?: (item: T) => void;
   className?: string;
@@ -73,6 +76,8 @@ function Table<T>({
   defaultSortOrder = "desc",
   loading = false,
   loadingMessage = "Loading...",
+  loadingVariant = "spinner",
+  skeletonRows = 10,
   emptyMessage = "No data found",
   onRowClick,
   className = "",
@@ -191,7 +196,32 @@ function Table<T>({
 
   return (
     <ScrollableTable className={className}>
-      {loading ? (
+      {loading && loadingVariant === "skeleton" ? (
+        <table>
+          <thead>
+            <tr>
+              {columns.map(column => (
+                <th key={column.key} className={column.className} style={{ width: column.width }}>
+                  <div className="header-content">
+                    <span className="header-text">{column.header}</span>
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: skeletonRows }).map((_, rowIndex) => (
+              <tr key={rowIndex} className="skeleton-row">
+                {columns.map(column => (
+                  <td key={column.key} className={column.className}>
+                    <Skeleton height="1.5em" className="skeleton-cell" />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : loading ? (
         <LoadingSpinner message={loadingMessage} />
       ) : (
         <table>

@@ -260,6 +260,7 @@ const CharterSongs: React.FC<CharterSongsProps> = ({ charterId, charterSongIds }
           onHide={handleModalClose}
           song={selectedSong}
           loading={modalLoading}
+          songId={songId}
           previousSongIds={prevSongIds}
           nextSongIds={nextSongIds}
           songPath={songPath}

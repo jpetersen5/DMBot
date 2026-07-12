@@ -33,6 +33,7 @@
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, transparent 100%);
     clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
     margin-top: 0;
+    margin-bottom: -15px;
   }
 
   &.scrollable-bottom::after {
@@ -41,7 +42,8 @@
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, transparent 100%);
     clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
     transform: rotate(180deg);
-    margin-bottom: 5px;
+    margin-top: -15px;
+    margin-bottom: 0;
   }
 }
 
@@ -90,7 +92,7 @@ table {
   }
 
   td {
-    padding: 0.3rem 0.5rem;
+    padding: 0.5rem 0.6rem;
   }
 
   th,
@@ -104,7 +106,15 @@ table {
     &.year,
     &.scores-count,
     &.song-length {
-      text-align: center;
+      text-align: right;
+    }
+  }
+
+  th.column-number,
+  th.column-percent,
+  th.column-rank {
+    .header-content {
+      justify-content: flex-end;
     }
   }
 
@@ -144,6 +154,10 @@ table {
     cursor: pointer;
     @include theme("background", "color-table-selected-hover");
   }
+
+  .skeleton-row .skeleton-cell {
+    background-color: transparent;
+  }
 }
 
 .column {
@@ -151,7 +165,7 @@ table {
   &-number,
   &-percent,
   &-rank {
-    text-align: center;
+    text-align: right;
   }
 }
 
@@ -247,27 +261,45 @@ table {
     th,
     td {
       &.rank {
-        max-width: 60px;
+        width: 56px;
+        white-space: nowrap;
       }
 
-      &.speed,
+      &.score {
+        width: 124px;
+        white-space: nowrap;
+      }
+
+      &.percent,
+      &.speed {
+        width: 72px;
+        white-space: nowrap;
+      }
+
       &.play-count {
-        max-width: 60px;
+        width: 64px;
+        white-space: nowrap;
       }
 
-      &.percent {
-        max-width: 75px;
+      &.posted {
+        width: 120px;
+        white-space: nowrap;
       }
 
       &.year {
-        max-width: 60px;
+        width: 60px;
+        white-space: nowrap;
       }
 
-      &.scores-count,
-      &.length {
-        max-width: 70px;
+      &.scores-count {
+        width: 72px;
+        white-space: nowrap;
       }
 
+      &.song-length {
+        width: 76px;
+        white-space: nowrap;
+      }
     }
 
     .fc-crown {

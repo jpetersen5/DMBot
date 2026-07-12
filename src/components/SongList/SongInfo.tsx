@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { API_URL } from "../../App";
-import LoadingSpinner from "../Loading/LoadingSpinner";
+import SongInfoSkeleton from "./SongInfoSkeleton";
+import Skeleton from "../ui/Skeleton/Skeleton";
 import CharterName from "./CharterName";
 import Tooltip from "../../utils/Tooltip/Tooltip";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
@@ -52,11 +53,7 @@ const SongInfo: React.FC<SongInfoProps> = ({ song }) => {
     fetchExtraData();
   }, [song.md5]);
 
-  if (loading) return (
-    <div className="song-info">
-      <LoadingSpinner message="Loading song details..." />
-    </div>
-  );
+  if (loading) return <SongInfoSkeleton />;
   if (!extraData) return (
     <div className="song-info">
       <p>No extra data available for this song.</p>
@@ -72,8 +69,6 @@ const SongInfo: React.FC<SongInfoProps> = ({ song }) => {
         <SongInfoChartFeatures notesData={extraData.notesData} />
       </div>
 
-      {/* <SongInfoNoteCounts noteCounts={extraData.notesData?.noteCounts || []} />
-      <SongInfoMaxNPS maxNps={extraData.notesData?.maxNps} /> */}
       {extraData.loading_phrase &&
         <SongInfoHeader value={extraData.loading_phrase} />
       }
@@ -94,6 +89,52 @@ const SongInfoHeader: React.FC<SongInfoHeaderProps> = ({ value }) => {
         <span dangerouslySetInnerHTML={renderSafeHTML(value)} />
       </p>
     </Tooltip>
+  );
+};
+
+interface MarqueeTextProps {
+  text: string | null | undefined;
+  className?: string;
+}
+
+const MarqueeText: React.FC<MarqueeTextProps> = ({ text, className }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
+  const [overflow, setOverflow] = useState(0);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    const inner = textRef.current;
+    if (!container || !inner) return;
+
+    const measure = () => {
+      const distance = inner.scrollWidth - container.clientWidth;
+      setOverflow(distance > 1 ? distance : 0);
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [text]);
+
+  const scrollSpeed = 45; // px per second
+  const scrollFraction = 0.38;
+  const duration = overflow > 0 ? Math.max(2, overflow / scrollSpeed / scrollFraction) : 0;
+
+  return (
+    <div className={`marquee ${className ?? ""}`} ref={containerRef}>
+      <span
+        className={`marquee-inner ${overflow > 0 ? "scrolling" : ""}`}
+        ref={textRef}
+        style={{
+          "--marquee-distance": `${overflow}px`,
+          animationDuration: `${duration}s`,
+        } as React.CSSProperties}
+      >
+        {text}
+      </span>
+    </div>
   );
 };
 
@@ -137,7 +178,7 @@ const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) =>
           {songData?.image_url ? (
             <img className="song-art-image" src={songData.image_url} />
           ) : (
-            <LoadingSpinner message="" timeout={0} />
+            <Skeleton className="song-art-image" style={{ aspectRatio: "1 / 1", height: "auto" }} />
           )}
           {avatarArtUrl && (
             <div className="song-art-charter" >
@@ -148,7 +189,7 @@ const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) =>
 
         <div className="song-details-box" >
           <div className="song-details-info">
-            <div className="song-title info-line">{song.name}</div>
+            <MarqueeText className="song-title info-line" text={song.name} />
             <div className="song-artist info-line">{extraData.artist}</div>
             <div className="song-album info-line">
               <span>{extraData.album} ({extraData.year})</span>
@@ -248,8 +289,10 @@ interface SongInfoPartProps {
 
 const SongInfoPart: React.FC<SongInfoPartProps> = ({ name, difficulty, noteCounts, maxNps }) => {
   const hasDifficulty = difficulty !== undefined && difficulty !== -1;
+  const hasNotes = !!noteCounts?.some(count => count.instrument === name.toLowerCase());
+  const isActive = hasDifficulty && hasNotes;
 
-  const notesTooltip = (
+  const notesTooltip = hasNotes ? (
     <div className="part-notes-info">
       <span className="part-notes-info-name">{name}</span>
       {noteCounts && noteCounts.map((count, index) => (
@@ -268,10 +311,15 @@ const SongInfoPart: React.FC<SongInfoPartProps> = ({ name, difficulty, noteCount
         )
       ))}
     </div>
+  ) : (
+    <div className="part-notes-info">
+      <span className="part-notes-info-name">{name}</span>
+      <span className="part-notes-info-empty">No notes charted.</span>
+    </div>
   )
 
   return (
-    <div className={`part ${!hasDifficulty ? "inactive" : ""}`}>
+    <div className={`part ${!isActive ? "inactive" : ""}`}>
       <Tooltip content={notesTooltip} position="bottom">
         <img
           src={name == "Drums" ? IconDrums :
@@ -317,17 +365,6 @@ const SongSpotifyData: React.FC<SongSpotifyDataProps> = ({ songData }) => {
   const tsc = songData.time_signature_confidence;
   const tc = songData.tempo_confidence;
 
-  // const renderMeter = (value: number | null | undefined, label: string) => {
-  //   if (value === null || value === undefined) return null;
-  //   const percentage = Math.min(Math.max(value * 100, 0), 100);
-  //   return (
-  //     <div className="spotify-meter">
-  //       <div className="meter-bar" style={{ height: `${percentage}%` }}></div>
-  //       <span className="meter-label">{label}</span>
-  //     </div>
-  //   );
-  // };
-
   return (
     <div className="song-spotify-data">
       <div className="spotify-data-grid">
@@ -348,11 +385,6 @@ const SongSpotifyData: React.FC<SongSpotifyDataProps> = ({ songData }) => {
           <span className="label">dB</span>
         </div>
       </div>
-      {/* <div className="spotify-meters">
-        {renderMeter(songData.danceability, "Danceability")}
-        {renderMeter(songData.energy, "Energy")}
-        {renderMeter(songData.valence, "Valence")}
-      </div> */}
       {songData.genres && songData.genres.length > 0 && (
         <SongDataGenres genres={songData.genres} />
       )}

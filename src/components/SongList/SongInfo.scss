@@ -199,8 +199,45 @@
   font-size: 1.5rem;
   font-weight: bold;
   width: 100%;
+}
+
+.marquee {
   overflow: hidden;
-  text-overflow: ellipsis;
+
+  .marquee-inner {
+    display: inline-block;
+    white-space: nowrap;
+
+    &.scrolling {
+      animation-name: marquee-scroll;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+      will-change: transform;
+    }
+  }
+}
+
+@keyframes marquee-scroll {
+
+  0%,
+  12% {
+    transform: translateX(0);
+  }
+
+  50%,
+  62% {
+    transform: translateX(calc(-1 * var(--marquee-distance, 0px)));
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee .marquee-inner.scrolling {
+    animation: none;
+  }
 }
 
 .song-artist {
@@ -246,7 +283,17 @@
 .info-header {
   font-size: 1.2rem;
   font-style: italic;
-  @extend .margin-bottom-medium;
+  margin: 0;
+}
+
+.song-info>.tooltip-container {
+  display: block;
+  margin-top: var(--gap-medium);
+
+  +.MD5 {
+    padding-top: var(--gap-small);
+    padding-bottom: var(--gap-small);
+  }
 }
 
 .info-line {
@@ -305,27 +352,54 @@
         @include theme("color", "color-text");
       }
     }
+  }
+}
 
-    .part-notes-info {
-      display: flex;
-      flex-direction: column;
-      @extend .gap-small;
+.part-notes-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-small);
+  min-width: 170px;
 
-      .part-notes-info-name {
-        text-align: center;
-        font-weight: bold;
-      }
+  .part-notes-info-name {
+    text-align: center;
+    font-weight: bold;
+    font-size: 1rem;
+    padding-bottom: var(--gap-small);
+    border-bottom: 1px solid;
+    @include theme("border-color", "color-border");
+  }
 
-      .note-count-item {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: var(--gap-small);
+  .part-notes-info-empty {
+    text-align: center;
+    font-style: italic;
+    @include theme("color", "color-text-secondary");
+  }
 
-        &:last-child {
-          margin-bottom: var(--gap-small);
-        }
-      }
+  .note-count-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--gap-medium);
+    padding: var(--gap-small);
+    text-align: left;
+    border-radius: $radius-sm;
+    @include theme("background", "color-box-secondary");
+
+    .note-count-instrument {
+      font-weight: bold;
+      margin-right: 0;
+    }
+
+    .note-count-value {
+      margin-left: auto;
+      white-space: nowrap;
+    }
+
+    .note-count-max-nps {
+      white-space: nowrap;
+      font-size: 0.85em;
+      @include theme("color", "color-text-secondary");
     }
   }
 }
@@ -364,7 +438,7 @@
 }
 
 .MD5 {
-  padding-top: 20px;
+  padding-top: 15px;
 }
 
 

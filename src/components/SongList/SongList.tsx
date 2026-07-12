@@ -147,7 +147,6 @@ const SongList: React.FC = () => {
     applyUsers();
   }, [location.state, leftUserParam, rightUserParam]);
 
-  // Jump back to the first page whenever the search/sort/filter criteria change.
   const [prevCriteria, setPrevCriteria] = useState({
     search, filters, sortBy, sortOrder, secondarySortBy, secondarySortOrder
   });
@@ -472,6 +471,7 @@ const SongList: React.FC = () => {
           onHide={handleModalClose}
           song={selectedSong}
           loading={modalLoading}
+          songId={songId}
           previousSongIds={prevSongIds}
           nextSongIds={nextSongIds}
           songPath={(id) => `/songs/${id}`}

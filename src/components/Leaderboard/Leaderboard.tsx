@@ -142,6 +142,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ songId }) => {
         defaultSortKey="rank"
         defaultSortOrder="asc"
         loading={loading}
+        loadingVariant="skeleton"
         loadingMessage="Loading leaderboard..."
         emptyMessage="No entries found"
         onRowClick={handleRowClick}

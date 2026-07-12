@@ -1,0 +1,33 @@
+@use "../../../styles/tokens" as *;
+
+.skeleton {
+  display: block;
+  width: 100%;
+  height: 1rem;
+  border-radius: $radius-sm;
+  background-color: var(--color-box-secondary);
+  background-image: linear-gradient(90deg,
+      transparent,
+      rgba(128, 128, 128, 0.25),
+      transparent);
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: -150% 0;
+  }
+
+  to {
+    background-position: 250% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    background-image: none;
+    animation: none;
+  }
+}

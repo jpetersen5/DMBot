@@ -2,17 +2,6 @@
 @use "../../styles/mixins" as *;
 
 .song-modal {
-  &.loading {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    .modal-content {
-      flex: 1;
-      height: 800px;
-    }
-  }
-
   .modal-dialog {
     position: relative;
     max-width: 80%;
@@ -20,19 +9,11 @@
 
   .modal-content {
     flex: 1;
-    border: none;
-    @include theme("background", "color-background");
-    @include theme("color", "color-text");
   }
 
   .modal-header {
-    border: none;
-    @include theme("background", "color-sidebar");
-    @include theme("color", "color-sidebar-text");
-
     .modal-title {
       font-size: 1.5rem;
-      font-weight: bold;
     }
 
     .back-button {

@@ -1,0 +1,21 @@
+@use "../../styles/mixins" as *;
+
+.sis-art {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  border-radius: $radius-md;
+}
+
+.sis-lines {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  padding-top: $space-xs;
+}
+
+.sis-part-numeral {
+  width: 14px;
+  height: 24px;
+  border-radius: $radius-sm;
+}

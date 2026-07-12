@@ -458,6 +458,7 @@ const UserAchievements: React.FC<UserAchievementsProps> = ({ userId }) => {
           onHide={handleHideSongModal}
           song={selectedSong}
           loading={loadingSong}
+          songId={songId}
           previousSongIds={[]}
           nextSongIds={[]}
           songPath={(id) => `/user/${userId}/achievements/${id}`}

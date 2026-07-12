@@ -250,6 +250,7 @@ const RelatedSongs: React.FC<RelatedSongsProps> = ({
         defaultSortKey={sortConfig.key}
         defaultSortOrder={sortConfig.order}
         loading={relatedLoading}
+        loadingVariant="skeleton"
         loadingMessage="Loading related songs..."
         emptyMessage={`No related songs from ${relationType}`}
         onRowClick={handleRelatedSongClick}

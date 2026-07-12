@@ -1,22 +1,25 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Modal } from "react-bootstrap";
 import { API_URL } from "../../App";
-import LoadingSpinner from "../Loading/LoadingSpinner";
 import RelatedSongs from "./RelatedSongs";
+import RelatedSongsSkeleton from "./RelatedSongsSkeleton";
 import SongInfo from "./SongInfo";
+import SongInfoSkeleton from "./SongInfoSkeleton";
 import { renderSafeHTML } from "../../utils/safeHTML";
 import { Song } from "../../utils/song";
 import { useAuth } from "../../context/AuthContext";
+import Modal from "../ui/Modal/Modal";
+import Skeleton from "../ui/Skeleton/Skeleton";
 import "./SongModal.scss";
 import Leaderboard from "../Leaderboard/Leaderboard";
-import ModalCloseButton from "../Extras/ModalCloseButton";
+import LeaderboardSkeleton from "../Leaderboard/LeaderboardSkeleton";
 
 interface SongModalProps {
   show: boolean;
   onHide: () => void;
   song: Song | null;
   loading: boolean;
+  songId?: string;
   previousSongIds: string[];
   nextSongIds: string[];
   songPath: (songId: string | number) => string;
@@ -28,6 +31,7 @@ const SongModal: React.FC<SongModalProps> = ({
   onHide,
   song,
   loading,
+  songId,
   previousSongIds,
   nextSongIds,
   songPath,
@@ -38,21 +42,10 @@ const SongModal: React.FC<SongModalProps> = ({
 
   const [previousSongIdStack, setPreviousSongIdStack] = useState<string[]>([]);
 
-  if (loading) {
-    return (
-      <Modal show={show} onHide={onHide} size="xl" dialogClassName="song-modal loading">
-        <Modal.Header>
-          <Modal.Title>{"Loading..."}</Modal.Title>
-          <ModalCloseButton onClick={onHide} />
-        </Modal.Header>
-        <Modal.Body>
-          <LoadingSpinner message="Loading song details..." />
-        </Modal.Body>
-      </Modal>
-    );
-  }
+  if (!song && !loading) return null;
 
-  if (!song) return null;
+  const routeIdIsNumeric = songId != null && /^\d+$/.test(songId);
+  const leaderboardSongId = routeIdIsNumeric ? songId : song?.id?.toString();
 
   const navigateToSong = (songId: number | string) => {
     const params = new URLSearchParams(location.search);
@@ -74,7 +67,7 @@ const SongModal: React.FC<SongModalProps> = ({
   };
 
   const handleRelatedSongClick = (relatedSong: Song) => {
-    if (song.id === relatedSong.id) return;
+    if (!song || song.id === relatedSong.id) return;
     setPreviousSongIdStack(prev => [...prev, song.id.toString()]);
     navigateToSong(relatedSong.id);
   };
@@ -90,46 +83,57 @@ const SongModal: React.FC<SongModalProps> = ({
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="xl" dialogClassName="song-modal">
-      <Modal.Header>
-        {previousSongIdStack.length > 0 && (
+    <Modal
+      show={show}
+      onHide={onHide}
+      size="xl"
+      dialogClassName="song-modal"
+      title={
+        song
+          ? <span dangerouslySetInnerHTML={renderSafeHTML(song.name || "")} />
+          : <Skeleton width={280} height={24} />
+      }
+      headerStart={
+        previousSongIdStack.length > 0 && (
           <button onClick={handleBack} className="back-button">
             ←
           </button>
-        )}
-        <Modal.Title>
-          <span dangerouslySetInnerHTML={renderSafeHTML(song.name || "")} />
-        </Modal.Title>
-        <ModalCloseButton onClick={onHide} />
-      </Modal.Header>
-      <Modal.Body>
-        <AdminControls currentSong={song} onSongUpdate={onSongUpdate} onHide={onHide} />
-        <div className="song-details">
-          <SongInfo song={song} key={song.id.toString()} />
-          <RelatedSongs
-            currentSong={song}
-            handleRelatedSongClick={handleRelatedSongClick}
-          />
-        </div>
-        <Leaderboard songId={song.id.toString()} key={song.id.toString()} />
-      </Modal.Body>
-      <Modal.Footer>
+        )
+      }
+      footer={
         <button className="close-button" onClick={onHide}>Close</button>
-      </Modal.Footer>
-      <button
-        onClick={handlePrevSong}
-        disabled={previousSongIds.length === 0}
-        className="nav-button prev-button"
-      >
-        {"←"}
-      </button>
-      <button
-        onClick={handleNextSong}
-        disabled={nextSongIds.length === 0}
-        className="nav-button next-button"
-      >
-        {"→"}
-      </button>
+      }
+      extras={
+        <>
+          <button
+            onClick={handlePrevSong}
+            disabled={previousSongIds.length === 0}
+            className="nav-button prev-button"
+          >
+            {"←"}
+          </button>
+          <button
+            onClick={handleNextSong}
+            disabled={nextSongIds.length === 0}
+            className="nav-button next-button"
+          >
+            {"→"}
+          </button>
+        </>
+      }
+    >
+      {song && <AdminControls currentSong={song} onSongUpdate={onSongUpdate} onHide={onHide} />}
+      <div className="song-details">
+        {song
+          ? <SongInfo song={song} key={song.id.toString()} />
+          : <SongInfoSkeleton />}
+        {song
+          ? <RelatedSongs currentSong={song} handleRelatedSongClick={handleRelatedSongClick} />
+          : <RelatedSongsSkeleton />}
+      </div>
+      {leaderboardSongId
+        ? <Leaderboard songId={leaderboardSongId} key={leaderboardSongId} />
+        : <LeaderboardSkeleton />}
     </Modal>
   );
 };

@@ -10,6 +10,7 @@ interface ModalProps {
   children: ReactNode;
   headerStart?: ReactNode;
   footer?: ReactNode;
+  extras?: ReactNode;
   className?: string;
   dialogClassName?: string;
   centered?: boolean;
@@ -23,6 +24,7 @@ const Modal: FC<ModalProps> = ({
   children,
   headerStart,
   footer,
+  extras,
   className,
   dialogClassName,
   centered = true,
@@ -43,6 +45,7 @@ const Modal: FC<ModalProps> = ({
     </BsModal.Header>
     <BsModal.Body>{children}</BsModal.Body>
     {footer && <BsModal.Footer>{footer}</BsModal.Footer>}
+    {extras}
   </BsModal>
 );
 
