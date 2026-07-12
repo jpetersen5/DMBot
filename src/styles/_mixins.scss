@@ -152,9 +152,7 @@ $screen-mobile-max: 768px;
   }
 
   @else {
-    .theme & {
-      #{$key}: var(--#{$color});
-    }
+    #{$key}: var(--#{$color});
   }
 }
 
