@@ -58,9 +58,8 @@ class LeaderboardUpdate(TypedDict):
     last_update: str
 
 
-class AchievementDef(TypedDict, total=False):
-    """Achievement definition built by :class:`AchievementProcessor`."""
-
+class _AchievementCore(TypedDict):
+    """Fields present on every achievement definition."""
     id: str
     name: str
     description: str
@@ -68,7 +67,14 @@ class AchievementDef(TypedDict, total=False):
     category: str
     group: str
     check_function: Callable[..., bool]
-    # family-specific extras
+
+
+class AchievementDef(_AchievementCore, total=False):
+    """Achievement definition built by :class:`AchievementProcessor`.
+
+    The base fields are always present; the keys below are family-specific
+    extras consumed only by the matching ``check_function``.
+    """
     level: int
     song_md5: Any  # str or List[str]
     threshold: int

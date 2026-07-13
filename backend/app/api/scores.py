@@ -284,7 +284,7 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
                             "last_update": datetime.now(UTC).isoformat()
                         })
 
-                    final_user_rank_on_leaderboard = next((entry["rank"] for entry in leaderboard if entry["user_id"] == user_id), None)
+                    final_user_rank_on_leaderboard = next((entry.get("rank") for entry in leaderboard if entry["user_id"] == user_id), None)
                     
                     # Update rank in the user's personal score dict (if the entry exists)
                     if song["identifier"] in existing_scores_dict:

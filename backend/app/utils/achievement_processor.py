@@ -1,3 +1,7 @@
+# pyright: reportTypedDictNotRequiredAccess=false
+# AchievementDef is a deliberately heterogeneous total=False TypedDict; check
+# functions subscript family-specific keys by invariant (missing key == a
+# malformed definition and should raise).
 import json
 import logging
 from datetime import datetime, UTC
@@ -284,7 +288,7 @@ class AchievementProcessor:
                 "requires_fc": rank == 4
             })
     
-    def _check_first_score(self, user_data: Any) -> bool:
+    def _check_first_score(self, user_data: Any, _achievement_def: AchievementDef) -> bool:
         """Check if user has at least one score"""
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
@@ -299,7 +303,7 @@ class AchievementProcessor:
         total_score = user_data.get("stats", {}).get("total_score", 0)
         return total_score >= achievement_def["threshold"]
     
-    def _check_first_fc(self, user_data: Any) -> bool:
+    def _check_first_fc(self, user_data: Any, _achievement_def: AchievementDef) -> bool:
         """Check if user has at least one FC"""
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
@@ -400,7 +404,7 @@ class AchievementProcessor:
                 return True
         return False
     
-    def _check_album(self, user_data: Any) -> bool:
+    def _check_album(self, user_data: Any, _achievement_def: AchievementDef) -> bool:
         """Check if user has played an album chart"""
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
@@ -413,7 +417,7 @@ class AchievementProcessor:
         
         return False
     
-    def _check_discography(self, user_data: Any) -> bool:
+    def _check_discography(self, user_data: Any, _achievement_def: AchievementDef) -> bool:
         """Check if user has played a discography chart"""
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
