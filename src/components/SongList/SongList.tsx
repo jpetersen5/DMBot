@@ -21,11 +21,15 @@ import { User } from "../../utils/user";
 import { Score } from "../../utils/score";
 import {
   Song,
+  SongDelta,
   SONG_TABLE_HEADERS,
   msToTime,
+  mergeSongs,
+  songMatchesInstrumentDifficulty,
   getSurroundingSongIds,
   getSortValues
 } from "../../utils/song";
+import { loadSongs, saveSongs, StoredSongs } from "../../utils/songStore";
 
 import "./SongList.scss";
 
@@ -100,9 +104,53 @@ const SongList: React.FC = () => {
   const writeSongCache = useEffectEvent((key: string, item: SongCacheItem) => setCachedResult(key, item));
 
   useEffect(() => {
-    if (songs.length > 0) {
-      return;
-    }
+    let cancelled = false;
+
+    const persist = (nextSongs: Song[], cursor: string) => {
+      writeSongCache("all_songs", {
+        songs: nextSongs,
+        total: nextSongs.length,
+        timestamp: Date.now(),
+        cursor
+      });
+      saveSongs(nextSongs, cursor).catch(err =>
+        console.warn("Failed to persist songs to IndexedDB:", err)
+      );
+    };
+
+    const fetchFull = async () => {
+      const response = await fetch(`${API_URL}/api/songs?v=2`);
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data: SongDelta = await response.json();
+      if (cancelled) return;
+      setSongs(data.songs);
+      setSongsLoading(false);
+      persist(data.songs, data.server_time);
+    };
+
+    const syncFromCache = async (stored: StoredSongs) => {
+      setSongs(stored.songs);
+      setSongsLoading(false);
+      try {
+        const response = await fetch(
+          `${API_URL}/api/songs?v=2&since=${encodeURIComponent(stored.cursor)}`
+        );
+        if (!response.ok) {
+          throw new Error(`Delta fetch failed: ${response.status}`);
+        }
+        const delta: SongDelta = await response.json();
+        if (cancelled) return;
+        const changed = delta.songs.length > 0 || delta.deleted.length > 0;
+        const merged = changed ? mergeSongs(stored.songs, delta) : stored.songs;
+        if (changed) setSongs(merged);
+        persist(merged, delta.server_time);
+      } catch (error) {
+        console.warn("Song delta sync failed; showing cached songs:", error);
+      }
+    };
+
     const fetchSongs = async () => {
       setSongsLoading(true);
       const cachedSongs = readSongCache("all_songs");
@@ -111,22 +159,23 @@ const SongList: React.FC = () => {
         setSongsLoading(false);
         return;
       }
+      const stored = await loadSongs();
+      if (cancelled) return;
+      if (stored) {
+        await syncFromCache(stored);
+        return;
+      }
       try {
-        const response = await fetch(`${API_URL}/api/songs`);
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const data: Song[] = await response.json();
-        setSongs(data);
-        writeSongCache("all_songs", { songs: data, total: data.length, timestamp: Date.now() });
+        await fetchFull();
       } catch (error) {
         console.error("Error fetching songs:", error);
-      } finally {
-        setSongsLoading(false);
+        if (!cancelled) setSongsLoading(false);
       }
     };
+
     fetchSongs();
-  }, [location.state, songs.length]);
+    return () => { cancelled = true; };
+  }, [location.state]);
 
   const leftUserParam = queryParams.get("left_user");
   const rightUserParam = queryParams.get("right_user");
@@ -261,21 +310,9 @@ const SongList: React.FC = () => {
     }
 
     if (selectedInstruments.length > 0 || selectedDifficulties.length > 0) {
-      filteredSongs = filteredSongs.filter(song => {
-        const hasInstrument = selectedInstruments.length === 0 ||
-          selectedInstruments.every(instrument => song.instruments?.includes(instrument));
-
-        const hasDifficulty = selectedDifficulties.length === 0 ||
-          selectedDifficulties.every(difficulty =>
-            song.note_counts?.some(nc =>
-              nc.difficulty === difficulty &&
-              (selectedInstruments.length === 0 ||
-                selectedInstruments.includes(nc.instrument))
-            )
-          );
-
-        return hasInstrument && hasDifficulty;
-      });
+      filteredSongs = filteredSongs.filter(song =>
+        songMatchesInstrumentDifficulty(song, selectedInstruments, selectedDifficulties)
+      );
     }
 
     const sortedSongs = filteredSongs.sort((a, b) => {

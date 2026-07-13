@@ -6,6 +6,7 @@ export interface SongCacheItem {
   songs: Song[];
   total: number;
   timestamp: number;
+  cursor?: string;
 }
 
 interface SongCacheType {

@@ -7,10 +7,11 @@ export interface Song {
   track: number | null;
   year: number | null;
   genre: string | null;
-  difficulties: Record<string, number> | null;
+  difficulties?: Record<string, number> | null;
   loading_phrase: string | null;
   playlist_path: string | null;
-  note_counts: NoteCount[] | null;
+  note_counts?: NoteCount[] | null;
+  chart_coverage?: { [instrument: string]: string[] };
   instruments: string[] | null;
   song_length: number | null;
   charter_refs: string[] | null;
@@ -18,6 +19,47 @@ export interface Song {
   scores_count: number | null;
   last_update: string;
 }
+
+/** delta-sync envelope returned by GET /api/songs?v=2[&since=...] */
+export interface SongDelta {
+  server_time: string;
+  songs: Song[];
+  deleted: { id: number; md5: string }[];
+}
+
+/** merge a delta response into an existing song array */
+export const mergeSongs = (existing: Song[], delta: SongDelta): Song[] => {
+  const byId = new Map<number, Song>(existing.map(song => [song.id, song]));
+  for (const song of delta.songs) {
+    byId.set(song.id, song);
+  }
+  for (const tombstone of delta.deleted) {
+    byId.delete(tombstone.id);
+  }
+  return Array.from(byId.values());
+};
+
+export const songMatchesInstrumentDifficulty = (
+  song: Pick<Song, "instruments" | "chart_coverage">,
+  selectedInstruments: string[],
+  selectedDifficulties: string[]
+): boolean => {
+  const hasInstrument =
+    selectedInstruments.length === 0 ||
+    selectedInstruments.every(instrument => song.instruments?.includes(instrument));
+
+  const hasDifficulty =
+    selectedDifficulties.length === 0 ||
+    selectedDifficulties.every(difficulty => {
+      const coverage = song.chart_coverage;
+      if (!coverage) return false;
+      const instruments =
+        selectedInstruments.length > 0 ? selectedInstruments : Object.keys(coverage);
+      return instruments.some(instrument => coverage[instrument]?.includes(difficulty));
+    });
+
+  return hasInstrument && hasDifficulty;
+};
 
 export interface SongExtraData {
   name?: string;
