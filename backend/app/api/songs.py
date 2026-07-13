@@ -1,6 +1,6 @@
-import json
 import os
 import re
+import requests
 from datetime import datetime, UTC
 from flask import Blueprint, jsonify, request, current_app, Response
 from typing import Any, Dict, Iterator, List
@@ -14,9 +14,6 @@ bp = Blueprint("songs", __name__)
 
 ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "charter", "song_length", "last_update", "scores_count", "md5"}
 ALLOWED_FILTERS = {"name", "artist", "album", "genre", "charter"}
-
-# every songs_new column except the heavy leaderboard JSONB; compare data comes from /api/user/<id>/scores
-SONG_LIST_COLUMNS = "id,md5,name,artist,album,track,year,genre,difficulties,has_2x_kick,instruments,note_counts,loading_phrase,playlist_path,song_length,charter_refs,scores_count,last_update"
 
 @bp.route("/api/songs/<string:identifier>", methods=["GET"])
 def get_song(identifier: str) -> FlaskResponse:
@@ -43,35 +40,134 @@ def get_song(identifier: str) -> FlaskResponse:
     song = result.data[0]
     return jsonify(song)
 
-@bp.route("/api/songs", methods=["GET"])
-def get_songs() -> Response:
+# structural bytes that matter when scanning a JSON value for its extent
+_STRUCT_BYTES = re.compile(rb'[\\"\[\]]')
+
+def _stream_songs_array(chunks: Iterator[bytes]) -> Iterator[bytes]:
     """
-    retrieves songs from the database
+    stream only the ``songs`` array value out of a get_song_list envelope
+
+    NOTE: this bare-array shim is removable once backwards compat is no longer required
+    """
+    KEY = b'"songs"'
+    QUOTE, BACKSLASH, OPEN, CLOSE = 0x22, 0x5C, 0x5B, 0x5D
+    phase = "seek_key"      # -> seek_open -> stream -> done
+    carry = b""             # bytes retained across chunks while still seeking
+    depth = 0               # array-bracket nesting depth once streaming
+    in_string = False
+    pending_escape = False  # first byte of the next chunk is a string escape
+
+    for chunk in chunks:
+        if phase == "done":
+            continue
+
+        if phase == "seek_key":
+            carry += chunk
+            idx = carry.find(KEY)
+            if idx == -1:
+                # keep only enough tail to catch a boundary-split key match
+                carry = carry[-(len(KEY) - 1):]
+                continue
+            phase = "seek_open"
+            chunk = carry[idx + len(KEY):]
+            carry = b""
+
+        if phase == "seek_open":
+            # only ':' and whitespace sit between the key and its '[' value
+            carry += chunk
+            open_idx = carry.find(b"[")
+            if open_idx == -1:
+                continue
+            phase = "stream"
+            chunk = carry[open_idx:]
+            carry = b""
+            depth = 0
+            in_string = False
+            pending_escape = False
+
+        # phase == "stream": the whole chunk is part of the array value; emit it,
+        # scanning only structural bytes to find where the array value ends.
+        n = len(chunk)
+        pos = 1 if pending_escape else 0  # skip an escape carried over a boundary
+        pending_escape = False
+        finished = False
+        while True:
+            m = _STRUCT_BYTES.search(chunk, pos)
+            if m is None:
+                break
+            i = m.start()
+            b = chunk[i]
+            if in_string:
+                if b == BACKSLASH:
+                    # the escaped byte carries no structural meaning; skip past it
+                    pos = i + 2
+                    if pos > n:
+                        pending_escape = True
+                    continue
+                if b == QUOTE:
+                    in_string = False
+            elif b == QUOTE:
+                in_string = True
+            elif b == OPEN:
+                depth += 1
+            elif b == CLOSE:
+                depth -= 1
+                if depth == 0:
+                    yield chunk[:i + 1]
+                    finished = True
+                    break
+            pos = i + 1
+
+        if finished:
+            phase = "done"
+            continue
+        yield chunk
+
+@bp.route("/api/songs", methods=["GET"])
+def get_songs() -> FlaskResponse:
+    """
+    retrieves the full song list or delta via the ``get_song_list`` RPC
+
+    query params:
+        since (str, optional): ISO-8601 timestamp; returns only songs updated
+            at/after it plus tombstones deleted since then
+        v (str, optional): ``2`` opts into the new envelope response shape
 
     returns:
-        JSON: list of songs
+        with ``v=2`` or ``since``: the RPC envelope ``{"server_time", "songs", "deleted"}``
+        legacy clients: a bare JSON array of songs
     """
-    supabase = get_supabase()
-    batch_size = 1000
+    logger = current_app.logger
 
-    def generate() -> Iterator[str]:
-        offset = 0
-        first = True
-        yield "["
-        while True:
-            query = supabase.table("songs_new").select(SONG_LIST_COLUMNS).order("id").limit(batch_size).offset(offset)
-            result = query.execute()
-            batch = result.data
-            if batch:
-                chunk = json.dumps(batch, separators=(",", ":"))[1:-1]
-                yield chunk if first else "," + chunk
-                first = False
-            if len(batch) < batch_size:
-                break
-            offset += batch_size
-        yield "]"
+    since = request.args.get("since")
+    if since is not None:
+        try:
+            datetime.fromisoformat(since)
+        except ValueError:
+            return jsonify({"error": "Invalid 'since' timestamp; expected ISO-8601"}), 400
 
-    return Response(generate(), mimetype="application/json")
+    envelope = since is not None or request.args.get("v") == "2"
+
+    body: Dict[str, Any] = {}
+    if since is not None:
+        body["since"] = since
+
+    url = f"{current_app.config['SUPABASE_URL']}/rest/v1/rpc/get_song_list"
+    key = current_app.config["SUPABASE_SERVICE_KEY"]
+    headers = {
+        "apikey": key,
+        "Authorization": f"Bearer {key}",
+        "Content-Type": "application/json",
+    }
+
+    resp = requests.post(url, json=body, headers=headers, stream=True)
+    if resp.status_code != 200:
+        logger.error(f"get_song_list RPC failed: {resp.status_code} {resp.text[:500]}")
+        return jsonify({"error": "Failed to fetch songs"}), 502
+
+    raw = resp.iter_content(chunk_size=65536)
+    stream = raw if envelope else _stream_songs_array(raw)
+    return Response(stream, mimetype="application/json")
 
 @bp.route("/api/related-songs", methods=["GET"])
 def get_related_songs() -> FlaskResponse:
@@ -381,12 +477,22 @@ def admin_song_action(user_id: str, song_id: int) -> FlaskResponse:
                 return jsonify({"error": "Song not found"}), 404
             current_name = rows(song_query.data)[0]["name"]
             new_name = current_name.replace(" (Unverified)", "")
-            update_response = supabase.table("songs_new").update({"name": new_name}).eq("id", song_id).execute()
+            # bump last_update so delta (since=) clients pick up the verified name
+            update_response = supabase.table("songs_new").update({
+                "name": new_name,
+                "last_update": datetime.now(UTC).isoformat(),
+            }).eq("id", song_id).execute()
             if update_response.data:
                 return jsonify({"message": "Song verified successfully"}), 200
             else:
                 return jsonify({"error": "Failed to verify song"}), 500
         else:
+            # tombstone the song first so delta clients learn it was deleted
+            song_query = supabase.table("songs_new").select("id", "md5").eq("id", song_id).execute()
+            if not song_query.data:
+                return jsonify({"error": "Song not found"}), 404
+            song = rows(song_query.data)[0]
+            supabase.table("deleted_songs").upsert({"song_id": song["id"], "md5": song["md5"]}).execute()
             delete_response = supabase.table("songs_new").delete().eq("id", song_id).execute()
             if delete_response.data:
                 return jsonify({"message": "Song removed successfully"}), 200
