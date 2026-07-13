@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useEffectEvent, useMemo } from "react";
+import React, { useState, useEffect, useEffectEvent, useMemo, useDeferredValue, useCallback } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 
 import { API_URL } from "../../App";
@@ -27,7 +27,9 @@ import {
   mergeSongs,
   songMatchesInstrumentDifficulty,
   getSurroundingSongIds,
-  getSortValues
+  getSortValues,
+  buildSongSearchString,
+  songSearchStringMatches
 } from "../../utils/song";
 import { loadSongs, saveSongs, StoredSongs } from "../../utils/songStore";
 
@@ -276,46 +278,18 @@ const SongList: React.FC = () => {
   const effectiveLeftScores = leftUserId ? leftScores : null;
   const effectiveRightScores = rightUserId ? rightScores : null;
 
-  const filteredAndSortedSongs = useMemo(() => {
-    let filteredSongs = songs;
-    if (!filteredSongs) return [];
-
-    if (search) {
-      const searchTermsLower = search.toLowerCase().split(" ");
-      filteredSongs = filteredSongs.filter(song => {
-        if (filters.length === 0) {
-          return searchTermsLower.every(term =>
-            Object.values(song).some(value =>
-              (typeof value === "string" || typeof value === "number") && value.toString().toLowerCase().includes(term)
-            )
-          );
-        } else {
-          return searchTermsLower.every(term =>
-            filters.includes("name") && song.name?.toLowerCase().includes(term) ||
-            filters.includes("artist") && song.artist?.toLowerCase().includes(term) ||
-            filters.includes("album") && song.album?.toLowerCase().includes(term) ||
-            filters.includes("year") && song.year?.toString().includes(term) ||
-            filters.includes("genre") && song.genre?.toLowerCase().includes(term) ||
-            filters.includes("charter") && song.charter_refs?.some(charter => charter.toLowerCase().includes(term)) ||
-            filters.includes("loading_phrase") && song.loading_phrase?.toLowerCase().includes(term) ||
-            filters.includes("playlist_path") && song.playlist_path?.toLowerCase().includes(term)
-          )
-        }
-      });
-    } else {
-      // I don't know why this is necessary, but it is
-      filteredSongs = filteredSongs.filter(song => {
-        return song;
-      });
+  const songSearchStrings = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const song of songs) {
+      map.set(song.id, buildSongSearchString(song));
     }
+    return map;
+  }, [songs]);
 
-    if (selectedInstruments.length > 0 || selectedDifficulties.length > 0) {
-      filteredSongs = filteredSongs.filter(song =>
-        songMatchesInstrumentDifficulty(song, selectedInstruments, selectedDifficulties)
-      );
-    }
+  const deferredSearch = useDeferredValue(search);
 
-    const sortedSongs = filteredSongs.sort((a, b) => {
+  const sortedSongs = useMemo(() => {
+    return [...songs].sort((a, b) => {
       if (sortBy === "score_difference") {
         const leftScoreA = effectiveLeftScores?.get(a.md5);
         const rightScoreA = effectiveRightScores?.get(a.md5);
@@ -345,20 +319,62 @@ const SongList: React.FC = () => {
         return 0;
       }
     });
-
-    return sortedSongs;
   }, [
     songs,
-    search,
-    filters,
     sortBy,
     sortOrder,
     secondarySortBy,
     secondarySortOrder,
-    selectedInstruments,
-    selectedDifficulties,
     effectiveLeftScores,
     effectiveRightScores
+  ]);
+
+  const filteredAndSortedSongs = useMemo(() => {
+    let filteredSongs = sortedSongs;
+
+    if (deferredSearch) {
+      const searchTermsLower = deferredSearch.toLowerCase().split(" ");
+      filteredSongs = filteredSongs.filter(song => {
+        if (filters.length === 0) {
+          const searchString = songSearchStrings.get(song.id) ?? "";
+          return songSearchStringMatches(searchString, searchTermsLower);
+        } else {
+          const name = song.name?.toLowerCase();
+          const artist = song.artist?.toLowerCase();
+          const album = song.album?.toLowerCase();
+          const year = song.year?.toString();
+          const genre = song.genre?.toLowerCase();
+          const charters = song.charter_refs?.map(charter => charter.toLowerCase());
+          const loadingPhrase = song.loading_phrase?.toLowerCase();
+          const playlistPath = song.playlist_path?.toLowerCase();
+          return searchTermsLower.every(term =>
+            filters.includes("name") && name?.includes(term) ||
+            filters.includes("artist") && artist?.includes(term) ||
+            filters.includes("album") && album?.includes(term) ||
+            filters.includes("year") && year?.includes(term) ||
+            filters.includes("genre") && genre?.includes(term) ||
+            filters.includes("charter") && charters?.some(charter => charter.includes(term)) ||
+            filters.includes("loading_phrase") && loadingPhrase?.includes(term) ||
+            filters.includes("playlist_path") && playlistPath?.includes(term)
+          )
+        }
+      });
+    }
+
+    if (selectedInstruments.length > 0 || selectedDifficulties.length > 0) {
+      filteredSongs = filteredSongs.filter(song =>
+        songMatchesInstrumentDifficulty(song, selectedInstruments, selectedDifficulties)
+      );
+    }
+
+    return filteredSongs;
+  }, [
+    sortedSongs,
+    songSearchStrings,
+    deferredSearch,
+    filters,
+    selectedInstruments,
+    selectedDifficulties
   ]);
 
   const paginatedSongs = useMemo(() => {
@@ -395,16 +411,30 @@ const SongList: React.FC = () => {
     }
   };
 
-  const handleRowClick = (song: Song) => {
-    const currentParams = new URLSearchParams(location.search);
+  const handleRowClick = useCallback((song: Song) => {
+    const currentParams = new URLSearchParams(window.location.search);
     navigate(`/songs/${song.id}?${currentParams.toString()}`, { replace: true });
-  };
+  }, [navigate]);
 
   const handleModalClose = () => {
     setSelectedSong(null);
     const currentParams = new URLSearchParams(location.search);
     navigate(`/songs?${currentParams.toString()}`, { replace: true });
   };
+
+  const songRows = useMemo(() =>
+    paginatedSongs.map(song => (
+      <SongTableRow
+        key={song.id}
+        song={song}
+        onRowClick={handleRowClick}
+        leftUser={leftUser}
+        rightUser={rightUser}
+        leftScores={effectiveLeftScores}
+        rightScores={effectiveRightScores} />
+    )),
+    [paginatedSongs, handleRowClick, leftUser, rightUser, effectiveLeftScores, effectiveRightScores]
+  );
 
   const loading = songsLoading || chartersLoading;
 
@@ -479,18 +509,7 @@ const SongList: React.FC = () => {
                   <td colSpan={Object.keys(SONG_TABLE_HEADERS).length}>No songs found</td>
                 </tr>
               )}
-              {paginatedSongs.length > 0 && (
-                paginatedSongs.map((song) => (
-                  <SongTableRow
-                    key={song.id}
-                    song={song}
-                    onClick={() => handleRowClick(song)}
-                    leftUser={leftUser}
-                    rightUser={rightUser}
-                    leftScores={effectiveLeftScores}
-                    rightScores={effectiveRightScores} />
-                ))
-              )}
+              {paginatedSongs.length > 0 && songRows}
             </tbody>
           </table>
         )}
@@ -520,20 +539,20 @@ const SongList: React.FC = () => {
 
 interface SongTableRowProps {
   song: Song;
-  onClick: () => void;
+  onRowClick: (song: Song) => void;
   leftUser?: User | null;
   rightUser?: User | null;
   leftScores?: Map<string, number> | null;
   rightScores?: Map<string, number> | null;
 }
 
-export const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick, leftUser, rightUser, leftScores, rightScores }) => {
+export const SongTableRow: React.FC<SongTableRowProps> = React.memo(({ song, onRowClick, leftUser, rightUser, leftScores, rightScores }) => {
   const leftScore = leftScores?.get(song.md5);
   const rightScore = rightScores?.get(song.md5);
   const scoreDifference = leftScore != null && rightScore != null ? leftScore - rightScore : null;
 
   return (
-    <tr onClick={onClick} style={{ cursor: "pointer" }}>
+    <tr onClick={() => onRowClick(song)} style={{ cursor: "pointer" }}>
       <SongTableCell className="name" content={song.name} />
       <SongTableCell className="artist" content={song.artist} />
       <SongTableCell className="album" content={song.album} />
@@ -548,6 +567,8 @@ export const SongTableRow: React.FC<SongTableRowProps> = ({ song, onClick, leftU
       )}
     </tr>
   );
-};
+});
+
+SongTableRow.displayName = "SongTableRow";
 
 export default SongList;

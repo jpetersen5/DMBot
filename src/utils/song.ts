@@ -61,6 +61,30 @@ export const songMatchesInstrumentDifficulty = (
   return hasInstrument && hasDifficulty;
 };
 
+/** fields searched without filters */
+const SEARCH_FIELD_DELIMITER = "\u0000";
+
+/** build haystack of song data to search on */
+export const buildSongSearchString = (song: Song): string => {
+  const parts: (string | number | null | undefined)[] = [
+    song.name,
+    song.artist,
+    song.album,
+    song.year,
+    song.genre,
+    song.charter_refs?.join(" "),
+    song.loading_phrase,
+    song.playlist_path
+  ];
+  return parts
+    .map(part => (part == null ? "" : part.toString().toLowerCase()))
+    .join(SEARCH_FIELD_DELIMITER);
+};
+
+/** multi-term and match */
+export const songSearchStringMatches = (searchString: string, terms: string[]): boolean =>
+  terms.every(term => searchString.includes(term));
+
 export interface SongExtraData {
   name?: string;
   artist?: string;

@@ -3,7 +3,9 @@ import {
   Song,
   SongDelta,
   mergeSongs,
-  songMatchesInstrumentDifficulty
+  songMatchesInstrumentDifficulty,
+  buildSongSearchString,
+  songSearchStringMatches
 } from "./song";
 
 const song = (id: number, over: Partial<Song> = {}): Song => ({
@@ -68,6 +70,57 @@ describe("mergeSongs", () => {
     );
     expect(merged).toHaveLength(1);
     expect(merged[0]).toMatchObject({ id: 1, name: "New" });
+  });
+});
+
+describe("song search (buildSongSearchString + songSearchStringMatches)", () => {
+  const matches = (s: Song, query: string): boolean =>
+    songSearchStringMatches(buildSongSearchString(s), query.toLowerCase().split(" "));
+
+  const track = song(10, {
+    name: "Through the Fire and Flames",
+    artist: "DragonForce",
+    album: "Inhuman Rachine",
+    year: 2006,
+    genre: "Power Metal",
+    charter_refs: ["Harmonix", "GuitarHero"],
+    loading_phrase: "Shred on",
+    playlist_path: "Rock/Metal"
+  });
+
+  it("matches a single term case-insensitively", () => {
+    expect(matches(track, "dragonforce")).toBe(true);
+    expect(matches(track, "DRAGONFORCE")).toBe(true);
+    expect(matches(track, "flames")).toBe(true);
+  });
+
+  it("requires every term to match (multi-term AND across fields)", () => {
+    // both terms present, in different fields
+    expect(matches(track, "dragonforce flames")).toBe(true);
+    // second term is absent -> whole query fails
+    expect(matches(track, "dragonforce nirvana")).toBe(false);
+  });
+
+  it("matches against charter_refs", () => {
+    expect(matches(track, "harmonix")).toBe(true);
+    expect(matches(track, "guitarhero")).toBe(true);
+    expect(matches(track, "harmonix guitarhero")).toBe(true);
+  });
+
+  it("matches a numeric query against the year", () => {
+    expect(matches(track, "2006")).toBe(true);
+  });
+
+  it("does NOT match a numeric query against id, md5 or scores_count", () => {
+    const identifierOnly = song(2006, {
+      // id 2006 -> default md5 is "md5-2006"; also stuff scores_count with 2006
+      name: "No Year Here",
+      artist: "Anon",
+      year: null,
+      scores_count: 2006
+    });
+    expect(identifierOnly.md5).toContain("2006");
+    expect(matches(identifierOnly, "2006")).toBe(false);
   });
 });
 
