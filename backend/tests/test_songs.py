@@ -42,11 +42,13 @@ def make_app(monkeypatch, resp: FakeResp):
 
     holder = SimpleNamespace(last=None)
 
-    def fake_post(url, json=None, headers=None, stream=False):
-        holder.last = SimpleNamespace(url=url, json=json, headers=headers, stream=stream)
+    def fake_post(url, json=None, headers=None, stream=False, timeout=None):
+        holder.last = SimpleNamespace(
+            url=url, json=json, headers=headers, stream=stream, timeout=timeout
+        )
         return resp
 
-    monkeypatch.setattr(songs_module.requests, "post", fake_post)
+    monkeypatch.setattr(songs_module.session, "post", fake_post)
     return app, holder
 
 
@@ -101,6 +103,24 @@ def test_rpc_500_returns_502(monkeypatch):
     r = app.test_client().get("/api/songs?v=2")
     assert r.status_code == 502
     assert "error" in json.loads(r.data)
+
+
+def test_rpc_timeout_returns_502(monkeypatch):
+    app, _ = make_app(monkeypatch, FakeResp(200, envelope_bytes()))
+
+    def boom(*a, **k):
+        raise songs_module.requests.Timeout("read timed out")
+
+    monkeypatch.setattr(songs_module.session, "post", boom)
+    r = app.test_client().get("/api/songs?v=2")
+    assert r.status_code == 502
+    assert "error" in json.loads(r.data)
+
+
+def test_rpc_passes_timeout(monkeypatch):
+    app, holder = make_app(monkeypatch, FakeResp(200, envelope_bytes()))
+    app.test_client().get("/api/songs")
+    assert holder.last.timeout == (5, 120)
 
 
 def test_envelope_stripper_handles_key_order_and_strings():
@@ -275,6 +295,27 @@ def test_admin_remove_missing_song_404_no_tombstone(monkeypatch):
     assert r.status_code == 404
     assert ("upsert", "deleted_songs") not in fake_sb.log
     assert ("delete", "songs_new") not in fake_sb.log
+
+
+def test_admin_remove_rolls_back_tombstone_on_delete_failure(monkeypatch):
+    data_map = {
+        ("users", "select"): [{"permissions": "admin"}],
+        ("songs_new", "select"): [{"id": 5, "md5": "abc"}],
+        ("songs_new", "delete"): [],  # delete fails (no rows returned)
+    }
+    fake_sb = FakeSupabase(data_map)
+    client = admin_client(monkeypatch, fake_sb)
+    r = client.post("/api/songs/5/admin",
+                    json={"action": "remove"},
+                    headers={"Authorization": f"Bearer {admin_token()}"})
+    assert r.status_code == 500
+    ops = fake_sb.log
+    # tombstone inserted, delete attempted, then tombstone rolled back
+    assert ("upsert", "deleted_songs") in ops
+    assert ("delete", "songs_new") in ops
+    assert ("delete", "deleted_songs") in ops
+    assert ops.index(("upsert", "deleted_songs")) < ops.index(("delete", "songs_new"))
+    assert ops.index(("delete", "songs_new")) < ops.index(("delete", "deleted_songs"))
 
 
 def test_admin_verify_bumps_last_update(monkeypatch):

@@ -12,6 +12,10 @@ from werkzeug.utils import secure_filename
 
 bp = Blueprint("songs", __name__)
 
+# reused across requests so connections are pooled per gevent worker;
+# requests.Session is safe under monkey-patched sockets
+session = requests.Session()
+
 ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "charter", "song_length", "last_update", "scores_count", "md5"}
 ALLOWED_FILTERS = {"name", "artist", "album", "genre", "charter"}
 
@@ -165,7 +169,11 @@ def get_songs() -> FlaskResponse:
         "Content-Type": "application/json",
     }
 
-    resp = requests.post(url, json=body, headers=headers, stream=True)
+    try:
+        resp = session.post(url, json=body, headers=headers, stream=True, timeout=(5, 120))
+    except (requests.Timeout, requests.ConnectionError) as e:
+        logger.error(f"get_song_list RPC error: {e}")
+        return jsonify({"error": "Failed to fetch songs"}), 502
     if resp.status_code != 200:
         logger.error(f"get_song_list RPC failed: {resp.status_code} {resp.text[:500]}")
         return jsonify({"error": "Failed to fetch songs"}), 502
@@ -502,6 +510,10 @@ def admin_song_action(user_id: str, song_id: int) -> FlaskResponse:
             if delete_response.data:
                 return jsonify({"message": "Song removed successfully"}), 200
             else:
+                try:
+                    supabase.table("deleted_songs").delete().eq("song_id", song["id"]).execute()
+                except Exception as cleanup_err:
+                    logger.error(f"Failed to roll back tombstone for song {song['id']}: {cleanup_err}")
                 return jsonify({"error": "Failed to remove song"}), 500
     except Exception as e:
         logger.error(f"Error performing admin action: {str(e)}")
