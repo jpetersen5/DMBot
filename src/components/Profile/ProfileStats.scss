@@ -54,38 +54,6 @@
   }
 }
 
-.elo-modal {
-  .modal-dialog {
-    position: relative;
-    margin: 1.75rem auto;
-  }
-
-  .modal-body {
-    padding: 2rem;
-
-    .elo-chart {
-      .chart-controls {
-        margin-bottom: 1rem;
-
-        select {
-          padding: 0.5rem;
-          border-radius: $radius-sm;
-          border: 1px solid;
-          font-size: 1rem;
-          @include theme("background", "color-dropdown");
-          @include theme("color", "color-dropdown-text");
-          @include theme("border-color", "color-border");
-
-          &:focus {
-            outline: none;
-            box-shadow: $shadow-focus;
-          }
-        }
-      }
-    }
-  }
-}
-
 @include mobile {
   .profile-stats {
     .stats-grid {
