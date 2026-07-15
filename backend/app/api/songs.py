@@ -15,6 +15,11 @@ bp = Blueprint("songs", __name__)
 ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "charter", "song_length", "last_update", "scores_count", "md5"}
 ALLOWED_FILTERS = {"name", "artist", "album", "genre", "charter"}
 
+SLIM_SONG_COLUMNS = (
+    "id,md5,name,artist,album,track,year,genre,song_length,charter_refs,"
+    "scores_count,last_update,instruments,has_2x_kick,loading_phrase,playlist_path"
+)
+
 @bp.route("/api/songs/<string:identifier>", methods=["GET"])
 def get_song(identifier: str) -> FlaskResponse:
     """
@@ -189,21 +194,21 @@ def get_related_songs() -> FlaskResponse:
     album = request.args.get("album")
     album_songs = []
     if album:
-        album_query = supabase.table("songs_new").select("*").eq("album", album)
+        album_query = supabase.table("songs_new").select(SLIM_SONG_COLUMNS).eq("album", album)
         album_response = album_query.execute()
         album_songs = album_response.data
 
     artist = request.args.get("artist")
     artist_songs = []
     if artist:
-        artist_query = supabase.table("songs_new").select("*").eq("artist", artist)
+        artist_query = supabase.table("songs_new").select(SLIM_SONG_COLUMNS).eq("artist", artist)
         artist_response = artist_query.execute()
         artist_songs = artist_response.data
     
     genre = request.args.get("genre")
     genre_songs = []
     if genre:
-        genre_query = supabase.table("songs_new").select("*").eq("genre", genre)
+        genre_query = supabase.table("songs_new").select(SLIM_SONG_COLUMNS).eq("genre", genre)
         genre_response = genre_query.execute()
         genre_songs = genre_response.data
 
@@ -216,7 +221,7 @@ def get_related_songs() -> FlaskResponse:
         matching_charters = [charter["name"] for charter in rows(charter_response.data)]
 
         if matching_charters:
-            charters_query = supabase.table("songs_new").select("*").overlaps("charter_refs", matching_charters)
+            charters_query = supabase.table("songs_new").select(SLIM_SONG_COLUMNS).overlaps("charter_refs", matching_charters)
             charters_response = charters_query.execute()
             charter_songs = charters_response.data
 
@@ -252,9 +257,9 @@ def get_songs_by_ids() -> FlaskResponse:
     for i in range(0, len(ids), 500):
         batch = ids[i:i+500]
         if isinstance(batch[0], int):
-            query = supabase.table("songs_new").select("*").in_("id", batch)
+            query = supabase.table("songs_new").select(SLIM_SONG_COLUMNS).in_("id", batch)
         else:
-            query = supabase.table("songs_new").select("*").in_("md5", batch)
+            query = supabase.table("songs_new").select(SLIM_SONG_COLUMNS).in_("md5", batch)
         result = query.execute()
         songs.extend(result.data)
 

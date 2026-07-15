@@ -175,6 +175,75 @@ def admin_token() -> str:
     )
 
 
+class SelectQuery:
+    """Records the column list passed to .select() and supports the filter
+    chain used by list-style endpoints (eq/in_/overlaps)."""
+
+    def __init__(self, table_name: str, log: list, data_map: dict):
+        self.table_name = table_name
+        self.log = log
+        self.data_map = data_map
+        self.columns = None
+
+    def select(self, *cols):
+        self.columns = cols[0] if len(cols) == 1 else cols
+        return self
+
+    def eq(self, *a):
+        return self
+
+    def in_(self, *a):
+        return self
+
+    def overlaps(self, *a):
+        return self
+
+    def execute(self):
+        self.log.append((self.table_name, self.columns))
+        return SimpleNamespace(data=self.data_map.get(self.table_name, []))
+
+
+class SelectSupabase:
+    def __init__(self, data_map: dict):
+        self.log: list = []
+        self.data_map = data_map
+
+    def table(self, name: str) -> SelectQuery:
+        return SelectQuery(name, self.log, self.data_map)
+
+
+def test_related_songs_uses_slim_columns(monkeypatch):
+    fake_sb = SelectSupabase({"songs_new": [{"id": 1}]})
+    app = Flask(__name__)
+    app.register_blueprint(songs_module.bp)
+    monkeypatch.setattr(songs_module, "get_supabase", lambda: fake_sb)
+
+    r = app.test_client().get("/api/related-songs", query_string={"album": "Some Album"})
+    assert r.status_code == 200
+
+    songs_new_calls = [cols for table, cols in fake_sb.log if table == "songs_new"]
+    assert songs_new_calls, "expected a songs_new query"
+    for cols in songs_new_calls:
+        assert cols == songs_module.SLIM_SONG_COLUMNS
+        assert "leaderboard" not in cols
+        assert "note_counts" not in cols
+
+
+def test_songs_by_ids_uses_slim_columns(monkeypatch):
+    fake_sb = SelectSupabase({"songs_new": [{"id": 1}]})
+    app = Flask(__name__)
+    app.register_blueprint(songs_module.bp)
+    monkeypatch.setattr(songs_module, "get_supabase", lambda: fake_sb)
+
+    r = app.test_client().post("/api/songs-by-ids", json={"ids": [1, 2, 3]})
+    assert r.status_code == 200
+
+    songs_new_calls = [cols for table, cols in fake_sb.log if table == "songs_new"]
+    assert songs_new_calls, "expected a songs_new query"
+    for cols in songs_new_calls:
+        assert cols == songs_module.SLIM_SONG_COLUMNS
+
+
 def test_admin_remove_tombstones_before_delete(monkeypatch):
     data_map = {
         ("users", "select"): [{"permissions": "admin"}],
