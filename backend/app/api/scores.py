@@ -367,10 +367,7 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
     else:
         user_stats = {}
 
-    achievement_filtered_scores = updated_scores
-    for score in achievement_filtered_scores:
-        if score["speed"] < 100:
-            achievement_filtered_scores.remove(score)
+    achievement_filtered_scores = [s for s in updated_scores if s["speed"] >= 100]
 
     user_achievement_data = {
         "id": user_id,
