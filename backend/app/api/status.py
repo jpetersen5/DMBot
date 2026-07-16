@@ -28,4 +28,4 @@ def db_status() -> FlaskResponse:
         return jsonify({"status": "Connected", "message": "Functional"})
     except Exception as e:
         current_app.logger.error(f"Database status check failed: {str(e)}", exc_info=True)
-        return jsonify({"status": "Error", "message": "Database connection failed"})
+        return jsonify({"status": "Error", "message": "Database connection failed"}), 503

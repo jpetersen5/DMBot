@@ -150,3 +150,18 @@ def test_get_user_by_discord_id_not_found(monkeypatch):
     r = client.get("/api/users/discord/999")
     assert r.status_code == 404
     assert "error" in json.loads(r.data)
+
+
+def test_get_user_applies_defensive_defaults(monkeypatch):
+    sparse_row = {"id": 123, "username": "alice", "avatar": "hash"}
+    for path in ("/api/user/123", "/api/users/discord/123"):
+        fake_sb = SelectSupabase({"users": [sparse_row], "elo_history": []})
+        client = make_client(monkeypatch, fake_sb)
+
+        r = client.get(path)
+        assert r.status_code == 200, path
+        data = json.loads(r.data)
+        assert data["permissions"] == {}
+        assert data["stats"] == {}
+        assert data["elo"] == 1000
+        assert data["elo_history"] == []

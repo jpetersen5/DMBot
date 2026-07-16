@@ -43,17 +43,19 @@ def callback() -> FlaskResponse:
     returns:
         redirect to the frontend with the JWT token
     """
-    supabase = get_supabase()
     logger = current_app.logger
     state = request.args.get("state")
     if not state or state != session.get("oauth_state"):
         return jsonify({"error": "Invalid OAuth state"}), 400
+    code = request.args.get("code")
+    if not code:
+        return jsonify({"error": "Missing authorization code"}), 400
     if not Config.JWT_SECRET:
         return jsonify({"error": "JWT secret not configured"}), 500
-    
+
+    supabase = get_supabase()
     api = Config.DISCORD_API_ENDPOINT
     try:
-        code = request.args.get("code")
         data = {
             "client_id": Config.DISCORD_CLIENT_ID,
             "client_secret": Config.DISCORD_CLIENT_SECRET,
@@ -116,7 +118,7 @@ def logout() -> FlaskResponse:
     returns:
         JSON: message confirming successful logout
     """
-    session.pop("user", None)
+    session.pop("oauth_state", None)
     return jsonify({"message": "Logged out successfully"})
 
 @bp.route("/api/auth/refresh", methods=["POST"])

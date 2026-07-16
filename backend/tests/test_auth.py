@@ -3,6 +3,8 @@ import jwt
 import pytest
 from flask import Flask, jsonify
 from flask.testing import FlaskClient
+from app.api import auth as auth_module
+from app.extensions import limiter
 from app.types import FlaskResponse
 from app.utils.helpers import token_required
 
@@ -45,3 +47,29 @@ def test_wrong_secret_rejected(client):
     r = client.get("/protected",
                    headers={"Authorization": f"Bearer {make_token('other-secret-at-least-32-bytes-long')}"})
     assert r.status_code == 401
+
+
+@pytest.fixture
+def auth_client() -> FlaskClient:
+    app = Flask(__name__)
+    app.secret_key = "test-secret"
+    limiter.init_app(app)
+    app.register_blueprint(auth_module.bp)
+    return app.test_client()
+
+
+def test_callback_missing_code_rejected(auth_client):
+    # a valid state but no ?code must 400 early, before any token exchange
+    with auth_client.session_transaction() as sess:
+        sess["oauth_state"] = "abc"
+    r = auth_client.get("/api/auth/callback?state=abc")
+    assert r.status_code == 400
+    assert "code" in r.get_json()["error"].lower()
+
+
+def test_callback_bad_state_rejected(auth_client):
+    with auth_client.session_transaction() as sess:
+        sess["oauth_state"] = "abc"
+    r = auth_client.get("/api/auth/callback?state=wrong&code=xyz")
+    assert r.status_code == 400
+    assert "state" in r.get_json()["error"].lower()

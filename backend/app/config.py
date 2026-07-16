@@ -1,4 +1,5 @@
 import os
+import redis
 from flask import Flask
 from dotenv import load_dotenv
 
@@ -8,10 +9,16 @@ if FLASK_ENV == "production":
 else:
     load_dotenv(".env.dev")
 
+_REDIS_URL = os.getenv("REDIS_URL")
+
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY")
     JWT_SECRET = os.getenv("JWT_SECRET")
-    SESSION_TYPE = "filesystem"
+    if _REDIS_URL:
+        SESSION_TYPE = "redis"
+        SESSION_REDIS = redis.from_url(_REDIS_URL)
+    else:
+        SESSION_TYPE = "filesystem"
     ALLOWED_EXTENSIONS = {"bin", "ini"}
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024
     ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
