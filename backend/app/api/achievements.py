@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from ..utils.achievement_processor import AchievementProcessor
+from ..utils.achievement_processor import achievement_processor
 from ..types import FlaskResponse
 
 bp = Blueprint("achievements", __name__)
@@ -8,20 +8,10 @@ bp = Blueprint("achievements", __name__)
 def get_all_achievements() -> FlaskResponse:
     """
     Retrieve the complete list of all possible achievements
-    
+
     Returns:
         JSON: Complete achievement definitions
     """
-    achievement_processor = AchievementProcessor()
-    
-    achievements = [
-        {
-            key: value for key, value in achievement.items() 
-            if key != "check_function" and not key.startswith("_")
-        }
-        for achievement in achievement_processor.achievements
-    ]
-    
     return jsonify({
-        "achievements": achievements
-    }) 
+        "achievements": achievement_processor.serializable_achievements()
+    })

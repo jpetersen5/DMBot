@@ -1,6 +1,7 @@
 from typing import List, Optional
 from flask import Blueprint, jsonify, request, current_app
 from ..services.supabase_service import get_supabase, rows, rows_as
+from ..utils.achievement_processor import achievement_processor
 from ..utils.helpers import token_required
 from ..types import ComparisonResult, FlaskResponse, ScoreEntry, UserRow
 
@@ -254,18 +255,9 @@ def get_user_achievements(user_id: str) -> FlaskResponse:
             return jsonify({"error": "User not found"}), 404
             
         user_achievements = rows(response.data)[0].get("achievements", {}) or {}
-        
-        from ..utils.achievement_processor import AchievementProcessor
-        achievement_processor = AchievementProcessor()
-        
-        all_achievements = [
-            {
-                key: value for key, value in achievement.items() 
-                if key != "check_function" and not key.startswith("_")
-            }
-            for achievement in achievement_processor.achievements
-        ]
-        
+
+        all_achievements = achievement_processor.serializable_achievements()
+
         for achievement in all_achievements:
             achievement_id = achievement["id"]
             if achievement_id in user_achievements:

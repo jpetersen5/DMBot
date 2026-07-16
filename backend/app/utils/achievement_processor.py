@@ -457,6 +457,21 @@ class AchievementProcessor:
             
         return False
     
+    def serializable_achievements(self) -> List[Dict[str, Any]]:
+        """Return achievement definitions as JSON-serializable dicts.
+
+        Strips the non-serializable ``check_function`` and any internal
+        underscore-prefixed keys so the result can be sent straight to clients.
+        """
+        return [
+            {
+                key: value
+                for key, value in achievement.items()
+                if key != "check_function" and not key.startswith("_")
+            }
+            for achievement in self.achievements
+        ]
+
     def process_achievements(
         self, user_data: Any
     ) -> Tuple[Dict[str, str], List[AchievementError]]:
