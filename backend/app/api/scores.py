@@ -4,10 +4,11 @@ from ..utils.helpers import allowed_file, get_process_songs_script
 from ..extensions import socketio, redis
 from datetime import datetime, UTC
 import re
-from typing import Any, BinaryIO, Callable, Dict, List, Optional
+from typing import Any, BinaryIO, Callable, Dict, Optional
 from ..utils.achievement_processor import achievement_processor
 from ..utils.helpers import token_required
-from ..types import FlaskResponse, LeaderboardEntry
+from ..utils.leaderboard import sort_and_rank_leaderboard
+from ..types import FlaskResponse
 
 bp = Blueprint("scores", __name__)
 
@@ -29,41 +30,6 @@ def update_processing_status(
         "processed": processed,
         "total": total
     })
-
-def sort_and_rank_leaderboard(leaderboard: List[LeaderboardEntry]) -> List[LeaderboardEntry]:
-    """
-    sorts and ranks the leaderboard
-
-    params:
-        leaderboard (list): list of leaderboard entries
-
-    returns:
-        list: sorted and ranked leaderboard
-    """
-    def sort_key(entry: LeaderboardEntry) -> tuple:
-        speed = entry.get("speed", 0)
-        score = entry.get("score", 0)
-        posted = entry.get("posted", "")
-        
-        if posted:
-            try:
-                posted_date = datetime.fromisoformat(posted)
-            except ValueError:
-                posted_date = datetime.now(UTC)
-        else:
-            posted_date = datetime.now(UTC)
-
-        if speed < 100:
-            return (0, speed, score, -posted_date.timestamp())
-        else:
-            return (1, score, speed, -posted_date.timestamp())
-
-    sorted_leaderboard = sorted(leaderboard, key=sort_key, reverse=True)
-    
-    for i, entry in enumerate(sorted_leaderboard, 1):
-        entry["rank"] = i
-    
-    return sorted_leaderboard
 
 def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
     """

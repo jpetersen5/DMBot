@@ -1,39 +1,13 @@
 import os
 import sys
 from dotenv import load_dotenv
-from datetime import datetime, UTC
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.services.supabase_service import get_supabase, rows
+from app.utils.leaderboard import sort_and_rank_leaderboard
 
 load_dotenv()
-
-def sort_and_rank_leaderboard(leaderboard):
-    def sort_key(entry):
-        speed = entry.get("speed", 0)
-        score = entry.get("score", 0)
-        posted = entry.get("posted", "")
-        
-        if posted:
-            try:
-                posted_date = datetime.fromisoformat(posted)
-            except ValueError:
-                posted_date = datetime.now(UTC)
-        else:
-            posted_date = datetime.now(UTC)
-
-        if speed < 100:
-            return (0, speed, score, -posted_date.timestamp())
-        else:
-            return (1, score, speed, -posted_date.timestamp())
-
-    sorted_leaderboard = sorted(leaderboard, key=sort_key, reverse=True)
-    
-    for i, entry in enumerate(sorted_leaderboard, 1):
-        entry["rank"] = i
-    
-    return sorted_leaderboard
 
 def update_leaderboards():
     supabase = get_supabase()
@@ -66,7 +40,7 @@ def update_leaderboards():
                 updated_leaderboard = sort_and_rank_leaderboard(leaderboard)
                 
                 print(f"Updating {song['name']} {total_updated + i}/{total_updated + len(songs)} (ID: {song['id']})...")
-                supabase.table("songs").update({"leaderboard": updated_leaderboard}).eq("id", song["id"]).execute()
+                supabase.table("songs").update({"leaderboard": updated_leaderboard}).eq("id", song["id"]).execute()  # type: ignore[arg-type]
 
         total_updated += len(songs)
         page += 1
