@@ -12,8 +12,6 @@ from werkzeug.utils import secure_filename
 
 bp = Blueprint("songs", __name__)
 
-# reused across requests so connections are pooled per gevent worker;
-# requests.Session is safe under monkey-patched sockets
 session = requests.Session()
 
 ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "charter", "song_length", "last_update", "scores_count", "md5"}
