@@ -33,7 +33,7 @@ def get_user_by_id(user_id: str) -> FlaskResponse:
     """
     supabase = get_supabase()
     try:
-        response = supabase.table("users").select("*").eq("id", user_id).execute()
+        response = supabase.table("users").select("id, username, avatar, permissions, stats, elo").eq("id", user_id).execute()
         elo_history = supabase.table("elo_history").select("elo, timestamp").eq("user_id", user_id).execute()
         elo_history_data = sorted(rows(elo_history.data), key=lambda x: x["timestamp"], reverse=False) if elo_history.data else []
 
@@ -209,8 +209,7 @@ def get_user_by_discord_id(discord_id: str) -> FlaskResponse:
     logger = current_app.logger
     
     try:
-        # Since Discord ID is stored as the primary 'id' field
-        response = supabase.table("users").select("*").eq("id", discord_id).execute()
+        response = supabase.table("users").select("id, username, avatar, permissions, stats, elo").eq("id", discord_id).execute()
         
         if not response.data:
             return jsonify({"error": "User not found"}), 404

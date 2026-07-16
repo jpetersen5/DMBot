@@ -18,7 +18,7 @@ def get_charter_by_id(charter_id: str) -> FlaskResponse:
     supabase = get_supabase()
     logger = current_app.logger
     try:
-        query = supabase.table("charters").select("*").eq("id", charter_id)
+        query = supabase.table("charters").select("id, name, colorized_name, user_id, charter_stats, charter_songs").eq("id", charter_id)
         response = query.execute()
         if response.data:
             return jsonify(response.data[0]), 200
@@ -97,7 +97,7 @@ def is_user_charter(user_id: str) -> FlaskResponse:
     supabase = get_supabase()
     logger = current_app.logger
     try:
-        query = supabase.table("charters").select("*").eq("user_id", user_id)
+        query = supabase.table("charters").select("id, name, colorized_name, user_id, charter_stats, charter_songs").eq("user_id", user_id)
         response = query.execute()
         return jsonify(response.data if response.data else []), 200
     except Exception as e:
