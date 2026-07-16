@@ -1,53 +1,15 @@
 import { API_URL } from "../App";
 
-export type SongData = {
-    image_url: string;
-    tempo?: number | null;
-    time_signature?: number | null;
-    tempo_confidence?: number | null;
-    time_signature_confidence?: number | null;
-    danceability?: number | null;
-    energy?: number | null;
-    valence?: number | null;
-    loudness?: number | null;
-    genres: string[];
-};
-
-let spotifyAccessToken: string | null = null;
-
-const getSpotifyAccessToken = async (): Promise<string | null> => {
-    const response = await fetch(`${API_URL}/api/spotify/get_access_token`);
-    const data = await response.json();
-    return data.access_token || null;
-};
-
-export const fetchSongData = async (
-    artist: string | null,
-    title: string | null,
-    album: string | null
-): Promise<SongData | null> => {
-    if (!spotifyAccessToken) {
-        spotifyAccessToken = await getSpotifyAccessToken();
-    }
-
-    artist = artist || "";
-    title = title || "";
-    album = album || "";
-
+export const fetchAlbumArt = async (songId: number): Promise<string | null> => {
     try {
-        const response = await fetch(`${API_URL}/api/spotify/fetch_song_data?artist=${encodeURIComponent(artist)}&title=${encodeURIComponent(title)}&album=${encodeURIComponent(album)}&access_token=${spotifyAccessToken}`);
-
+        const response = await fetch(`${API_URL}/api/spotify/album_art/${songId}`);
         if (!response.ok) {
-            throw new Error("Failed to fetch song data");
+            throw new Error("Failed to fetch album art");
         }
-
         const data = await response.json();
-        if (!data || !data.image_url) {
-            return null;
-        }
-        return data as SongData;
+        return data.image_url || null;
     } catch (error) {
-        console.error("Error fetching song data:", error);
+        console.error("Error fetching album art:", error);
         return null;
     }
 };

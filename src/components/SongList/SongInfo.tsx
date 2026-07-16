@@ -13,7 +13,7 @@ import {
   NotesData,
   SONG_DIFFICULTIES,
 } from "../../utils/song";
-import { fetchSongData, SongData } from "../../utils/spotify";
+import { fetchAlbumArt } from "../../utils/spotify";
 import "./SongInfo.scss";
 
 import IconBass from "../../assets/rb-bass.png";
@@ -21,9 +21,6 @@ import IconDrums from "../../assets/rb-drums.png";
 import IconGuitar from "../../assets/rb-guitar.png";
 import IconRhythm from "../../assets/rb-rhythm.png";
 import IconKeys from "../../assets/rb-keys.png";
-import Icon from "../Extras/Icon";
-import ChevronLeft from "../../assets/chevron-left.svg?react";
-import ChevronRight from "../../assets/chevron-right.svg?react";
 import DefaultAlbumArt from "../../assets/default-album-art.jpg";
 
 import { charterAvatars } from "../../assets/charter-avatars";
@@ -144,20 +141,13 @@ interface SongInfoPrimaryProps {
 }
 
 const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) => {
-  const [songData, setSongData] = useState<SongData | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [avatarArtUrl, setAvatarArtUrl] = useState<string>("");
 
   useEffect(() => {
     const getAlbumArt = async () => {
-      const songData: SongData | null = await fetchSongData(song.artist, song.name, song.album);
-      if (songData) {
-        setSongData(songData);
-      } else {
-        setSongData({
-          image_url: DefaultAlbumArt,
-          genres: [],
-        });
-      }
+      const url = await fetchAlbumArt(song.id);
+      setImageUrl(url ?? DefaultAlbumArt);
 
       getAvatarArt(); // prevents rendering until after artwork is loaded
     };
@@ -169,14 +159,14 @@ const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) =>
     }
 
     getAlbumArt();
-  }, [song.artist, song.name, song.album, extraData.icon]);
+  }, [song.id, extraData.icon]);
 
   return (
     <div className="song-box">
       <div className="song-column">
         <div className="song-art-box">
-          {songData?.image_url ? (
-            <img className="song-art-image" src={songData.image_url} />
+          {imageUrl ? (
+            <img className="song-art-image" src={imageUrl} />
           ) : (
             <Skeleton className="song-art-image" style={{ aspectRatio: "1 / 1", height: "auto" }} />
           )}
@@ -198,10 +188,6 @@ const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) =>
             <div className="song-genre info-line">{extraData.genre}</div>
             <SongInfoLine label="Charter" value={song.charter_refs?.join(",")} />
           </div>
-
-          {songData?.tempo && (
-            <SongSpotifyData songData={songData} />
-          )}
         </div>
       </div>
     </div>
@@ -354,112 +340,6 @@ const SongInfoChartFeatures: React.FC<SongInfoChartFeaturesProps> = ({ notesData
     </div>
   );
 };
-
-
-interface SongSpotifyDataProps {
-  songData: SongData | null;
-}
-
-const SongSpotifyData: React.FC<SongSpotifyDataProps> = ({ songData }) => {
-  if (!songData) return null;
-  const tsc = songData.time_signature_confidence;
-  const tc = songData.tempo_confidence;
-
-  return (
-    <div className="song-spotify-data">
-      <div className="spotify-data-grid">
-        <Tooltip text={`Confidence: ${(tc ? (tc * 100).toFixed(0) : 0)}%`} position="top">
-          <div className="spotify-data-item">
-            <span className="value">{songData.tempo?.toFixed(0) || 0}</span>
-            <span className="label">BPM</span>
-          </div>
-        </Tooltip>
-        <Tooltip text={`Confidence: ${(tsc ? (tsc * 100).toFixed(0) : 0)}%`} position="top">
-          <div className="spotify-data-item">
-            <span className="value">{songData.time_signature}/4</span>
-            <span className="label">Time</span>
-          </div>
-        </Tooltip>
-        <div className="spotify-data-item">
-          <span className="value">{songData.loudness?.toFixed(1) || 0}</span>
-          <span className="label">dB</span>
-        </div>
-      </div>
-      {songData.genres && songData.genres.length > 0 && (
-        <SongDataGenres genres={songData.genres} />
-      )}
-    </div>
-  );
-};
-
-
-interface SongDataGenresProps {
-  genres: string[];
-}
-
-const SongDataGenres: React.FC<SongDataGenresProps> = ({ genres }) => {
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
-  const genresRef = useRef<HTMLDivElement>(null);
-
-  useLayoutEffect(() => {
-    const el = genresRef.current;
-    if (!el) return;
-
-    const updateScrollButtons = () => {
-      setCanScrollLeft(el.scrollLeft > 0);
-      setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth);
-    };
-
-    updateScrollButtons();
-    el.addEventListener("scroll", updateScrollButtons);
-    const observer = new ResizeObserver(updateScrollButtons);
-    observer.observe(el);
-    return () => {
-      el.removeEventListener("scroll", updateScrollButtons);
-      observer.disconnect();
-    };
-  }, []);
-
-  const scroll = (direction: "left" | "right") => {
-    const el = genresRef.current;
-    if (el) {
-      const scrollAmount = 100;
-      const newPosition = direction === "left"
-        ? el.scrollLeft - scrollAmount
-        : el.scrollLeft + scrollAmount;
-
-      el.scrollTo({
-        left: newPosition,
-        behavior: "smooth"
-      });
-    }
-  };
-
-  return (
-    <div className="spotify-genres-container">
-      <button
-        className="scroll-button left"
-        onClick={() => scroll("left")}
-        style={{ visibility: canScrollLeft ? "visible" : "hidden" }}
-      >
-        <Icon as={ChevronLeft} />
-      </button>
-      <div className="spotify-genres" ref={genresRef}>
-        {genres.map((genre, index) => (
-          <span key={index} className="genre-tag">{genre}</span>
-        ))}
-      </div>
-      <button
-        className="scroll-button right"
-        onClick={() => scroll("right")}
-        style={{ visibility: canScrollRight ? "visible" : "hidden" }}
-      >
-        <Icon as={ChevronRight} />
-      </button>
-    </div>
-  );
-}
 
 
 export default SongInfo;
