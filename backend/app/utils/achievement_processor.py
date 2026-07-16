@@ -6,7 +6,7 @@ import json
 import logging
 from datetime import datetime, UTC
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from ..types import AchievementDef, AchievementError
 
@@ -471,6 +471,30 @@ class AchievementProcessor:
             }
             for achievement in self.achievements
         ]
+
+    def build_client_achievement(
+        self, achievement_id: str, timestamp: str
+    ) -> Optional[Dict[str, Any]]:
+        """Build the ``new_achievement`` socket payload for a newly earned achievement.
+
+        Looks up the definition by id and returns the client-facing dict (the same
+        shape the React client consumes), or ``None`` if the id is unknown. Only the
+        display fields are exposed; the ``achieved``/``timestamp`` flags are overlaid.
+        """
+        achievement_def = next((a for a in self.achievements if a["id"] == achievement_id), None)
+        if not achievement_def:
+            return None
+        return {
+            "id": achievement_id,
+            "name": achievement_def["name"],
+            "description": achievement_def["description"],
+            "rank": achievement_def["rank"],
+            "category": achievement_def["category"],
+            "achieved": True,
+            "timestamp": timestamp,
+            "group": achievement_def.get("group"),
+            "song_md5": achievement_def.get("song_md5")
+        }
 
     def process_achievements(
         self, user_data: Any

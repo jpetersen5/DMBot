@@ -7,7 +7,11 @@ import re
 from typing import Any, BinaryIO, Callable, Dict, Optional
 from ..utils.achievement_processor import achievement_processor
 from ..utils.helpers import token_required
-from ..utils.leaderboard import sort_and_rank_leaderboard
+from ..utils.score_processing import (
+    apply_score_to_leaderboard,
+    evaluate_score_update,
+    merge_unknown_scores,
+)
 from ..types import FlaskResponse
 
 bp = Blueprint("scores", __name__)
@@ -82,47 +86,10 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
         batch_songs_info = rows(supabase.table("songs_new").select("*").in_("md5", batch).execute().data)
         songs_dict.update({song["md5"]: song for song in batch_songs_info})
 
-    newly_known_scores = []
-    remaining_unknown_scores = []
-
-    for unknown_score in existing_unknown_scores:
-        song_info = songs_dict.get(unknown_score["identifier"])
-        if song_info:
-            score_data = {
-                "identifier": unknown_score["identifier"],
-                "song_name": song_info["name"],
-                "artist": song_info["artist"],
-                "percent": unknown_score["percent"],
-                "is_fc": unknown_score["is_fc"],
-                "speed": unknown_score["speed"],
-                "score": unknown_score["score"],
-                "play_count": unknown_score["play_count"],
-                "posted": datetime.now(UTC).isoformat()
-            }
-            newly_known_scores.append(score_data)
-            
-            leaderboard_entry = {
-                "user_id": user_id,
-                "username": username,
-                "score": unknown_score["score"],
-                "percent": unknown_score["percent"],
-                "is_fc": unknown_score["is_fc"],
-                "speed": unknown_score["speed"],
-                "play_count": unknown_score["play_count"],
-                "posted": datetime.now(UTC).isoformat()
-            }
-            leaderboard = song_info.get("leaderboard", []) or []
-            leaderboard.append(leaderboard_entry)
-            leaderboard = sort_and_rank_leaderboard(leaderboard)
-            
-            leaderboard_updates.append({
-                "md5": unknown_score["identifier"],
-                "name": song_info["name"],
-                "leaderboard": leaderboard,
-                "last_update": datetime.now(UTC).isoformat()
-            })
-        else:
-            remaining_unknown_scores.append(unknown_score)
+    newly_known_scores, remaining_unknown_scores, unknown_leaderboard_updates = merge_unknown_scores(
+        existing_unknown_scores, songs_dict, user_id, username
+    )
+    leaderboard_updates.extend(unknown_leaderboard_updates)
 
     if existing_scores:
         existing_scores.extend(newly_known_scores)
@@ -146,20 +113,6 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
         for score in song["scores"]:
             if score["instrument"] == 9:  # drums
                 play_count = song["play_count"]
-                score_data = {
-                    "identifier": song["identifier"],
-                    "song_name": song_info["name"] if song_info else f"Unknown Song: {song['identifier']}",
-                    "artist": song_info["artist"] if song_info else "Unknown Artist",
-                    "charter_refs": song_info["charter_refs"] if song_info else [],
-                    "percent": score["percent"],
-                    "is_fc": score["is_fc"],
-                    "speed": score["speed"],
-                    "score": score["score"],
-                    "play_count": play_count,
-                    "posted": datetime.now(UTC).isoformat(),
-                    "rank": None
-                }
-
                 if song_info:
                     # Get the user's existing score for this song, if any
                     existing_user_score = existing_scores_dict.get(song["identifier"], None)
@@ -184,18 +137,7 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
                     }
                     
                     # Decide if the user's personal score list needs updating
-                    should_update_user_score = False
-                    if not existing_user_score:
-                        should_update_user_score = True
-                        logger.info(f"New score for known song {song['identifier']} being added to user's list.")
-                    elif incoming_score_data["score"] > existing_user_score["score"]:
-                        should_update_user_score = True
-                        logger.info(f"Higher score {incoming_score_data['score']} > {existing_user_score['score']} for song {song['identifier']} found. Updating user's list.")
-                    elif incoming_score_data["score"] == existing_user_score["score"] and incoming_score_data["play_count"] > existing_user_score.get("play_count", 0):
-                         should_update_user_score = True
-                         logger.info(f"Same score but higher playcount {incoming_score_data['play_count']} > {existing_user_score.get('play_count', 0)} for song {song['identifier']} found. Updating user's list.")
-                         
-                    if should_update_user_score:
+                    if evaluate_score_update(incoming_score_data, existing_user_score):
                        # Update user's personal score list
                        # Ensure charter_refs are preserved/added if the score is being overwritten
                        incoming_score_data["charter_refs"] = (existing_user_score.get("charter_refs") 
@@ -204,7 +146,6 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
                        existing_scores_dict[song["identifier"]] = incoming_score_data
 
                     leaderboard = song_info.get("leaderboard", []) or []
-                    user_entry_on_leaderboard = next((entry for entry in leaderboard if entry["user_id"] == user_id), None)
 
                     # Use the incoming score data to create the potential leaderboard entry
                     leaderboard_entry_from_incoming = {
@@ -218,31 +159,10 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
                         "posted": incoming_score_data["posted"]
                     }
 
-                    should_update_leaderboard = False
-                    if not user_entry_on_leaderboard:
-                        should_update_leaderboard = True
-                        logger.info(f"User {user_id} not on leaderboard for {song['identifier']}. Adding.")
-                    # Compare incoming score with the one on the leaderboard
-                    elif leaderboard_entry_from_incoming["score"] > user_entry_on_leaderboard["score"]:
-                        should_update_leaderboard = True
-                        logger.info(f"Higher score {leaderboard_entry_from_incoming['score']} > {user_entry_on_leaderboard['score']} for song {song['identifier']} found. Updating leaderboard.")
-                    elif leaderboard_entry_from_incoming["score"] == user_entry_on_leaderboard["score"] and leaderboard_entry_from_incoming["play_count"] > user_entry_on_leaderboard.get("play_count", 0):
-                        should_update_leaderboard = True
-                        logger.info(f"Same score but higher playcount {leaderboard_entry_from_incoming['play_count']} > {user_entry_on_leaderboard.get('play_count', 0)} for song {song['identifier']} found. Updating leaderboard.")
-                    elif user_entry_on_leaderboard.get("posted", "") == "": # Handle case where leaderboard entry has no timestamp
-                         should_update_leaderboard = True
-                         logger.info(f"Existing leaderboard entry for {song['identifier']} has no timestamp. Updating.")
-
+                    leaderboard, should_update_leaderboard = apply_score_to_leaderboard(
+                        leaderboard, leaderboard_entry_from_incoming, user_id
+                    )
                     if should_update_leaderboard:
-                        # Remove old entry if it exists before adding/re-adding
-                        if user_entry_on_leaderboard:
-                           try:
-                               leaderboard.remove(user_entry_on_leaderboard)
-                           except ValueError:
-                               logger.warning(f"Could not find user_entry_on_leaderboard to remove for user {user_id} on song {song['identifier']}, appending new entry anyway.")
-                        leaderboard.append(leaderboard_entry_from_incoming)
-                        
-                        leaderboard = sort_and_rank_leaderboard(leaderboard)
                         leaderboard_updates.append({
                             "md5": song["identifier"],
                             "name": song_info["name"],
@@ -274,18 +194,7 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
                         "rank": None
                     }
 
-                    should_update_unknown_score = False
-                    if not existing_unknown_score:
-                        should_update_unknown_score = True
-                        logger.info(f"New score for unknown song {song['identifier']} being added.")
-                    elif incoming_unknown_score_data["score"] > existing_unknown_score["score"]:
-                        should_update_unknown_score = True
-                        logger.info(f"Higher score {incoming_unknown_score_data['score']} > {existing_unknown_score['score']} for unknown song {song['identifier']} found.")
-                    elif incoming_unknown_score_data["score"] == existing_unknown_score["score"] and incoming_unknown_score_data["play_count"] > existing_unknown_score.get("play_count", 0):
-                         should_update_unknown_score = True
-                         logger.info(f"Same score but higher playcount {incoming_unknown_score_data['play_count']} > {existing_unknown_score.get('play_count', 0)} for unknown song {song['identifier']} found.")
-
-                    if should_update_unknown_score:
+                    if evaluate_score_update(incoming_unknown_score_data, existing_unknown_score):
                         existing_unknown_scores_dict[song["identifier"]] = incoming_unknown_score_data
 
         progress = (processed_songs / total_songs) * 100
@@ -356,21 +265,10 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
     existing_achievements = user_data[0].get("achievements", {}) or {}
     for achievement_id, timestamp in achievements.items():
         if achievement_id not in existing_achievements:
-            achievement_def = next((a for a in achievement_processor.achievements if a["id"] == achievement_id), None)
-            if achievement_def:
-                client_achievement = {
-                    "id": achievement_id,
-                    "name": achievement_def["name"],
-                    "description": achievement_def["description"],
-                    "rank": achievement_def["rank"],
-                    "category": achievement_def["category"],
-                    "achieved": True,
-                    "timestamp": timestamp,
-                    "group": achievement_def.get("group"),
-                    "song_md5": achievement_def.get("song_md5")
-                }
+            client_achievement = achievement_processor.build_client_achievement(achievement_id, timestamp)
+            if client_achievement:
                 socketio.emit("new_achievement", {"achievement": client_achievement}, to=user_id)
-                logger.info(f"User {user_id} earned new achievement: {achievement_def['name']}")
+                logger.info(f"User {user_id} earned new achievement: {client_achievement['name']}")
 
     update_data = {
         "scores": updated_scores,
