@@ -1,5 +1,5 @@
 from typing import List, Optional
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request
 from ..services.supabase_service import get_supabase, rows, rows_as
 from ..utils.achievement_processor import achievement_processor
 from ..utils.helpers import token_required
@@ -38,27 +38,23 @@ def get_user_by_id(user_id: str) -> FlaskResponse:
         both routes resolve to the same user by Discord ID.
     """
     supabase = get_supabase()
-    try:
-        response = supabase.table("users").select("id, username, avatar, permissions, stats, elo").eq("id", user_id).execute()
-        elo_history = supabase.table("elo_history").select("elo, timestamp").eq("user_id", user_id).execute()
-        elo_history_data = sorted(rows(elo_history.data), key=lambda x: x["timestamp"], reverse=False) if elo_history.data else []
+    response = supabase.table("users").select("id, username, avatar, permissions, stats, elo").eq("id", user_id).execute()
+    elo_history = supabase.table("elo_history").select("elo, timestamp").eq("user_id", user_id).execute()
+    elo_history_data = sorted(rows(elo_history.data), key=lambda x: x["timestamp"], reverse=False) if elo_history.data else []
 
-        if response.data:
-            user = rows(response.data)[0]
-            return jsonify({
-                "id": str(user["id"]),
-                "username": user["username"],
-                "avatar": user["avatar"],
-                "permissions": user.get("permissions", {}),
-                "stats": user.get("stats", {}),
-                "elo": user.get("elo", 1000),
-                "elo_history": elo_history_data
-            })
-        else:
-            return jsonify({"error": "User not found"}), 404
-    except Exception as e:
-        current_app.logger.error(f"Error fetching user data: {str(e)}", exc_info=True)
-        return jsonify({"error": "An error occurred while fetching user data"}), 500
+    if response.data:
+        user = rows(response.data)[0]
+        return jsonify({
+            "id": str(user["id"]),
+            "username": user["username"],
+            "avatar": user["avatar"],
+            "permissions": user.get("permissions", {}),
+            "stats": user.get("stats", {}),
+            "elo": user.get("elo", 1000),
+            "elo_history": elo_history_data
+        })
+    else:
+        return jsonify({"error": "User not found"}), 404
 
 @bp.route("/api/user/<string:user_id>/has-scores", methods=["GET"])
 def user_has_scores(user_id: str) -> FlaskResponse:
@@ -82,22 +78,17 @@ def get_all_users() -> FlaskResponse:
         JSON: list of user objects; ids, usernames, elo, and avatars
     """
     supabase = get_supabase()
-    logger = current_app.logger
-    try:
-        result = supabase.table("users").select("id", "username", "avatar", "stats", "elo").execute()
-        users = []
-        for user in rows(result.data):
-            users.append({
-                "id": str(user["id"]),
-                "username": user["username"],
-                "avatar": user["avatar"],
-                "stats": user["stats"],
-                "elo": user["elo"]
-            })
-        return jsonify(users)
-    except Exception as e:
-        logger.error(f"Error fetching users: {str(e)}")
-        return jsonify({"error": "An error occurred while fetching users"}), 500
+    result = supabase.table("users").select("id", "username", "avatar", "stats", "elo").execute()
+    users = []
+    for user in rows(result.data):
+        users.append({
+            "id": str(user["id"]),
+            "username": user["username"],
+            "avatar": user["avatar"],
+            "stats": user["stats"],
+            "elo": user["elo"]
+        })
+    return jsonify(users)
 
 @bp.route("/api/users/compare", methods=["POST"])
 def compare_users() -> FlaskResponse:
@@ -110,45 +101,41 @@ def compare_users() -> FlaskResponse:
     if not user1_id or not user2_id:
         return jsonify({"error": "Both user IDs are required"}), 400
 
-    try:
-        user1_data = get_user_scores_by_id(user1_id)
-        user2_data = get_user_scores_by_id(user2_id)
+    user1_data = get_user_scores_by_id(user1_id)
+    user2_data = get_user_scores_by_id(user2_id)
 
-        if not user1_data:
-            return jsonify({"error": "User 1 not found"}), 404
-        if not user2_data:
-            return jsonify({"error": "User 2 not found"}), 404
+    if not user1_data:
+        return jsonify({"error": "User 1 not found"}), 404
+    if not user2_data:
+        return jsonify({"error": "User 2 not found"}), 404
 
-        user1_known_scores = user1_data.get("scores", [])
-        user1_unknown_scores = user1_data.get("unknown_scores", [])
-        user2_known_scores = user2_data.get("scores", [])
-        user2_unknown_scores = user2_data.get("unknown_scores", [])
+    user1_known_scores = user1_data.get("scores", [])
+    user1_unknown_scores = user1_data.get("unknown_scores", [])
+    user2_known_scores = user2_data.get("scores", [])
+    user2_unknown_scores = user2_data.get("unknown_scores", [])
 
-        if not user1_known_scores:
-            return jsonify({"error": "User 1 has no scores"}), 404
-        if not user2_known_scores:
-            return jsonify({"error": "User 2 has no scores"}), 404
+    if not user1_known_scores:
+        return jsonify({"error": "User 1 has no scores"}), 404
+    if not user2_known_scores:
+        return jsonify({"error": "User 2 has no scores"}), 404
 
-        if user1_unknown_scores:
-            user1_scores = user1_known_scores + user1_unknown_scores
-        else:
-            user1_scores = user1_known_scores
+    if user1_unknown_scores:
+        user1_scores = user1_known_scores + user1_unknown_scores
+    else:
+        user1_scores = user1_known_scores
 
-        if user2_unknown_scores:
-            user2_scores = user2_known_scores + user2_unknown_scores
-        else:
-            user2_scores = user2_known_scores
+    if user2_unknown_scores:
+        user2_scores = user2_known_scores + user2_unknown_scores
+    else:
+        user2_scores = user2_known_scores
 
-        comparison_results = compare_user_scores(user1_scores, user2_scores)
+    comparison_results = compare_user_scores(user1_scores, user2_scores)
 
-        if comparison_results is None:
-            return jsonify({"error": "User 1 and User 2 have no common scores"}), 404
+    if comparison_results is None:
+        return jsonify({"error": "User 1 and User 2 have no common scores"}), 404
 
-        return jsonify(comparison_results)
-    except Exception as e:
-        current_app.logger.error(f"Error comparing users: {str(e)}", exc_info=True)
-        return jsonify({"error": "An error occurred while comparing users"}), 500
-    
+    return jsonify(comparison_results)
+
 def get_user_scores_by_id(user_id: str) -> Optional[UserRow]:
     supabase = get_supabase()
     response = supabase.table("users").select("scores, unknown_scores").eq("id", user_id).execute()
@@ -212,28 +199,22 @@ def get_user_achievements(user_id: str) -> FlaskResponse:
         JSON: List of user achievements with achieved status
     """
     supabase = get_supabase()
-    logger = current_app.logger
-    
-    try:
-        response = supabase.table("users").select("achievements").eq("id", user_id).execute()
-        
-        if not response.data:
-            return jsonify({"error": "User not found"}), 404
-            
-        user_achievements = rows(response.data)[0].get("achievements", {}) or {}
+    response = supabase.table("users").select("achievements").eq("id", user_id).execute()
 
-        all_achievements = achievement_processor.serializable_achievements()
+    if not response.data:
+        return jsonify({"error": "User not found"}), 404
 
-        for achievement in all_achievements:
-            achievement_id = achievement["id"]
-            if achievement_id in user_achievements:
-                achievement["achieved"] = True
-                achievement["timestamp"] = user_achievements[achievement_id]
-            else:
-                achievement["achieved"] = False
-                achievement["timestamp"] = None
-        
-        return jsonify({"achievements": all_achievements})
-    except Exception as e:
-        logger.error(f"Error fetching user achievements: {str(e)}", exc_info=True)
-        return jsonify({"error": "An error occurred while fetching achievements"}), 500
+    user_achievements = rows(response.data)[0].get("achievements", {}) or {}
+
+    all_achievements = achievement_processor.serializable_achievements()
+
+    for achievement in all_achievements:
+        achievement_id = achievement["id"]
+        if achievement_id in user_achievements:
+            achievement["achieved"] = True
+            achievement["timestamp"] = user_achievements[achievement_id]
+        else:
+            achievement["achieved"] = False
+            achievement["timestamp"] = None
+
+    return jsonify({"achievements": all_achievements})

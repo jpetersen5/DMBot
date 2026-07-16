@@ -447,9 +447,6 @@ def upload_scoredata(user_id: str) -> FlaskResponse:
         except ValueError as e:
             logger.error(f"Error parsing score data: {str(e)}", exc_info=True)
             return jsonify({"error": "Invalid or corrupted score data file"}), 400
-        except Exception as e:
-            logger.error(f"Unexpected error processing score data: {str(e)}", exc_info=True)
-            return jsonify({"error": "An error occurred while processing score data"}), 500
     logger.warning("Invalid file in upload request")
     return jsonify({"error": "Invalid file"}), 400
 
@@ -520,26 +517,22 @@ def upload_songcache(user_id: str) -> FlaskResponse:
         if file.filename != "songcache.bin":
             return jsonify({"error": "File must be named songcache.bin"}), 400
         
-        try:
-            supabase = get_supabase()
-            user_data = rows(supabase.table("users").select("unknown_scores").eq("id", user_id).execute().data)
-            unknown_scores = user_data[0].get("unknown_scores", []) if user_data else []
+        supabase = get_supabase()
+        user_data = rows(supabase.table("users").select("unknown_scores").eq("id", user_id).execute().data)
+        unknown_scores = user_data[0].get("unknown_scores", []) if user_data else []
 
-            file_content = file.read()
-            
-            updated_scores = []
-            for score in unknown_scores:
-                file_path = find_file_path_for_md5(file_content, score["identifier"])
-                if file_path:
-                    score["filepath"] = file_path
-                updated_scores.append(score)
-            
-            supabase.table("users").update({"unknown_scores": updated_scores}).eq("id", user_id).execute()
-            
-            return jsonify({"message": "Songcache processed successfully", "updated_scores": len(updated_scores)}), 200
-        except Exception as e:
-            logger.error(f"Error processing songcache: {str(e)}", exc_info=True)
-            return jsonify({"error": "An error occurred while processing the song cache"}), 500
-    
+        file_content = file.read()
+
+        updated_scores = []
+        for score in unknown_scores:
+            file_path = find_file_path_for_md5(file_content, score["identifier"])
+            if file_path:
+                score["filepath"] = file_path
+            updated_scores.append(score)
+
+        supabase.table("users").update({"unknown_scores": updated_scores}).eq("id", user_id).execute()
+
+        return jsonify({"message": "Songcache processed successfully", "updated_scores": len(updated_scores)}), 200
+
     logger.warning("Invalid file in upload request")
     return jsonify({"error": "Invalid file"}), 400

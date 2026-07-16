@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 from flask_compress import Compress
 from flask_cors import CORS
+from postgrest.exceptions import APIError
 from werkzeug.exceptions import HTTPException
 from .extensions import Session, limiter, socketio, redis, setup_logging
 from .config import Config
@@ -50,6 +51,11 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     app.register_blueprint(leaderboards.bp)
     app.register_blueprint(spotify.bp)
     app.register_blueprint(achievements.bp)
+
+    @app.errorhandler(APIError)
+    def handle_supabase_error(e: APIError):
+        app.logger.error(f"Supabase API error: {str(e)}", exc_info=True)
+        return jsonify({"error": "A database error occurred"}), 502
 
     @app.errorhandler(Exception)
     def handle_unexpected_error(e: Exception):

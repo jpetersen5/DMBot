@@ -445,10 +445,6 @@ def upload_song_ini() -> FlaskResponse:
                 return jsonify({"message": "Song added successfully"}), 200
             else:
                 return jsonify({"error": "Failed to add song to database"}), 500
-            
-        except Exception as e:
-            current_app.logger.error(f"Error processing song.ini: {str(e)}", exc_info=True)
-            return jsonify({"error": "An error occurred while processing the song file"}), 500
         finally:
             if os.path.exists(filepath):
                 os.remove(filepath)
@@ -481,38 +477,34 @@ def admin_song_action(user_id: str, song_id: int) -> FlaskResponse:
     if action not in ["verify", "remove"]:
         return jsonify({"error": "Invalid action"}), 400
 
-    try:
-        if action == "verify":
-            song_query = supabase.table("songs_new").select("name").eq("id", song_id).execute()
-            if not song_query.data:
-                return jsonify({"error": "Song not found"}), 404
-            current_name = rows(song_query.data)[0]["name"]
-            new_name = current_name.replace(" (Unverified)", "")
-            # bump last_update so delta (since=) clients pick up the verified name
-            update_response = supabase.table("songs_new").update({
-                "name": new_name,
-                "last_update": datetime.now(UTC).isoformat(),
-            }).eq("id", song_id).execute()
-            if update_response.data:
-                return jsonify({"message": "Song verified successfully"}), 200
-            else:
-                return jsonify({"error": "Failed to verify song"}), 500
+    if action == "verify":
+        song_query = supabase.table("songs_new").select("name").eq("id", song_id).execute()
+        if not song_query.data:
+            return jsonify({"error": "Song not found"}), 404
+        current_name = rows(song_query.data)[0]["name"]
+        new_name = current_name.replace(" (Unverified)", "")
+        # bump last_update so delta (since=) clients pick up the verified name
+        update_response = supabase.table("songs_new").update({
+            "name": new_name,
+            "last_update": datetime.now(UTC).isoformat(),
+        }).eq("id", song_id).execute()
+        if update_response.data:
+            return jsonify({"message": "Song verified successfully"}), 200
         else:
-            # tombstone the song first so delta clients learn it was deleted
-            song_query = supabase.table("songs_new").select("id", "md5").eq("id", song_id).execute()
-            if not song_query.data:
-                return jsonify({"error": "Song not found"}), 404
-            song = rows(song_query.data)[0]
-            supabase.table("deleted_songs").upsert({"song_id": song["id"], "md5": song["md5"]}).execute()
-            delete_response = supabase.table("songs_new").delete().eq("id", song_id).execute()
-            if delete_response.data:
-                return jsonify({"message": "Song removed successfully"}), 200
-            else:
-                try:
-                    supabase.table("deleted_songs").delete().eq("song_id", song["id"]).execute()
-                except Exception as cleanup_err:
-                    logger.error(f"Failed to roll back tombstone for song {song['id']}: {cleanup_err}")
-                return jsonify({"error": "Failed to remove song"}), 500
-    except Exception as e:
-        logger.error(f"Error performing admin action: {str(e)}")
-        return jsonify({"error": "An error occurred while performing the action"}), 500
+            return jsonify({"error": "Failed to verify song"}), 500
+    else:
+        # tombstone the song first so delta clients learn it was deleted
+        song_query = supabase.table("songs_new").select("id", "md5").eq("id", song_id).execute()
+        if not song_query.data:
+            return jsonify({"error": "Song not found"}), 404
+        song = rows(song_query.data)[0]
+        supabase.table("deleted_songs").upsert({"song_id": song["id"], "md5": song["md5"]}).execute()
+        delete_response = supabase.table("songs_new").delete().eq("id", song_id).execute()
+        if delete_response.data:
+            return jsonify({"message": "Song removed successfully"}), 200
+        else:
+            try:
+                supabase.table("deleted_songs").delete().eq("song_id", song["id"]).execute()
+            except Exception as cleanup_err:
+                logger.error(f"Failed to roll back tombstone for song {song['id']}: {cleanup_err}")
+            return jsonify({"error": "Failed to remove song"}), 500
