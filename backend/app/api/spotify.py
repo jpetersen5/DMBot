@@ -2,7 +2,7 @@ import time
 import requests
 from base64 import b64encode
 from datetime import datetime, UTC
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify
 from ..config import Config
 from ..types import FlaskResponse
 from ..services.supabase_service import get_supabase, rows
@@ -125,37 +125,3 @@ def get_album_art(song_id: int) -> FlaskResponse:
     }).eq("id", song_id).execute()
 
     return jsonify({"image_url": image_url})
-
-
-# DEPRECATED
-@bp.route("/api/spotify/get_access_token", methods=["GET"])
-def get_spotify_access_token() -> FlaskResponse:
-    auth_header = b64encode(f"{CLIENT_ID}:{CLIENT_SECRET}".encode()).decode()
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Authorization": f"Basic {auth_header}"
-    }
-    data = {"grant_type": "client_credentials"}
-    response = session.post(
-        "https://accounts.spotify.com/api/token",
-        headers=headers, data=data, timeout=TIMEOUT,
-    )
-    return jsonify({"access_token": response.json().get("access_token")})
-
-
-@bp.route("/api/spotify/fetch_song_data", methods=["GET"])
-def fetch_song_data() -> FlaskResponse:
-    artist = request.args.get("artist", "")
-    title = request.args.get("title", "")
-    album = request.args.get("album", "")
-    access_token = request.args.get("access_token", "")
-
-    if not access_token:
-        return jsonify({"error": "Failed to obtain Spotify access token"}), 500
-
-    try:
-        image_url = _search_album_art(access_token, artist, title, album)
-    except requests.RequestException:
-        image_url = None
-
-    return jsonify({"image_url": image_url, "genres": []})
