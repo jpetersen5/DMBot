@@ -1,3 +1,5 @@
+import json
+
 from app.utils.score_processing import (
     apply_score_to_leaderboard,
     evaluate_score_update,
@@ -167,6 +169,28 @@ def test_promotion_emitting_update_keeps_single_row_per_user():
     u1_rows = [e for e in board if e["user_id"] == "u1"]
     assert len(u1_rows) == 1
     assert u1_rows[0]["score"] == 2000
+
+
+def test_int_user_id_serializes_as_string_and_matches_existing_entry():
+    unknown = [score(2000)]
+    songs_dict = {
+        "md5": {
+            "name": "Song Name",
+            "artist": "Artist",
+            "leaderboard": [lb_entry(1000, user_id="90071992547409910")],
+        }
+    }
+    _, _, lb_updates = merge_unknown_scores(
+        unknown, songs_dict, 90071992547409910, "tester", {}
+    )
+
+    assert len(lb_updates) == 1
+    board = lb_updates[0]["leaderboard"]
+    user_rows = [e for e in board if e["user_id"] == "90071992547409910"]
+    assert len(user_rows) == 1
+    assert user_rows[0]["score"] == 2000
+    assert isinstance(user_rows[0]["user_id"], str)
+    assert '"user_id": "90071992547409910"' in json.dumps(user_rows[0])
 
 
 def test_better_existing_known_score_not_clobbered_by_worse_promotion():

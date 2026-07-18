@@ -41,7 +41,7 @@ def promote_unknown_scores(
     total_dropped = 0
 
     for index, user in enumerate(users, 1):
-        user_id = user["id"]
+        user_id = str(user["id"])
         username = user.get("username") or "Unknown User"
         unknown = user.get("unknown_scores") or []
         existing_scores = user.get("scores") or []

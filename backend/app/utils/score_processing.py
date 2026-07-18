@@ -25,13 +25,10 @@ def evaluate_score_update(
 
 
 def apply_score_to_leaderboard(
-    leaderboard: List[LeaderboardEntry], entry: Mapping[str, Any], user_id: str
+    leaderboard: List[LeaderboardEntry], entry: Mapping[str, Any], user_id: str | int
 ) -> Tuple[List[LeaderboardEntry], bool]:
-    """Fold ``entry`` for ``user_id`` into ``leaderboard``.
-
-    Returns the (possibly re-sorted) leaderboard and whether it changed. When no
-    update is warranted the input list is returned unchanged.
-    """
+    """Fold ``entry`` for ``user_id`` into ``leaderboard``."""
+    user_id = str(user_id)
     user_entry = next((e for e in leaderboard if e["user_id"] == user_id), None)
 
     should_update = evaluate_score_update(entry, user_entry)
@@ -54,7 +51,7 @@ def apply_score_to_leaderboard(
 def merge_unknown_scores(
     existing_unknown: List[Dict[str, Any]],
     songs_dict: Dict[str, Any],
-    user_id: str,
+    user_id: str | int,
     username: str,
     existing_known: Mapping[str, Any],
 ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[LeaderboardUpdate]]:
@@ -62,6 +59,7 @@ def merge_unknown_scores(
 
     Returns ``(newly_known, remaining_unknown, leaderboard_updates)``.
     """
+    user_id = str(user_id)
     newly_known: List[Dict[str, Any]] = []
     remaining_unknown: List[Dict[str, Any]] = []
     leaderboard_updates: List[LeaderboardUpdate] = []
