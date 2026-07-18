@@ -15,7 +15,6 @@ interface UnknownSongModalProps {
 
 const UnknownSongModal: React.FC<UnknownSongModalProps> = ({ show, onHide, score }) => {
   const [isUploadingCache, setIsUploadingCache] = useState(false);
-  const [isUploadingIni, setIsUploadingIni] = useState(false);
 
   const handleSongcacheUpload = async () => {
     const input = document.createElement("input");
@@ -55,45 +54,6 @@ const UnknownSongModal: React.FC<UnknownSongModalProps> = ({ show, onHide, score
     input.click();
   };
 
-  const handleSongIniUpload = async () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".ini";
-    input.onchange = async (e: Event) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("identifier", score.identifier);
-
-        try {
-          setIsUploadingIni(true);
-          const response = await fetch(`${API_URL}/api/songs/upload_ini`, {
-            method: "POST",
-            body: formData,
-            headers: {
-              "Authorization": `Bearer ${localStorage.getItem("auth_token")}`
-            }
-          });
-
-          const result = await response.json();
-
-          if (response.ok) {
-            alert(`Song.ini processed successfully. New song added to the database.`);
-            onHide();
-          } else {
-            alert(result.error || "An error occurred while processing the song.ini");
-          }
-        } catch {
-          alert("An error occurred while uploading the song.ini");
-        } finally {
-          setIsUploadingIni(false);
-        }
-      }
-    };
-    input.click();
-  };
-
   return (
     <Modal show={show} onHide={onHide} size="lg" title={score.song_name} dialogClassName="unknown-song-modal">
       <div className="unknown-song-details">
@@ -117,10 +77,6 @@ const UnknownSongModal: React.FC<UnknownSongModalProps> = ({ show, onHide, score
             {isUploadingCache ? <LoadingSpinner message="Processing..." timeout={0} /> : "Upload songcache.bin to find this song's filepath"}
           </button>
         )}
-        <button className="action-button" onClick={handleSongIniUpload} disabled={true}>
-          {isUploadingIni ? <LoadingSpinner message="Processing..." timeout={0} /> : "Know this song? Upload its song.ini!"}
-        </button>
-        <h3>NOTICE: Uploading song.ini is currently disabled while things are updated to use the new song structure.</h3>
       </div>
     </Modal>
   );
