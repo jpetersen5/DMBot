@@ -6,7 +6,7 @@ def register_cli(app: Flask) -> None:
     @app.cli.command("run-migration")
     @click.argument("name")
     def run_migration(name: str) -> None:
-        """Run a migration module by name, e.g. flask run-migration update_leaderboard_rankings"""
+        """Run a migration module by name"""
         module = importlib.import_module(f"app.migrations.{name}")
         entry = getattr(module, name, None) or getattr(module, "run", None)
         if entry is None:
