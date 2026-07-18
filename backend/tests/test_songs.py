@@ -232,6 +232,26 @@ class SelectSupabase:
         return SelectQuery(name, self.log, self.data_map)
 
 
+def test_get_song_uses_slim_columns(monkeypatch):
+    fake_sb = SelectSupabase({"songs_new": [{"id": 1, "md5": "abc"}]})
+    app = Flask(__name__)
+    app.register_blueprint(songs_module.bp)
+    monkeypatch.setattr(songs_module, "get_supabase", lambda: fake_sb)
+    client = app.test_client()
+
+    for identifier in ("1", "abcdef"):
+        r = client.get(f"/api/songs/{identifier}")
+        assert r.status_code == 200
+
+    songs_new_calls = [cols for table, cols in fake_sb.log if table == "songs_new"]
+    assert len(songs_new_calls) == 2, "expected both lookup branches to query songs_new"
+    for cols in songs_new_calls:
+        assert cols == songs_module.SLIM_SONG_COLUMNS
+        assert "leaderboard" not in cols
+        assert "note_counts" not in cols
+        assert cols != "*"
+
+
 def test_related_songs_uses_slim_columns(monkeypatch):
     fake_sb = SelectSupabase({"songs_new": [{"id": 1}]})
     app = Flask(__name__)

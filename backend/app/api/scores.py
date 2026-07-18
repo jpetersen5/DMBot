@@ -86,7 +86,7 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
         socketio.emit("score_processing_fetching_songs",
                         {"message": f"Fetching user scores for songs {i+1} - {i+len(batch)}"},
                         to=user_id)
-        batch_songs_info = rows(supabase.table("songs_new").select("*").in_("md5", batch).execute().data)
+        batch_songs_info = rows(supabase.table("songs_new").select("md5,name,artist,charter_refs,leaderboard").in_("md5", batch).execute().data)
         songs_dict.update({song["md5"]: song for song in batch_songs_info})
 
     newly_known_scores, remaining_unknown_scores, unknown_leaderboard_updates = merge_unknown_scores(

@@ -39,8 +39,8 @@ def get_user_by_id(user_id: str) -> FlaskResponse:
     """
     supabase = get_supabase()
     response = supabase.table("users").select("id, username, avatar, permissions, stats, elo").eq("id", user_id).execute()
-    elo_history = supabase.table("elo_history").select("elo, timestamp").eq("user_id", user_id).execute()
-    elo_history_data = sorted(rows(elo_history.data), key=lambda x: x["timestamp"], reverse=False) if elo_history.data else []
+    elo_history = supabase.table("elo_history").select("elo, timestamp").eq("user_id", user_id).order("timestamp", desc=False).execute()
+    elo_history_data = rows(elo_history.data) if elo_history.data else []
 
     if response.data:
         user = rows(response.data)[0]
@@ -69,23 +69,27 @@ def user_has_scores(user_id: str) -> FlaskResponse:
     has_scores = rows(result.data)[0].get("scores") is not None
     return jsonify({"has_scores": has_scores})
 
+SLIM_STAT_FIELDS = ("rank", "total_score", "total_scores", "total_fcs", "avg_percent")
+
 @bp.route("/api/all-users")
 def get_all_users() -> FlaskResponse:
     """
     retrieves list of all users in the system
-    
+
     returns:
-        JSON: list of user objects; ids, usernames, elo, and avatars
+        JSON: list of user objects; ids, usernames, elo, avatars, and slim stats
     """
     supabase = get_supabase()
     result = supabase.table("users").select("id", "username", "avatar", "stats", "elo").execute()
     users = []
     for user in rows(result.data):
+        stats = user.get("stats")
+        slim_stats = {k: stats[k] for k in SLIM_STAT_FIELDS if k in stats} if stats else stats
         users.append({
             "id": str(user["id"]),
             "username": user["username"],
             "avatar": user["avatar"],
-            "stats": user["stats"],
+            "stats": slim_stats,
             "elo": user["elo"]
         })
     return jsonify(users)

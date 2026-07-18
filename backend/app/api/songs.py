@@ -33,9 +33,9 @@ def get_song(identifier: str) -> FlaskResponse:
     supabase = get_supabase()
     
     if identifier.isdigit():
-        query = supabase.table("songs_new").select("*").eq("id", int(identifier))
+        query = supabase.table("songs_new").select(SLIM_SONG_COLUMNS).eq("id", int(identifier))
     else:
-        query = supabase.table("songs_new").select("*").eq("md5", identifier)
+        query = supabase.table("songs_new").select(SLIM_SONG_COLUMNS).eq("md5", identifier)
     result = query.execute()
 
     if not result.data:

@@ -50,7 +50,7 @@ class FakeQuery:
             ]
             return SimpleNamespace(data=projected)
         if self.table_name == "songs_new":
-            # in_ is a no-op, so return every seeded song regardless of filter
+            self.holder.songs_new_columns.append(self.columns)
             return SimpleNamespace(data=list(self.holder.songs_new))
         return SimpleNamespace(data=[])
 
@@ -103,6 +103,7 @@ def run_process(monkeypatch, existing_scores, unknown_scores=None, songs_new=Non
             "achievements": {},
         }],
         songs_new=songs_new or [],
+        songs_new_columns=[],
         leaderboard_updates=[],
         update_data=None,
     )
@@ -182,6 +183,23 @@ def test_unknown_score_promoted_when_song_now_known(monkeypatch):
     assert holder.leaderboard_updates, "expected a leaderboard write"
     leaderboard = holder.leaderboard_updates[-1]["leaderboard"]
     assert any(entry["user_id"] == "u1" for entry in leaderboard)
+
+
+def test_batch_song_fetch_uses_slim_columns(monkeypatch):
+    unknown = unknown_score("m1", 500, 100, r"C:\songs\foo\notes.chart")
+    song_row = {"md5": "m1", "name": "Foo", "artist": "Bar", "leaderboard": []}
+
+    holder, _ = run_process(
+        monkeypatch,
+        existing_scores=[],
+        unknown_scores=[unknown],
+        songs_new=[song_row],
+    )
+
+    assert holder.songs_new_columns, "expected a songs_new batch fetch"
+    for cols in holder.songs_new_columns:
+        assert cols == "md5,name,artist,charter_refs,leaderboard"
+        assert cols != "*"
 
 
 def test_unknown_score_survives_when_song_still_unknown(monkeypatch):
