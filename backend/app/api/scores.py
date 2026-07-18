@@ -53,7 +53,7 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
     leaderboard_updates = []
 
     logger.info(f"Fetching user data for user {user_id}")
-    user_data = rows(supabase.table("users").select("username, scores, achievements").eq("id", user_id).execute().data)
+    user_data = rows(supabase.table("users").select("username, scores, unknown_scores, stats, achievements").eq("id", user_id).execute().data)
     username = user_data[0]["username"] if user_data else "Unknown User"
 
     existing_scores = user_data[0].get("scores", []) if user_data else []
@@ -74,7 +74,13 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
 
     batch_size = 500
     songs_dict = {}
-    song_identifiers = [song["identifier"] for song in result["songs"]]
+    # Fetch songs for the uploaded scores as well as for any existing unknown
+    # scores, so an unknown score can be promoted as soon as its chart is added
+    # to the DB — even if the song isn't part of this particular upload.
+    unknown_identifiers = [s["identifier"] for s in existing_unknown_scores if "identifier" in s]
+    song_identifiers = list(dict.fromkeys(
+        [song["identifier"] for song in result["songs"]] + unknown_identifiers
+    ))
 
     logger.info(f"Fetching song data for {len(song_identifiers)} songs")
     for i in range(0, len(song_identifiers), batch_size):
@@ -236,11 +242,7 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
                   {"message": f"Processing achievements for user {username}"},
                   to=user_id)
     
-    user_stats_response = supabase.table("users").select("stats").eq("id", user_id).execute()
-    if user_stats_response.data and len(user_stats_response.data) > 0:
-        user_stats = rows(user_stats_response.data)[0].get("stats", {})
-    else:
-        user_stats = {}
+    user_stats = user_data[0].get("stats", {}) if user_data else {}
 
     achievement_filtered_scores = [s for s in updated_scores if s["speed"] >= 100]
 

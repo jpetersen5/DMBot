@@ -27,7 +27,11 @@ class FakeQuery:
 
     def update(self, payload):
         self.op = "update"
-        self.holder.update_data = payload
+        if self.table_name == "songs_new":
+            # leaderboard writes — keep every one, don't clobber the users update
+            self.holder.leaderboard_updates.append(payload)
+        else:
+            self.holder.update_data = payload
         return self
 
     def eq(self, *a):
@@ -40,10 +44,17 @@ class FakeQuery:
         if self.op == "update":
             return SimpleNamespace(data=[{"id": self.holder.user_id}])
         if self.table_name == "users":
-            if "stats" in self.columns:
-                return SimpleNamespace(data=[{"stats": {}}])
-            return SimpleNamespace(data=self.holder.user_rows)
-        # songs_new (or anything else) — no songs in these tests
+            # Project only the requested columns, exactly like a real select —
+            # this is what keeps a missing column from silently leaking through.
+            requested = [c.strip() for c in self.columns.split(",")]
+            projected = [
+                {k: v for k, v in row.items() if k in requested}
+                for row in self.holder.user_rows
+            ]
+            return SimpleNamespace(data=projected)
+        if self.table_name == "songs_new":
+            # in_ is a no-op, so return every seeded song regardless of filter
+            return SimpleNamespace(data=list(self.holder.songs_new))
         return SimpleNamespace(data=[])
 
 
@@ -68,7 +79,21 @@ def score(identifier: str, score_value: int, speed: int) -> dict:
     }
 
 
-def run_process(monkeypatch, existing_scores):
+def unknown_score(identifier: str, score_value: int, speed: int, filepath: str) -> dict:
+    return {
+        "identifier": identifier,
+        "song_name": f"Unknown Song: {identifier}",
+        "artist": "Unknown Artist",
+        "percent": 100.0,
+        "is_fc": False,
+        "speed": speed,
+        "score": score_value,
+        "play_count": 1,
+        "filepath": filepath,
+    }
+
+
+def run_process(monkeypatch, existing_scores, unknown_scores=None, songs_new=None):
     """Drive process_and_save_scores with no incoming songs, so the persisted
     scores are exactly the user's existing scores. Returns (holder, ach_input)."""
     holder = SimpleNamespace(
@@ -76,8 +101,12 @@ def run_process(monkeypatch, existing_scores):
         user_rows=[{
             "username": "tester",
             "scores": existing_scores,
+            "unknown_scores": unknown_scores or [],
+            "stats": {},
             "achievements": {},
         }],
+        songs_new=songs_new or [],
+        leaderboard_updates=[],
         update_data=None,
     )
 
@@ -143,3 +172,53 @@ def test_all_sub_100_scores_excluded_from_achievements(monkeypatch):
 
     assert {s["identifier"] for s in holder.update_data["scores"]} == {"x", "y", "z"}
     assert ach_input.scores == []
+
+
+def test_unknown_score_promoted_when_song_now_known(monkeypatch):
+    # A previously-unknown score whose chart has since been added to songs_new
+    # should be promoted into scores, dropped from unknown_scores, and land on
+    # the song's leaderboard — even with nothing in this upload. This is the
+    # path that was silently dead while unknown_scores was never selected.
+    unknown = unknown_score("m1", 500, 100, r"C:\songs\foo\notes.chart")
+    song_row = {"md5": "m1", "name": "Foo", "artist": "Bar", "leaderboard": []}
+
+    holder, _ = run_process(
+        monkeypatch,
+        existing_scores=[],
+        unknown_scores=[unknown],
+        songs_new=[song_row],
+    )
+
+    # promoted into the user's known scores
+    persisted = holder.update_data["scores"]
+    assert {s["identifier"] for s in persisted} == {"m1"}
+
+    # removed from unknown_scores
+    assert holder.update_data["unknown_scores"] == []
+
+    # appears on the captured leaderboard update for that song
+    assert holder.leaderboard_updates, "expected a leaderboard write"
+    leaderboard = holder.leaderboard_updates[-1]["leaderboard"]
+    assert any(entry["user_id"] == "u1" for entry in leaderboard)
+
+
+def test_unknown_score_survives_when_song_still_unknown(monkeypatch):
+    # If the chart still isn't in songs_new, the unknown score must be persisted
+    # untouched — including the filepath annotation added by upload_songcache.
+    unknown = unknown_score("m2", 500, 100, r"C:\songs\bar\notes.chart")
+
+    holder, _ = run_process(
+        monkeypatch,
+        existing_scores=[],
+        unknown_scores=[unknown],
+        songs_new=[],
+    )
+
+    # not promoted
+    assert holder.update_data["scores"] == []
+
+    # survives intact, filepath preserved
+    persisted_unknown = holder.update_data["unknown_scores"]
+    assert len(persisted_unknown) == 1
+    assert persisted_unknown[0]["identifier"] == "m2"
+    assert persisted_unknown[0]["filepath"] == r"C:\songs\bar\notes.chart"
