@@ -54,15 +54,11 @@ def test_get_all_achievements_uses_shared_singleton(monkeypatch):
 
 
 def test_both_endpoints_return_identical_definitions(monkeypatch):
-    """The /achievements and /user/<id>/achievements endpoints must expose the
-    same underlying achievement definitions (they now share one singleton)."""
     client = make_client(monkeypatch, {"users": [{"achievements": {}}]})
 
     all_defs = json.loads(client.get("/api/achievements").data)["achievements"]
     user_defs = json.loads(client.get("/api/user/123/achievements").data)["achievements"]
 
-    # the user endpoint annotates each with achieved/timestamp; strip those to
-    # compare the definition proper.
     def strip(defs):
         return [
             {k: v for k, v in d.items() if k not in ("achieved", "timestamp")}
@@ -70,7 +66,6 @@ def test_both_endpoints_return_identical_definitions(monkeypatch):
         ]
 
     assert strip(user_defs) == all_defs
-    # and the annotations are present, defaulting to unearned
     for d in user_defs:
         assert d["achieved"] is False
         assert d["timestamp"] is None

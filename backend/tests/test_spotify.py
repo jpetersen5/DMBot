@@ -218,7 +218,6 @@ def test_spotify_http_error_returns_null_no_write(monkeypatch):
 
     assert r.status_code == 200
     assert json.loads(r.data) == {"image_url": None}
-    # transient failure must NOT be cached
     assert [c.op for c in fake_sb.log] == ["select"]
 
 

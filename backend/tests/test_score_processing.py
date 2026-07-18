@@ -101,7 +101,7 @@ def test_higher_score_replaces_single_leaderboard_entry():
 def test_unknown_score_promoted_when_song_known():
     unknown = [score(1000)]  # identifier == "md5"
     songs_dict = {"md5": {"name": "Song Name", "artist": "Artist", "leaderboard": []}}
-    newly_known, remaining, lb_updates = merge_unknown_scores(unknown, songs_dict, "u1", "tester")
+    newly_known, remaining, lb_updates = merge_unknown_scores(unknown, songs_dict, "u1", "tester", {})
 
     assert remaining == []
     assert len(newly_known) == 1
@@ -110,6 +110,8 @@ def test_unknown_score_promoted_when_song_known():
     assert known["song_name"] == "Song Name"
     assert known["artist"] == "Artist"
     assert known["score"] == 1000
+    assert known["charter_refs"] == []
+    assert known["rank"] is None
 
     assert len(lb_updates) == 1
     update = lb_updates[0]
@@ -118,13 +120,87 @@ def test_unknown_score_promoted_when_song_known():
     assert any(e["user_id"] == "u1" and e["score"] == 1000 for e in update["leaderboard"])
 
 
+def test_promoted_score_carries_charter_refs():
+    unknown = [score(1000)]
+    songs_dict = {"md5": {"name": "Song Name", "artist": "Artist", "leaderboard": [], "charter_refs": [7, 9]}}
+    newly_known, _, _ = merge_unknown_scores(unknown, songs_dict, "u1", "tester", {})
+
+    assert newly_known[0]["charter_refs"] == [7, 9]
+
+
 def test_unknown_score_stays_unknown_when_song_absent():
     unknown = [score(1000)]
-    newly_known, remaining, lb_updates = merge_unknown_scores(unknown, {}, "u1", "tester")
+    newly_known, remaining, lb_updates = merge_unknown_scores(unknown, {}, "u1", "tester", {})
 
     assert newly_known == []
     assert lb_updates == []
     assert remaining == unknown
+
+
+def test_promotion_does_not_duplicate_existing_leaderboard_row():
+    unknown = [score(1000)]
+    songs_dict = {
+        "md5": {
+            "name": "Song Name",
+            "artist": "Artist",
+            "leaderboard": [lb_entry(1000, user_id="u1")],
+        }
+    }
+    _, _, lb_updates = merge_unknown_scores(unknown, songs_dict, "u1", "tester", {})
+
+    assert lb_updates == []
+
+
+def test_promotion_emitting_update_keeps_single_row_per_user():
+    unknown = [score(2000)]
+    songs_dict = {
+        "md5": {
+            "name": "Song Name",
+            "artist": "Artist",
+            "leaderboard": [lb_entry(1000, user_id="u1"), lb_entry(500, user_id="other")],
+        }
+    }
+    _, _, lb_updates = merge_unknown_scores(unknown, songs_dict, "u1", "tester", {})
+
+    assert len(lb_updates) == 1
+    board = lb_updates[0]["leaderboard"]
+    u1_rows = [e for e in board if e["user_id"] == "u1"]
+    assert len(u1_rows) == 1
+    assert u1_rows[0]["score"] == 2000
+
+
+def test_better_existing_known_score_not_clobbered_by_worse_promotion():
+    unknown = [score(500)]
+    songs_dict = {"md5": {"name": "Song Name", "artist": "Artist", "leaderboard": []}}
+    existing_known = {"md5": score(1000)}
+    newly_known, remaining, _ = merge_unknown_scores(
+        unknown, songs_dict, "u1", "tester", existing_known
+    )
+
+    assert newly_known == []
+    assert remaining == []
+
+
+def test_better_promotion_overrides_worse_existing_known_score():
+    unknown = [score(2000)]
+    songs_dict = {"md5": {"name": "Song Name", "artist": "Artist", "leaderboard": []}}
+    existing_known = {"md5": score(1000)}
+    newly_known, remaining, _ = merge_unknown_scores(
+        unknown, songs_dict, "u1", "tester", existing_known
+    )
+
+    assert len(newly_known) == 1
+    assert newly_known[0]["score"] == 2000
+    assert remaining == []
+
+
+def test_overlapping_identifier_always_removed_from_unknowns():
+    unknown = [score(1)]
+    songs_dict = {"md5": {"name": "Song Name", "artist": "Artist", "leaderboard": []}}
+    existing_known = {"md5": score(999999)}
+    _, remaining, _ = merge_unknown_scores(unknown, songs_dict, "u1", "tester", existing_known)
+
+    assert all(u["identifier"] != "md5" for u in remaining)
 
 
 # --- AchievementProcessor.build_client_achievement ---------------------------

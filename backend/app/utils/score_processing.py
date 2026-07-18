@@ -56,6 +56,7 @@ def merge_unknown_scores(
     songs_dict: Dict[str, Any],
     user_id: str,
     username: str,
+    existing_known: Mapping[str, Any],
 ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[LeaderboardUpdate]]:
     """Promote previously-unknown scores whose songs are now known.
 
@@ -66,20 +67,26 @@ def merge_unknown_scores(
     leaderboard_updates: List[LeaderboardUpdate] = []
 
     for unknown_score in existing_unknown:
-        song_info = songs_dict.get(unknown_score["identifier"])
+        identifier = unknown_score["identifier"]
+        song_info = songs_dict.get(identifier)
         if song_info:
+            now = datetime.now(UTC).isoformat()
             score_data = {
-                "identifier": unknown_score["identifier"],
+                "identifier": identifier,
                 "song_name": song_info["name"],
                 "artist": song_info["artist"],
+                "charter_refs": song_info.get("charter_refs", []),
                 "percent": unknown_score["percent"],
                 "is_fc": unknown_score["is_fc"],
                 "speed": unknown_score["speed"],
                 "score": unknown_score["score"],
                 "play_count": unknown_score["play_count"],
-                "posted": datetime.now(UTC).isoformat()
+                "posted": now,
+                "rank": None
             }
-            newly_known.append(score_data)
+            existing_known_score = existing_known.get(identifier)
+            if evaluate_score_update(score_data, existing_known_score):
+                newly_known.append(score_data)
 
             leaderboard_entry = {
                 "user_id": user_id,
@@ -89,18 +96,19 @@ def merge_unknown_scores(
                 "is_fc": unknown_score["is_fc"],
                 "speed": unknown_score["speed"],
                 "play_count": unknown_score["play_count"],
-                "posted": datetime.now(UTC).isoformat()
+                "posted": now
             }
             leaderboard = song_info.get("leaderboard", []) or []
-            leaderboard.append(leaderboard_entry)
-            leaderboard = sort_and_rank_leaderboard(leaderboard)
-
-            leaderboard_updates.append({
-                "md5": unknown_score["identifier"],
-                "name": song_info["name"],
-                "leaderboard": leaderboard,
-                "last_update": datetime.now(UTC).isoformat()
-            })
+            leaderboard, changed = apply_score_to_leaderboard(
+                leaderboard, leaderboard_entry, user_id
+            )
+            if changed:
+                leaderboard_updates.append({
+                    "md5": identifier,
+                    "name": song_info["name"],
+                    "leaderboard": leaderboard,
+                    "last_update": now
+                })
         else:
             remaining_unknown.append(unknown_score)
 

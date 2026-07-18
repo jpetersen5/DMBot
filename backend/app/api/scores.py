@@ -74,9 +74,6 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
 
     batch_size = 500
     songs_dict = {}
-    # Fetch songs for the uploaded scores as well as for any existing unknown
-    # scores, so an unknown score can be promoted as soon as its chart is added
-    # to the DB — even if the song isn't part of this particular upload.
     unknown_identifiers = [s["identifier"] for s in existing_unknown_scores if "identifier" in s]
     song_identifiers = list(dict.fromkeys(
         [song["identifier"] for song in result["songs"]] + unknown_identifiers
@@ -93,7 +90,7 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
         songs_dict.update({song["md5"]: song for song in batch_songs_info})
 
     newly_known_scores, remaining_unknown_scores, unknown_leaderboard_updates = merge_unknown_scores(
-        existing_unknown_scores, songs_dict, user_id, username
+        existing_unknown_scores, songs_dict, user_id, username, existing_scores_dict
     )
     leaderboard_updates.extend(unknown_leaderboard_updates)
 
@@ -120,14 +117,11 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
             if score["instrument"] == 9:  # drums
                 play_count = song["play_count"]
                 if song_info:
-                    # Get the user's existing score for this song, if any
                     existing_user_score = existing_scores_dict.get(song["identifier"], None)
 
-                    # Add charter refs if missing in existing score (do this early)
                     if existing_user_score and "charter_refs" not in existing_user_score:
-                        existing_user_score["charter_refs"] = song_info.get("charter_refs", []) # Use .get for safety
+                        existing_user_score["charter_refs"] = song_info.get("charter_refs", [])
 
-                    # Prepare the incoming score data
                     incoming_score_data = {
                         "identifier": song["identifier"],
                         "song_name": song_info["name"],
@@ -142,10 +136,7 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
                         "rank": None
                     }
                     
-                    # Decide if the user's personal score list needs updating
                     if evaluate_score_update(incoming_score_data, existing_user_score):
-                       # Update user's personal score list
-                       # Ensure charter_refs are preserved/added if the score is being overwritten
                        incoming_score_data["charter_refs"] = (existing_user_score.get("charter_refs") 
                                                              if existing_user_score and "charter_refs" in existing_user_score 
                                                              else song_info.get("charter_refs", []))
@@ -153,7 +144,6 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
 
                     leaderboard = song_info.get("leaderboard", []) or []
 
-                    # Use the incoming score data to create the potential leaderboard entry
                     leaderboard_entry_from_incoming = {
                         "user_id": user_id,
                         "username": username,
@@ -178,14 +168,12 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
 
                     final_user_rank_on_leaderboard = next((entry.get("rank") for entry in leaderboard if entry["user_id"] == user_id), None)
                     
-                    # Update rank in the user's personal score dict (if the entry exists)
                     if song["identifier"] in existing_scores_dict:
                          existing_scores_dict[song["identifier"]]["rank"] = final_user_rank_on_leaderboard
                          
                 else: # Song is unknown
                     existing_unknown_score = existing_unknown_scores_dict.get(song["identifier"], None)
                     
-                    # Prepare incoming score data for unknown song
                     incoming_unknown_score_data = {
                         "identifier": song["identifier"],
                         "song_name": f"Unknown Song: {song['identifier']}",
@@ -231,6 +219,10 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
         except Exception as e:
             logger.error(f"Error updating leaderboards: {str(e)}")
     
+    for identifier in list(existing_unknown_scores_dict):
+        if identifier in existing_scores_dict:
+            del existing_unknown_scores_dict[identifier]
+
     updated_scores = list(existing_scores_dict.values())
     updated_scores.sort(key=lambda x: x["score"], reverse=True)
 

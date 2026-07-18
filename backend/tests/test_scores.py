@@ -28,7 +28,6 @@ class FakeQuery:
     def update(self, payload):
         self.op = "update"
         if self.table_name == "songs_new":
-            # leaderboard writes — keep every one, don't clobber the users update
             self.holder.leaderboard_updates.append(payload)
         else:
             self.holder.update_data = payload
@@ -44,8 +43,6 @@ class FakeQuery:
         if self.op == "update":
             return SimpleNamespace(data=[{"id": self.holder.user_id}])
         if self.table_name == "users":
-            # Project only the requested columns, exactly like a real select —
-            # this is what keeps a missing column from silently leaking through.
             requested = [c.strip() for c in self.columns.split(",")]
             projected = [
                 {k: v for k, v in row.items() if k in requested}
@@ -134,35 +131,27 @@ def run_process(monkeypatch, existing_scores, unknown_scores=None, songs_new=Non
 
 
 def test_sub_100_scores_persist_but_excluded_from_achievements(monkeypatch):
-    # After sorting by score desc: A(100), B(99), C(99), D(100).
-    # B and C are consecutive sub-100 entries — the case the old
-    # remove-while-iterating loop mishandled (it skipped C).
     existing = [
         score("a", 500, 100),
-        score("b", 400, 99),
-        score("c", 300, 99),
+        score("b", 400, 90),
+        score("c", 300, 90),
         score("d", 200, 100),
     ]
     holder, ach_input = run_process(monkeypatch, existing)
 
-    # (a) ALL scores — including both sub-100 entries — survive persistence.
     persisted = holder.update_data["scores"]
     persisted_ids = {s["identifier"] for s in persisted}
     assert persisted_ids == {"a", "b", "c", "d"}
     persisted_by_id = {s["identifier"]: s for s in persisted}
-    assert persisted_by_id["b"]["speed"] == 99
-    assert persisted_by_id["c"]["speed"] == 99
+    assert persisted_by_id["b"]["speed"] == 90
+    assert persisted_by_id["c"]["speed"] == 90
 
-    # (b) Achievement processing sees only speed >= 100 scores; both
-    # consecutive sub-100 entries are excluded.
     ach_ids = {s["identifier"] for s in ach_input.scores}
     assert ach_ids == {"a", "d"}
     assert all(s["speed"] >= 100 for s in ach_input.scores)
 
 
 def test_all_sub_100_scores_excluded_from_achievements(monkeypatch):
-    # A run of three consecutive sub-100 entries: the old bug would have left
-    # the middle ones behind. None should reach achievement processing.
     existing = [
         score("x", 300, 90),
         score("y", 200, 80),
@@ -175,10 +164,6 @@ def test_all_sub_100_scores_excluded_from_achievements(monkeypatch):
 
 
 def test_unknown_score_promoted_when_song_now_known(monkeypatch):
-    # A previously-unknown score whose chart has since been added to songs_new
-    # should be promoted into scores, dropped from unknown_scores, and land on
-    # the song's leaderboard — even with nothing in this upload. This is the
-    # path that was silently dead while unknown_scores was never selected.
     unknown = unknown_score("m1", 500, 100, r"C:\songs\foo\notes.chart")
     song_row = {"md5": "m1", "name": "Foo", "artist": "Bar", "leaderboard": []}
 
@@ -189,22 +174,17 @@ def test_unknown_score_promoted_when_song_now_known(monkeypatch):
         songs_new=[song_row],
     )
 
-    # promoted into the user's known scores
     persisted = holder.update_data["scores"]
     assert {s["identifier"] for s in persisted} == {"m1"}
 
-    # removed from unknown_scores
     assert holder.update_data["unknown_scores"] == []
 
-    # appears on the captured leaderboard update for that song
     assert holder.leaderboard_updates, "expected a leaderboard write"
     leaderboard = holder.leaderboard_updates[-1]["leaderboard"]
     assert any(entry["user_id"] == "u1" for entry in leaderboard)
 
 
 def test_unknown_score_survives_when_song_still_unknown(monkeypatch):
-    # If the chart still isn't in songs_new, the unknown score must be persisted
-    # untouched — including the filepath annotation added by upload_songcache.
     unknown = unknown_score("m2", 500, 100, r"C:\songs\bar\notes.chart")
 
     holder, _ = run_process(
@@ -214,10 +194,8 @@ def test_unknown_score_survives_when_song_still_unknown(monkeypatch):
         songs_new=[],
     )
 
-    # not promoted
     assert holder.update_data["scores"] == []
 
-    # survives intact, filepath preserved
     persisted_unknown = holder.update_data["unknown_scores"]
     assert len(persisted_unknown) == 1
     assert persisted_unknown[0]["identifier"] == "m2"

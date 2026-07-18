@@ -84,7 +84,6 @@ def test_get_user_by_id_response_shape(monkeypatch):
     assert data["elo"] == 1234
     # elo history sorted ascending by timestamp
     assert [e["elo"] for e in data["elo_history"]] == [1100, 1200]
-    # the heavy blobs never leak into the response
     assert "scores" not in data
     assert "unknown_scores" not in data
 
