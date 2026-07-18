@@ -27,10 +27,10 @@ class FakeQuery:
 
     def update(self, payload):
         self.op = "update"
-        if self.table_name == "songs_new":
-            self.holder.leaderboard_updates.append(payload)
-        else:
-            self.holder.update_data = payload
+        # songs_new is no longer updated one row at a time; leaderboard writes
+        # go through the bulk_update_leaderboards rpc (see FakeRpc). Only the
+        # users profile update reaches here now.
+        self.holder.update_data = payload
         return self
 
     def eq(self, *a):
@@ -55,12 +55,32 @@ class FakeQuery:
         return SimpleNamespace(data=[])
 
 
+class FakeRpc:
+    """Stand-in for a supabase rpc() call chain."""
+
+    def __init__(self, fn_name: str, params: dict, holder: SimpleNamespace):
+        self.fn_name = fn_name
+        self.params = params
+        self.holder = holder
+
+    def execute(self):
+        self.holder.rpc_calls.append((self.fn_name, self.params))
+        if self.fn_name == "bulk_update_leaderboards":
+            chunk = self.params["updates"]
+            self.holder.leaderboard_chunks.append(chunk)
+            self.holder.leaderboard_updates.extend(chunk)
+        return SimpleNamespace(data=None)
+
+
 class FakeSupabase:
     def __init__(self, holder: SimpleNamespace):
         self.holder = holder
 
     def table(self, name: str) -> FakeQuery:
         return FakeQuery(name, self.holder)
+
+    def rpc(self, fn_name: str, params: dict) -> FakeRpc:
+        return FakeRpc(fn_name, params, self.holder)
 
 
 def score(identifier: str, score_value: int, speed: int) -> dict:
@@ -105,6 +125,8 @@ def run_process(monkeypatch, existing_scores, unknown_scores=None, songs_new=Non
         songs_new=songs_new or [],
         songs_new_columns=[],
         leaderboard_updates=[],
+        leaderboard_chunks=[],
+        rpc_calls=[],
         update_data=None,
     )
 
@@ -218,3 +240,57 @@ def test_unknown_score_survives_when_song_still_unknown(monkeypatch):
     assert len(persisted_unknown) == 1
     assert persisted_unknown[0]["identifier"] == "m2"
     assert persisted_unknown[0]["filepath"] == r"C:\songs\bar\notes.chart"
+
+
+def test_leaderboard_writes_go_through_bulk_rpc(monkeypatch):
+    """A single leaderboard change is written via the bulk rpc, not a per-row
+    songs_new update."""
+    unknown = unknown_score("m1", 500, 100, r"C:\songs\foo\notes.chart")
+    song_row = {"md5": "m1", "name": "Foo", "artist": "Bar", "leaderboard": []}
+
+    holder, _ = run_process(
+        monkeypatch,
+        existing_scores=[],
+        unknown_scores=[unknown],
+        songs_new=[song_row],
+    )
+
+    # exactly one rpc chunk, carrying only md5/leaderboard/last_update
+    assert len(holder.leaderboard_chunks) == 1
+    fn_name, params = holder.rpc_calls[0]
+    assert fn_name == "bulk_update_leaderboards"
+    entry = params["updates"][0]
+    assert entry["md5"] == "m1"
+    assert "last_update" in entry
+    assert set(entry.keys()) == {"md5", "leaderboard", "last_update"}
+
+
+def test_leaderboard_updates_are_chunked_at_100(monkeypatch):
+    """250 changed songs are flushed in chunks of at most 100 rpc calls, and
+    every song still gets written exactly once."""
+    total = 250
+    unknowns = [
+        unknown_score(f"m{i}", 500, 100, rf"C:\songs\foo{i}\notes.chart")
+        for i in range(total)
+    ]
+    song_rows = [
+        {"md5": f"m{i}", "name": f"Song {i}", "artist": "Bar", "leaderboard": []}
+        for i in range(total)
+    ]
+
+    holder, _ = run_process(
+        monkeypatch,
+        existing_scores=[],
+        unknown_scores=unknowns,
+        songs_new=song_rows,
+    )
+
+    # 250 updates -> chunks of 100, 100, 50
+    assert [len(chunk) for chunk in holder.leaderboard_chunks] == [100, 100, 50]
+    assert all(fn == "bulk_update_leaderboards" for fn, _ in holder.rpc_calls)
+    assert len(holder.rpc_calls) == 3
+
+    assert all(len(chunk) <= 100 for chunk in holder.leaderboard_chunks)
+    written_md5s = [entry["md5"] for entry in holder.leaderboard_updates]
+    assert len(written_md5s) == total
+    assert set(written_md5s) == {f"m{i}" for i in range(total)}

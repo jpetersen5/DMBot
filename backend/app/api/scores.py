@@ -199,22 +199,32 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
 
     if leaderboard_updates:
         try:
-            logger.info(f"Updating leaderboards for {len(leaderboard_updates)} songs")
+            total_updates = len(leaderboard_updates)
+            logger.info(f"Updating leaderboards for {total_updates} songs")
             socketio.emit("score_processing_uploading",
-                        {"message": f"Updating leaderboards for {len(leaderboard_updates)} songs"},
+                        {"message": f"Updating leaderboards for {total_updates} songs"},
                         to=user_id)
             socketio.sleep(1)
-            
-            for i, update in enumerate(leaderboard_updates):
-                progress = (i / len(leaderboard_updates)) * 100
+
+            chunk_size = 100
+            for i in range(0, total_updates, chunk_size):
+                chunk = leaderboard_updates[i:i + chunk_size]
+                payload = [
+                    {
+                        "md5": update["md5"],
+                        "leaderboard": update["leaderboard"],
+                        "last_update": update["last_update"],
+                    }
+                    for update in chunk
+                ]
+                supabase.rpc("bulk_update_leaderboards", {"updates": payload}).execute()
+
+                processed_updates = min(i + chunk_size, total_updates)
+                progress = (processed_updates / total_updates) * 100
                 socketio.emit("score_processing_updating_progress",
-                            {"message": f"Updating leaderboard for {i+1} / {len(leaderboard_updates)}: {update['name']}", "progress": progress},
+                            {"message": f"Updating leaderboards {processed_updates} / {total_updates}", "progress": progress},
                             to=user_id)
-                supabase.table("songs_new").update({
-                    "leaderboard": update["leaderboard"],
-                    "last_update": update["last_update"]
-                }).eq("md5", update["md5"]).execute()
-            
+
             logger.info("Leaderboard updates completed")
         except Exception as e:
             logger.error(f"Error updating leaderboards: {str(e)}")
