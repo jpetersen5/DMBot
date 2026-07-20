@@ -3,38 +3,21 @@
 
 .charter-name {
   a {
+    display: inline-block;
     text-decoration: none;
-    color: inherit;
     border: none;
-    background-color: transparent;
-    border-radius: $radius-sm;
-    padding: 2px 4px;
+    background: transparent;
+    padding: 0;
     cursor: pointer;
-    transition: background-color $transition-base;
-    transition: transform $transition-base;
+    transform-origin: center;
+    transition: color $transition-base, transform $transition-base;
 
     @include theme("color", "color-text");
 
-    &:hover {
-      @include theme("color", "color-button-text");
-      @include theme("background", "color-button-hover");
+    &:hover,
+    &:focus-visible {
+      @include theme("color", "color-highlight");
+      transform: scale(1.08);
     }
-
-    &.active {
-      @include theme("background", "color-button-hover");
-      transform: scale(0.95);
-    }
-
-    &:disabled {
-      @include theme("background", "color-button-disabled");
-      @include theme("color", "color-text-secondary");
-      cursor: not-allowed;
-    }
-  }
-}
-
-.display-badges {
-  a {
-    @include theme("background", "color-button-subtle");
   }
 }

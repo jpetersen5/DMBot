@@ -217,7 +217,7 @@ const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
   else if (label === "Charter") {
     return (
       <div className="charter info-line">
-        <CharterName names={value as string} displayBadges={true} />
+        <CharterName names={value as string} />
       </div>
     );
   }

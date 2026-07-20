@@ -6,19 +6,27 @@ import "./CharterName.scss";
 
 interface CharterNameProps {
   names: string;
-  displayBadges?: boolean;
 }
 
-// TODO: redirect to charter page on click
-const CharterName: React.FC<CharterNameProps> = memo(({ names, displayBadges = false }) => {
+const CharterName: React.FC<CharterNameProps> = memo(({ names }) => {
   const { charterCache } = useCharterData();
   const charters = names.split(",").map(name => name.trim());
 
   return (
-    <div className={`charter-name ${displayBadges ? "display-badges" : ""}`}>
+    <div className="charter-name">
       {charters.map((name, i) => {
         const charterData = charterCache[name];
-        if (!charterData) return <span key={i} dangerouslySetInnerHTML={renderSafeHTML(name)} />;
+        const separator = i < charters.length - 1 ? ", " : null;
+
+        if (!charterData) {
+          return (
+            <React.Fragment key={i}>
+              <span dangerouslySetInnerHTML={renderSafeHTML(name)} />
+              {separator}
+            </React.Fragment>
+          );
+        }
+
         const charterLink = charterData.userId ? `/user/${charterData.userId}` : `/charter/${charterData.id}`;
 
         return (
@@ -28,7 +36,7 @@ const CharterName: React.FC<CharterNameProps> = memo(({ names, displayBadges = f
               onClick={(e) => e.stopPropagation()}
               dangerouslySetInnerHTML={renderSafeHTML(charterData.name)}
             />
-            {i < charters.length - 1 && ", "}
+            {separator}
           </React.Fragment>
         );
       })}
