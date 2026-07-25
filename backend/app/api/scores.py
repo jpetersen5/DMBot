@@ -3,8 +3,9 @@ from ..services.supabase_service import get_supabase, rows
 from ..utils.helpers import allowed_file, get_process_songs_script
 from ..extensions import socketio, redis
 from datetime import datetime, UTC
+import logging
 import re
-from typing import Any, BinaryIO, Callable, Dict, Optional
+from typing import Any, BinaryIO, Callable, Dict, List, Optional
 from ..utils.achievement_processor import achievement_processor
 from ..utils.helpers import token_required
 from ..utils.score_processing import (
@@ -12,9 +13,13 @@ from ..utils.score_processing import (
     evaluate_score_update,
     merge_unknown_scores,
 )
-from ..types import FlaskResponse
+from ..utils.user_stats import compute_user_stats
+from ..types import FlaskResponse, LeaderboardUpdate
 
 bp = Blueprint("scores", __name__)
+
+LEADERBOARD_CHUNK_SIZE = 100
+STATEMENT_TIMEOUT_CODE = "57014"
 
 # parse_score_data is a proprietary parser injected into module globals at import
 # time by exec()-ing the base64 script from PROCESS_SONGS_SCRIPT (see helpers.py).
@@ -34,6 +39,66 @@ def update_processing_status(
         "processed": processed,
         "total": total
     })
+
+def _is_statement_timeout(exc: Exception) -> bool:
+    """Whether ``exc`` is a Postgres statement timeout.
+
+    postgrest surfaces the error as an ``APIError`` carrying the SQLSTATE, but
+    exposes it as either a ``.code`` attribute or a plain dict depending on version,
+    so check both rather than depending on one.
+    """
+    code = getattr(exc, "code", None)
+    if code is None and isinstance(getattr(exc, "args", None), tuple) and exc.args:
+        first = exc.args[0]
+        if isinstance(first, dict):
+            code = first.get("code")
+    return str(code) == STATEMENT_TIMEOUT_CODE
+
+def _push_leaderboard_updates(
+    supabase: Any,
+    updates: List[LeaderboardUpdate],
+    chunk_size: int,
+    logger: logging.Logger,
+    on_progress: Optional[Callable[[int], None]] = None,
+) -> List[LeaderboardUpdate]:
+    """Write ``updates`` to songs_new via the bulk_update_leaderboards RPC."""
+    failed: List[LeaderboardUpdate] = []
+
+    for i in range(0, len(updates), chunk_size):
+        chunk = updates[i:i + chunk_size]
+        payload = [
+            {
+                "md5": update["md5"],
+                "leaderboard": update["leaderboard"],
+                "last_update": update["last_update"],
+            }
+            for update in chunk
+        ]
+
+        try:
+            supabase.rpc("bulk_update_leaderboards", {"updates": payload}).execute()
+        except Exception as e:
+            if _is_statement_timeout(e) and len(chunk) > 1:
+                logger.warning(
+                    f"Leaderboard chunk of {len(chunk)} timed out, retrying in halves"
+                )
+                failed.extend(
+                    _push_leaderboard_updates(
+                        supabase, chunk, max(1, len(chunk) // 2), logger, on_progress
+                    )
+                )
+            else:
+                logger.error(
+                    f"Error updating leaderboards for {len(chunk)} song(s): {str(e)}",
+                    exc_info=True,
+                )
+                failed.extend(chunk)
+            continue
+
+        if on_progress:
+            on_progress(len(chunk))
+
+    return failed
 
 def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
     """
@@ -197,38 +262,47 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
                         {"progress": progress, "processed": processed_songs, "total": total_songs},
                         to=user_id)
 
+    failed_md5s: set[str] = set()
     if leaderboard_updates:
-        try:
-            total_updates = len(leaderboard_updates)
-            logger.info(f"Updating leaderboards for {total_updates} songs")
-            socketio.emit("score_processing_uploading",
-                        {"message": f"Updating leaderboards for {total_updates} songs"},
+        total_updates = len(leaderboard_updates)
+        logger.info(f"Updating leaderboards for {total_updates} songs")
+        socketio.emit("score_processing_uploading",
+                    {"message": f"Updating leaderboards for {total_updates} songs"},
+                    to=user_id)
+        socketio.sleep(1)
+
+        pushed = 0
+
+        def report_progress(written: int) -> None:
+            nonlocal pushed
+            pushed += written
+            socketio.emit("score_processing_updating_progress",
+                        {"message": f"Updating leaderboards {pushed} / {total_updates}",
+                         "progress": (pushed / total_updates) * 100},
                         to=user_id)
-            socketio.sleep(1)
 
-            chunk_size = 100
-            for i in range(0, total_updates, chunk_size):
-                chunk = leaderboard_updates[i:i + chunk_size]
-                payload = [
-                    {
-                        "md5": update["md5"],
-                        "leaderboard": update["leaderboard"],
-                        "last_update": update["last_update"],
-                    }
-                    for update in chunk
-                ]
-                supabase.rpc("bulk_update_leaderboards", {"updates": payload}).execute()
+        failed_updates = _push_leaderboard_updates(
+            supabase, leaderboard_updates, LEADERBOARD_CHUNK_SIZE, logger, report_progress
+        )
+        failed_md5s = {update["md5"] for update in failed_updates}
 
-                processed_updates = min(i + chunk_size, total_updates)
-                progress = (processed_updates / total_updates) * 100
-                socketio.emit("score_processing_updating_progress",
-                            {"message": f"Updating leaderboards {processed_updates} / {total_updates}", "progress": progress},
-                            to=user_id)
-
+        if failed_md5s:
+            logger.error(
+                f"Leaderboard updates incomplete: {len(failed_md5s)} of {total_updates} "
+                f"song(s) could not be written for user {user_id}"
+            )
+            socketio.emit("score_processing_warning",
+                          {"message": f"Could not update leaderboards for "
+                                      f"{len(failed_md5s)} of {total_updates} songs"},
+                          to=user_id)
+        else:
             logger.info("Leaderboard updates completed")
-        except Exception as e:
-            logger.error(f"Error updating leaderboards: {str(e)}")
-    
+
+    for identifier in failed_md5s:
+        if identifier in existing_scores_dict:
+            existing_scores_dict[identifier]["rank"] = None
+
+
     for identifier in list(existing_unknown_scores_dict):
         if identifier in existing_scores_dict:
             del existing_unknown_scores_dict[identifier]
@@ -244,7 +318,8 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
                   {"message": f"Processing achievements for user {username}"},
                   to=user_id)
     
-    user_stats = user_data[0].get("stats", {}) if user_data else {}
+    previous_stats = (user_data[0].get("stats") or {}) if user_data else {}
+    user_stats = compute_user_stats(updated_scores, updated_unknown_scores, previous_stats)
 
     achievement_filtered_scores = [s for s in updated_scores if s["speed"] >= 100]
 
@@ -274,10 +349,11 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
                 socketio.emit("new_achievement", {"achievement": client_achievement}, to=user_id)
                 logger.info(f"User {user_id} earned new achievement: {client_achievement['name']}")
 
-    update_data = {
+    update_data: Dict[str, Any] = {
         "scores": updated_scores,
         "unknown_scores": updated_unknown_scores,
-        "achievements": achievements
+        "achievements": achievements,
+        "stats": user_stats
     }
 
     logger.info(f"Updating scores and achievements for user {user_id}")
@@ -295,8 +371,16 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
                       to=user_id)
         return
 
-    final_status = "completed_with_errors" if achievement_errors else "completed"
-    final_message = "Score processing completed with some achievement errors." if achievement_errors else "Score processing completed successfully."
+    if achievement_errors and failed_md5s:
+        final_message = "Score processing completed with achievement errors and incomplete leaderboard updates."
+    elif achievement_errors:
+        final_message = "Score processing completed with some achievement errors."
+    elif failed_md5s:
+        final_message = f"Score processing completed, but {len(failed_md5s)} leaderboard(s) could not be updated."
+    else:
+        final_message = "Score processing completed successfully."
+
+    final_status = "completed_with_errors" if (achievement_errors or failed_md5s) else "completed"
 
     update_processing_status(user_id, final_status, 100, total_songs, total_songs)
     socketio.emit("score_processing_complete",

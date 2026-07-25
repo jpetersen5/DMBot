@@ -17,6 +17,7 @@ const UploadProgress: React.FC = () => {
     userId,
     resetUploadState,
     achievementErrors,
+    warnings,
     status,
     clearAllNotifications,
   } = useUploadProgress();
@@ -72,6 +73,16 @@ const UploadProgress: React.FC = () => {
         </div>
         <p>{message}</p>
         {(isUploading || isProcessing) && <progress value={progress} max="100" />}
+
+        {completed && warnings && warnings.length > 0 && (
+          <div className="upload-warnings">
+            <ul>
+              {warnings.map((warning) => (
+                <li key={warning}>⚠️ {warning}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {completed && achievementErrors && achievementErrors.length > 0 && (
           <div className="achievement-errors">

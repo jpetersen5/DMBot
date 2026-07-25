@@ -95,6 +95,27 @@
     }
   }
 
+  .upload-warnings {
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid;
+
+    @include theme("border-color", "color-border");
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+
+      li {
+        font-size: 0.8rem;
+        margin-bottom: 0.2rem;
+
+        @include theme("color", "color-warning");
+      }
+    }
+  }
+
   .achievement-errors {
     margin-top: 0.75rem;
     padding-top: 0.5rem;

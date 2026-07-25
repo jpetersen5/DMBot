@@ -109,13 +109,22 @@ class EloHistoryEntry(TypedDict):
     timestamp: str
 
 
+class UserStats(TypedDict):
+    """Aggregate of a user's scores (``users.stats``)."""
+    total_scores: int
+    total_fcs: int
+    total_score: int
+    avg_percent: float
+    rank: Optional[int]
+
+
 class UserRow(TypedDict, total=False):
     """Columns of the ``users`` table that the API reads/writes."""
     id: str
     username: str
     avatar: str
     permissions: Any
-    stats: Dict[str, Any]
+    stats: Optional[UserStats]  # SQL NULL until update_all_user_stats first runs
     elo: int
     scores: List[ScoreEntry]
     unknown_scores: List[ScoreEntry]

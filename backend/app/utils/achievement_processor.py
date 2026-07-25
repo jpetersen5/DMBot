@@ -299,8 +299,8 @@ class AchievementProcessor:
         """Check if user's total score meets threshold"""
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
-            
-        total_score = user_data.get("stats", {}).get("total_score", 0)
+
+        total_score = (user_data.get("stats") or {}).get("total_score", 0)
         return total_score >= achievement_def["threshold"]
     
     def _check_first_fc(self, user_data: Any, _achievement_def: AchievementDef) -> bool:
@@ -319,7 +319,7 @@ class AchievementProcessor:
         if isinstance(user_data, list):
             user_data = user_data[0] if user_data else {}
             
-        total_fcs = user_data.get("stats", {}).get("total_fcs", 0)
+        total_fcs = (user_data.get("stats") or {}).get("total_fcs", 0)
         return total_fcs >= achievement_def["threshold"]
     
     def _check_charter_count(self, user_data: Any, achievement_def: AchievementDef) -> bool:
@@ -358,7 +358,7 @@ class AchievementProcessor:
         count = 0
         scores = user_data.get("scores", [])
         for score in scores:
-            artist = score.get("artist", "").lower()
+            artist = (score.get("artist") or "").lower()
             if any(remix_artist.lower() in artist for remix_artist in remix_artists):
                 count += 1
         
@@ -377,10 +377,11 @@ class AchievementProcessor:
         scores = user_data.get("scores", [])
         
         for score in scores:
-            score_charter_refs = score.get("charter_refs", [])
-            score_charter_refs_lower = [charter.lower() for charter in score_charter_refs]
+            score_charter_refs = score.get("charter_refs")
             if not score_charter_refs:
                 continue
+
+            score_charter_refs_lower = [charter.lower() for charter in score_charter_refs]
 
             # Check if at least one charter ref is in the official recharts list
             # AND at least one charter ref is not in that list (meaning it's a rechart)
@@ -411,7 +412,7 @@ class AchievementProcessor:
             
         scores = user_data.get("scores", [])
         for score in scores:
-            song_name: str = score.get("song_name", "")
+            song_name: str = score.get("song_name") or ""
             if song_name.lower().find("album") != -1:
                 return True
         
@@ -424,7 +425,7 @@ class AchievementProcessor:
             
         scores = user_data.get("scores", [])
         for score in scores:
-            song_name = score.get("song_name", "")
+            song_name = score.get("song_name") or ""
             if "Discography" in song_name:
                 return True
         

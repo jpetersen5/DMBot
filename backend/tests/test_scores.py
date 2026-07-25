@@ -55,8 +55,24 @@ class FakeQuery:
         return SimpleNamespace(data=[])
 
 
+class FakeApiError(Exception):
+    """Stand-in for postgrest's APIError."""
+
+    def __init__(self, code: str, message: str = "boom"):
+        super().__init__({"message": message, "code": code, "hint": None, "details": None})
+
+
 class FakeRpc:
-    """Stand-in for a supabase rpc() call chain."""
+    """Stand-in for a supabase rpc() call chain.
+
+    Failure injection, to exercise the statement-timeout retry path:
+
+    * ``rpc_max_chunk``  -- chunks larger than this raise 57014 (timeout).
+    * ``rpc_fail_md5s``  -- any chunk containing one of these raises 57014
+      (song can't be written).
+    * ``rpc_error_md5s`` -- any chunk containing one raises a non-timeout error
+      (should not be retried).
+    """
 
     def __init__(self, fn_name: str, params: dict, holder: SimpleNamespace):
         self.fn_name = fn_name
@@ -67,6 +83,16 @@ class FakeRpc:
         self.holder.rpc_calls.append((self.fn_name, self.params))
         if self.fn_name == "bulk_update_leaderboards":
             chunk = self.params["updates"]
+            md5s = {entry["md5"] for entry in chunk}
+            self.holder.attempted_chunks.append(chunk)
+
+            if md5s & self.holder.rpc_error_md5s:
+                raise FakeApiError("42883", "function does not exist")
+            if md5s & self.holder.rpc_fail_md5s:
+                raise FakeApiError("57014", "canceling statement due to statement timeout")
+            if self.holder.rpc_max_chunk is not None and len(chunk) > self.holder.rpc_max_chunk:
+                raise FakeApiError("57014", "canceling statement due to statement timeout")
+
             self.holder.leaderboard_chunks.append(chunk)
             self.holder.leaderboard_updates.extend(chunk)
         return SimpleNamespace(data=None)
@@ -110,35 +136,66 @@ def unknown_score(identifier: str, score_value: int, speed: int, filepath: str) 
     }
 
 
-def run_process(monkeypatch, existing_scores, unknown_scores=None, songs_new=None):
-    """Drive process_and_save_scores with no incoming songs, so the persisted
-    scores are exactly the user's existing scores. Returns (holder, ach_input)."""
+def incoming_song(identifier: str, score_value: int, speed: int = 100, play_count: int = 1) -> dict:
+    """A song as it arrives from the scoredata parser (drums == instrument 9)."""
+    return {
+        "identifier": identifier,
+        "play_count": play_count,
+        "scores": [{
+            "instrument": 9,
+            "percent": 100.0,
+            "is_fc": False,
+            "speed": speed,
+            "score": score_value,
+        }],
+    }
+
+
+def run_process(
+    monkeypatch,
+    existing_scores,
+    unknown_scores=None,
+    songs_new=None,
+    songs=None,
+    stats=None,
+    achievement_errors=None,
+    rpc_max_chunk=None,
+    rpc_fail_md5s=None,
+    rpc_error_md5s=None,
+):
+    """Drive process_and_save_scores."""
     holder = SimpleNamespace(
         user_id="u1",
         user_rows=[{
             "username": "tester",
             "scores": existing_scores,
             "unknown_scores": unknown_scores or [],
-            "stats": {},
+            "stats": {} if stats is None else stats,
             "achievements": {},
         }],
         songs_new=songs_new or [],
         songs_new_columns=[],
         leaderboard_updates=[],
         leaderboard_chunks=[],
+        attempted_chunks=[],
         rpc_calls=[],
+        rpc_max_chunk=rpc_max_chunk,
+        rpc_fail_md5s=set(rpc_fail_md5s or ()),
+        rpc_error_md5s=set(rpc_error_md5s or ()),
         update_data=None,
+        socketio=MagicMock(),
     )
 
-    ach_input = SimpleNamespace(scores=None)
+    ach_input = SimpleNamespace(scores=None, stats=None)
 
     def fake_process_achievements(user_achievement_data):
-        # snapshot the scores handed to achievement processing
+        # snapshot what achievement processing was handed
         ach_input.scores = list(user_achievement_data["scores"])
-        return {}, []
+        ach_input.stats = user_achievement_data["stats"]
+        return {}, list(achievement_errors or [])
 
     monkeypatch.setattr(scores_module, "get_supabase", lambda: FakeSupabase(holder))
-    monkeypatch.setattr(scores_module, "socketio", MagicMock())
+    monkeypatch.setattr(scores_module, "socketio", holder.socketio)
     monkeypatch.setattr(scores_module, "redis", MagicMock())
     monkeypatch.setattr(
         scores_module.achievement_processor,
@@ -148,9 +205,17 @@ def run_process(monkeypatch, existing_scores, unknown_scores=None, songs_new=Non
 
     app = Flask(__name__)
     with app.app_context():
-        scores_module.process_and_save_scores({"songs": []}, "u1")
+        scores_module.process_and_save_scores({"songs": songs or []}, "u1")
 
     return holder, ach_input
+
+
+def completion_event(holder) -> dict:
+    """The payload of the terminal score_processing_complete emit."""
+    for call in holder.socketio.emit.call_args_list:
+        if call.args and call.args[0] == "score_processing_complete":
+            return call.args[1]
+    raise AssertionError("no score_processing_complete emit")
 
 
 def test_sub_100_scores_persist_but_excluded_from_achievements(monkeypatch):
@@ -294,3 +359,181 @@ def test_leaderboard_updates_are_chunked_at_100(monkeypatch):
     written_md5s = [entry["md5"] for entry in holder.leaderboard_updates]
     assert len(written_md5s) == total
     assert set(written_md5s) == {f"m{i}" for i in range(total)}
+
+
+# --- statement-timeout handling -------------------------------------------------
+
+
+def test_is_statement_timeout_reads_both_error_shapes():
+    """postgrest exposes the SQLSTATE as either an attribute or a dict in args."""
+    with_attr = Exception("boom")
+    setattr(with_attr, "code", "57014")
+
+    assert scores_module._is_statement_timeout(with_attr)
+    assert scores_module._is_statement_timeout(FakeApiError("57014"))
+    assert not scores_module._is_statement_timeout(FakeApiError("42883"))
+    assert not scores_module._is_statement_timeout(Exception("no code at all"))
+
+
+def test_timed_out_chunk_is_retried_in_halves(monkeypatch):
+    """A chunk too large for the statement timeout is subdivided until it fits,
+    so every song still lands rather than the whole chunk being dropped."""
+    total = 100
+    unknowns = [unknown_score(f"m{i}", 500, 100, rf"C:\s{i}") for i in range(total)]
+    song_rows = [
+        {"md5": f"m{i}", "name": f"Song {i}", "artist": "Bar", "leaderboard": []}
+        for i in range(total)
+    ]
+
+    holder, _ = run_process(
+        monkeypatch,
+        existing_scores=[],
+        unknown_scores=unknowns,
+        songs_new=song_rows,
+        rpc_max_chunk=25,
+    )
+
+    # 100 -> (fails) -> 50, 50 -> (each fails) -> 25 x 4
+    assert [len(chunk) for chunk in holder.leaderboard_chunks] == [25, 25, 25, 25]
+
+    written = [entry["md5"] for entry in holder.leaderboard_updates]
+    assert set(written) == {f"m{i}" for i in range(total)}
+    assert len(written) == total, "no song should be written twice"
+
+    assert completion_event(holder)["status"] == "completed"
+
+
+def test_permanently_failing_song_does_not_take_the_batch_with_it(monkeypatch):
+    """One song that times out even alone is reported, while every other song is
+    still written."""
+    total = 10
+    unknowns = [unknown_score(f"m{i}", 500, 100, rf"C:\s{i}") for i in range(total)]
+    song_rows = [
+        {"md5": f"m{i}", "name": f"Song {i}", "artist": "Bar", "leaderboard": []}
+        for i in range(total)
+    ]
+
+    holder, _ = run_process(
+        monkeypatch,
+        existing_scores=[],
+        unknown_scores=unknowns,
+        songs_new=song_rows,
+        rpc_fail_md5s={"m3"},
+    )
+
+    written = {entry["md5"] for entry in holder.leaderboard_updates}
+    assert written == {f"m{i}" for i in range(total)} - {"m3"}
+
+    event = completion_event(holder)
+    assert event["status"] == "completed_with_errors"
+    assert "1 leaderboard(s) could not be updated" in event["message"]
+
+
+def test_non_timeout_error_is_not_retried(monkeypatch):
+    """A non-57014 failure is terminal for its chunk -- halving it would just
+    repeat the same error."""
+    unknowns = [unknown_score(f"m{i}", 500, 100, rf"C:\s{i}") for i in range(4)]
+    song_rows = [
+        {"md5": f"m{i}", "name": f"Song {i}", "artist": "Bar", "leaderboard": []}
+        for i in range(4)
+    ]
+
+    holder, _ = run_process(
+        monkeypatch,
+        existing_scores=[],
+        unknown_scores=unknowns,
+        songs_new=song_rows,
+        rpc_error_md5s={"m0"},
+    )
+
+    assert len(holder.attempted_chunks) == 1, "expected no retry"
+    assert holder.leaderboard_updates == []
+    assert completion_event(holder)["status"] == "completed_with_errors"
+
+
+def test_rank_is_dropped_when_its_leaderboard_write_failed(monkeypatch):
+    """A rank computed against a leaderboard that never reached the database is
+    fiction, and must not be shown on the user's profile."""
+    song_rows = [
+        {"md5": "good", "name": "Good", "artist": "Bar", "leaderboard": []},
+        {"md5": "bad", "name": "Bad", "artist": "Bar", "leaderboard": []},
+    ]
+
+    holder, _ = run_process(
+        monkeypatch,
+        existing_scores=[],
+        songs_new=song_rows,
+        songs=[incoming_song("good", 500), incoming_song("bad", 400)],
+        rpc_fail_md5s={"bad"},
+    )
+
+    persisted = {s["identifier"]: s for s in holder.update_data["scores"]}
+    assert persisted["good"]["rank"] == 1, "written leaderboard keeps its rank"
+    assert persisted["bad"]["rank"] is None, "failed leaderboard must not keep a rank"
+
+
+def test_rank_is_kept_when_the_write_succeeds(monkeypatch):
+    """Guards the test above: the rank is only dropped because the write failed."""
+    song_rows = [{"md5": "good", "name": "Good", "artist": "Bar", "leaderboard": []}]
+
+    holder, _ = run_process(
+        monkeypatch,
+        existing_scores=[],
+        songs_new=song_rows,
+        songs=[incoming_song("good", 500)],
+    )
+
+    persisted = {s["identifier"]: s for s in holder.update_data["scores"]}
+    assert persisted["good"]["rank"] == 1
+    assert completion_event(holder)["status"] == "completed"
+
+
+def test_achievement_and_leaderboard_failures_are_both_reported(monkeypatch):
+    unknowns = [unknown_score("m0", 500, 100, r"C:\s0")]
+    song_rows = [{"md5": "m0", "name": "Song", "artist": "Bar", "leaderboard": []}]
+
+    holder, _ = run_process(
+        monkeypatch,
+        existing_scores=[],
+        unknown_scores=unknowns,
+        songs_new=song_rows,
+        achievement_errors=[{"id": "x", "name": "X", "error": "nope"}],
+        rpc_fail_md5s={"m0"},
+    )
+
+    event = completion_event(holder)
+    assert event["status"] == "completed_with_errors"
+    assert "achievement errors" in event["message"]
+    assert "leaderboard" in event["message"]
+
+
+# --- stats ----------------------------------------------------------------------
+
+
+def test_null_stats_does_not_reach_achievements(monkeypatch):
+    """users.stats is SQL NULL until update_all_user_stats first runs."""
+    holder, ach_input = run_process(
+        monkeypatch,
+        existing_scores=[score("a", 500, 100), score("b", 400, 100)],
+        stats=None,
+    )
+
+    assert ach_input.stats is not None
+    assert ach_input.stats["total_scores"] == 2
+    assert ach_input.stats["total_score"] == 900
+
+
+def test_recomputed_stats_are_persisted(monkeypatch):
+    """The profile is corrected on this upload instead of waiting for the next
+    update_all_user_stats run."""
+    holder, _ = run_process(
+        monkeypatch,
+        existing_scores=[score("a", 500, 100)],
+        unknown_scores=[unknown_score("u1", 100, 100, r"C:\x")],
+        stats={"rank": 7, "total_scores": 0, "total_fcs": 0, "total_score": 0, "avg_percent": 0},
+    )
+
+    persisted = holder.update_data["stats"]
+    assert persisted["total_scores"] == 2
+    assert persisted["total_score"] == 600
+    assert persisted["rank"] == 7

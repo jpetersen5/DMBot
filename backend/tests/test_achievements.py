@@ -69,3 +69,40 @@ def test_both_endpoints_return_identical_definitions(monkeypatch):
     for d in user_defs:
         assert d["achieved"] is False
         assert d["timestamp"] is None
+
+
+def test_null_stats_produces_no_errors():
+    achievements, errors = achievement_processor.process_achievements({
+        "id": "u1",
+        "scores": [{"identifier": "a", "score": 10, "is_fc": False, "percent": 99, "speed": 100}],
+        "unknown_scores": [],
+        "stats": None,
+        "achievements": {},
+    })
+
+    assert errors == []
+    assert "first_score" in achievements
+
+
+def test_null_stats_still_grants_threshold_achievements_at_zero():
+    """A null stats block must read as zeros, not as an error."""
+    _, errors = achievement_processor.process_achievements({
+        "id": "u1", "scores": [], "unknown_scores": [], "stats": None, "achievements": {},
+    })
+    assert errors == []
+
+
+def test_null_string_fields_in_scores_produce_no_errors():
+    """artist / song_name reach .lower() and `in`, which raise on None."""
+    _, errors = achievement_processor.process_achievements({
+        "id": "u1",
+        "scores": [{
+            "identifier": "a", "score": 10, "is_fc": False, "percent": 99, "speed": 100,
+            "artist": None, "song_name": None, "charter_refs": None,
+        }],
+        "unknown_scores": [],
+        "stats": {"total_score": 0, "total_fcs": 0},
+        "achievements": {},
+    })
+
+    assert errors == []

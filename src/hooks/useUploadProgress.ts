@@ -18,6 +18,7 @@ interface UploadProgressState {
   userId: string | null;
   newAchievements: Achievement[];
   achievementErrors: AchievementError[];
+  warnings: string[];
   status: string;
 }
 
@@ -31,6 +32,7 @@ export const useUploadProgress = () => {
     userId: localStorage.getItem("user_id"),
     newAchievements: [],
     achievementErrors: [],
+    warnings: [],
     status: "idle",
   }));
   useEffect(() => {
@@ -88,6 +90,7 @@ export const useUploadProgress = () => {
         progress: 0,
         newAchievements: [],
         achievementErrors: [],
+        warnings: [],
         status: "in_progress",
       }));
     });
@@ -123,6 +126,13 @@ export const useUploadProgress = () => {
       setState(prev => ({
         ...prev,
         newAchievements: [...prev.newAchievements, data.achievement],
+      }));
+    });
+
+    newSocket.on("score_processing_warning", (data) => {
+      setState(prev => ({
+        ...prev,
+        warnings: [...prev.warnings, data.message],
       }));
     });
 
@@ -174,6 +184,7 @@ export const useUploadProgress = () => {
       progress: 0,
       newAchievements: [],
       achievementErrors: [],
+      warnings: [],
       status: "uploading",
     }));
   }, []);
@@ -214,6 +225,7 @@ export const useUploadProgress = () => {
       ...prev,
       newAchievements: [],
       achievementErrors: [],
+      warnings: [],
     }));
   }, []);
 
