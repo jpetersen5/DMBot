@@ -1,5 +1,13 @@
 -- REFERENCE ONLY -- DO NOT RUN
 --
+-- This is a snapshot of the pre-001 production objects for migration reference.
+
+DO $$
+BEGIN
+  RAISE EXCEPTION
+    '000_baseline.sql is REFERENCE ONLY.';
+END $$;
+
 -- Indexes on songs_new
 -- CREATE UNIQUE INDEX songs_new_pkey            ON public.songs_new USING btree (id);
 -- CREATE UNIQUE INDEX songs_new_md5_key         ON public.songs_new USING btree (md5);
