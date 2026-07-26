@@ -35,10 +35,9 @@ def compute_user_stats(
     unknown_scores: Optional[Iterable[ScoreLike]],
     previous_stats: Optional[Mapping[str, Any]] = None,
 ) -> UserStats:
-    """Compute ``users.stats`` exactly as ``update_all_user_stats`` does.
+    """Compute ``users.stats`` exactly as ``compute_user_stats_jsonb`` does.
 
-    ``rank`` is an elo ranking across all users, so it cannot be derived for one
-    user in isolation; the previous value is carried forward for the RPC to correct.
+    See migration 004 for the database equivalent trigger function.
     """
     all_scores = [*(scores or []), *(unknown_scores or [])]
     total_scores = len(all_scores)

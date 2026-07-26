@@ -366,13 +366,15 @@ def test_leaderboard_updates_are_chunked_at_100(monkeypatch):
 
 def test_is_statement_timeout_reads_both_error_shapes():
     """postgrest exposes the SQLSTATE as either an attribute or a dict in args."""
+    from app.utils.leaderboard_writer import is_statement_timeout
+
     with_attr = Exception("boom")
     setattr(with_attr, "code", "57014")
 
-    assert scores_module._is_statement_timeout(with_attr)
-    assert scores_module._is_statement_timeout(FakeApiError("57014"))
-    assert not scores_module._is_statement_timeout(FakeApiError("42883"))
-    assert not scores_module._is_statement_timeout(Exception("no code at all"))
+    assert is_statement_timeout(with_attr)
+    assert is_statement_timeout(FakeApiError("57014"))
+    assert not is_statement_timeout(FakeApiError("42883"))
+    assert not is_statement_timeout(Exception("no code at all"))
 
 
 def test_timed_out_chunk_is_retried_in_halves(monkeypatch):
@@ -523,9 +525,8 @@ def test_null_stats_does_not_reach_achievements(monkeypatch):
     assert ach_input.stats["total_score"] == 900
 
 
-def test_recomputed_stats_are_persisted(monkeypatch):
-    """The profile is corrected on this upload instead of waiting for the next
-    update_all_user_stats run."""
+def test_stats_are_not_written_from_python(monkeypatch):
+    """The update_user_stats BEFORE UPDATE trigger owns the stored copy."""
     holder, _ = run_process(
         monkeypatch,
         existing_scores=[score("a", 500, 100)],
@@ -533,7 +534,19 @@ def test_recomputed_stats_are_persisted(monkeypatch):
         stats={"rank": 7, "total_scores": 0, "total_fcs": 0, "total_score": 0, "avg_percent": 0},
     )
 
-    persisted = holder.update_data["stats"]
-    assert persisted["total_scores"] == 2
-    assert persisted["total_score"] == 600
-    assert persisted["rank"] == 7
+    assert "stats" not in holder.update_data
+    assert len(holder.update_data["scores"]) == 1
+    assert len(holder.update_data["unknown_scores"]) == 1
+
+
+def test_recomputed_stats_still_reach_achievements(monkeypatch):
+    _, ach_input = run_process(
+        monkeypatch,
+        existing_scores=[score("a", 500, 100)],
+        unknown_scores=[unknown_score("u1", 100, 100, r"C:\x")],
+        stats={"rank": 7, "total_scores": 0, "total_fcs": 0, "total_score": 0, "avg_percent": 0},
+    )
+
+    assert ach_input.stats["total_scores"] == 2
+    assert ach_input.stats["total_score"] == 600
+    assert ach_input.stats["rank"] == 7

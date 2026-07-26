@@ -76,7 +76,32 @@ def test_avg_percent_is_true_division():
 
 def test_rank_is_carried_forward():
     """rank is an elo ranking across all users, so it cannot be derived for one
-    user in isolation."""
+    user in isolation. The trigger carries OLD.stats->>'rank' forward the same way."""
     assert compute_user_stats([], [], {"rank": 42})["rank"] == 42
     assert compute_user_stats([], [], {})["rank"] is None
     assert compute_user_stats([], [], None)["rank"] is None
+
+
+def test_sql_parity_contract():
+    empty = compute_user_stats([], [])
+    assert set(empty) == {"total_scores", "total_fcs", "total_score", "avg_percent", "rank"}
+    # 0, never None
+    assert empty["total_fcs"] == 0
+    assert empty["total_score"] == 0
+    assert empty["avg_percent"] == 0
+
+    # SQL: count(*)::int, sum(...)::int, sum(...)::bigint
+    populated = compute_user_stats(
+        [s(score=100, percent=90.0, is_fc=1)],
+        [s(score=50, percent=70.0, is_fc=0)],
+    )
+    assert isinstance(populated["total_scores"], int)
+    assert isinstance(populated["total_fcs"], int)
+    assert isinstance(populated["total_score"], int)
+    assert populated == {
+        "total_scores": 2,
+        "total_fcs": 1,
+        "total_score": 150,
+        "avg_percent": 80.0,
+        "rank": None,
+    }

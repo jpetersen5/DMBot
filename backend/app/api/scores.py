@@ -3,9 +3,8 @@ from ..services.supabase_service import get_supabase, rows
 from ..utils.helpers import allowed_file, get_process_songs_script
 from ..extensions import socketio, redis
 from datetime import datetime, UTC
-import logging
 import re
-from typing import Any, BinaryIO, Callable, Dict, List, Optional
+from typing import Any, BinaryIO, Callable, Dict, Optional
 from ..utils.achievement_processor import achievement_processor
 from ..utils.helpers import token_required
 from ..utils.score_processing import (
@@ -14,12 +13,13 @@ from ..utils.score_processing import (
     merge_unknown_scores,
 )
 from ..utils.user_stats import compute_user_stats
-from ..types import FlaskResponse, LeaderboardUpdate
+from ..utils.leaderboard_writer import (
+    LEADERBOARD_CHUNK_SIZE,
+    push_leaderboard_updates as _push_leaderboard_updates,
+)
+from ..types import FlaskResponse
 
 bp = Blueprint("scores", __name__)
-
-LEADERBOARD_CHUNK_SIZE = 100
-STATEMENT_TIMEOUT_CODE = "57014"
 
 # parse_score_data is a proprietary parser injected into module globals at import
 # time by exec()-ing the base64 script from PROCESS_SONGS_SCRIPT (see helpers.py).
@@ -39,66 +39,6 @@ def update_processing_status(
         "processed": processed,
         "total": total
     })
-
-def _is_statement_timeout(exc: Exception) -> bool:
-    """Whether ``exc`` is a Postgres statement timeout.
-
-    postgrest surfaces the error as an ``APIError`` carrying the SQLSTATE, but
-    exposes it as either a ``.code`` attribute or a plain dict depending on version,
-    so check both rather than depending on one.
-    """
-    code = getattr(exc, "code", None)
-    if code is None and isinstance(getattr(exc, "args", None), tuple) and exc.args:
-        first = exc.args[0]
-        if isinstance(first, dict):
-            code = first.get("code")
-    return str(code) == STATEMENT_TIMEOUT_CODE
-
-def _push_leaderboard_updates(
-    supabase: Any,
-    updates: List[LeaderboardUpdate],
-    chunk_size: int,
-    logger: logging.Logger,
-    on_progress: Optional[Callable[[int], None]] = None,
-) -> List[LeaderboardUpdate]:
-    """Write ``updates`` to songs_new via the bulk_update_leaderboards RPC."""
-    failed: List[LeaderboardUpdate] = []
-
-    for i in range(0, len(updates), chunk_size):
-        chunk = updates[i:i + chunk_size]
-        payload = [
-            {
-                "md5": update["md5"],
-                "leaderboard": update["leaderboard"],
-                "last_update": update["last_update"],
-            }
-            for update in chunk
-        ]
-
-        try:
-            supabase.rpc("bulk_update_leaderboards", {"updates": payload}).execute()
-        except Exception as e:
-            if _is_statement_timeout(e) and len(chunk) > 1:
-                logger.warning(
-                    f"Leaderboard chunk of {len(chunk)} timed out, retrying in halves"
-                )
-                failed.extend(
-                    _push_leaderboard_updates(
-                        supabase, chunk, max(1, len(chunk) // 2), logger, on_progress
-                    )
-                )
-            else:
-                logger.error(
-                    f"Error updating leaderboards for {len(chunk)} song(s): {str(e)}",
-                    exc_info=True,
-                )
-                failed.extend(chunk)
-            continue
-
-        if on_progress:
-            on_progress(len(chunk))
-
-    return failed
 
 def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
     """
@@ -353,7 +293,6 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
         "scores": updated_scores,
         "unknown_scores": updated_unknown_scores,
         "achievements": achievements,
-        "stats": user_stats
     }
 
     logger.info(f"Updating scores and achievements for user {user_id}")

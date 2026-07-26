@@ -65,12 +65,33 @@ class FakeQuery:
         return SimpleNamespace(data=[])
 
 
+class FakeRpc:
+    """Stands in for the bulk_update_leaderboards RPC."""
+
+    def __init__(self, holder: SimpleNamespace, params: dict):
+        self.holder = holder
+        self.params = params
+
+    def execute(self):
+        for update in self.params["updates"]:
+            self.holder.song_updates[update["md5"]] = {
+                "leaderboard": update["leaderboard"],
+                "last_update": update["last_update"],
+            }
+            self.holder.rpc_chunks.append(len(self.params["updates"]))
+        return SimpleNamespace(data=None)
+
+
 class FakeSupabase:
     def __init__(self, holder: SimpleNamespace):
         self.holder = holder
 
     def table(self, name: str) -> FakeQuery:
         return FakeQuery(name, self.holder)
+
+    def rpc(self, name: str, params: dict) -> FakeRpc:
+        assert name == "bulk_update_leaderboards", name
+        return FakeRpc(self.holder, params)
 
 
 def unknown(identifier: str, score_value: int, user_id: str) -> dict:
@@ -113,6 +134,7 @@ def test_promote_unknown_scores_merges_shared_song_leaderboard(monkeypatch):
         ],
         user_updates={},
         song_updates={},
+        rpc_chunks=[],
     )
 
     monkeypatch.setattr(cli_module, "get_supabase", lambda: FakeSupabase(holder))
@@ -141,6 +163,50 @@ def test_promote_unknown_scores_merges_shared_song_leaderboard(monkeypatch):
         assert payload["unknown_scores"] == []
 
 
+def test_promote_unknown_scores_batches_leaderboard_writes(monkeypatch):
+    """Leaderboards go through bulk_update_leaderboards in chunks."""
+    from app.utils.leaderboard_writer import LEADERBOARD_CHUNK_SIZE
+
+    song_count = LEADERBOARD_CHUNK_SIZE + 25
+    holder = SimpleNamespace(
+        users=[
+            {
+                "id": "u1",
+                "username": "alice",
+                "scores": [],
+                "unknown_scores": [
+                    unknown(f"m{i}", 1000 + i, "u1") for i in range(song_count)
+                ],
+            }
+        ],
+        songs=[
+            {
+                "md5": f"m{i}",
+                "name": f"Song {i}",
+                "artist": "Artist",
+                "charter_refs": [],
+                "leaderboard": [],
+            }
+            for i in range(song_count)
+        ],
+        user_updates={},
+        song_updates={},
+        rpc_chunks=[],
+    )
+
+    monkeypatch.setattr(cli_module, "get_supabase", lambda: FakeSupabase(holder))
+
+    app = Flask(__name__)
+    cli_module.register_cli(app)
+    result = app.test_cli_runner().invoke(args=["promote-unknown-scores", "--no-dry-run"])
+
+    assert result.exit_code == 0, result.output
+    assert len(holder.song_updates) == song_count
+    # every write went through the RPC, and no chunk exceeded the limit
+    assert holder.rpc_chunks
+    assert max(holder.rpc_chunks) <= LEADERBOARD_CHUNK_SIZE
+
+
 def test_promote_unknown_scores_dry_run_writes_nothing(monkeypatch):
     holder = SimpleNamespace(
         users=[
@@ -162,6 +228,7 @@ def test_promote_unknown_scores_dry_run_writes_nothing(monkeypatch):
         ],
         user_updates={},
         song_updates={},
+        rpc_chunks=[],
     )
 
     monkeypatch.setattr(cli_module, "get_supabase", lambda: FakeSupabase(holder))

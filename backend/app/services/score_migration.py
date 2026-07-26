@@ -1,8 +1,12 @@
+import logging
 from typing import Any, Callable, Dict, List
 
-from ..types import LeaderboardEntry
+from ..types import LeaderboardEntry, LeaderboardUpdate
+from ..utils.leaderboard_writer import LEADERBOARD_CHUNK_SIZE, push_leaderboard_updates
 from ..utils.score_processing import merge_unknown_scores
 from .supabase_service import rows
+
+logger = logging.getLogger(__name__)
 
 
 def promote_unknown_scores(
@@ -121,18 +125,23 @@ def promote_unknown_scores(
             log(f"  [{index}/{len(users)}] FAILED - {message}")
 
     log(f"{prefix}{len(touched_songs)} song leaderboard(s) touched")
-    if not dry_run:
-        for md5, meta in touched_songs.items():
-            try:
-                payload: Dict[str, Any] = {
-                    "leaderboard": song_leaderboards[md5],
-                    "last_update": meta["last_update"],
-                }
-                supabase.table("songs_new").update(payload).eq("md5", md5).execute()
-            except Exception as exc:  # noqa: BLE001
-                message = f"leaderboard {meta['name']} ({md5}): {exc}"
-                failures.append(message)
-                log(f"  FAILED - {message}")
+    if not dry_run and touched_songs:
+        updates: List[LeaderboardUpdate] = [
+            {
+                "md5": md5,
+                "name": meta["name"],
+                "leaderboard": song_leaderboards[md5],
+                "last_update": meta["last_update"],
+            }
+            for md5, meta in touched_songs.items()
+        ]
+        failed = push_leaderboard_updates(
+            supabase, updates, LEADERBOARD_CHUNK_SIZE, logger
+        )
+        for update in failed:
+            message = f"leaderboard {update['name']} ({update['md5']}): write failed"
+            failures.append(message)
+            log(f"  FAILED - {message}")
 
     log(
         f"{prefix if dry_run else 'Done: '}"
