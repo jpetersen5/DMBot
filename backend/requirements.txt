@@ -14,6 +14,6 @@ httpcore==1.0.9
 h2==4.3.0
 requests==2.34.2
 PyJWT==2.13.0
-gevent==26.5.0
+gevent==26.7.0
 gevent-websocket==0.10.1
 redis==8.0.1
