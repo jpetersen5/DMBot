@@ -2,6 +2,7 @@ from flask import Flask, jsonify
 from flask_compress import Compress
 from flask_cors import CORS
 from postgrest.exceptions import APIError
+import httpx
 from werkzeug.exceptions import HTTPException
 from .extensions import Session, limiter, socketio, redis, setup_logging
 from .config import Config
@@ -56,6 +57,11 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     def handle_supabase_error(e: APIError):
         app.logger.error(f"Supabase API error: {str(e)}", exc_info=True)
         return jsonify({"error": "A database error occurred"}), 502
+
+    @app.errorhandler(httpx.TransportError)
+    def handle_supabase_transport_error(e: httpx.TransportError):
+        app.logger.error(f"Supabase transport error: {type(e).__name__}: {str(e)}", exc_info=True)
+        return jsonify({"error": "The database is temporarily unreachable, please try again"}), 503
 
     @app.errorhandler(Exception)
     def handle_unexpected_error(e: Exception):
