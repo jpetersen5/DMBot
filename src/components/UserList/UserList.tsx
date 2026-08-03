@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { API_URL } from "../../App";
 import { Search } from "../Table/TableControls";
 import LoadingSpinner from "../Loading/LoadingSpinner";

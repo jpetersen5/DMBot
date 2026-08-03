@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useEffectEvent } from "react";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router";
 import { API_URL } from "../../../App";
 import SongModal from "../../SongList/SongModal";
 import { useCharterData } from "../../../context/CharterContext";

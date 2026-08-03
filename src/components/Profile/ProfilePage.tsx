@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import ScoreUpload from "./Scores/ScoreUpload";
 import UserScores from "./Scores/UserScores";
