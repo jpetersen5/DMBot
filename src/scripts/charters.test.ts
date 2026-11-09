@@ -16,6 +16,11 @@ describe("splitCharters", () => {
     expect(splitCharters("<color=#FF0000>Xane60</color> & <b>Rh</b>")).toEqual(["Xane60", "Rh"]);
   });
 
+  it("leaves no tags behind from nested markup", () => {
+    const names = splitCharters("<scr<b>ipt>Name<</b>/script>").join("");
+    expect(names).not.toMatch(/<[^>]*>/);
+  });
+
   it("does not split on delimiters inside a colour tag", () => {
     expect(splitCharters("<color=#a/b>Name</color>")).toEqual(["Name"]);
   });

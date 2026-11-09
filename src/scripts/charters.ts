@@ -1,7 +1,14 @@
 const CHAR_DELIMITERS = [",", "/", "&"];
 const MULTICHAR_DELIMITERS = [" - ", " + ", " and "];
 
-const stripTags = (text: string): string => text.replace(/<[^>]*>/g, "");
+const stripTags = (text: string): string => {
+  let previous;
+  do {
+    previous = text;
+    text = text.replace(/<[^>]*>/g, "");
+  } while (text !== previous);
+  return text;
+};
 
 export function splitCharters(charterString: string): string[] {
   const text = stripTags(charterString);
