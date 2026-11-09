@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { API_URL } from "../../App";
 import Tooltip from "../../utils/Tooltip/Tooltip";
-import { User, getUserImageSrc, getFallbackImage } from "../../utils/user";
+import { User, getUserImageSrc, getFallbackImage, hasScores } from "../../utils/user";
 import { useAuth } from "../../context/AuthContext";
 import Modal from "../ui/Modal/Modal";
 import "./UserCompareModal.scss";
@@ -41,11 +41,13 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
   const [comparisonError, setComparisonError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const filteredLeftUsers = users.filter(user =>
+  const selectableUsers = useMemo(() => users.filter(hasScores), [users]);
+
+  const filteredLeftUsers = selectableUsers.filter(user =>
     user.username.toLowerCase().includes(leftSearch.toLowerCase())
   );
 
-  const filteredRightUsers = users.filter(user =>
+  const filteredRightUsers = selectableUsers.filter(user =>
     user.username.toLowerCase().includes(rightSearch.toLowerCase())
   );
 
@@ -72,10 +74,10 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
   };
 
   const [defaultedUserId, setDefaultedUserId] = useState<string | null>(null);
-  if (currentUser && defaultedUserId !== currentUser.id) {
-    const user = users.find(user => user.id === currentUser.id);
+  if (currentUser && defaultedUserId !== currentUser.id && users.length > 0) {
+    setDefaultedUserId(currentUser.id);
+    const user = selectableUsers.find(user => user.id === currentUser.id);
     if (user) {
-      setDefaultedUserId(currentUser.id);
       setLeftDropdownOpen(false);
       setLeftUser(user);
     }
@@ -248,6 +250,9 @@ const UserCompareModal: React.FC<UserCompareModalProps> = ({ show, onHide, users
               onChange={(e) => setSearch(e.target.value)}
             />
             <div className="user-dropdown">
+              {selectableUsers.length === 0 && (
+                <div className="user-option-empty">No users with scores yet</div>
+              )}
               {filteredUsers.map(user => (
                 <div key={user.id} className="user-option" onClick={() => {
                   setUser(user);

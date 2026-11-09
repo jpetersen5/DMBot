@@ -21,6 +21,8 @@ export interface EloHistory {
   timestamp: string;
 }
 
+export const hasScores = (user: User): boolean => (user.stats?.total_scores ?? 0) > 0;
+
 const getColorFromId = (id: string): string => {
   const hash = id.split("").reduce((acc, char) => {
     acc = ((acc << 5) - acc) + char.charCodeAt(0);
