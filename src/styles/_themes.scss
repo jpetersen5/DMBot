@@ -16,6 +16,10 @@ $gold: #FFD700;
 $gold-dark-1: #D98A2E;
 $gold-dark-2: #E5A82E;
 $gold-dark-3: #F6BF00;
+$silver: #C8CCD2;
+$silver-dark: #5F6670;
+$bronze-light: #E8A86E;
+$bronze-dark: #8A4E17;
 
 // dark mode
 $dark-grey-0: #121212;
@@ -70,6 +74,9 @@ $themes: (
     color-toggle-off: $light-grey-3,
     color-toggle-on: $light-grey-1,
     color-highlight: $gold,
+    color-medal-gold: $gold,
+    color-medal-silver: $silver,
+    color-medal-bronze: $bronze-light,
     color-primary: $gold,
     color-text-success: $green,
     color-text-error: $red,
@@ -119,6 +126,9 @@ $themes: (
     color-toggle-off: $light-grey-3,
     color-toggle-on: $dark-grey-3,
     color-highlight: $gold,
+    color-medal-gold: $gold-dark-3,
+    color-medal-silver: $silver-dark,
+    color-medal-bronze: $bronze-dark,
     color-primary: $gold,
     color-text-success: $green,
     color-text-error: $red,

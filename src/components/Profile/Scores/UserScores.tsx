@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import SongModal from "../../SongList/SongModal";
 import UnknownSongModal from "./UnknownSongModal";
+import PlaceRank from "../../Extras/PlaceRank";
 import { API_URL } from "../../../App";
 import {
   Score,
@@ -9,6 +10,7 @@ import {
   UnknownScore,
   formatRank
 } from "../../../utils/score";
+import Tooltip from "../../../utils/Tooltip/Tooltip";
 import "./UserScores.scss";
 
 import { Table, Column } from "../../Table";
@@ -191,7 +193,13 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
       key: "rank",
       header: "Rank",
       className: "rank column-rank",
-      renderCell: (score) => cellRenderers.text(formatRank(score.rank)),
+      renderCell: (score) => score.rank && score.board_size
+        ? (
+          <Tooltip text={`${formatRank(score.rank)} of ${score.board_size} players on this board`}>
+            <PlaceRank rank={score.rank} boardSize={score.board_size} />
+          </Tooltip>
+        )
+        : <PlaceRank rank={score.rank} />,
       sortable: true,
       sortFn: (a, b, direction) => {
         // Handle special cases for ranks
