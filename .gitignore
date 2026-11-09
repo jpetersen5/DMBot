@@ -145,6 +145,8 @@ node_modules
 dist-ssr
 *.local
 
+.playwright-mcp/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
