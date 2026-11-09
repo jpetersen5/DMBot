@@ -232,6 +232,12 @@ class SelectSupabase:
         return SelectQuery(name, self.log, self.data_map)
 
 
+def test_slim_columns_carry_leaderboard_aggregates():
+    cols = songs_module.SLIM_SONG_COLUMNS.split(",")
+    assert "fc_count" in cols
+    assert "total_plays" in cols
+
+
 def test_get_song_uses_slim_columns(monkeypatch):
     fake_sb = SelectSupabase({"songs_new": [{"id": 1, "md5": "abc"}]})
     app = Flask(__name__)

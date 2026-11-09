@@ -145,6 +145,8 @@ node_modules
 dist-ssr
 *.local
 
+.playwright-mcp/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -162,5 +164,5 @@ dist-ssr
 # ignore data and sensitive scripts
 utils/process_songs.py
 /data
-backend/app/migrations/data
+backend/data
 backend/app/scripts/process_songs.py

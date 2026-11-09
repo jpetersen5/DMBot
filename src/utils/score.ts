@@ -9,6 +9,7 @@ export interface Score {
   identifier: string;
   play_count: number;
   posted: string;
+  board_size?: number;
 }
 
 export interface UnknownScore extends Score {
@@ -40,3 +41,13 @@ export const formatRank = (rank: number): string => {
   return `${rank}th`;
 };
 
+export const formatRankOf = (rank: number, boardSize?: number): string => {
+  const place = formatRank(rank);
+  return rank && boardSize ? `${place} / ${boardSize}` : place;
+};
+
+export type Medal = "gold" | "silver" | "bronze";
+
+const MEDALS: Medal[] = ["gold", "silver", "bronze"];
+
+export const medalForRank = (rank: number): Medal | null => MEDALS[rank - 1] ?? null;

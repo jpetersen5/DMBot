@@ -92,6 +92,12 @@
     flex-direction: row;
   }
 
+  .bpm-notice {
+    margin: 0 0 0.75rem;
+    font-size: 0.8rem;
+    @include theme("color", "color-text-secondary");
+  }
+
   table {
     td {
       padding: 0.6rem;

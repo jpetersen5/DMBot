@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import LoadingSpinner from "../../Loading/LoadingSpinner";
 import CharterStats from "./CharterStats";
 import CharterSongs from "./CharterSongs";

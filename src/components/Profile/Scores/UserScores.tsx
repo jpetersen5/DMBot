@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate, useParams } from "react-router";
 import SongModal from "../../SongList/SongModal";
 import UnknownSongModal from "./UnknownSongModal";
+import PlaceDistribution from "./PlaceDistribution";
+import PlaceRank from "../../Extras/PlaceRank";
 import { API_URL } from "../../../App";
 import {
   Score,
@@ -9,6 +11,8 @@ import {
   UnknownScore,
   formatRank
 } from "../../../utils/score";
+import { filterByBuckets, toggleBucket } from "../../../utils/placeBuckets";
+import Tooltip from "../../../utils/Tooltip/Tooltip";
 import "./UserScores.scss";
 
 import { Table, Column } from "../../Table";
@@ -37,7 +41,15 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
   const [showUnknown, setShowUnknown] = useState<boolean>(false);
 
   const [selectedUnknownScore, setSelectedUnknownScore] = useState<UnknownScore | null>(null);
+  const [placeBuckets, setPlaceBuckets] = useState<string[]>([]);
   const { selectedSong, setSelectedSong, modalLoading } = useSongModal(songId);
+
+  const baseScores = showUnknown ? scores.unknown_scores : scores.scores;
+
+  const bucketedScores = useMemo(
+    () => filterByBuckets(baseScores, placeBuckets),
+    [baseScores, placeBuckets]
+  );
 
   const {
     page,
@@ -53,7 +65,7 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
     filteredData,
     totalPages
   } = useTableData<Score | UnknownScore>({
-    data: showUnknown ? scores.unknown_scores : scores.scores,
+    data: bucketedScores,
     defaultSortKey: "posted",
     defaultSortOrder: "desc",
     defaultPerPage: 100,
@@ -95,6 +107,13 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
 
   const handleToggleUnknown = () => {
     setShowUnknown(prev => !prev);
+    setPlaceBuckets([]);
+    setPage(1);
+    setInputPage("1");
+  };
+
+  const handleToggleBucket = (bucketKey: string) => {
+    setPlaceBuckets(prev => toggleBucket(prev, bucketKey));
     setPage(1);
     setInputPage("1");
   };
@@ -191,7 +210,13 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
       key: "rank",
       header: "Rank",
       className: "rank column-rank",
-      renderCell: (score) => cellRenderers.text(formatRank(score.rank)),
+      renderCell: (score) => score.rank && score.board_size
+        ? (
+          <Tooltip text={`${formatRank(score.rank)} of ${score.board_size} players on this board`}>
+            <PlaceRank rank={score.rank} boardSize={score.board_size} />
+          </Tooltip>
+        )
+        : <PlaceRank rank={score.rank} />,
       sortable: true,
       sortFn: (a, b, direction) => {
         // Handle special cases for ranks
@@ -235,6 +260,14 @@ const UserScores: React.FC<UserScoresProps> = ({ userId }) => {
             </div>
           </div>
         </div>
+
+        {!showUnknown && (
+          <PlaceDistribution
+            scores={scores.scores}
+            selected={placeBuckets}
+            onToggle={handleToggleBucket}
+          />
+        )}
 
         <Table
           data={filteredData}

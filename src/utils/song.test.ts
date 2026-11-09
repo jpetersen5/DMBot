@@ -2,10 +2,15 @@ import { describe, it, expect } from "vitest";
 import {
   Song,
   SongDelta,
+  SONG_TABLE_HEADERS,
   mergeSongs,
   songMatchesInstrumentDifficulty,
   buildSongSearchString,
-  songSearchStringMatches
+  songSearchStringMatches,
+  getSortValues,
+  compareMissingLast,
+  formatBpmRange,
+  bpmMarkerPercent
 } from "./song";
 
 const song = (id: number, over: Partial<Song> = {}): Song => ({
@@ -23,6 +28,8 @@ const song = (id: number, over: Partial<Song> = {}): Song => ({
   song_length: null,
   charter_refs: null,
   scores_count: null,
+  fc_count: null,
+  total_plays: null,
   last_update: "2026-07-13T00:00:00+00:00",
   ...over
 });
@@ -159,5 +166,88 @@ describe("songMatchesInstrumentDifficulty", () => {
     expect(songMatchesInstrumentDifficulty(bare, ["drums"], ["expert"])).toBe(false);
     // but still selectable by instrument alone
     expect(songMatchesInstrumentDifficulty(bare, ["drums"], [])).toBe(true);
+  });
+});
+
+describe("SONG_TABLE_HEADERS", () => {
+  it("keeps the column order SongTableRow hardcodes its <td>s in", () => {
+    expect(Object.keys(SONG_TABLE_HEADERS)).toEqual([
+      "name",
+      "artist",
+      "album",
+      "year",
+      "genre",
+      "song_length",
+      "bpm_dominant",
+      "charter",
+      "scores_count",
+      "total_plays",
+      "last_update"
+    ]);
+  });
+});
+
+describe("getSortValues", () => {
+  it("sorts plays numerically, not lexically", () => {
+    const [a, b] = getSortValues(
+      song(1, { total_plays: 9 }),
+      song(2, { total_plays: 100 }),
+      "total_plays"
+    );
+    expect(a).toBe(9);
+    expect(b).toBe(100);
+    expect(Number(a) < Number(b)).toBe(true);
+  });
+
+  it("coerces a null play count to 0 rather than an empty string", () => {
+    const [a] = getSortValues(song(1), song(2), "total_plays");
+    expect(a).toBe(0);
+  });
+});
+
+describe("BPM sorting", () => {
+  it("sorts dominant BPM numerically", () => {
+    const [a, b] = getSortValues(song(1, { bpm_dominant: 95 }), song(2, { bpm_dominant: 180 }), "bpm_dominant");
+    expect(Number(a) < Number(b)).toBe(true);
+  });
+
+  it("puts songs without BPM after songs with it, whichever way the column is sorted", () => {
+    const known = song(1, { bpm_dominant: 120 });
+    const unknown = song(2, { bpm_dominant: null });
+    expect(compareMissingLast(unknown, known, "bpm_dominant")).toBe(1);
+    expect(compareMissingLast(known, unknown, "bpm_dominant")).toBe(-1);
+    expect(compareMissingLast(known, song(3, { bpm_dominant: 90 }), "bpm_dominant")).toBe(0);
+  });
+
+  it("leaves other columns alone", () => {
+    expect(compareMissingLast(song(1), song(2, { year: 2001 }), "year")).toBe(0);
+  });
+});
+
+describe("formatBpmRange", () => {
+  it("shows the tempo range", () => {
+    expect(formatBpmRange(song(1, { bpm_dominant: 145, bpm_min: 140, bpm_max: 150 }))).toBe("Min: 140 – Max: 150");
+  });
+
+  it("falls back to the dominant BPM when the range is missing", () => {
+    expect(formatBpmRange(song(1, { bpm_dominant: 128 }))).toBe("Min: 128 – Max: 128");
+  });
+
+  it("explains songs without BPM data", () => {
+    expect(formatBpmRange(song(1))).toBe("No BPM data for this chart yet");
+  });
+});
+
+describe("bpmMarkerPercent", () => {
+  it("places the dominant BPM within the range", () => {
+    expect(bpmMarkerPercent(song(1, { bpm_dominant: 150, bpm_min: 100, bpm_max: 200 }))).toBe(50);
+  });
+
+  it("centres a steady tempo", () => {
+    expect(bpmMarkerPercent(song(1, { bpm_dominant: 128, bpm_min: 128, bpm_max: 128 }))).toBe(50);
+  });
+
+  it("is null without BPM data", () => {
+    expect(bpmMarkerPercent(song(1))).toBeNull();
   });
 });

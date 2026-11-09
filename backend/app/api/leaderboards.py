@@ -21,16 +21,12 @@ def get_leaderboard(song_id: str) -> FlaskResponse:
 def get_user_scores(user_id: str) -> FlaskResponse:
     supabase = get_supabase()
 
-    query = supabase.table("users").select("scores, unknown_scores").eq("id", user_id)
-    result = query.execute()
+    result = supabase.rpc("get_user_scores", {"p_user_id": user_id}).execute()
 
     if not result.data:
         return jsonify({"error": "User not found"}), 404
 
-    user_row = rows(result.data)[0]
-    scores, unknown_scores = user_row.get("scores", []), user_row.get("unknown_scores", [])
-
-    return jsonify({"scores": scores, "unknown_scores": unknown_scores})
+    return jsonify(result.data)
 
 @bp.route("/api/user/<string:user_id>/stats", methods=["GET"])
 def get_user_stats(user_id: str) -> FlaskResponse:

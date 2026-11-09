@@ -1,0 +1,116 @@
+@use "../../../styles/themes" as *;
+@use "../../../styles/mixins" as *;
+
+.place-distribution {
+  flex-shrink: 0;
+  margin-bottom: 1rem;
+
+  .place-distribution-header {
+    margin-bottom: 0.5rem;
+
+    h3 {
+      font-size: 1rem;
+      margin: 0;
+      @include theme("color", "color-text");
+    }
+  }
+
+  .place-chips {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    padding-bottom: 0.25rem;
+    overflow-x: auto;
+    @include scrollbar(6px);
+
+    scrollbar-gutter: auto;
+  }
+
+  .place-chip {
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    min-width: 5.5rem;
+    padding: 0.35rem 0.6rem;
+    border: 1px solid;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    transition: $transition-slow;
+    @include theme("background", "color-box-secondary");
+    @include theme("border-color", "color-border");
+    @include theme("color", "color-text");
+
+    &:hover:not(:disabled) {
+      @include theme("border-color", "color-primary");
+    }
+
+    &.selected {
+      @include theme("border-color", "color-primary");
+      @include theme("background", "color-table-selected-background");
+      @include theme("color", "color-table-selected-text");
+
+      .place-chip-label {
+        color: inherit;
+      }
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.45;
+    }
+
+    .place-chip-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .place-chip-count {
+      margin-left: auto;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .place-chip-bar {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      height: 3px;
+      @include theme("background", "color-primary");
+    }
+
+    &.gold .place-chip-bar {
+      @include theme("background", "color-medal-gold");
+    }
+
+    &.silver .place-chip-bar {
+      @include theme("background", "color-medal-silver");
+    }
+
+    &.bronze .place-chip-bar {
+      @include theme("background", "color-medal-bronze");
+    }
+  }
+
+  .place-unranked {
+    margin: 0.5rem 0 0;
+    font-size: 0.8rem;
+    @include theme("color", "color-text-secondary");
+  }
+}
+
+@include mobile {
+  .place-distribution {
+    .place-chips {
+      gap: 0.35rem;
+    }
+
+    .place-chip {
+      min-width: 4.5rem;
+      padding: 0.3rem 0.45rem;
+    }
+  }
+}

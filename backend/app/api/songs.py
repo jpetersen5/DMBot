@@ -11,12 +11,10 @@ bp = Blueprint("songs", __name__)
 
 session = requests.Session()
 
-ALLOWED_FIELDS = {"name", "artist", "album", "year", "genre", "charter", "song_length", "last_update", "scores_count", "md5"}
-ALLOWED_FILTERS = {"name", "artist", "album", "genre", "charter"}
-
 SLIM_SONG_COLUMNS = (
     "id,md5,name,artist,album,track,year,genre,song_length,charter_refs,"
-    "scores_count,last_update,instruments,has_2x_kick,loading_phrase,playlist_path"
+    "scores_count,fc_count,total_plays,bpm_dominant,bpm_min,bpm_max,"
+    "last_update,instruments,has_2x_kick,loading_phrase,playlist_path"
 )
 
 @bp.route("/api/songs/<string:identifier>", methods=["GET"])

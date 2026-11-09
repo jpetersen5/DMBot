@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useEffectEvent, useMemo, useDeferredValue, useCallback } from "react";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router";
 
 import { API_URL } from "../../App";
 import {
@@ -12,6 +12,7 @@ import SongModal from "./SongModal";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import { UserAvatar } from "../UserList/UserList";
 import ScrollableTable from "../Extras/ScrollableTable";
+import Tooltip from "../../utils/Tooltip/Tooltip";
 
 import { useCharterData } from "../../context/CharterContext";
 import { useSongCache, SongCacheItem } from "../../context/SongContext";
@@ -28,9 +29,12 @@ import {
   songMatchesInstrumentDifficulty,
   getSurroundingSongIds,
   getSortValues,
+  compareMissingLast,
+  formatBpmRange,
   buildSongSearchString,
   songSearchStringMatches
 } from "../../utils/song";
+import { parseSongQuery, songMatchesBpm, hasUnscannedBpm } from "../../utils/songQuery";
 import { loadSongs, saveSongs, StoredSongs } from "../../utils/songStore";
 
 import "./SongList.scss";
@@ -306,11 +310,15 @@ const SongList: React.FC = () => {
         if (scoreDifferenceA > scoreDifferenceB) return sortOrder === "asc" ? 1 : -1;
         return 0;
       } else {
+        const missing = compareMissingLast(a, b, sortBy);
+        if (missing !== 0) return missing;
         const [aValue, bValue] = getSortValues(a, b, sortBy);
         if (aValue == null || bValue == null) return 0;
         if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
         if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
         if (secondarySortBy) {
+          const secondaryMissing = compareMissingLast(a, b, secondarySortBy);
+          if (secondaryMissing !== 0) return secondaryMissing;
           const [aSecondaryValue, bSecondaryValue] = getSortValues(a, b, secondarySortBy);
           if (aSecondaryValue == null || bSecondaryValue == null) return 0;
           if (aSecondaryValue < bSecondaryValue) return secondarySortOrder === "asc" ? -1 : 1;
@@ -329,11 +337,18 @@ const SongList: React.FC = () => {
     effectiveRightScores
   ]);
 
+  const parsedQuery = useMemo(() => parseSongQuery(deferredSearch), [deferredSearch]);
+
   const filteredAndSortedSongs = useMemo(() => {
     let filteredSongs = sortedSongs;
 
-    if (deferredSearch) {
-      const searchTermsLower = deferredSearch.toLowerCase().split(" ");
+    if (parsedQuery.bpm) {
+      const bpmQuery = parsedQuery.bpm;
+      filteredSongs = filteredSongs.filter(song => songMatchesBpm(song, bpmQuery));
+    }
+
+    const searchTermsLower = parsedQuery.terms;
+    if (searchTermsLower.length > 0) {
       filteredSongs = filteredSongs.filter(song => {
         if (filters.length === 0) {
           const searchString = songSearchStrings.get(song.id) ?? "";
@@ -371,11 +386,16 @@ const SongList: React.FC = () => {
   }, [
     sortedSongs,
     songSearchStrings,
-    deferredSearch,
+    parsedQuery,
     filters,
     selectedInstruments,
     selectedDifficulties
   ]);
+
+  const bpmDataIncomplete = useMemo(
+    () => parsedQuery.bpm != null && hasUnscannedBpm(songs),
+    [parsedQuery.bpm, songs]
+  );
 
   const paginatedSongs = useMemo(() => {
     const startIndex = (page - 1) * perPage;
@@ -471,8 +491,14 @@ const SongList: React.FC = () => {
           filters={filters}
           filterOptions={filterOptions}
           setSearch={setSearch}
-          setFilters={setFilters} />
+          setFilters={setFilters}
+          placeholder="Search songs... (try bpm:240)" />
       </div>
+      {bpmDataIncomplete && (
+        <p className="bpm-notice">
+          Some songs don't have BPM data yet and are hidden while a <code>bpm:</code> filter is active.
+        </p>
+      )}
       <ScrollableTable>
         {loading && (
           <LoadingSpinner message="Loading songs..." />
@@ -559,8 +585,12 @@ export const SongTableRow: React.FC<SongTableRowProps> = React.memo(({ song, onR
       <SongTableCell className="year" content={song.year?.toString() || "N/A"} />
       <SongTableCell className="genre" content={song.genre} />
       <SongTableCell className="song-length" content={song.song_length != null ? msToTime(song.song_length) : "??:??:??"} />
+      <td className="bpm-dominant">
+        <Tooltip text={formatBpmRange(song)}>{song.bpm_dominant ?? "N/A"}</Tooltip>
+      </td>
       <SongTableCell className="charter-refs" content={song.charter_refs ? song.charter_refs.join(", ") : "Unknown Author"} special="charter" />
       <SongTableCell className="scores-count" content={song.scores_count?.toString() || "0"} />
+      <SongTableCell className="total-plays" content={song.total_plays?.toString() || "0"} />
       <SongTableCell className="last-update" content={song.last_update} special="last_update" />
       {leftUser && rightUser && (
         <SongTableCell className="score-difference" content={scoreDifference != null ? (scoreDifference > 0 ? "+" + scoreDifference.toString() : scoreDifference.toString()) : "N/A"} special="score_difference" />

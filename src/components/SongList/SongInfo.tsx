@@ -12,6 +12,8 @@ import {
   MaxNps,
   NotesData,
   SONG_DIFFICULTIES,
+  formatBpmRange,
+  bpmMarkerPercent,
 } from "../../utils/song";
 import { fetchAlbumArt } from "../../utils/spotify";
 import "./SongInfo.scss";
@@ -63,7 +65,7 @@ const SongInfo: React.FC<SongInfoProps> = ({ song }) => {
       <SongInfoPrimary extraData={extraData} song={song} />
       <div className="song-column">
         <SongInfoDifficulties song={extraData} />
-        <SongInfoChartFeatures notesData={extraData.notesData} />
+        <SongInfoChartFeatures notesData={extraData.notesData} song={song} />
       </div>
 
       {extraData.loading_phrase &&
@@ -325,19 +327,63 @@ const SongInfoPart: React.FC<SongInfoPartProps> = ({ name, difficulty, noteCount
 
 interface SongInfoChartFeaturesProps {
   notesData: NotesData | undefined;
+  song: Song;
 }
 
-const SongInfoChartFeatures: React.FC<SongInfoChartFeaturesProps> = ({ notesData }) => {
-  if (!notesData) return null;
+const SongInfoChartFeatures: React.FC<SongInfoChartFeaturesProps> = ({ notesData, song }) => {
   return (
     <div className="chart-features">
-      <div className="feature-grid">
-        <span className={`feature ${notesData.hasSoloSections ? "active" : ""}`}>Solo</span>
-        <span className={`feature ${notesData.hasLyrics ? "active" : ""}`}>Lyrics</span>
-        <span className={`feature ${notesData.has2xKick ? "active" : ""}`}>2x Kick</span>
-        <span className={`feature ${notesData.hasFlexLanes ? "active" : ""}`}>Lanes</span>
-      </div>
+      {notesData && (
+        <div className="feature-grid">
+          <span className={`feature ${notesData.hasSoloSections ? "active" : ""}`}>Solo</span>
+          <span className={`feature ${notesData.hasLyrics ? "active" : ""}`}>Lyrics</span>
+          <span className={`feature ${notesData.has2xKick ? "active" : ""}`}>2x Kick</span>
+          <span className={`feature ${notesData.hasFlexLanes ? "active" : ""}`}>Lanes</span>
+        </div>
+      )}
+      <SongInfoTempo song={song} />
     </div>
+  );
+};
+
+const SongInfoTempo: React.FC<{ song: Song }> = ({ song }) => {
+  const marker = bpmMarkerPercent(song);
+  if (song.bpm_dominant == null || marker == null) {
+    return (
+      <Tooltip text={formatBpmRange(song)}>
+        <div className="tempo inactive">
+          <span className="tempo-value">N/A</span>
+          <span className="tempo-unit">BPM</span>
+        </div>
+      </Tooltip>
+    );
+  }
+
+  const min = song.bpm_min ?? song.bpm_dominant;
+  const max = song.bpm_max ?? song.bpm_dominant;
+  const steady = min === max;
+  const tooltip = steady
+    ? `Steady at ${song.bpm_dominant} BPM`
+    : `${song.bpm_dominant} BPM for most of the chart. ${formatBpmRange(song)}`;
+
+  return (
+    <Tooltip text={tooltip}>
+      <div className="tempo">
+        <span className="tempo-value">{song.bpm_dominant}</span>
+        <span className="tempo-unit">BPM</span>
+        {steady ? (
+          <span className="tempo-steady">Steady</span>
+        ) : (
+          <div className="tempo-range" aria-label={formatBpmRange(song)}>
+            <span>{min}</span>
+            <div className="tempo-track">
+              <span className="tempo-marker" style={{ left: `${marker}%` }} />
+            </div>
+            <span>{max}</span>
+          </div>
+        )}
+      </div>
+    </Tooltip>
   );
 };
 

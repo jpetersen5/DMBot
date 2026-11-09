@@ -288,6 +288,83 @@
   opacity: 0.5;
 }
 
+.chart-features {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+
+  > .tooltip-container {
+    display: block;
+  }
+}
+
+.tempo {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  padding: $space-sm;
+  border-radius: $radius-sm;
+  font-variant-numeric: tabular-nums;
+
+  @include theme("background", "color-box-secondary");
+
+  &.inactive {
+    opacity: 0.5;
+  }
+}
+
+.tempo-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.tempo-unit,
+.tempo-steady,
+.tempo-range {
+  font-size: 0.8rem;
+
+  @include theme("color", "color-text-secondary");
+}
+
+.tempo-steady {
+  margin-left: auto;
+}
+
+.tempo-range {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: $space-sm;
+  margin-left: $space-sm;
+}
+
+.tempo-track {
+  position: relative;
+  flex: 1;
+  height: 4px;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: $radius-round;
+    opacity: 0.35;
+
+    @include theme("background", "color-text-secondary");
+  }
+}
+
+.tempo-marker {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: $radius-round;
+  transform: translate(-50%, -50%);
+
+  @include theme("background", "color-highlight");
+}
+
 .diff-name,
 .nps-instrument,
 .note-count-instrument {

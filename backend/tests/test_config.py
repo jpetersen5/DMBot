@@ -35,3 +35,19 @@ def test_session_falls_back_to_filesystem_without_url(reload_config, monkeypatch
 
     assert cfg.Config.SESSION_TYPE == "filesystem"
     assert not hasattr(cfg.Config, "SESSION_REDIS")
+
+
+def test_service_key_prefers_new_secret_key(reload_config, monkeypatch):
+    monkeypatch.setenv("SUPABASE_SECRET_KEY", "sb_secret_new")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "legacy")
+    cfg = reload_config()
+
+    assert cfg.Config.SUPABASE_SERVICE_KEY == "sb_secret_new"
+
+
+def test_service_key_falls_back_to_legacy_service_role(reload_config, monkeypatch):
+    monkeypatch.delenv("SUPABASE_SECRET_KEY", raising=False)
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "legacy")
+    cfg = reload_config()
+
+    assert cfg.Config.SUPABASE_SERVICE_KEY == "legacy"

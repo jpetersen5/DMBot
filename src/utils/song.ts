@@ -17,6 +17,11 @@ export interface Song {
   charter_refs: string[] | null;
   leaderboard?: LeaderboardEntry[] | null;
   scores_count: number | null;
+  fc_count: number | null;
+  total_plays: number | null;
+  bpm_dominant?: number | null;
+  bpm_min?: number | null;
+  bpm_max?: number | null;
   last_update: string;
 }
 
@@ -150,8 +155,10 @@ export const SONG_TABLE_HEADERS = {
   year: "Year",
   genre: "Genre",
   song_length: "Length",
+  bpm_dominant: "BPM",
   charter: "Charter",
   scores_count: "Scores",
+  total_plays: "Plays",
   last_update: "Last Update",
 };
 
@@ -222,7 +229,14 @@ export const getSurroundingSongIds = (songs: Song[], currentSongId: string) => {
 export const getSortValues = (a: Song, b: Song, sortKey: string) => {
   let aValue = a[sortKey as keyof Song];
   let bValue = b[sortKey as keyof Song];
-  if (sortKey === "year" || sortKey === "song_length" || sortKey === "scores_count") {
+  if (
+    sortKey === "year" ||
+    sortKey === "song_length" ||
+    sortKey === "scores_count" ||
+    sortKey === "total_plays" ||
+    sortKey === "fc_count" ||
+    sortKey === "bpm_dominant"
+  ) {
     aValue = aValue ? parseInt(aValue.toString()) : 0;
     bValue = bValue ? parseInt(bValue.toString()) : 0;
   } else {
@@ -230,4 +244,31 @@ export const getSortValues = (a: Song, b: Song, sortKey: string) => {
     bValue = bValue ? bValue.toString().toLowerCase() : "";
   }
   return [aValue, bValue];
+};
+
+/** columns where a missing value means "not known yet" rather than zero */
+const MISSING_LAST_KEYS = new Set(["bpm_dominant"]);
+
+/** sorts unknown values after known ones regardless of sort direction; 0 when both or neither are known */
+export const compareMissingLast = (a: Song, b: Song, sortKey: string): number => {
+  if (!MISSING_LAST_KEYS.has(sortKey)) return 0;
+  const aMissing = a[sortKey as keyof Song] == null;
+  const bMissing = b[sortKey as keyof Song] == null;
+  return Number(aMissing) - Number(bMissing);
+};
+
+type BpmFields = Pick<Song, "bpm_dominant" | "bpm_min" | "bpm_max">;
+
+export const formatBpmRange = (song: BpmFields): string => {
+  if (song.bpm_dominant == null) return "No BPM data for this chart yet";
+  return `Min: ${song.bpm_min ?? song.bpm_dominant} – Max: ${song.bpm_max ?? song.bpm_dominant}`;
+};
+
+/** where the dominant BPM sits between min and max, as a percentage for the range bar */
+export const bpmMarkerPercent = (song: BpmFields): number | null => {
+  if (song.bpm_dominant == null) return null;
+  const min = song.bpm_min ?? song.bpm_dominant;
+  const max = song.bpm_max ?? song.bpm_dominant;
+  if (max <= min) return 50;
+  return Math.min(100, Math.max(0, ((song.bpm_dominant - min) / (max - min)) * 100));
 };
