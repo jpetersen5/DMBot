@@ -12,6 +12,7 @@ import SongModal from "./SongModal";
 import LoadingSpinner from "../Loading/LoadingSpinner";
 import { UserAvatar } from "../UserList/UserList";
 import ScrollableTable from "../Extras/ScrollableTable";
+import Tooltip from "../../utils/Tooltip/Tooltip";
 
 import { useCharterData } from "../../context/CharterContext";
 import { useSongCache, SongCacheItem } from "../../context/SongContext";
@@ -28,6 +29,8 @@ import {
   songMatchesInstrumentDifficulty,
   getSurroundingSongIds,
   getSortValues,
+  compareMissingLast,
+  formatBpmRange,
   buildSongSearchString,
   songSearchStringMatches
 } from "../../utils/song";
@@ -307,11 +310,15 @@ const SongList: React.FC = () => {
         if (scoreDifferenceA > scoreDifferenceB) return sortOrder === "asc" ? 1 : -1;
         return 0;
       } else {
+        const missing = compareMissingLast(a, b, sortBy);
+        if (missing !== 0) return missing;
         const [aValue, bValue] = getSortValues(a, b, sortBy);
         if (aValue == null || bValue == null) return 0;
         if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
         if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
         if (secondarySortBy) {
+          const secondaryMissing = compareMissingLast(a, b, secondarySortBy);
+          if (secondaryMissing !== 0) return secondaryMissing;
           const [aSecondaryValue, bSecondaryValue] = getSortValues(a, b, secondarySortBy);
           if (aSecondaryValue == null || bSecondaryValue == null) return 0;
           if (aSecondaryValue < bSecondaryValue) return secondarySortOrder === "asc" ? -1 : 1;
@@ -578,6 +585,9 @@ export const SongTableRow: React.FC<SongTableRowProps> = React.memo(({ song, onR
       <SongTableCell className="year" content={song.year?.toString() || "N/A"} />
       <SongTableCell className="genre" content={song.genre} />
       <SongTableCell className="song-length" content={song.song_length != null ? msToTime(song.song_length) : "??:??:??"} />
+      <td className="bpm-dominant">
+        <Tooltip text={formatBpmRange(song)}>{song.bpm_dominant ?? "N/A"}</Tooltip>
+      </td>
       <SongTableCell className="charter-refs" content={song.charter_refs ? song.charter_refs.join(", ") : "Unknown Author"} special="charter" />
       <SongTableCell className="scores-count" content={song.scores_count?.toString() || "0"} />
       <SongTableCell className="total-plays" content={song.total_plays?.toString() || "0"} />

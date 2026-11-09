@@ -106,6 +106,7 @@ table {
     &.year,
     &.scores-count,
     &.total-plays,
+    &.bpm-dominant,
     &.song-length {
       text-align: right;
     }
@@ -229,6 +230,7 @@ table {
 
       &.scores-count,
       &.total-plays,
+      &.bpm-dominant,
       &.length {
         max-width: 70px;
       }
@@ -294,7 +296,8 @@ table {
       }
 
       &.scores-count,
-      &.total-plays {
+      &.total-plays,
+      &.bpm-dominant {
         width: 72px;
         white-space: nowrap;
       }
