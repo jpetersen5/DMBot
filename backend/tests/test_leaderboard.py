@@ -44,7 +44,7 @@ def test_full_ordering_score_then_speed_then_posted():
         entry(999999, speed=50, user_id="sub100"),
     ])
     assert [e["user_id"] for e in lb] == ["top", "fast", "tie_early", "tie_late", "sub100"]
-    assert [e.get("rank") for e in lb] == [1, 2, 3, 4, 5]
+    assert [e.get("rank") for e in lb] == [1, 2, 3, 3, 5]
 
 def test_earlier_post_wins_score_tie():
     lb = sort_and_rank_leaderboard([
@@ -56,3 +56,29 @@ def test_earlier_post_wins_score_tie():
 def test_malformed_posted_date_does_not_crash():
     lb = sort_and_rank_leaderboard([entry(500, posted="not-a-date"), entry(400)])
     assert len(lb) == 2
+
+def test_ties_share_a_place_and_skip_the_next():
+    scores = [123000, 123000, 120000, 120000, 120000, 115000]
+    lb = sort_and_rank_leaderboard([entry(s, user_id=str(i)) for i, s in enumerate(scores)])
+    assert [e.get("rank") for e in lb] == [1, 1, 3, 3, 3, 6]
+
+def test_resubmitting_a_tying_score_keeps_the_shared_place():
+    lb = sort_and_rank_leaderboard([
+        entry(500, posted="2025-06-01T00:00:00+00:00", user_id="resubmitted"),
+        entry(500, posted="2025-01-01T00:00:00+00:00", user_id="first"),
+    ])
+    assert [e["user_id"] for e in lb] == ["first", "resubmitted"]
+    assert [e.get("rank") for e in lb] == [1, 1]
+
+def test_same_score_different_speed_does_not_tie():
+    lb = sort_and_rank_leaderboard([entry(500, speed=100, user_id="slow"), entry(500, speed=150, user_id="fast")])
+    assert [e.get("rank") for e in lb] == [1, 2]
+
+def test_sub_100_speed_ties_rank_below_full_speed():
+    lb = sort_and_rank_leaderboard([
+        entry(900, speed=90, user_id="a"),
+        entry(1000, speed=100, user_id="top"),
+        entry(900, speed=90, user_id="b"),
+    ])
+    assert lb[0]["user_id"] == "top"
+    assert [e.get("rank") for e in lb] == [1, 2, 2]

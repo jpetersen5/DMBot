@@ -34,7 +34,13 @@ def sort_and_rank_leaderboard(leaderboard: List[LeaderboardEntry]) -> List[Leade
 
     sorted_leaderboard = sorted(leaderboard, key=sort_key, reverse=True)
 
-    for i, entry in enumerate(sorted_leaderboard, 1):
-        entry["rank"] = i
+    # posted only orders ties for display, it never decides the placement
+    previous_key = None
+    rank = 0
+    for position, entry in enumerate(sorted_leaderboard, 1):
+        key = sort_key(entry)[:3]
+        if key != previous_key:
+            previous_key, rank = key, position
+        entry["rank"] = rank
 
     return sorted_leaderboard
