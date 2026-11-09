@@ -21,7 +21,7 @@ function cleanUpSongsData(songs: ScannedChartExtra[]): { cleanedSongs: ScannedCh
             playlistPathMap[song.md5] = new Set<string>();
         }
         md5Groups[song.md5].push(song);
-        
+
         // Store the playlist path if it exists
         if (song.playlistPath) {
             playlistPathMap[song.md5].add(song.playlistPath);
@@ -35,44 +35,44 @@ function cleanUpSongsData(songs: ScannedChartExtra[]): { cleanedSongs: ScannedCh
             cleanedSongs.push(group[0]);
         } else {
             // Sort songs by name length (descending)
-            const sortedSongs = [...group].sort((a, b) => 
+            const sortedSongs = [...group].sort((a, b) =>
                 ((b.name?.length || 0) - (a.name?.length || 0))
             );
-            
+
             // Keep track of songs we've decided to keep
             const songsToKeep = new Set<ScannedChartExtra>();
-            
+
             // For each song, check if it's a distinct song or a variant of one we've seen
             for (let i = 0; i < sortedSongs.length; i++) {
                 const currentSong = sortedSongs[i];
                 let isDuplicate = false;
-                
+
                 // Check against songs we've already decided to keep
                 for (const keptSong of songsToKeep) {
                     // If one name is a substring of the other, consider it a duplicate
                     const currentName = (currentSong.name || "").toLowerCase();
                     const keptName = (keptSong.name || "").toLowerCase();
-                    
+
                     // Don't consider it a duplicate if they're exactly the same name
                     // This handles the case where two songs with identical names might be different songs
-                    if (currentName !== keptName && 
-                       (currentName.includes(keptName) || keptName.includes(currentName))) {
+                    if (currentName !== keptName &&
+                        (currentName.includes(keptName) || keptName.includes(currentName))) {
                         isDuplicate = true;
                         deletedSongs.push(currentSong);
                         break;
                     }
                 }
-                
+
                 if (!isDuplicate) {
                     songsToKeep.add(currentSong);
                     cleanedSongs.push(currentSong);
                 }
             }
-            
+
             logging.info(`Found ${songsToKeep.size} distinct songs in group of ${group.length} with same MD5`);
         }
     }
-    
+
     // After identifying all the songs to keep, combine all playlist paths for each MD5
     for (const song of cleanedSongs) {
         if (playlistPathMap[song.md5] && playlistPathMap[song.md5].size > 0) {
@@ -197,9 +197,9 @@ async function processSongs(basePath: string, binaryFilePath: string, outputFile
     const maxPathLength = process.stdout.columns - 40;
     const binaryFileContent = fs.readFileSync(binaryFilePath);
     const assignedMd5s = new Map<string, string>(); // Map from path to MD5
-    
+
     // Group song paths by parent directory
-    const songPathsByParent: {[key: string]: string[]} = {};
+    const songPathsByParent: { [key: string]: string[] } = {};
     for (const path of songPaths) {
         const parentDir = path.split("\\").slice(0, -1).join("\\");
         if (!songPathsByParent[parentDir]) {
@@ -207,16 +207,16 @@ async function processSongs(basePath: string, binaryFilePath: string, outputFile
         }
         songPathsByParent[parentDir].push(path);
     }
-    
+
     // Process songs by directory, sorting paths by length (longest first)
     let processedSongs = 0;
     const totalSongs = songPaths.length;
-    
+
     for (const parentDir of Object.keys(songPathsByParent)) {
         // Sort paths by length (longest first) to process more specific paths first
         const sortedPaths = songPathsByParent[parentDir].sort((a, b) => b.length - a.length);
         const dirMd5s = new Set<string>(); // Track MD5s used in this directory
-        
+
         for (const path of sortedPaths) {
             processedSongs++;
             let displayDir = path;
@@ -224,7 +224,7 @@ async function processSongs(basePath: string, binaryFilePath: string, outputFile
                 displayDir = "..." + path.slice(-maxPathLength);
             }
             process.stdout.write(`\rProcessing song ${processedSongs} of ${totalSongs}: ${displayDir}`);
-            
+
             try {
                 const files = fs.readdirSync(path).map(file => ({
                     fileName: file,
@@ -243,7 +243,7 @@ async function processSongs(basePath: string, binaryFilePath: string, outputFile
                 if (scannedChartExtra.charter) {
                     scannedChartExtra.charter = splitCharters(scannedChartExtra.charter).join(",");
                 }
-                
+
                 // Find MD5, skipping any that are already used in this directory
                 // This prevents incorrect assignment when similar paths exist
                 const md5 = findMd5ForPath(binaryFileContent, path, dirMd5s);
@@ -260,7 +260,7 @@ async function processSongs(basePath: string, binaryFilePath: string, outputFile
             }
         }
     }
-    
+
     process.stdout.write("\n");
     const { cleanedSongs, deletedSongs } = cleanUpSongsData(songs);
 
