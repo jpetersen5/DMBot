@@ -13,6 +13,7 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:styles": "stylelint \"src/**/*.scss\"",
     "test": "vitest run",
+    "scan:songs": "node --disable-warning=ExperimentalWarning src/scripts/scan_songs.ts",
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"

@@ -162,5 +162,5 @@ dist-ssr
 # ignore data and sensitive scripts
 utils/process_songs.py
 /data
-backend/app/migrations/data
+backend/data
 backend/app/scripts/process_songs.py
