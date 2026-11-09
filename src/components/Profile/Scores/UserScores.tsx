@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router";
 import SongModal from "../../SongList/SongModal";
 import UnknownSongModal from "./UnknownSongModal";
 import { API_URL } from "../../../App";

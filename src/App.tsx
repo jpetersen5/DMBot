@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router";
 import Homepage from "./components/Homepage";
 import ProfilePage from "./components/Profile/ProfilePage";
 import CharterPage from "./components/Profile/Charter/CharterPage";

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router";
 import UploadProgress from "./UploadProgress";
 import ThemeModal from "./Themes/ThemeModal";
 import ReleaseNotesModal from "./ReleaseNotes/ReleaseNotesModal";
