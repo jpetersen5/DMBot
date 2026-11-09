@@ -36,4 +36,5 @@ jobs:
       - run: npm ci
       - run: npx tsc -b
       - run: npm run lint
+      - run: npm test
       - run: npm run build
