@@ -124,6 +124,39 @@ $screen-mobile-max: 768px;
   }
 }
 
+@mixin tabbed-panel {
+  .profile-tabs {
+    display: flex;
+    border-bottom: 2px solid;
+    @include theme("border-color", "color-border");
+
+    .tab-button {
+      padding: 1rem 1.5rem;
+      font-size: 1rem;
+      font-weight: bold;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: background-color $transition-base ease;
+      @include theme("color", "color-text");
+
+      &:hover {
+        @include theme("background", "color-box-secondary");
+      }
+
+      &.active {
+        border-bottom: 3px solid;
+        @include theme("border-color", "color-text");
+        @include theme("background", "color-box-secondary");
+      }
+    }
+  }
+
+  .tab-content {
+    padding: 0;
+  }
+}
+
 @mixin mobile {
   @media (max-width: #{$screen-mobile-max - 1}) {
     @content;
