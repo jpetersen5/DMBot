@@ -2,10 +2,12 @@ import { describe, it, expect } from "vitest";
 import {
   Song,
   SongDelta,
+  SONG_TABLE_HEADERS,
   mergeSongs,
   songMatchesInstrumentDifficulty,
   buildSongSearchString,
-  songSearchStringMatches
+  songSearchStringMatches,
+  getSortValues
 } from "./song";
 
 const song = (id: number, over: Partial<Song> = {}): Song => ({
@@ -23,6 +25,8 @@ const song = (id: number, over: Partial<Song> = {}): Song => ({
   song_length: null,
   charter_refs: null,
   scores_count: null,
+  fc_count: null,
+  total_plays: null,
   last_update: "2026-07-13T00:00:00+00:00",
   ...over
 });
@@ -159,5 +163,40 @@ describe("songMatchesInstrumentDifficulty", () => {
     expect(songMatchesInstrumentDifficulty(bare, ["drums"], ["expert"])).toBe(false);
     // but still selectable by instrument alone
     expect(songMatchesInstrumentDifficulty(bare, ["drums"], [])).toBe(true);
+  });
+});
+
+describe("SONG_TABLE_HEADERS", () => {
+  it("keeps the column order SongTableRow hardcodes its <td>s in", () => {
+    expect(Object.keys(SONG_TABLE_HEADERS)).toEqual([
+      "name",
+      "artist",
+      "album",
+      "year",
+      "genre",
+      "song_length",
+      "charter",
+      "scores_count",
+      "total_plays",
+      "last_update"
+    ]);
+  });
+});
+
+describe("getSortValues", () => {
+  it("sorts plays numerically, not lexically", () => {
+    const [a, b] = getSortValues(
+      song(1, { total_plays: 9 }),
+      song(2, { total_plays: 100 }),
+      "total_plays"
+    );
+    expect(a).toBe(9);
+    expect(b).toBe(100);
+    expect(Number(a) < Number(b)).toBe(true);
+  });
+
+  it("coerces a null play count to 0 rather than an empty string", () => {
+    const [a] = getSortValues(song(1), song(2), "total_plays");
+    expect(a).toBe(0);
   });
 });

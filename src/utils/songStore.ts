@@ -2,7 +2,7 @@ import { get, set, del } from "idb-keyval";
 import { Song } from "./song";
 
 /** bump version when song shape changes incompatibly with cached data */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 const SONGS_KEY = "songs";
 const CURSOR_KEY = "cursor";

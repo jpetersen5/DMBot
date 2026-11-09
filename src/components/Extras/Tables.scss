@@ -105,6 +105,7 @@ table {
     &.play-count,
     &.year,
     &.scores-count,
+    &.total-plays,
     &.song-length {
       text-align: right;
     }
@@ -227,6 +228,7 @@ table {
       }
 
       &.scores-count,
+      &.total-plays,
       &.length {
         max-width: 70px;
       }
@@ -291,7 +293,8 @@ table {
         white-space: nowrap;
       }
 
-      &.scores-count {
+      &.scores-count,
+      &.total-plays {
         width: 72px;
         white-space: nowrap;
       }

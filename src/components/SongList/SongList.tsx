@@ -561,6 +561,7 @@ export const SongTableRow: React.FC<SongTableRowProps> = React.memo(({ song, onR
       <SongTableCell className="song-length" content={song.song_length != null ? msToTime(song.song_length) : "??:??:??"} />
       <SongTableCell className="charter-refs" content={song.charter_refs ? song.charter_refs.join(", ") : "Unknown Author"} special="charter" />
       <SongTableCell className="scores-count" content={song.scores_count?.toString() || "0"} />
+      <SongTableCell className="total-plays" content={song.total_plays?.toString() || "0"} />
       <SongTableCell className="last-update" content={song.last_update} special="last_update" />
       {leftUser && rightUser && (
         <SongTableCell className="score-difference" content={scoreDifference != null ? (scoreDifference > 0 ? "+" + scoreDifference.toString() : scoreDifference.toString()) : "N/A"} special="score_difference" />

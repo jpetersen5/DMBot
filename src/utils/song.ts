@@ -17,6 +17,8 @@ export interface Song {
   charter_refs: string[] | null;
   leaderboard?: LeaderboardEntry[] | null;
   scores_count: number | null;
+  fc_count: number | null;
+  total_plays: number | null;
   last_update: string;
 }
 
@@ -152,6 +154,7 @@ export const SONG_TABLE_HEADERS = {
   song_length: "Length",
   charter: "Charter",
   scores_count: "Scores",
+  total_plays: "Plays",
   last_update: "Last Update",
 };
 
@@ -222,7 +225,13 @@ export const getSurroundingSongIds = (songs: Song[], currentSongId: string) => {
 export const getSortValues = (a: Song, b: Song, sortKey: string) => {
   let aValue = a[sortKey as keyof Song];
   let bValue = b[sortKey as keyof Song];
-  if (sortKey === "year" || sortKey === "song_length" || sortKey === "scores_count") {
+  if (
+    sortKey === "year" ||
+    sortKey === "song_length" ||
+    sortKey === "scores_count" ||
+    sortKey === "total_plays" ||
+    sortKey === "fc_count"
+  ) {
     aValue = aValue ? parseInt(aValue.toString()) : 0;
     bValue = bValue ? parseInt(bValue.toString()) : 0;
   } else {
