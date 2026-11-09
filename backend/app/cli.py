@@ -1,26 +1,28 @@
-import importlib
+from pathlib import Path
 
 import click
 from flask import Flask
 
 from .services.score_migration import promote_unknown_scores
+from .services.song_import import DEFAULT_SCAN_FILE, import_songs
 from .services.supabase_service import get_supabase
 
 
 def register_cli(app: Flask) -> None:
-    @app.cli.command("run-migration")
-    @click.argument("name")
-    def run_migration(name: str) -> None:
-        """Run a migration module by name"""
-        module = importlib.import_module(f"app.migrations.{name}")
-        entry = getattr(module, name, None) or getattr(module, "run", None)
-        if entry is None:
-            raise click.ClickException(
-                f"Migration module app.migrations.{name} has no callable '{name}' or 'run'"
-            )
+    @app.cli.command("import-songs")
+    @click.option(
+        "--file",
+        "scan_file",
+        type=click.Path(exists=True, dir_okay=False, path_type=Path),
+        default=DEFAULT_SCAN_FILE,
+        show_default=True,
+        help="Output of src/scripts/scan_songs.ts.",
+    )
+    @click.option("--apply", is_flag=True, help="Write the changes (default: preview only).")
+    def import_songs_command(scan_file: Path, apply: bool) -> None:
+        """Insert new songs and update changed ones from a song scan."""
         with app.app_context():
-            entry()
-        click.echo(f"Migration {name} complete")
+            import_songs(get_supabase(), scan_file, apply=apply, log=click.echo)
 
     @app.cli.command("promote-unknown-scores")
     @click.option(
