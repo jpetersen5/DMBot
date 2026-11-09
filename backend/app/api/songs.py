@@ -13,7 +13,8 @@ session = requests.Session()
 
 SLIM_SONG_COLUMNS = (
     "id,md5,name,artist,album,track,year,genre,song_length,charter_refs,"
-    "scores_count,last_update,instruments,has_2x_kick,loading_phrase,playlist_path"
+    "scores_count,fc_count,total_plays,"
+    "last_update,instruments,has_2x_kick,loading_phrase,playlist_path"
 )
 
 @bp.route("/api/songs/<string:identifier>", methods=["GET"])
