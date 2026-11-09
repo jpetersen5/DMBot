@@ -8,6 +8,7 @@ os.environ.setdefault("SUPABASE_SERVICE_ROLE_KEY", "test")
 os.environ.setdefault("DISCORD_CLIENT_ID", "test")
 os.environ.setdefault("DISCORD_CLIENT_SECRET", "test")
 os.environ.setdefault("DISCORD_REDIRECT_URI", "http://localhost/callback")
+os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 
 @pytest.fixture
 def jwt_secret() -> str:
