@@ -19,6 +19,9 @@ export interface Song {
   scores_count: number | null;
   fc_count: number | null;
   total_plays: number | null;
+  bpm_dominant?: number | null;
+  bpm_min?: number | null;
+  bpm_max?: number | null;
   last_update: string;
 }
 

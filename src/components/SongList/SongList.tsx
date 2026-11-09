@@ -31,6 +31,7 @@ import {
   buildSongSearchString,
   songSearchStringMatches
 } from "../../utils/song";
+import { parseSongQuery, songMatchesBpm, hasUnscannedBpm } from "../../utils/songQuery";
 import { loadSongs, saveSongs, StoredSongs } from "../../utils/songStore";
 
 import "./SongList.scss";
@@ -329,11 +330,18 @@ const SongList: React.FC = () => {
     effectiveRightScores
   ]);
 
+  const parsedQuery = useMemo(() => parseSongQuery(deferredSearch), [deferredSearch]);
+
   const filteredAndSortedSongs = useMemo(() => {
     let filteredSongs = sortedSongs;
 
-    if (deferredSearch) {
-      const searchTermsLower = deferredSearch.toLowerCase().split(" ");
+    if (parsedQuery.bpm) {
+      const bpmQuery = parsedQuery.bpm;
+      filteredSongs = filteredSongs.filter(song => songMatchesBpm(song, bpmQuery));
+    }
+
+    const searchTermsLower = parsedQuery.terms;
+    if (searchTermsLower.length > 0) {
       filteredSongs = filteredSongs.filter(song => {
         if (filters.length === 0) {
           const searchString = songSearchStrings.get(song.id) ?? "";
@@ -371,11 +379,16 @@ const SongList: React.FC = () => {
   }, [
     sortedSongs,
     songSearchStrings,
-    deferredSearch,
+    parsedQuery,
     filters,
     selectedInstruments,
     selectedDifficulties
   ]);
+
+  const bpmDataIncomplete = useMemo(
+    () => parsedQuery.bpm != null && hasUnscannedBpm(songs),
+    [parsedQuery.bpm, songs]
+  );
 
   const paginatedSongs = useMemo(() => {
     const startIndex = (page - 1) * perPage;
@@ -471,8 +484,14 @@ const SongList: React.FC = () => {
           filters={filters}
           filterOptions={filterOptions}
           setSearch={setSearch}
-          setFilters={setFilters} />
+          setFilters={setFilters}
+          placeholder="Search songs... (try bpm:240)" />
       </div>
+      {bpmDataIncomplete && (
+        <p className="bpm-notice">
+          Some songs don't have BPM data yet and are hidden while a <code>bpm:</code> filter is active.
+        </p>
+      )}
       <ScrollableTable>
         {loading && (
           <LoadingSpinner message="Loading songs..." />
