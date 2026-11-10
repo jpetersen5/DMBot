@@ -28,7 +28,7 @@ const themes = {
   light: "light",
 };
 
-export const CURRENT_VERSION = "v1.10.0";
+export const CURRENT_VERSION = "v1.11.0";
 
 const staticNavItems: NavItem[] = [
   { path: "/", name: "Home", icon: HomeIcon },

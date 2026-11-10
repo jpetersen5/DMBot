@@ -19,6 +19,56 @@ interface ReleaseNote {
 const ReleaseNotesModal: React.FC<ReleaseNotesModalProps> = ({ isOpen, onClose }) => {
   const releaseNotes: ReleaseNote[] = [
     {
+      version: "v1.11.0",
+      date: "11/08/2026",
+      notes: [
+        "2 Years of DMBot!",
+        "It's been a while.",
+        "Oops I missed the anniversary...",
+        "Feature: BPM",
+        "- New BPM column on the songs list, hover for the min and max",
+        "- Search by tempo: bpm:240, bpm:200-260, bpm:>200",
+        "- Note: Doesn't account for half-time / double-time tempo",
+        "Feature: Better Profile Scores",
+        "- Placements show out of the board size, like 1st / 20",
+        "- Filter your scores by placement",
+        "- Fancy medal colors for 1st, 2nd, 3rd",
+        "Feature: Tied Placements",
+        "- Same score at the same speed now shares a place (1st, 1st, 3rd)",
+        "- Every leaderboard has been re-ranked",
+        "Feature: Songs List Improvements",
+        "- Added total plays column",
+        "- Cleaner playlist names",
+        "- Loads way faster: cached in your browser, only grabs what changed",
+        "- Snappier search and sort",
+        "Feature: Smoother Song Popup",
+        "- Cleaner navigation between songs",
+        "- Faster loading, skeleton components",
+        "Feature: Better ELO Chart",
+        "Feature: Upload Improvements",
+        "- Minor errors no longer stop an upload, they show up in the progress panel instead",
+        "Fix: Compare picker only lists users with scores",
+        "Fix: Scores could get lost while processing an upload",
+        "Fix: Scores on songs the site didn't know yet now attach once the song is added",
+        "Fix: Leaderboard and achievement errors",
+        "Fix: Simultaneous uploads no longer collide",
+        "Fix: Album art loads more reliably",
+        "Fix: Fewer random errors when the database hiccups",
+        "Fix: Security hardening around logins and uploads",
+        "Rebuilt a ton under the hood: styling, themes, security, tests, dependencies",
+        "I swear DMBot v2 exists.",
+        "Removed Herobrine"
+      ]
+    },
+    {
+      version: "v1.10.1",
+      date: "10/18/2025",
+      notes: [
+        "Feature: New Rank Borders"
+      ],
+      credit: "Hababa2"
+    },
+    {
       version: "v1.10.0",
       date: "4/3/2025",
       notes: [
