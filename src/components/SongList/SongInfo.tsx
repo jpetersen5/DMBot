@@ -3,6 +3,7 @@ import { API_URL } from "../../App";
 import SongInfoSkeleton from "./SongInfoSkeleton";
 import Skeleton from "../ui/Skeleton/Skeleton";
 import CharterName from "./CharterName";
+import SongPaths from "./SongPaths";
 import Tooltip from "../../utils/Tooltip/Tooltip";
 import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
 import {
@@ -67,6 +68,7 @@ const SongInfo: React.FC<SongInfoProps> = ({ song }) => {
         <SongInfoDifficulties song={extraData} />
         <SongInfoChartFeatures notesData={extraData.notesData} song={song} />
       </div>
+      <SongPaths paths={song.paths} />
 
       {extraData.loading_phrase &&
         <SongInfoHeader value={extraData.loading_phrase} />

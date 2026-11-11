@@ -34,3 +34,13 @@ export const optimalVariants = (paths: SongPath[] | null | undefined): SongPath[
   if (!paths?.length) return [];
   return paths.filter(p => p.score === paths[0].score);
 };
+
+export const stepVariant = (index: number, delta: 1 | -1, count: number): number =>
+  (index + delta + count) % count;
+
+export const verbosePath = (parsed: ParsedPath): string => {
+  const activations = parsed.activations
+    .map(a => (a.timing ? `${a.short} (${a.timing})` : a.short))
+    .join(" ");
+  return parsed.squeezes.length ? `${parsed.squeezes.join(", ")} | ${activations}` : activations;
+};

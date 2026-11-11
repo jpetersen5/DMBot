@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { optimalVariants, parseHydraPath, shortPath } from "./hydraPath";
+import { optimalVariants, parseHydraPath, shortPath, stepVariant, verbosePath } from "./hydraPath";
 import type { SongPath } from "./song";
 
 const path = (score: number, p = "(No mult squeezes.) | 1"): SongPath => ({
@@ -45,5 +45,23 @@ describe("optimalVariants", () => {
     expect(optimalVariants(null)).toEqual([]);
     expect(optimalVariants(undefined)).toEqual([]);
     expect(optimalVariants([])).toEqual([]);
+  });
+});
+
+describe("stepVariant", () => {
+  it("wraps around in both directions", () => {
+    expect(stepVariant(1, 1, 2)).toBe(0);
+    expect(stepVariant(0, -1, 3)).toBe(2);
+    expect(stepVariant(0, 1, 3)).toBe(1);
+  });
+});
+
+describe("verbosePath", () => {
+  it("keeps timings and drops placeholders", () => {
+    expect(verbosePath(parseHydraPath("(No mult squeezes.) | E1 (45 ms) 2"))).toBe("E1 (45 ms) 2");
+  });
+
+  it("puts squeezes first", () => {
+    expect(verbosePath(parseHydraPath("2x, 3x | E1 (45 ms)"))).toBe("2x, 3x | E1 (45 ms)");
   });
 });

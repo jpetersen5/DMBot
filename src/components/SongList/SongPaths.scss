@@ -1,0 +1,95 @@
+@use "../../styles/themes" as *;
+@use "../../styles/mixins" as *;
+
+.song-paths {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  margin-top: $space-md;
+  padding: $space-sm;
+  border-radius: $radius-sm;
+  font-variant-numeric: tabular-nums;
+  @include theme("background", "color-box-secondary");
+}
+
+.song-paths-header {
+  display: flex;
+  align-items: baseline;
+  gap: $space-sm;
+}
+
+.song-paths-label,
+.song-paths-count {
+  font-size: 0.8rem;
+  @include theme("color", "color-text-secondary");
+}
+
+.song-paths-score {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.song-paths-notation {
+  margin-left: auto;
+  font-size: 0.8rem;
+  @include theme("color", "color-text-secondary");
+
+  &:hover {
+    @include theme("color", "color-highlight");
+  }
+}
+
+.song-paths-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-sm;
+  min-width: 0;
+}
+
+.song-paths-path,
+.song-paths-verbose {
+  font-size: 0.95rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  @include theme("color", "color-text");
+}
+
+.song-paths-path {
+  cursor: help;
+}
+
+.song-paths-step,
+.song-paths-details-toggle {
+  padding: 0 $space-sm;
+  line-height: 1.6;
+  @include themed-button;
+}
+
+.song-paths-details-toggle {
+  margin-left: auto;
+  font-size: 0.8rem;
+}
+
+.song-paths-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-md;
+  align-items: flex-start;
+}
+
+.path-breakdown {
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: $space-md;
+  margin: 0;
+
+  dt {
+    font-weight: normal;
+  }
+
+  dd {
+    margin: 0;
+    text-align: right;
+  }
+}
