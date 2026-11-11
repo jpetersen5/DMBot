@@ -110,6 +110,9 @@ def hydra_analyzer(hydra_dir: str) -> Analyze:
     return analyze
 
 
+Outcome = Tuple[Path, Optional[str], Optional[Result], Optional[str]]
+
+
 _worker_analyze: Optional[Analyze] = None
 
 
@@ -118,13 +121,46 @@ def _init_worker(hydra_dir: str) -> None:
     _worker_analyze = hydra_analyzer(hydra_dir)
 
 
-def _scan_one(folder: Path) -> Tuple[Path, Optional[str], Optional[Result], Optional[str]]:
+def _scan_one(folder: Path) -> Outcome:
     assert _worker_analyze is not None
     try:
         md5, result = scan_folder(folder, _worker_analyze)
     except Exception as error:
         return folder, None, None, repr(error)
     return folder, md5, result, None
+
+
+def collect_outcomes(
+    outcomes: Iterable[Outcome], total: int
+) -> Tuple[Dict[str, Result], List[Dict[str, str]], bool]:
+    results: Dict[str, Result] = {}
+    errors: List[Dict[str, str]] = []
+    done = 0
+    try:
+        for folder, md5, result, error in outcomes:
+            done += 1
+            if error is not None:
+                errors.append({"folder": str(folder), "error": error})
+            elif md5 is not None and result is not None and md5 not in results:
+                results[md5] = result
+            if done % 250 == 0 or done == total:
+                print(f"\rAnalysed {done} of {total}", end="", flush=True)
+    except KeyboardInterrupt:
+        print()
+        return results, errors, True
+    print()
+    return results, errors, False
+
+
+def write_outputs(out: Path, results: Dict[str, Result], errors: List[Dict[str, str]]) -> Path:
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(results, separators=(",", ":")), encoding="utf-8")
+    errors_file = out.with_name(out.stem + "_errors.json")
+    if errors:
+        errors_file.write_text(json.dumps(errors, indent=2), encoding="utf-8")
+    else:
+        errors_file.unlink(missing_ok=True)
+    return errors_file
 
 
 def main(argv: List[str]) -> int:
@@ -151,24 +187,17 @@ def main(argv: List[str]) -> int:
     folders = find_song_folders(args.roots)[: args.limit]
     print(f"Found {len(folders)} song folders; analysing with {args.workers} workers")
 
-    results: Dict[str, Result] = {}
-    errors: List[Dict[str, str]] = []
-    with multiprocessing.Pool(args.workers, initializer=_init_worker, initargs=(str(args.hydra),)) as pool:
-        for done, (folder, md5, result, error) in enumerate(pool.imap_unordered(_scan_one, folders, chunksize=8), 1):
-            if error is not None:
-                errors.append({"folder": str(folder), "error": error})
-            elif md5 is not None and result is not None and md5 not in results:
-                results[md5] = result
-            if done % 250 == 0 or done == len(folders):
-                print(f"\rAnalysed {done} of {len(folders)}", end="", flush=True)
-    print()
+    pool = multiprocessing.Pool(args.workers, initializer=_init_worker, initargs=(str(args.hydra),))
+    try:
+        outcomes = pool.imap_unordered(_scan_one, folders, chunksize=8)
+        results, errors, interrupted = collect_outcomes(outcomes, len(folders))
+    finally:
+        pool.terminate()
+        pool.join()
 
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(results, separators=(",", ":")), encoding="utf-8")
-    errors_file = args.out.with_name(args.out.stem + "_errors.json")
-    if errors:
-        errors_file.write_text(json.dumps(errors, indent=2), encoding="utf-8")
-
+    errors_file = write_outputs(args.out, results, errors)
+    if interrupted:
+        print("Interrupted: wrote the charts analysed so far.")
     print(f"Wrote optimal paths for {len(results)} charts to {args.out}")
     if errors:
         print(f"{len(errors)} folders failed, see {errors_file}")

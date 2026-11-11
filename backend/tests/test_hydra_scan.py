@@ -1,14 +1,18 @@
 import hashlib
+import json
+from pathlib import Path
 from types import SimpleNamespace
 
 from scripts.hydra_scan import (
     analyze_chart,
+    collect_outcomes,
     find_song_folders,
     optimal_result,
     path_entry,
     path_string,
     pick_chart,
     scan_folders,
+    write_outputs,
 )
 
 
@@ -135,3 +139,24 @@ def test_scan_skips_songs_without_optimal(tmp_path):
     (tmp_path / "notes.mid").write_bytes(b"z")
     results, errors = scan_folders([tmp_path], lambda data, fmt: fake_record([]))
     assert results == {} and errors == []
+
+
+def test_collect_keeps_results_when_interrupted():
+    def outcomes():
+        yield Path("a"), "m1", {"optimal_score": 5, "paths": []}, None
+        yield Path("b"), None, None, "ValueError('bad')"
+        raise KeyboardInterrupt
+
+    results, errors, interrupted = collect_outcomes(outcomes(), total=10)
+    assert interrupted
+    assert results == {"m1": {"optimal_score": 5, "paths": []}}
+    assert errors == [{"folder": "b", "error": "ValueError('bad')"}]
+
+
+def test_write_outputs_removes_stale_errors_file(tmp_path):
+    out = tmp_path / "hydra_paths.json"
+    stale = tmp_path / "hydra_paths_errors.json"
+    stale.write_text("[]", encoding="utf-8")
+    write_outputs(out, {"m1": {"optimal_score": 5, "paths": []}}, [])
+    assert json.loads(out.read_text(encoding="utf-8")) == {"m1": {"optimal_score": 5, "paths": []}}
+    assert not stale.exists()
