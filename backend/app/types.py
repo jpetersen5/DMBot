@@ -67,6 +67,16 @@ class PathEntry(TypedDict):
     breakdown: PathBreakdown
 
 
+class BuggedScore(TypedDict):
+    """A score rejected as inflated by Clone Hero's solo-after-online bug."""
+    identifier: str
+    song_name: str
+    artist: str
+    score: int
+    optimal_score: int
+    is_fc: bool
+
+
 class LeaderboardUpdate(TypedDict):
     """A pending write to ``songs_new`` produced while ranking scores."""
     md5: str

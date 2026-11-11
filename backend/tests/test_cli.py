@@ -241,3 +241,33 @@ def test_promote_unknown_scores_dry_run_writes_nothing(monkeypatch):
     assert result.exit_code == 0, result.output
     assert holder.user_updates == {}
     assert holder.song_updates == {}
+
+
+def test_promote_unknown_scores_drops_bugged_scores(monkeypatch):
+    holder = SimpleNamespace(
+        users=[{
+            "id": "u1",
+            "username": "alice",
+            "scores": [],
+            "unknown_scores": [unknown("bugged", 9000, "u1"), unknown("fine", 450, "u1")],
+        }],
+        songs=[
+            {"md5": "bugged", "name": "Bugged", "artist": "A", "charter_refs": [], "leaderboard": [], "optimal_score": 500},
+            {"md5": "fine", "name": "Fine", "artist": "A", "charter_refs": [], "leaderboard": [], "optimal_score": 500},
+        ],
+        user_updates={},
+        song_updates={},
+        rpc_chunks=[],
+    )
+    monkeypatch.setattr(cli_module, "get_supabase", lambda: FakeSupabase(holder))
+    app = Flask(__name__)
+    cli_module.register_cli(app)
+
+    result = app.test_cli_runner().invoke(args=["promote-unknown-scores", "--no-dry-run"])
+
+    assert result.exit_code == 0, result.output
+    payload = holder.user_updates["u1"]
+    assert [s["identifier"] for s in payload["scores"]] == ["fine"]
+    assert payload["unknown_scores"] == []
+    assert set(holder.song_updates) == {"fine"}
+    assert "1 bugged" in result.output

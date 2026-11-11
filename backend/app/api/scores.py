@@ -4,7 +4,7 @@ from ..utils.helpers import allowed_file, get_process_songs_script
 from ..extensions import socketio, redis
 from datetime import datetime, UTC
 import re
-from typing import Any, BinaryIO, Callable, Dict, Optional
+from typing import Any, BinaryIO, Callable, Dict, List, Optional
 from ..utils.achievement_processor import achievement_processor
 from ..utils.helpers import token_required
 from ..utils.score_processing import (
@@ -17,7 +17,8 @@ from ..utils.leaderboard_writer import (
     LEADERBOARD_CHUNK_SIZE,
     push_leaderboard_updates as _push_leaderboard_updates,
 )
-from ..types import FlaskResponse
+from ..utils.score_validation import bugged_score, is_bugged_score, split_bugged_unknown
+from ..types import BuggedScore, FlaskResponse
 
 bp = Blueprint("scores", __name__)
 
@@ -56,6 +57,7 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
     total_songs = len(result["songs"])
     processed_songs = 0
     leaderboard_updates = []
+    bugged_scores: List[BuggedScore] = []
 
     logger.info(f"Fetching user data for user {user_id}")
     user_data = rows(supabase.table("users").select("username, scores, unknown_scores, stats, achievements").eq("id", user_id).execute().data)
@@ -91,8 +93,11 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
         socketio.emit("score_processing_fetching_songs",
                         {"message": f"Fetching user scores for songs {i+1} - {i+len(batch)}"},
                         to=user_id)
-        batch_songs_info = rows(supabase.table("songs_new").select("md5,name,artist,charter_refs,leaderboard").in_("md5", batch).execute().data)
+        batch_songs_info = rows(supabase.table("songs_new").select("md5,name,artist,charter_refs,leaderboard,optimal_score").in_("md5", batch).execute().data)
         songs_dict.update({song["md5"]: song for song in batch_songs_info})
+
+    existing_unknown_scores, bugged_unknown = split_bugged_unknown(existing_unknown_scores, songs_dict)
+    bugged_scores.extend(bugged_unknown)
 
     newly_known_scores, remaining_unknown_scores, unknown_leaderboard_updates = merge_unknown_scores(
         existing_unknown_scores, songs_dict, user_id, username, existing_scores_dict
@@ -122,7 +127,16 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
             if score["instrument"] == 9:  # drums
                 play_count = song["play_count"]
                 if song_info:
+                    optimal_score = song_info.get("optimal_score")
+                    if is_bugged_score(score["score"], score["is_fc"], optimal_score):
+                        bugged_scores.append(bugged_score(song["identifier"], song_info, score))
+                        continue
+
                     existing_user_score = existing_scores_dict.get(song["identifier"], None)
+                    if existing_user_score and is_bugged_score(
+                        existing_user_score["score"], existing_user_score["is_fc"], optimal_score
+                    ):
+                        existing_user_score = None
 
                     if existing_user_score and "charter_refs" not in existing_user_score:
                         existing_user_score["charter_refs"] = song_info.get("charter_refs", [])
@@ -147,7 +161,11 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
                                                              else song_info.get("charter_refs", []))
                        existing_scores_dict[song["identifier"]] = incoming_score_data
 
-                    leaderboard = song_info.get("leaderboard", []) or []
+                    leaderboard = [
+                        entry for entry in (song_info.get("leaderboard", []) or [])
+                        if not (entry["user_id"] == user_id
+                                and is_bugged_score(entry["score"], entry["is_fc"], optimal_score))
+                    ]
 
                     leaderboard_entry_from_incoming = {
                         "user_id": user_id,
@@ -322,6 +340,9 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
     final_status = "completed_with_errors" if (achievement_errors or failed_md5s) else "completed"
 
     update_processing_status(user_id, final_status, 100, total_songs, total_songs)
+    if bugged_scores:
+        logger.info(f"Rejected {len(bugged_scores)} bugged score(s) for user {user_id}")
+        socketio.emit("score_processing_bugged_scores", {"scores": bugged_scores}, to=user_id)
     socketio.emit("score_processing_complete",
                   {"message": final_message, "status": final_status, "errors": achievement_errors},
                   to=user_id)
