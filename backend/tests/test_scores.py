@@ -604,3 +604,13 @@ def test_bugged_unknown_score_dropped_on_promotion(monkeypatch):
     assert holder.leaderboard_updates == []
     event = bugged_event(holder)
     assert event is not None and event["scores"][0]["identifier"] == "m1"
+
+
+def test_bugged_score_listed_once_when_unknown_and_incoming(monkeypatch):
+    unknown = unknown_score("m1", 900, 100, r"C:\songs\foo\notes.chart")
+    song_row = {"md5": "m1", "name": "Foo", "artist": "Bar", "leaderboard": [], "optimal_score": 500}
+    holder, _ = run_process(monkeypatch, existing_scores=[], unknown_scores=[unknown], songs_new=[song_row],
+                            songs=[incoming_song("m1", 950)])
+    event = bugged_event(holder)
+    assert event is not None
+    assert [(s["identifier"], s["score"]) for s in event["scores"]] == [("m1", 950)]

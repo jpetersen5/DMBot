@@ -27,8 +27,13 @@ export const parseHydraPath = (path: string): ParsedPath => {
   return { squeezes, activations };
 };
 
+const formatPath = (squeezes: string[], activations: string[]): string => {
+  const activationText = activations.length ? activations.join(" ") : "No activations";
+  return squeezes.length ? `${squeezes.join(", ")} | ${activationText}` : activationText;
+};
+
 export const shortPath = (parsed: ParsedPath): string =>
-  parsed.activations.length ? parsed.activations.map(a => a.short).join(" ") : "No activations";
+  formatPath(parsed.squeezes, parsed.activations.map(a => a.short));
 
 export const optimalVariants = (paths: SongPath[] | null | undefined): SongPath[] => {
   if (!paths?.length) return [];
@@ -38,9 +43,5 @@ export const optimalVariants = (paths: SongPath[] | null | undefined): SongPath[
 export const stepVariant = (index: number, delta: 1 | -1, count: number): number =>
   (index + delta + count) % count;
 
-export const verbosePath = (parsed: ParsedPath): string => {
-  const activations = parsed.activations
-    .map(a => (a.timing ? `${a.short} (${a.timing})` : a.short))
-    .join(" ");
-  return parsed.squeezes.length ? `${parsed.squeezes.join(", ")} | ${activations}` : activations;
-};
+export const verbosePath = (parsed: ParsedPath): string =>
+  formatPath(parsed.squeezes, parsed.activations.map(a => (a.timing ? `${a.short} (${a.timing})` : a.short)));

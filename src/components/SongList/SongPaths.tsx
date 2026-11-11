@@ -81,7 +81,7 @@ const SongPaths: React.FC<SongPathsProps> = ({ paths }) => {
 
       {showDetails && (
         <div className="song-paths-details">
-          <code className="song-paths-verbose">{verbosePath(parsed) || "No activations"}</code>
+          <code className="song-paths-verbose">{verbosePath(parsed)}</code>
           <Breakdown breakdown={current.breakdown} />
         </div>
       )}

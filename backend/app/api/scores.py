@@ -340,6 +340,7 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
     final_status = "completed_with_errors" if (achievement_errors or failed_md5s) else "completed"
 
     update_processing_status(user_id, final_status, 100, total_songs, total_songs)
+    bugged_scores = list({bugged["identifier"]: bugged for bugged in bugged_scores}.values())
     if bugged_scores:
         logger.info(f"Rejected {len(bugged_scores)} bugged score(s) for user {user_id}")
         socketio.emit("score_processing_bugged_scores", {"scores": bugged_scores}, to=user_id)

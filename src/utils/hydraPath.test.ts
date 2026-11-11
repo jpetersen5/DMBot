@@ -33,6 +33,10 @@ describe("shortPath", () => {
   it("names a path without activations", () => {
     expect(shortPath(parseHydraPath("(No mult squeezes.) | (No activations.)"))).toBe("No activations");
   });
+
+  it("keeps mult squeezes", () => {
+    expect(shortPath(parseHydraPath("2x, 3x | E1 (45 ms) 2"))).toBe("2x, 3x | E1 2");
+  });
 });
 
 describe("optimalVariants", () => {
@@ -63,5 +67,9 @@ describe("verbosePath", () => {
 
   it("puts squeezes first", () => {
     expect(verbosePath(parseHydraPath("2x, 3x | E1 (45 ms)"))).toBe("2x, 3x | E1 (45 ms)");
+  });
+
+  it("names missing activations after squeezes", () => {
+    expect(verbosePath(parseHydraPath("2x, 3x | (No activations.)"))).toBe("2x, 3x | No activations");
   });
 });
