@@ -19,6 +19,19 @@ interface ReleaseNote {
 const ReleaseNotesModal: React.FC<ReleaseNotesModalProps> = ({ isOpen, onClose }) => {
   const releaseNotes: ReleaseNote[] = [
     {
+      version: "v1.12.0",
+      date: "11/11/2026",
+      notes: [
+        "Feature: Optimal Paths",
+        "- The song popup shows the optimal drum score and its Star Power path, calculated by Hydra",
+        "- Hover the path for the score breakdown, or tap Details for activation timings",
+        "- Arrows step through paths tied for the optimal score",
+        "Feature: Bugged Score Detection",
+        "- Scores inflated by Clone Hero's solo-after-online bug are removed from leaderboards and profiles",
+        "- Uploads skip them and list them in the progress panel, with how to clear them in-game",
+      ],
+    },
+    {
       version: "v1.11.0",
       date: "11/08/2026",
       notes: [
