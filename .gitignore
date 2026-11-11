@@ -147,6 +147,9 @@ dist-ssr
 
 .playwright-mcp/
 
+.claude/
+CLAUDE.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
