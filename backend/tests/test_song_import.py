@@ -282,7 +282,7 @@ def test_cli_previews_unless_applied(scan_file, monkeypatch, args, expected_appl
 
     calls = []
     monkeypatch.setattr(cli_module, "get_supabase", lambda: "client")
-    monkeypatch.setattr(cli_module, "import_songs", lambda client, path, apply, log: calls.append((client, path, apply)))
+    monkeypatch.setattr(cli_module, "import_songs", lambda client, path, apply, log, paths_file: calls.append((client, path, apply)))
     path = scan_file([])
     app = Flask(__name__)
     cli_module.register_cli(app)
@@ -323,3 +323,102 @@ class TestCharterNames:
         text = "\n".join(messages)
         assert "Sr. Dedos Rapidos -> Sr. Dedos Rápidos" in text
         assert "Brand New ->" not in text
+
+
+PATHS = [{"score": 500, "path": "(No mult squeezes.) | 1", "breakdown": {"base": 100, "combo": 300, "sp": 100, "solo": 0, "accents": 0, "ghosts": 0}}]
+
+
+class TestOptimalPaths:
+    def test_paths_are_compared_when_present(self):
+        song = scanned()
+        old = {**db_row(song), **prepare_song(song), "optimal_score": None, "paths": None}
+        new = {**prepare_song(song), "optimal_score": 500, "paths": PATHS}
+        assert changed_columns(new, old) == ["optimal_score", "paths"]
+
+    def test_missing_paths_never_null_existing_ones(self):
+        song = scanned()
+        old = {**prepare_song(song), "optimal_score": 500, "paths": PATHS}
+        assert changed_columns(prepare_song(song), old) == []
+
+    def test_path_only_updates_do_not_bump_last_update(self):
+        plan = song_import.ImportPlan(updates=[({"md5": "a" * 32, "optimal_score": 500, "paths": PATHS}, ["optimal_score", "paths"])])
+        [batch] = update_batches(plan, NOW).values()
+        assert batch == [{"md5": "a" * 32, "optimal_score": 500, "paths": PATHS}]
+
+    def test_mixed_updates_still_bump_last_update(self):
+        row = {**prepare_song(scanned()), "paths": PATHS}
+        plan = song_import.ImportPlan(updates=[(row, ["name", "paths"])])
+        [batch] = update_batches(plan, NOW).values()
+        assert batch[0]["last_update"] == NOW
+
+
+def write_paths(tmp_path, paths):
+    path = tmp_path / "hydra_paths.json"
+    path.write_text(json.dumps(paths), encoding="utf-8")
+    return path
+
+
+def test_import_attaches_paths_by_md5(scan_file, tmp_path, monkeypatch):
+    monkeypatch.setattr(song_import, "utc_now", lambda: NOW)
+    fake = FakeSupabase([])
+    paths_file = write_paths(tmp_path, {"2" * 32: {"optimal_score": 500, "paths": PATHS}})
+    import_songs(fake, scan_file([scanned("2" * 32)]), apply=True, log=lambda _m: None, paths_file=paths_file)
+    [inserted] = [row for table, _c, batch in fake.writes if table == "songs_new" for row in batch]
+    assert inserted["optimal_score"] == 500 and inserted["paths"] == PATHS
+
+
+def test_import_updates_paths_without_bumping_last_update(scan_file, tmp_path, monkeypatch):
+    monkeypatch.setattr(song_import, "utc_now", lambda: NOW)
+    song = scanned("1" * 32)
+    fake = FakeSupabase([{**prepare_song(song), "optimal_score": None, "paths": None}])
+    paths_file = write_paths(tmp_path, {"1" * 32: {"optimal_score": 500, "paths": PATHS}})
+    import_songs(fake, scan_file([song]), apply=True, log=lambda _m: None, paths_file=paths_file)
+    songs_writes = [batch for table, _c, batch in fake.writes if table == "songs_new"]
+    assert songs_writes == [[{"md5": "1" * 32, "optimal_score": 500, "paths": PATHS}]]
+
+
+def test_import_reports_paths_for_unscanned_songs(scan_file, tmp_path):
+    fake = FakeSupabase([])
+    paths_file = write_paths(tmp_path, {"9" * 32: {"optimal_score": 500, "paths": PATHS}})
+    messages = []
+    import_songs(fake, scan_file([scanned("2" * 32)]), apply=True, log=messages.append, paths_file=paths_file)
+    assert any("1 " in m and "not in the scan" in m for m in messages)
+    written = json.dumps([payload for _t, _c, payload in fake.writes])
+    assert "9" * 32 not in written
+
+
+def test_cli_passes_paths_file(scan_file, tmp_path, monkeypatch):
+    from flask import Flask
+
+    from app import cli as cli_module
+
+    calls = []
+    monkeypatch.setattr(cli_module, "get_supabase", lambda: "client")
+    monkeypatch.setattr(cli_module, "import_songs", lambda client, path, apply, log, paths_file: calls.append(paths_file))
+    path = scan_file([])
+    paths_file = write_paths(tmp_path, {})
+    app = Flask(__name__)
+    cli_module.register_cli(app)
+
+    result = app.test_cli_runner().invoke(args=["import-songs", "--file", str(path), "--paths", str(paths_file)])
+
+    assert result.exit_code == 0, result.output
+    assert calls == [paths_file]
+
+
+def test_cli_skips_missing_default_paths_file(scan_file, tmp_path, monkeypatch):
+    from flask import Flask
+
+    from app import cli as cli_module
+
+    calls = []
+    monkeypatch.setattr(cli_module, "get_supabase", lambda: "client")
+    monkeypatch.setattr(cli_module, "DEFAULT_PATHS_FILE", tmp_path / "absent.json")
+    monkeypatch.setattr(cli_module, "import_songs", lambda client, path, apply, log, paths_file: calls.append(paths_file))
+    app = Flask(__name__)
+    cli_module.register_cli(app)
+
+    result = app.test_cli_runner().invoke(args=["import-songs", "--file", str(scan_file([]))])
+
+    assert result.exit_code == 0, result.output
+    assert calls == [None]

@@ -10,12 +10,16 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 from .supabase_service import Row, rows
 
 DEFAULT_SCAN_FILE = Path(__file__).resolve().parents[2] / "data" / "scanned_songs.json"
+DEFAULT_PATHS_FILE = DEFAULT_SCAN_FILE.parent / "hydra_paths.json"
 
 COMPARED = [
     "name", "artist", "album", "genre", "year", "charter_refs", "song_length", "difficulties",
     "loading_phrase", "track", "playlist_path", "has_2x_kick", "note_counts", "instruments",
-    "bpm_dominant", "bpm_min", "bpm_max",
+    "bpm_dominant", "bpm_min", "bpm_max", "optimal_score", "paths",
 ]
+
+# only present on rows that have Hydra results; songs without them keep what is stored
+PATH_COLUMNS = ("optimal_score", "paths")
 
 # charter names on existing songs are curated; scanned spellings are often aliases or typos
 KEPT_ON_UPDATE = {"charter_refs"}
@@ -72,7 +76,10 @@ def prepare_song(song: Dict[str, Any]) -> Row:
 
 
 def changed_columns(new: Row, old: Row) -> List[str]:
-    return [c for c in COMPARED if c not in KEPT_ON_UPDATE and new.get(c) != old.get(c)]
+    return [
+        c for c in COMPARED
+        if c not in KEPT_ON_UPDATE and (c not in PATH_COLUMNS or c in new) and new.get(c) != old.get(c)
+    ]
 
 
 def plan_import(prepared: List[Row], existing: Dict[str, Row]) -> ImportPlan:
@@ -96,7 +103,10 @@ def update_batches(plan: ImportPlan, now: str) -> Dict[Tuple[str, ...], List[Row
     """Group updates by changed columns so each upsert only SETs those, sparing column-scoped triggers."""
     batches: Dict[Tuple[str, ...], List[Row]] = defaultdict(list)
     for row, cols in plan.updates:
-        batches[tuple(cols)].append({"md5": row["md5"], **{c: row[c] for c in cols}, "last_update": now})
+        update = {"md5": row["md5"], **{c: row[c] for c in cols}}
+        if not set(cols) <= set(PATH_COLUMNS):
+            update["last_update"] = now
+        batches[tuple(cols)].append(update)
     return dict(batches)
 
 
@@ -214,12 +224,35 @@ def stale_extra(scanned: List[Dict[str, Any]], stored: Dict[str, Any]) -> List[R
     ]
 
 
-def import_songs(supabase: Any, path: Path, apply: bool, log: Callable[[str], None] = print) -> ImportPlan:
+def attach_paths(prepared: List[Row], paths: Dict[str, Any]) -> int:
+    """Merge Hydra results into prepared rows; returns how many results matched no scanned song."""
+    by_md5 = {row["md5"]: row for row in prepared}
+    for md5, result in paths.items():
+        row = by_md5.get(md5)
+        if row is not None:
+            row["optimal_score"] = result["optimal_score"]
+            row["paths"] = result["paths"]
+    return sum(1 for md5 in paths if md5 not in by_md5)
+
+
+def import_songs(
+    supabase: Any,
+    path: Path,
+    apply: bool,
+    log: Callable[[str], None] = print,
+    paths_file: Optional[Path] = None,
+) -> ImportPlan:
     scanned: List[Dict[str, Any]] = strip_nul(json.loads(Path(path).read_text(encoding="utf-8")))
     existing = fetch_existing(supabase)
     aliases = {row["alias"]: row["canonicals"] for row in _fetch_all(supabase, "charter_aliases", ["alias", "canonicals"], order="alias")}
     profiles = [row["name"] for row in _fetch_all(supabase, "charters", ["id", "name"])]
-    plan = plan_import([resolve_aliases(prepare_song(song), aliases) for song in scanned], existing)
+    prepared = [resolve_aliases(prepare_song(song), aliases) for song in scanned]
+    unmatched_paths = 0
+    if paths_file is not None:
+        hydra_paths: Dict[str, Any] = json.loads(Path(paths_file).read_text(encoding="utf-8"))
+        unmatched_paths = attach_paths(prepared, hydra_paths)
+        log(f"Hydra paths for {len(hydra_paths) - unmatched_paths} scanned songs from {paths_file}")
+    plan = plan_import(prepared, existing)
     stored_extra = {row["md5"]: row["song_data"] for row in _fetch_all(supabase, "songs_extra", ["id", "md5", "song_data"])}
     extra = stale_extra(scanned, stored_extra)
 
@@ -227,6 +260,8 @@ def import_songs(supabase: Any, path: Path, apply: bool, log: Callable[[str], No
     for line in describe_plan(plan, existing):
         log(line)
     log(f"  full scan data to refresh: {len(extra)}")
+    if unmatched_paths:
+        log(f"  Hydra paths skipped for {unmatched_paths} songs not in the scan")
     lookalikes = lookalike_charters(plan.new, profiles)
     if lookalikes:
         log("New charter names that look like an existing charter but have no alias (add to charter_aliases if they match):")
