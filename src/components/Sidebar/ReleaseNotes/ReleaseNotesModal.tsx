@@ -22,13 +22,13 @@ const ReleaseNotesModal: React.FC<ReleaseNotesModalProps> = ({ isOpen, onClose }
       version: "v1.12.0",
       date: "11/11/2026",
       notes: [
-        "Feature: Optimal Paths",
-        "- The song popup shows the optimal drum score and its Star Power path, calculated by Hydra",
+        "Feature: Paths and Optimals",
+        "- Song details now show Hydra's predicted optimal score and its SP path(s)",
         "- Hover the path for the score breakdown, or tap Details for activation timings",
-        "- Arrows step through paths tied for the optimal score",
-        "Feature: Bugged Score Detection",
-        "- Scores inflated by Clone Hero's solo-after-online bug are removed from leaderboards and profiles",
-        "- Uploads skip them and list them in the progress panel, with how to clear them in-game",
+        "Fix/Feature: Bugged Score Detection",
+        "- Scores inflated by the solo-after-online bug are removed from leaderboards and profiles",
+        "- Uploads skip and list these scores in the progress panel and note how to clear them in-game",
+        "- Please report any false positives in Discord or in a GitHub issue"
       ],
     },
     {

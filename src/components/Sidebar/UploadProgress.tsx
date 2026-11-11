@@ -100,7 +100,7 @@ const UploadProgress: React.FC = () => {
               ))}
             </ul>
             <p className="bugged-scores-note">
-              These scores look affected by Clone Hero's solo-after-online scoring bug, so they weren't posted. To clear one, open the song in Clone Hero, choose Delete Score in its song options, then play it again.
+              These scores are likely bugged, so they weren't posted. To reset it, open the song in Clone Hero, choose Delete Score in its song options, then play it again.
             </p>
           </div>
         )}
