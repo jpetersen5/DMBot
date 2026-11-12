@@ -22,7 +22,25 @@ export interface Song {
   bpm_dominant?: number | null;
   bpm_min?: number | null;
   bpm_max?: number | null;
+  optimal_score?: number | null;
+  paths?: SongPath[] | null;
   last_update: string;
+}
+
+export interface PathBreakdown {
+  base: number;
+  combo: number;
+  sp: number;
+  solo: number;
+  accents: number;
+  ghosts: number;
+}
+
+/** a Hydra path from songs_new.paths; `path` is Hydra's verbose notation */
+export interface SongPath {
+  score: number;
+  path: string;
+  breakdown: PathBreakdown;
 }
 
 /** delta-sync envelope returned by GET /api/songs?v=2[&since=...] */
@@ -117,6 +135,7 @@ export interface NotesData {
   hasLyrics: boolean;
   has2xKick: boolean;
   hasFlexLanes: boolean;
+  drumType?: number;
   noteCounts: NoteCount[];
   maxNps: MaxNps[];
 }
@@ -146,7 +165,7 @@ export interface LeaderboardEntry {
   play_count?: number;
 }
 
-type Difficulty = "expert" | "hard" | "medium" | "easy";
+export type Difficulty = "expert" | "hard" | "medium" | "easy";
 
 export const SONG_TABLE_HEADERS = {
   name: "Name",

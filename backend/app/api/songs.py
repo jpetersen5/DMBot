@@ -16,6 +16,7 @@ SLIM_SONG_COLUMNS = (
     "scores_count,fc_count,total_plays,bpm_dominant,bpm_min,bpm_max,"
     "last_update,instruments,has_2x_kick,loading_phrase,playlist_path"
 )
+SONG_DETAIL_COLUMNS = SLIM_SONG_COLUMNS + ",optimal_score,paths"
 
 @bp.route("/api/songs/<string:identifier>", methods=["GET"])
 def get_song(identifier: str) -> FlaskResponse:
@@ -31,9 +32,9 @@ def get_song(identifier: str) -> FlaskResponse:
     supabase = get_supabase()
     
     if identifier.isdigit():
-        query = supabase.table("songs_new").select(SLIM_SONG_COLUMNS).eq("id", int(identifier))
+        query = supabase.table("songs_new").select(SONG_DETAIL_COLUMNS).eq("id", int(identifier))
     else:
-        query = supabase.table("songs_new").select(SLIM_SONG_COLUMNS).eq("md5", identifier)
+        query = supabase.table("songs_new").select(SONG_DETAIL_COLUMNS).eq("md5", identifier)
     result = query.execute()
 
     if not result.data:

@@ -1,0 +1,109 @@
+@use "../../styles/themes" as *;
+@use "../../styles/mixins" as *;
+
+.song-paths {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xs;
+  padding-top: $space-sm;
+  border-top: 1px solid;
+  font-variant-numeric: tabular-nums;
+  @include theme("border-color", "color-border");
+}
+
+.song-paths-empty {
+  margin: 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  @include theme("color", "color-text-secondary");
+}
+
+.song-paths-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: $space-xs $space-sm;
+}
+
+.song-paths-label,
+.song-paths-count {
+  font-size: 0.8rem;
+  @include theme("color", "color-text-secondary");
+}
+
+.song-paths-score {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.song-paths-path,
+.song-paths-verbose {
+  font-size: 0.95rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  @include theme("color", "color-text");
+}
+
+.song-paths-path {
+  margin-left: $space-xs;
+}
+
+.song-paths-stepper {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.song-paths-step,
+.song-paths-details-toggle {
+  padding: 0 $space-sm;
+  line-height: 1.6;
+  @include themed-button;
+}
+
+.song-paths-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-xs $space-md;
+}
+
+.song-paths-links {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  margin-left: auto;
+  font-size: 0.8rem;
+}
+
+.song-paths-notation {
+  @include theme("color", "color-text-secondary");
+
+  &:hover {
+    @include theme("color", "color-highlight");
+  }
+}
+
+.path-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 $space-md;
+  margin: 0;
+  font-size: 0.8rem;
+
+  div {
+    display: flex;
+    gap: $space-xs;
+  }
+
+  dt {
+    font-weight: normal;
+    @include theme("color", "color-text-secondary");
+  }
+
+  dd {
+    margin: 0;
+  }
+}

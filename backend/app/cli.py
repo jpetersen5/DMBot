@@ -1,10 +1,12 @@
 from pathlib import Path
+from typing import Optional, Tuple
 
 import click
 from flask import Flask
 
+from .services.bugged_scores import remove_bugged_scores
 from .services.score_migration import promote_unknown_scores
-from .services.song_import import DEFAULT_SCAN_FILE, import_songs
+from .services.song_import import DEFAULT_PATHS_FILE, DEFAULT_SCAN_FILE, import_songs
 from .services.supabase_service import get_supabase
 
 
@@ -18,11 +20,28 @@ def register_cli(app: Flask) -> None:
         show_default=True,
         help="Output of src/scripts/scan_songs.ts.",
     )
+    @click.option(
+        "--paths",
+        "paths_file",
+        type=click.Path(exists=True, dir_okay=False, path_type=Path),
+        default=None,
+        help=f"Output of backend/scripts/hydra_scan.py (default: {DEFAULT_PATHS_FILE.name} if it exists).",
+    )
     @click.option("--apply", is_flag=True, help="Write the changes (default: preview only).")
-    def import_songs_command(scan_file: Path, apply: bool) -> None:
+    def import_songs_command(scan_file: Path, paths_file: Optional[Path], apply: bool) -> None:
         """Insert new songs and update changed ones from a song scan."""
+        if paths_file is None and DEFAULT_PATHS_FILE.exists():
+            paths_file = DEFAULT_PATHS_FILE
         with app.app_context():
-            import_songs(get_supabase(), scan_file, apply=apply, log=click.echo)
+            import_songs(get_supabase(), scan_file, apply=apply, log=click.echo, paths_file=paths_file)
+
+    @app.cli.command("remove-bugged-scores")
+    @click.option("--apply", is_flag=True, help="Write the changes (default: preview only).")
+    @click.option("--skip", "skip", multiple=True, metavar="MD5", help="Leave this song's scores alone (repeatable).")
+    def remove_bugged_scores_command(apply: bool, skip: Tuple[str, ...]) -> None:
+        """Remove scores above Hydra's optimal from leaderboards and profiles, revoking achievements they earned."""
+        with app.app_context():
+            remove_bugged_scores(get_supabase(), apply=apply, log=click.echo, skip=set(skip))
 
     @app.cli.command("promote-unknown-scores")
     @click.option(

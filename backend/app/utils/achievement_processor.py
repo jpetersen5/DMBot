@@ -497,6 +497,22 @@ class AchievementProcessor:
             "song_md5": achievement_def.get("song_md5")
         }
 
+    def revoked_achievements(self, user_data: Dict[str, Any]) -> List[str]:
+        """Held achievements whose check no longer passes; unknown ids and failed checks are kept."""
+        held = user_data.get("achievements") or {}
+        revoked: List[str] = []
+        for achievement_def in self.achievements:
+            if achievement_def["id"] not in held:
+                continue
+            try:
+                passes = achievement_def["check_function"](user_data, achievement_def)
+            except Exception as e:
+                logger.error(f"Error re-checking achievement '{achievement_def['id']}': {e}", exc_info=True)
+                continue
+            if not passes:
+                revoked.append(achievement_def["id"])
+        return revoked
+
     def process_achievements(
         self, user_data: Any
     ) -> Tuple[Dict[str, str], List[AchievementError]]:

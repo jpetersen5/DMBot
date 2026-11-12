@@ -3,18 +3,19 @@ import { API_URL } from "../../App";
 import SongInfoSkeleton from "./SongInfoSkeleton";
 import Skeleton from "../ui/Skeleton/Skeleton";
 import CharterName from "./CharterName";
+import SongPaths from "./SongPaths";
 import Tooltip from "../../utils/Tooltip/Tooltip";
-import { renderSafeHTML, processColorTags } from "../../utils/safeHTML";
+import { renderSafeHTML } from "../../utils/safeHTML";
 import {
   Song,
   SongExtraData,
   NoteCount,
   MaxNps,
-  NotesData,
   SONG_DIFFICULTIES,
   formatBpmRange,
   bpmMarkerPercent,
 } from "../../utils/song";
+import { DrumNoteRow, drumKind, drumNoteRows, drumsDifficulty } from "../../utils/songDrums";
 import { fetchAlbumArt } from "../../utils/spotify";
 import "./SongInfo.scss";
 
@@ -61,35 +62,14 @@ const SongInfo: React.FC<SongInfoProps> = ({ song }) => {
 
   return (
     <div className="song-info">
-
-      <SongInfoPrimary extraData={extraData} song={song} />
-      <div className="song-column">
-        <SongInfoDifficulties song={extraData} />
-        <SongInfoChartFeatures notesData={extraData.notesData} song={song} />
-      </div>
-
-      {extraData.loading_phrase &&
-        <SongInfoHeader value={extraData.loading_phrase} />
-      }
-      <SongInfoLine label="MD5" value={song.md5} />
+      <SongInfoHeader extraData={extraData} song={song} />
+      <DrumsCard extraData={extraData} song={song} />
+      <OtherParts extraData={extraData} />
+      <SongInfoFooter loadingPhrase={extraData.loading_phrase} md5={song.md5} />
     </div>
   );
 };
 
-
-interface SongInfoHeaderProps {
-  value: string;
-}
-
-const SongInfoHeader: React.FC<SongInfoHeaderProps> = ({ value }) => {
-  return (
-    <Tooltip text={"This song info was included by the charter!"} position="top">
-      <p className="info-header">
-        <span dangerouslySetInnerHTML={renderSafeHTML(value)} />
-      </p>
-    </Tooltip>
-  );
-};
 
 interface MarqueeTextProps {
   text: string | null | undefined;
@@ -137,12 +117,12 @@ const MarqueeText: React.FC<MarqueeTextProps> = ({ text, className }) => {
   );
 };
 
-interface SongInfoPrimaryProps {
+interface SongInfoSectionProps {
   extraData: SongExtraData;
   song: Song;
 }
 
-const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) => {
+const SongInfoHeader: React.FC<SongInfoSectionProps> = ({ extraData, song }) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [avatarArtUrl, setAvatarArtUrl] = useState<string>("");
 
@@ -163,119 +143,137 @@ const SongInfoPrimary: React.FC<SongInfoPrimaryProps> = ({ extraData, song }) =>
     getAlbumArt();
   }, [song.id, extraData.icon]);
 
+  const album = extraData.album && (extraData.year ? `${extraData.album} (${extraData.year})` : extraData.album);
+  const albumLine = [album, extraData.genre].filter(Boolean).join(" · ");
+  const charters = song.charter_refs?.join(",");
+
   return (
-    <div className="song-box">
-      <div className="song-column">
-        <div className="song-art-box">
-          {imageUrl ? (
-            <img className="song-art-image" src={imageUrl} />
-          ) : (
-            <Skeleton className="song-art-image" style={{ aspectRatio: "1 / 1", height: "auto" }} />
-          )}
-          {avatarArtUrl && (
-            <div className="song-art-charter" >
-              <img className="user-avatar" src={avatarArtUrl} />
-            </div>
-          )}
-        </div>
-
-        <div className="song-details-box" >
-          <div className="song-details-info">
-            <MarqueeText className="song-title info-line" text={song.name} />
-            <div className="song-artist info-line">{extraData.artist}</div>
-            <div className="song-album info-line">
-              <span>{extraData.album} ({extraData.year})</span>
-            </div>
-
-            <div className="song-genre info-line">{extraData.genre}</div>
-            <SongInfoLine label="Charter" value={song.charter_refs?.join(",")} />
+    <div className="song-header">
+      <div className="song-art-box">
+        {imageUrl ? (
+          <img className="song-art-image" src={imageUrl} alt="" />
+        ) : (
+          <Skeleton className="song-art-image" />
+        )}
+        {avatarArtUrl && (
+          <div className="song-art-charter">
+            <img className="user-avatar" src={avatarArtUrl} alt="" />
           </div>
-        </div>
+        )}
       </div>
-    </div>
-  );
-}
 
-interface SongInfoLineProps {
-  label: string;
-  value: string | number | undefined;
-}
-
-const SongInfoLine: React.FC<SongInfoLineProps> = ({ label, value }) => {
-  if (value === undefined || value === "") {
-    return (
-      <p className="info-line">
-        <span className="label">{label}:</span>  N/A
-      </p>
-    );
-  }
-  else if (label === "MD5") {
-    return (
-      <p className="MD5 info-line">
-        <span className="label">{label}:</span> <code>{value}</code>
-      </p>
-    );
-  }
-  else if (label === "Charter") {
-    return (
-      <div className="charter info-line">
-        <CharterName names={value as string} />
-      </div>
-    );
-  }
-  const processedValue = typeof value === "string"
-    ? processColorTags(value)
-    : String(value);
-  return (
-    <p className="info-line">
-      <span dangerouslySetInnerHTML={renderSafeHTML(processedValue)} />
-    </p>
-  );
-};
-
-
-interface SongInfoDifficultiesProps {
-  song: SongExtraData;
-}
-
-const SongInfoDifficulties: React.FC<SongInfoDifficultiesProps> = ({ song }) => {
-  const difficulties = [
-    { name: "Guitar", value: song.diff_guitar },
-    { name: "Rhythm", value: song.diff_rhythm },
-    { name: "Bass", value: song.diff_bass },
-    { name: "Drums", value: song.diff_drums_real !== -1 ? song.diff_drums_real : song.diff_drums },
-    { name: "Keys", value: song.diff_keys },
-  ];
-
-  if (difficulties.every(diff => diff.value === undefined || diff.value === -1)) {
-    return null;
-  }
-
-  return (
-    <div className="difficulties">
-      <div className="parts">
-        {difficulties.map(diff =>
-          <SongInfoPart
-            key={diff.name}
-            name={diff.name}
-            difficulty={diff.value}
-            noteCounts={song.notesData?.noteCounts}
-            maxNps={song.notesData?.maxNps}
-          />
+      <div className="song-header-text">
+        <MarqueeText className="song-title" text={song.name} />
+        {extraData.artist && <div className="song-artist">{extraData.artist}</div>}
+        {albumLine && <div className="song-album">{albumLine}</div>}
+        {charters && (
+          <div className="song-charter">
+            <CharterName names={charters} />
+          </div>
         )}
       </div>
     </div>
   );
 };
 
+
+const formatNps = (nps: number) => String(Math.round(nps * 10) / 10);
+
+const DrumNotesTable: React.FC<{ rows: DrumNoteRow[] }> = ({ rows }) => (
+  <div className="part-notes-info">
+    <span className="part-notes-info-name">Drums</span>
+    {rows.map(row => (
+      <div key={row.difficulty} className="note-count-item">
+        <span className="note-count-instrument">{SONG_DIFFICULTIES[row.difficulty]}</span>
+        <span className="note-count-value">{`${row.count.toLocaleString()} notes`}</span>
+        {row.nps != null && <span className="note-count-max-nps">{`(max: ${formatNps(row.nps)}/s)`}</span>}
+      </div>
+    ))}
+  </div>
+);
+
+const FeatureChip: React.FC<{ label: string; active: boolean }> = ({ label, active }) => (
+  <span className={`feature ${active ? "active" : ""}`}>{label}</span>
+);
+
+const DrumsCard: React.FC<SongInfoSectionProps> = ({ extraData, song }) => {
+  const notesData = extraData.notesData;
+  const difficulty = drumsDifficulty(extraData);
+  const kind = drumKind(notesData);
+  const rows = drumNoteRows(notesData);
+  const expert = rows.find(row => row.difficulty === "expert");
+
+  return (
+    <section className="drums-card" aria-label="Drums">
+      <div className="drums-stats">
+        <div className={`drums-difficulty ${difficulty == null ? "inactive" : ""}`}>
+          <img src={IconDrums} alt="Drums" />
+          <span className="drums-difficulty-value">{difficulty ?? "-"}</span>
+          {kind && <span className="drums-kind">{kind}</span>}
+        </div>
+        {expert && (
+          <Tooltip content={<DrumNotesTable rows={rows} />} position="bottom">
+            <span className="drums-stat"><strong>{expert.count.toLocaleString()}</strong> notes</span>
+          </Tooltip>
+        )}
+        {expert?.nps != null && (
+          <span className="drums-stat">max <strong>{formatNps(expert.nps)}</strong>/s</span>
+        )}
+        <SongInfoTempo song={song} />
+      </div>
+
+      <SongPaths paths={song.paths} />
+
+      {notesData && (
+        <div className="feature-chips">
+          <FeatureChip label="Solo" active={notesData.hasSoloSections} />
+          <FeatureChip label="2x Kick" active={notesData.has2xKick} />
+          <FeatureChip label="Lanes" active={notesData.hasFlexLanes} />
+        </div>
+      )}
+    </section>
+  );
+};
+
+
+const OtherParts: React.FC<{ extraData: SongExtraData }> = ({ extraData }) => {
+  const parts = [
+    { name: "Guitar", icon: IconGuitar, value: extraData.diff_guitar },
+    { name: "Rhythm", icon: IconRhythm, value: extraData.diff_rhythm },
+    { name: "Bass", icon: IconBass, value: extraData.diff_bass },
+    { name: "Keys", icon: IconKeys, value: extraData.diff_keys },
+  ];
+  const notesData = extraData.notesData;
+
+  return (
+    <div className="other-parts">
+      <span className="other-parts-label">Other parts</span>
+      <div className="parts">
+        {parts.map(part => (
+          <SongInfoPart
+            key={part.name}
+            name={part.name}
+            icon={part.icon}
+            difficulty={part.value}
+            noteCounts={notesData?.noteCounts}
+            maxNps={notesData?.maxNps}
+          />
+        ))}
+      </div>
+      {notesData && <FeatureChip label="Lyrics" active={notesData.hasLyrics} />}
+    </div>
+  );
+};
+
 interface SongInfoPartProps {
   name: string;
-  difficulty: string | number | undefined;
+  icon: string;
+  difficulty: number | undefined;
   noteCounts?: NoteCount[];
   maxNps?: MaxNps[];
 }
 
-const SongInfoPart: React.FC<SongInfoPartProps> = ({ name, difficulty, noteCounts, maxNps }) => {
+const SongInfoPart: React.FC<SongInfoPartProps> = ({ name, icon, difficulty, noteCounts, maxNps }) => {
   const hasDifficulty = difficulty !== undefined && difficulty !== -1;
   const hasNotes = !!noteCounts?.some(count => count.instrument === name.toLowerCase());
   const isActive = hasDifficulty && hasNotes;
@@ -307,44 +305,15 @@ const SongInfoPart: React.FC<SongInfoPartProps> = ({ name, difficulty, noteCount
   )
 
   return (
-    <div className={`part ${!isActive ? "inactive" : ""}`}>
-      <Tooltip content={notesTooltip} position="bottom">
-        <img
-          src={name == "Drums" ? IconDrums :
-            name == "Bass" ? IconBass :
-              name == "Guitar" ? IconGuitar :
-                name == "Rhythm" ? IconRhythm :
-                  name == "Keys" ? IconKeys : ""}
-        />
-      </Tooltip>
-      <div className="part-difficulty-numeral">
-        <span>{hasDifficulty ? difficulty : "-"}</span>
+    <Tooltip content={notesTooltip} position="bottom">
+      <div className={`part ${!isActive ? "inactive" : ""}`}>
+        <img src={icon} alt={name} />
+        <span className="part-difficulty-numeral">{hasDifficulty ? difficulty : "-"}</span>
       </div>
-    </div>
+    </Tooltip>
   );
 }
 
-
-interface SongInfoChartFeaturesProps {
-  notesData: NotesData | undefined;
-  song: Song;
-}
-
-const SongInfoChartFeatures: React.FC<SongInfoChartFeaturesProps> = ({ notesData, song }) => {
-  return (
-    <div className="chart-features">
-      {notesData && (
-        <div className="feature-grid">
-          <span className={`feature ${notesData.hasSoloSections ? "active" : ""}`}>Solo</span>
-          <span className={`feature ${notesData.hasLyrics ? "active" : ""}`}>Lyrics</span>
-          <span className={`feature ${notesData.has2xKick ? "active" : ""}`}>2x Kick</span>
-          <span className={`feature ${notesData.hasFlexLanes ? "active" : ""}`}>Lanes</span>
-        </div>
-      )}
-      <SongInfoTempo song={song} />
-    </div>
-  );
-};
 
 const SongInfoTempo: React.FC<{ song: Song }> = ({ song }) => {
   const marker = bpmMarkerPercent(song);
@@ -387,5 +356,39 @@ const SongInfoTempo: React.FC<{ song: Song }> = ({ song }) => {
   );
 };
 
+
+interface SongInfoFooterProps {
+  loadingPhrase: string | undefined;
+  md5: string;
+}
+
+const SongInfoFooter: React.FC<SongInfoFooterProps> = ({ loadingPhrase, md5 }) => {
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(md5);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  return (
+    <footer className="song-info-footer">
+      {loadingPhrase && (
+        <Tooltip text="This song info was included by the charter!" position="top">
+          <span className="loading-phrase" dangerouslySetInnerHTML={renderSafeHTML(loadingPhrase)} />
+        </Tooltip>
+      )}
+      <div className="md5">
+        <span className="md5-label">MD5</span>
+        <code className="md5-value">{md5}</code>
+        <button type="button" className="md5-copy" onClick={copy}>{copied ? "Copied" : "Copy"}</button>
+      </div>
+    </footer>
+  );
+};
 
 export default SongInfo;

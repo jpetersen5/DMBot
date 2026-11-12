@@ -4,6 +4,7 @@ from typing import Any, Callable, Dict, List
 from ..types import LeaderboardEntry, LeaderboardUpdate
 from ..utils.leaderboard_writer import LEADERBOARD_CHUNK_SIZE, push_leaderboard_updates
 from ..utils.score_processing import merge_unknown_scores
+from ..utils.score_validation import split_bugged_unknown
 from .supabase_service import rows
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,7 @@ def promote_unknown_scores(
     failures: List[str] = []
     total_promoted = 0
     total_dropped = 0
+    total_bugged = 0
 
     for index, user in enumerate(users, 1):
         user_id = str(user["id"])
@@ -64,7 +66,7 @@ def promote_unknown_scores(
                 batch = identifiers[i:i + 500]
                 fetched = rows(
                     supabase.table("songs_new")
-                    .select("md5,name,artist,charter_refs,leaderboard")
+                    .select("md5,name,artist,charter_refs,leaderboard,optimal_score")
                     .in_("md5", batch)
                     .execute()
                     .data
@@ -76,6 +78,10 @@ def promote_unknown_scores(
                 if md5 not in song_leaderboards:
                     song_leaderboards[md5] = song.get("leaderboard") or []
                 song["leaderboard"] = song_leaderboards[md5]
+
+            original_count = len(unknown)
+            unknown, bugged = split_bugged_unknown(unknown, songs_dict)
+            total_bugged += len(bugged)
 
             newly_known, remaining_unknown, lb_updates = merge_unknown_scores(
                 unknown, songs_dict, user_id, username, existing_known
@@ -92,7 +98,7 @@ def promote_unknown_scores(
             log(
                 f"  [{index}/{len(users)}] {username} ({user_id}): "
                 f"{promoted} promotion(s), {dropped} dropped overlap(s), "
-                f"{len(remaining_unknown)} still unknown"
+                f"{len(bugged)} bugged, {len(remaining_unknown)} still unknown"
             )
 
             for update in lb_updates:
@@ -102,7 +108,7 @@ def promote_unknown_scores(
                     "last_update": update["last_update"],
                 }
 
-            changed = bool(newly_known) or len(remaining_unknown) != len(unknown)
+            changed = bool(newly_known) or len(remaining_unknown) != original_count
             if changed and not dry_run:
                 combined = existing_scores + newly_known
                 merged_scores = {
@@ -145,7 +151,8 @@ def promote_unknown_scores(
 
     log(
         f"{prefix if dry_run else 'Done: '}"
-        f"{total_promoted} promotion(s), {total_dropped} dropped overlap(s) "
+        f"{total_promoted} promotion(s), {total_dropped} dropped overlap(s), "
+        f"{total_bugged} bugged score(s) dropped "
         f"across {len(users)} user(s); {len(failures)} failure(s)"
     )
     if failures:

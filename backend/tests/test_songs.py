@@ -238,7 +238,12 @@ def test_slim_columns_carry_leaderboard_aggregates():
     assert "total_plays" in cols
 
 
-def test_get_song_uses_slim_columns(monkeypatch):
+def test_paths_stay_out_of_slim_columns():
+    cols = songs_module.SLIM_SONG_COLUMNS.split(",")
+    assert "paths" not in cols and "optimal_score" not in cols
+
+
+def test_get_song_uses_detail_columns(monkeypatch):
     fake_sb = SelectSupabase({"songs_new": [{"id": 1, "md5": "abc"}]})
     app = Flask(__name__)
     app.register_blueprint(songs_module.bp)
@@ -252,7 +257,7 @@ def test_get_song_uses_slim_columns(monkeypatch):
     songs_new_calls = [cols for table, cols in fake_sb.log if table == "songs_new"]
     assert len(songs_new_calls) == 2, "expected both lookup branches to query songs_new"
     for cols in songs_new_calls:
-        assert cols == songs_module.SLIM_SONG_COLUMNS
+        assert cols == songs_module.SLIM_SONG_COLUMNS + ",optimal_score,paths"
         assert "leaderboard" not in cols
         assert "note_counts" not in cols
         assert cols != "*"

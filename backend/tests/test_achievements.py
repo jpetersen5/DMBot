@@ -106,3 +106,28 @@ def test_null_string_fields_in_scores_produce_no_errors():
     })
 
     assert errors == []
+
+
+def fc_score(identifier: str, is_fc: bool) -> dict:
+    return {"identifier": identifier, "score": 100, "is_fc": is_fc, "speed": 100, "percent": 100.0, "play_count": 1}
+
+
+def test_revoked_achievements_rechecks_held_ones():
+    user = {"scores": [fc_score("a", False)], "stats": {}, "achievements": {"first_fc": "2026-01-01"}}
+    assert achievement_processor.revoked_achievements(user) == ["first_fc"]
+
+
+def test_revoked_achievements_keeps_passing_and_unknown_ids():
+    user = {"scores": [fc_score("a", True)], "stats": {}, "achievements": {"first_fc": "x", "retired_achievement": "y"}}
+    assert achievement_processor.revoked_achievements(user) == []
+
+
+def test_revoked_achievements_keeps_ones_that_fail_to_evaluate(monkeypatch):
+    definition = next(a for a in achievement_processor.achievements if a["id"] == "first_fc")
+
+    def boom(_user, _definition):
+        raise RuntimeError("bad data")
+
+    monkeypatch.setitem(definition, "check_function", boom)
+    user = {"scores": [], "stats": {}, "achievements": {"first_fc": "x"}}
+    assert achievement_processor.revoked_achievements(user) == []

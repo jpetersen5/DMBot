@@ -19,6 +19,19 @@ interface ReleaseNote {
 const ReleaseNotesModal: React.FC<ReleaseNotesModalProps> = ({ isOpen, onClose }) => {
   const releaseNotes: ReleaseNote[] = [
     {
+      version: "v1.12.0",
+      date: "11/11/2026",
+      notes: [
+        "Feature: Paths and Optimals",
+        "- Song details now show Hydra's predicted optimal score and its SP path(s)",
+        "- Hover the path for the score breakdown, or tap Details for activation timings",
+        "Fix/Feature: Bugged Score Detection",
+        "- Scores inflated by the solo-after-online bug are removed from leaderboards and profiles",
+        "- Uploads skip and list these scores in the progress panel and note how to clear them in-game",
+        "- Please report any false positives in Discord or in a GitHub issue"
+      ],
+    },
+    {
       version: "v1.11.0",
       date: "11/08/2026",
       notes: [

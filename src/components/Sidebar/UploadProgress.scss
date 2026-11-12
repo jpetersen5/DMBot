@@ -116,6 +116,40 @@
     }
   }
 
+  .bugged-scores {
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid;
+    @include theme("border-color", "color-border");
+
+    h4 {
+      font-size: 0.9rem;
+      margin: 0 0 0.25rem 0;
+      @include theme("color", "color-warning");
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 120px;
+      overflow-y: auto;
+      @include scrollbar(4px);
+
+      li {
+        font-size: 0.8rem;
+        margin-bottom: 0.2rem;
+        overflow-wrap: anywhere;
+      }
+    }
+  }
+
+  .bugged-scores-note {
+    font-size: 0.75rem;
+    margin: 0.4rem 0 0;
+    @include theme("color", "color-text-secondary");
+  }
+
   .achievement-errors {
     margin-top: 0.75rem;
     padding-top: 0.5rem;

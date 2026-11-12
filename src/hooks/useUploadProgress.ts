@@ -9,6 +9,15 @@ interface AchievementError {
   error: string;
 }
 
+export interface BuggedScore {
+  identifier: string;
+  song_name: string;
+  artist: string;
+  score: number;
+  optimal_score: number;
+  is_fc: boolean;
+}
+
 interface UploadProgressState {
   isUploading: boolean;
   isProcessing: boolean;
@@ -19,6 +28,7 @@ interface UploadProgressState {
   newAchievements: Achievement[];
   achievementErrors: AchievementError[];
   warnings: string[];
+  buggedScores: BuggedScore[];
   status: string;
 }
 
@@ -33,6 +43,7 @@ export const useUploadProgress = () => {
     newAchievements: [],
     achievementErrors: [],
     warnings: [],
+    buggedScores: [],
     status: "idle",
   }));
   useEffect(() => {
@@ -91,6 +102,7 @@ export const useUploadProgress = () => {
         newAchievements: [],
         achievementErrors: [],
         warnings: [],
+        buggedScores: [],
         status: "in_progress",
       }));
     });
@@ -133,6 +145,13 @@ export const useUploadProgress = () => {
       setState(prev => ({
         ...prev,
         warnings: [...prev.warnings, data.message],
+      }));
+    });
+
+    newSocket.on("score_processing_bugged_scores", (data) => {
+      setState(prev => ({
+        ...prev,
+        buggedScores: data.scores || [],
       }));
     });
 
@@ -185,6 +204,7 @@ export const useUploadProgress = () => {
       newAchievements: [],
       achievementErrors: [],
       warnings: [],
+      buggedScores: [],
       status: "uploading",
     }));
   }, []);
@@ -226,6 +246,7 @@ export const useUploadProgress = () => {
       newAchievements: [],
       achievementErrors: [],
       warnings: [],
+      buggedScores: [],
     }));
   }, []);
 

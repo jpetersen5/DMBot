@@ -136,7 +136,7 @@ def unknown_score(identifier: str, score_value: int, speed: int, filepath: str) 
     }
 
 
-def incoming_song(identifier: str, score_value: int, speed: int = 100, play_count: int = 1) -> dict:
+def incoming_song(identifier: str, score_value: int, speed: int = 100, play_count: int = 1, is_fc: bool = False) -> dict:
     """A song as it arrives from the scoredata parser (drums == instrument 9)."""
     return {
         "identifier": identifier,
@@ -144,7 +144,7 @@ def incoming_song(identifier: str, score_value: int, speed: int = 100, play_coun
         "scores": [{
             "instrument": 9,
             "percent": 100.0,
-            "is_fc": False,
+            "is_fc": is_fc,
             "speed": speed,
             "score": score_value,
         }],
@@ -285,7 +285,7 @@ def test_batch_song_fetch_uses_slim_columns(monkeypatch):
 
     assert holder.songs_new_columns, "expected a songs_new batch fetch"
     for cols in holder.songs_new_columns:
-        assert cols == "md5,name,artist,charter_refs,leaderboard"
+        assert cols == "md5,name,artist,charter_refs,leaderboard,optimal_score"
         assert cols != "*"
 
 
@@ -550,3 +550,67 @@ def test_recomputed_stats_still_reach_achievements(monkeypatch):
     assert ach_input.stats["total_scores"] == 2
     assert ach_input.stats["total_score"] == 600
     assert ach_input.stats["rank"] == 7
+
+
+def bugged_event(holder):
+    events = [call.args[1] for call in holder.socketio.emit.call_args_list
+              if call.args and call.args[0] == "score_processing_bugged_scores"]
+    assert len(events) <= 1
+    return events[0] if events else None
+
+
+def test_bugged_incoming_score_is_not_posted(monkeypatch):
+    song_row = {"md5": "m1", "name": "Blight", "artist": "A", "leaderboard": [], "optimal_score": 410230}
+    holder, _ = run_process(monkeypatch, existing_scores=[], songs_new=[song_row], songs=[incoming_song("m1", 3303175)])
+    assert holder.update_data["scores"] == []
+    assert holder.leaderboard_updates == []
+    assert bugged_event(holder) == {"scores": [{
+        "identifier": "m1", "song_name": "Blight", "artist": "A",
+        "score": 3303175, "optimal_score": 410230, "is_fc": False,
+    }]}
+
+
+def test_bugged_event_comes_before_completion(monkeypatch):
+    song_row = {"md5": "m1", "name": "Blight", "artist": "A", "leaderboard": [], "optimal_score": 410230}
+    holder, _ = run_process(monkeypatch, existing_scores=[], songs_new=[song_row], songs=[incoming_song("m1", 3303175)])
+    names = [call.args[0] for call in holder.socketio.emit.call_args_list if call.args]
+    assert names.index("score_processing_bugged_scores") < names.index("score_processing_complete")
+
+
+def test_no_bugged_event_when_nothing_dropped(monkeypatch):
+    song_row = {"md5": "m1", "name": "S", "artist": "A", "leaderboard": [], "optimal_score": 500}
+    holder, _ = run_process(monkeypatch, existing_scores=[], songs_new=[song_row], songs=[incoming_song("m1", 480)])
+    assert bugged_event(holder) is None
+    assert [s["score"] for s in holder.update_data["scores"]] == [480]
+
+
+def test_legit_score_replaces_stored_bugged_score(monkeypatch):
+    stored = score("m1", 900, 100)
+    board = [{"user_id": "u1", "username": "tester", "score": 900, "percent": 98, "is_fc": False,
+              "speed": 100, "play_count": 1, "posted": "x", "rank": 1}]
+    song_row = {"md5": "m1", "name": "S", "artist": "A", "leaderboard": board, "optimal_score": 500}
+    holder, _ = run_process(monkeypatch, existing_scores=[stored], songs_new=[song_row],
+                            songs=[incoming_song("m1", 480, is_fc=True)])
+    assert [s["score"] for s in holder.update_data["scores"]] == [480]
+    assert [e["score"] for e in holder.leaderboard_updates[-1]["leaderboard"]] == [480]
+
+
+def test_bugged_unknown_score_dropped_on_promotion(monkeypatch):
+    unknown = unknown_score("m1", 900, 100, r"C:\songs\foo\notes.chart")
+    song_row = {"md5": "m1", "name": "Foo", "artist": "Bar", "leaderboard": [], "optimal_score": 500}
+    holder, _ = run_process(monkeypatch, existing_scores=[], unknown_scores=[unknown], songs_new=[song_row])
+    assert holder.update_data["scores"] == []
+    assert holder.update_data["unknown_scores"] == []
+    assert holder.leaderboard_updates == []
+    event = bugged_event(holder)
+    assert event is not None and event["scores"][0]["identifier"] == "m1"
+
+
+def test_bugged_score_listed_once_when_unknown_and_incoming(monkeypatch):
+    unknown = unknown_score("m1", 900, 100, r"C:\songs\foo\notes.chart")
+    song_row = {"md5": "m1", "name": "Foo", "artist": "Bar", "leaderboard": [], "optimal_score": 500}
+    holder, _ = run_process(monkeypatch, existing_scores=[], unknown_scores=[unknown], songs_new=[song_row],
+                            songs=[incoming_song("m1", 950)])
+    event = bugged_event(holder)
+    assert event is not None
+    assert [(s["identifier"], s["score"]) for s in event["scores"]] == [("m1", 950)]

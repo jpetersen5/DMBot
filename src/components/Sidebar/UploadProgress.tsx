@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { useUploadProgress } from "../../hooks/useUploadProgress";
 import Draggable from "../../utils/Draggable";
+import { processColorTags, renderSafeHTML } from "../../utils/safeHTML";
 
 import "./UploadProgress.scss";
 import Icon from "../Extras/Icon";
@@ -18,6 +19,7 @@ const UploadProgress: React.FC = () => {
     resetUploadState,
     achievementErrors,
     warnings,
+    buggedScores,
     status,
     clearAllNotifications,
   } = useUploadProgress();
@@ -81,6 +83,25 @@ const UploadProgress: React.FC = () => {
                 <li key={warning}>⚠️ {warning}</li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {completed && buggedScores.length > 0 && (
+          <div className="bugged-scores">
+            <h4>Scores not posted</h4>
+            <ul>
+              {buggedScores.map((bugged) => (
+                <li key={bugged.identifier}>
+                  <span dangerouslySetInnerHTML={renderSafeHTML(processColorTags(bugged.song_name))} />
+                  {" – "}
+                  <span dangerouslySetInnerHTML={renderSafeHTML(processColorTags(bugged.artist))} />
+                  {`: ${bugged.score.toLocaleString()} (optimal ${bugged.optimal_score.toLocaleString()})`}
+                </li>
+              ))}
+            </ul>
+            <p className="bugged-scores-note">
+              These scores are likely bugged, so they weren't posted. To reset it, open the song in Clone Hero, choose Delete Score in its song options, then play it again.
+            </p>
           </div>
         )}
 
