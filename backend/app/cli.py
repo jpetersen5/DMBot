@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 import click
 from flask import Flask
@@ -37,10 +37,11 @@ def register_cli(app: Flask) -> None:
 
     @app.cli.command("remove-bugged-scores")
     @click.option("--apply", is_flag=True, help="Write the changes (default: preview only).")
-    def remove_bugged_scores_command(apply: bool) -> None:
+    @click.option("--skip", "skip", multiple=True, metavar="MD5", help="Leave this song's scores alone (repeatable).")
+    def remove_bugged_scores_command(apply: bool, skip: Tuple[str, ...]) -> None:
         """Remove scores above Hydra's optimal from leaderboards and profiles, revoking achievements they earned."""
         with app.app_context():
-            remove_bugged_scores(get_supabase(), apply=apply, log=click.echo)
+            remove_bugged_scores(get_supabase(), apply=apply, log=click.echo, skip=set(skip))
 
     @app.cli.command("promote-unknown-scores")
     @click.option(

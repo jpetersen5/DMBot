@@ -1,7 +1,7 @@
 """Removes scores inflated by Clone Hero's solo-after-online bug from leaderboards and profiles."""
 import logging
 from datetime import UTC, datetime
-from typing import Any, Callable, Dict, List, Set, Tuple, TypedDict
+from typing import AbstractSet, Any, Callable, Dict, List, Set, Tuple, TypedDict
 
 from ..types import LeaderboardEntry, LeaderboardUpdate
 from ..utils.achievement_processor import achievement_processor
@@ -84,10 +84,11 @@ def _cleaned_user(user: Row, md5s: Set[str]) -> Tuple[List[Dict[str, Any]], Dict
 
 
 def remove_bugged_scores(
-    supabase: Any, *, apply: bool = False, log: Callable[[str], None] = print
+    supabase: Any, *, apply: bool = False, log: Callable[[str], None] = print, skip: AbstractSet[str] = frozenset()
 ) -> List[FlaggedScore]:
     prefix = "" if apply else "[preview] "
     songs = _fetch_paged(supabase, "songs_new", "id,md5,name,artist,optimal_score,leaderboard", only_analysed=True)
+    songs = [song for song in songs if song["md5"] not in skip]
     users = _fetch_paged(supabase, "users", "id,username,scores,unknown_scores,stats,achievements")
     flagged = find_flagged(songs, users)
     log(f"{prefix}{len(flagged)} bugged score(s) across {len(songs)} analysed songs")

@@ -122,6 +122,13 @@ def test_preview_writes_nothing():
     assert any("first_fc" in m for m in messages)
 
 
+def test_skipped_songs_are_left_alone():
+    songs, users = fixture()
+    fake = FakeSupabase(songs, users)
+    assert remove_bugged_scores(fake, apply=True, log=lambda _m: None, skip={"m1"}) == []
+    assert fake.calls == []
+
+
 def test_apply_removes_entries_reranks_and_revokes():
     songs, users = fixture()
     fake = FakeSupabase(songs, users)
@@ -158,11 +165,12 @@ def test_failed_leaderboard_write_is_reported_and_found_again():
 def test_cli_previews_unless_applied(monkeypatch):
     calls = []
     monkeypatch.setattr(cli_module, "get_supabase", lambda: "client")
-    monkeypatch.setattr(cli_module, "remove_bugged_scores", lambda client, apply, log: calls.append((client, apply)))
+    monkeypatch.setattr(cli_module, "remove_bugged_scores",
+                        lambda client, apply, log, skip: calls.append((client, apply, skip)))
     app = Flask(__name__)
     cli_module.register_cli(app)
     runner = app.test_cli_runner()
 
     assert runner.invoke(args=["remove-bugged-scores"]).exit_code == 0
-    assert runner.invoke(args=["remove-bugged-scores", "--apply"]).exit_code == 0
-    assert calls == [("client", False), ("client", True)]
+    assert runner.invoke(args=["remove-bugged-scores", "--apply", "--skip", "m1", "--skip", "m2"]).exit_code == 0
+    assert calls == [("client", False, set()), ("client", True, {"m1", "m2"})]
