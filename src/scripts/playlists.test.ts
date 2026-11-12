@@ -13,6 +13,7 @@ describe("playlistFor", () => {
     [["Synced Charts", "Sync Charts", "Popular Charters", "Miscellany", "V", "Various", "Endless Setlist Folder", "Song"], "Chorus"],
     [["Downloaded Charts", "Archived Birdman", "ApocalypseAP", "Song"], "BirdmanExe Archived"],
     [["Downloaded Charts", "Extra", "Yes - Roundabout"], "Misc"],
+    [["Misc", "Joshwantsmaccas", "...And You Will Know Us By The Trail Of Dead - Pinhole Camera"], "Misc"],
   ])("maps %j to %s", (segments, expected) => {
     expect(p(...segments)).toBe(expected);
   });

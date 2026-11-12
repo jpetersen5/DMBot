@@ -19,6 +19,7 @@ const PREFIX_RULES: [string[], string][] = [
   [["synced charts", "sync charts", "popular charters"], "Chorus"],
   [["downloaded charts", "archived birdman"], "BirdmanExe Archived"],
   [["downloaded charts", "extra"], "Misc"],
+  [["misc"], "Misc"],
 ];
 
 const splitPath = (relPath: string): string[] => relPath.split(/[\\/]+/).filter(Boolean);
