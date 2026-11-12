@@ -5,12 +5,15 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 from .supabase_service import Row, rows
 
 DEFAULT_SCAN_FILE = Path(__file__).resolve().parents[2] / "data" / "scanned_songs.json"
 DEFAULT_PATHS_FILE = DEFAULT_SCAN_FILE.parent / "hydra_paths.json"
+
+# Hydra only models 4-lane drums, so its results for 5-lane charts are wrong
+FIVE_LANE_DRUM_TYPE = 2
 
 COMPARED = [
     "name", "artist", "album", "genre", "year", "charter_refs", "song_length", "difficulties",
@@ -224,7 +227,7 @@ def stale_extra(scanned: List[Dict[str, Any]], stored: Dict[str, Any]) -> List[R
     ]
 
 
-def attach_paths(prepared: List[Row], paths: Dict[str, Any]) -> int:
+def attach_paths(prepared: List[Row], paths: Dict[str, Any], five_lane: Set[str]) -> int:
     """Merge Hydra results into prepared rows; returns how many results matched no scanned song."""
     by_md5 = {row["md5"]: row for row in prepared}
     for md5, result in paths.items():
@@ -232,6 +235,9 @@ def attach_paths(prepared: List[Row], paths: Dict[str, Any]) -> int:
         if row is not None:
             row["optimal_score"] = result["optimal_score"]
             row["paths"] = result["paths"]
+    for md5 in five_lane & by_md5.keys():
+        by_md5[md5]["optimal_score"] = None
+        by_md5[md5]["paths"] = None
     return sum(1 for md5 in paths if md5 not in by_md5)
 
 
@@ -250,7 +256,8 @@ def import_songs(
     unmatched_paths = 0
     if paths_file is not None:
         hydra_paths: Dict[str, Any] = json.loads(Path(paths_file).read_text(encoding="utf-8"))
-        unmatched_paths = attach_paths(prepared, hydra_paths)
+        five_lane = {song["md5"] for song in scanned if (song.get("notesData") or {}).get("drumType") == FIVE_LANE_DRUM_TYPE}
+        unmatched_paths = attach_paths(prepared, hydra_paths, five_lane)
         log(f"Hydra paths for {len(hydra_paths) - unmatched_paths} scanned songs from {paths_file}")
     plan = plan_import(prepared, existing)
     stored_extra = {row["md5"]: row["song_data"] for row in _fetch_all(supabase, "songs_extra", ["id", "md5", "song_data"])}

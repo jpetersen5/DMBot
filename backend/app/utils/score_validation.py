@@ -9,9 +9,7 @@ BUG_MARGIN = 0.05
 def is_bugged_score(score: int, is_fc: bool, optimal_score: Optional[int]) -> bool:
     if not optimal_score or optimal_score <= 0:
         return False
-    if score > optimal_score * (1 + BUG_MARGIN):
-        return True
-    return not is_fc and score > optimal_score
+    return score > optimal_score * (1 + BUG_MARGIN)
 
 
 def bugged_score(identifier: str, song: Mapping[str, Any], score: Mapping[str, Any]) -> BuggedScore:

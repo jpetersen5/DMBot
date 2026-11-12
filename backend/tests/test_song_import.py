@@ -377,6 +377,28 @@ def test_import_updates_paths_without_bumping_last_update(scan_file, tmp_path, m
     assert songs_writes == [[{"md5": "1" * 32, "optimal_score": 500, "paths": PATHS}]]
 
 
+FIVE_LANE = {"drumType": 2, "instruments": ["drums"]}
+
+
+def test_five_lane_charts_get_no_paths(scan_file, tmp_path, monkeypatch):
+    monkeypatch.setattr(song_import, "utc_now", lambda: NOW)
+    fake = FakeSupabase([])
+    paths_file = write_paths(tmp_path, {"2" * 32: {"optimal_score": 500, "paths": PATHS}})
+    import_songs(fake, scan_file([scanned("2" * 32, notesData=FIVE_LANE)]), apply=True, log=lambda _m: None, paths_file=paths_file)
+    [inserted] = [row for table, _c, batch in fake.writes if table == "songs_new" for row in batch]
+    assert inserted.get("optimal_score") is None and inserted.get("paths") is None
+
+
+def test_import_clears_stored_paths_on_five_lane_charts(scan_file, tmp_path, monkeypatch):
+    monkeypatch.setattr(song_import, "utc_now", lambda: NOW)
+    song = scanned("1" * 32, notesData=FIVE_LANE)
+    fake = FakeSupabase([{**prepare_song(song), "optimal_score": 500, "paths": PATHS}])
+    paths_file = write_paths(tmp_path, {"1" * 32: {"optimal_score": 500, "paths": PATHS}})
+    import_songs(fake, scan_file([song]), apply=True, log=lambda _m: None, paths_file=paths_file)
+    songs_writes = [batch for table, _c, batch in fake.writes if table == "songs_new"]
+    assert songs_writes == [[{"md5": "1" * 32, "optimal_score": None, "paths": None}]]
+
+
 def test_import_reports_paths_for_unscanned_songs(scan_file, tmp_path):
     fake = FakeSupabase([])
     paths_file = write_paths(tmp_path, {"9" * 32: {"optimal_score": 500, "paths": PATHS}})
