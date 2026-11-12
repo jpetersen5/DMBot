@@ -1,62 +1,87 @@
 @use "../../styles/themes" as *;
 @use "../../styles/mixins" as *;
 
-.flex-column {
-  display: flex;
-  flex-direction: column;
-}
-
-.gap-small {
-  gap: $space-sm;
-}
-
-.gap-medium {
-  gap: $space-md;
-}
-
-.margin-bottom-medium {
-  margin-bottom: $space-md;
-}
-
 .song-info {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  gap: $space-md;
+  min-width: 0;
   overflow-y: auto;
   padding: $space-md;
   border-radius: $radius-md;
   box-shadow: $shadow-sm;
   @include theme("background", "color-box");
   @include scrollbar;
-
-  .loading-spinner {
-    @extend .flex-column;
-    align-items: center;
-    justify-content: center;
-  }
-}
-
-.song-box {
-  @extend .flex-column;
-  @extend .margin-bottom-medium;
-}
-
-.song-column {
-  @extend .flex-column;
-  @extend .gap-medium;
 }
 
 .song-header {
-  text-align: center;
-  font-size: 2rem;
-  font-weight: bold;
-  margin-bottom: $space-sm;
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: $space-md;
+  align-items: center;
+}
+
+.song-art-box {
+  position: relative;
+  width: 96px;
+  height: 96px;
+}
+
+.song-art-image {
+  width: 100%;
+  height: 100%;
+  border-radius: $radius-md;
+  object-fit: cover;
+}
+
+.song-art-charter {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 32px;
+  height: 32px;
+
+  .user-avatar {
+    width: 100%;
+    height: 100%;
+    border: 1px solid;
+    border-radius: $radius-round;
+    object-fit: cover;
+    @include theme("border-color", "color-border");
+  }
+}
+
+.song-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .song-title {
-  display: block !important;
-  text-align: left;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: bold;
-  width: 100%;
+  line-height: 1.25;
+}
+
+.song-artist {
+  font-size: 1.1rem;
+}
+
+.song-artist {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.song-album {
+  font-size: 0.85rem;
+  @include theme("color", "color-text-secondary");
+}
+
+.song-charter {
+  font-size: 0.9rem;
 }
 
 .marquee {
@@ -76,7 +101,6 @@
 }
 
 @keyframes marquee-scroll {
-
   0%,
   12% {
     transform: translateX(0);
@@ -98,121 +122,237 @@
   }
 }
 
-.song-artist {
-  font-size: 1.35rem;
-}
-
-.song-genre,
-.song-album {
-  font-size: 0.9rem;
-}
-
-.song-art-box {
-  width: 100%;
-  height: 100%;
-  position: relative;
-
-}
-
-.song-art-image {
-  width: 100%;
-  border-radius: $radius-md;
-  object-fit: cover;
-}
-
-.song-art-charter {
-  position: absolute;
-  width: 55px;
-  height: 55px;
-  margin-top: calc(2rem - 110px);
-  margin-left: 15px;
-  margin-bottom: $space-sm;
-
-  .user-avatar {
-    width: 100%;
-    height: 100%;
-    border: 1px solid;
-    border-radius: $radius-round;
-    object-fit: cover;
-    @include theme("border-color", "color-border");
-  }
-}
-
-.info-header {
-  font-size: 1.2rem;
-  font-style: italic;
-  margin: 0;
-}
-
-.song-info>.tooltip-container {
-  display: block;
-  margin-top: $space-md;
-
-  +.MD5 {
-    padding-top: $space-sm;
-    padding-bottom: $space-sm;
-  }
-}
-
-.info-line {
-  @extend .gap-small;
-  display: flex;
-  align-items: center;
-  margin-bottom: 0;
-
-  &.charter {
-    margin-top: $space-sm;
-  }
-
-  .label {
-    font-weight: bold;
-  }
-
-  .value {
-    flex: 1;
-  }
-}
-
-.song-details-box {
+.drums-card {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: $space-sm;
+  padding: $space-sm $space-md;
+  border-radius: $radius-md;
+  @include theme("background", "color-box-secondary");
+}
+
+.drums-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-sm $space-md;
+  font-variant-numeric: tabular-nums;
+
+  > .tooltip-container:last-child {
+    flex: 1 1 180px;
+  }
+}
+
+.drums-difficulty {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+
+  img {
+    width: 32px;
+    height: 32px;
+  }
+
+  &.inactive {
+    opacity: 0.5;
+  }
+}
+
+.drums-difficulty-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.drums-kind {
+  padding: 1px $space-sm;
+  border-radius: $radius-pill;
+  font-size: 0.75rem;
+  border: 1px solid;
+  @include theme("border-color", "color-border");
+  @include theme("color", "color-text-secondary");
+}
+
+.drums-stat {
+  white-space: nowrap;
+  font-size: 0.85rem;
+  @include theme("color", "color-text-secondary");
+
+  strong {
+    font-size: 1.05rem;
+    @include theme("color", "color-text");
+  }
+}
+
+.drums-stats .tooltip-container:has(.drums-stat) {
+  cursor: help;
+}
+
+.tempo {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
+  font-variant-numeric: tabular-nums;
+
+  &.inactive {
+    opacity: 0.5;
+  }
+}
+
+.tempo-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.tempo-unit,
+.tempo-steady,
+.tempo-range {
+  font-size: 0.8rem;
+  @include theme("color", "color-text-secondary");
+}
+
+.tempo-steady {
+  margin-left: auto;
+}
+
+.tempo-range {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: $space-sm;
+  min-width: 100px;
+  margin-left: $space-xs;
+}
+
+.tempo-track {
+  position: relative;
+  flex: 1;
+  height: 4px;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: $radius-round;
+    opacity: 0.35;
+    @include theme("background", "color-text-secondary");
+  }
+}
+
+.tempo-marker {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: $radius-round;
+  transform: translate(-50%, -50%);
+  @include theme("background", "color-highlight");
+}
+
+.feature-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-xs;
+}
+
+.feature {
+  padding: 2px $space-sm;
+  border: 1px solid;
+  border-radius: $radius-pill;
+  font-size: 0.8rem;
+  opacity: 0.5;
+  @include theme("border-color", "color-border");
+  @include theme("color", "color-text");
+
+  &.active {
+    opacity: 1;
+    @include theme("border-color", "color-text-success");
+    @include theme("color", "color-text-success");
+  }
+}
+
+.other-parts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-sm $space-md;
+}
+
+.other-parts-label {
+  font-size: 0.8rem;
+  @include theme("color", "color-text-secondary");
 }
 
 .parts {
   display: flex;
-  flex-direction: row;
+  gap: $space-md;
 
   .part {
-    @extend .flex-column;
+    display: flex;
     align-items: center;
-    width: 50px;
-    margin-right: $space-sm;
-    gap: $space-sm;
+    gap: $space-xs;
 
     &.inactive {
-      opacity: 0.5;
+      opacity: 0.4;
     }
 
     img {
-      width: 100%;
+      width: 22px;
+      height: 22px;
     }
+  }
 
-    .part-difficulty-numeral {
-      width: 30px;
-      height: 30px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      span {
-        font-size: 22px;
-        @include theme("color", "color-text");
-      }
-    }
+  .part-difficulty-numeral {
+    min-width: 0.7em;
+    font-size: 1rem;
+    @include theme("color", "color-text");
   }
 }
 
+.song-info-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-sm $space-md;
+  margin-top: auto;
+  font-size: 0.8rem;
+  @include theme("color", "color-text-secondary");
+
+  > .tooltip-container {
+    flex: 1 1 200px;
+    min-width: 0;
+  }
+}
+
+.loading-phrase {
+  display: block;
+  font-style: italic;
+}
+
+.md5 {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  min-width: 0;
+  margin-left: auto;
+}
+
+.md5-value {
+  max-width: 11ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+
+.md5-copy {
+  padding: 0 $space-sm;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  @include themed-button;
+}
+
+// tooltip bodies render in a portal outside .song-info
 .part-notes-info {
   display: flex;
   flex-direction: column;
@@ -243,10 +383,10 @@
     text-align: left;
     border-radius: $radius-sm;
     @include theme("background", "color-box-secondary");
+    @include theme("color", "color-text");
 
     .note-count-instrument {
       font-weight: bold;
-      margin-right: 0;
     }
 
     .note-count-value {
@@ -260,167 +400,4 @@
       @include theme("color", "color-text-secondary");
     }
   }
-}
-
-.feature-grid {
-  display: grid;
-  gap: $space-sm;
-}
-
-.difficulty,
-.instrument,
-.nps-item,
-.feature,
-.note-count-item {
-  padding: $space-sm;
-  border-radius: $radius-sm;
-  text-align: center;
-  @include theme("background", "color-box-secondary");
-  @include theme("color", "color-text");
-
-  &.active {
-    opacity: 1;
-    @include theme("color", "color-text-success");
-  }
-}
-
-.feature {
-  opacity: 0.5;
-}
-
-.chart-features {
-  display: flex;
-  flex-direction: column;
-  gap: $space-sm;
-
-  > .tooltip-container {
-    display: block;
-  }
-}
-
-.tempo {
-  display: flex;
-  align-items: center;
-  gap: $space-sm;
-  padding: $space-sm;
-  border-radius: $radius-sm;
-  font-variant-numeric: tabular-nums;
-
-  @include theme("background", "color-box-secondary");
-
-  &.inactive {
-    opacity: 0.5;
-  }
-}
-
-.tempo-value {
-  font-size: 1.25rem;
-  font-weight: 700;
-}
-
-.tempo-unit,
-.tempo-steady,
-.tempo-range {
-  font-size: 0.8rem;
-
-  @include theme("color", "color-text-secondary");
-}
-
-.tempo-steady {
-  margin-left: auto;
-}
-
-.tempo-range {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  gap: $space-sm;
-  margin-left: $space-sm;
-}
-
-.tempo-track {
-  position: relative;
-  flex: 1;
-  height: 4px;
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: $radius-round;
-    opacity: 0.35;
-
-    @include theme("background", "color-text-secondary");
-  }
-}
-
-.tempo-marker {
-  position: absolute;
-  top: 50%;
-  width: 10px;
-  height: 10px;
-  border-radius: $radius-round;
-  transform: translate(-50%, -50%);
-
-  @include theme("background", "color-highlight");
-}
-
-.diff-name,
-.nps-instrument,
-.note-count-instrument {
-  font-weight: bold;
-  margin-right: $space-sm;
-}
-
-.MD5 {
-  padding-top: 15px;
-}
-
-
-@include mobile {
-  .song-column {
-    flex-direction: column;
-  }
-
-  .song-info {
-    height: 100%;
-  }
-
-  .feature-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  .parts {
-    justify-content: space-between;
-  }
-}
-
-@include tabletplus {
-  .song-column {
-    flex-direction: row;
-  }
-
-  .song-details-box {
-    overflow-y: auto;
-    @include scrollbar;
-  }
-
-  .song-art-box,
-  .song-details-box,
-  .song-art-box>.loading-spinner {
-    min-height: 253px;
-    max-height: 253px;
-  }
-
-  .song-art-box,
-  .song-details-box,
-  .difficulties,
-  .chart-features {
-    width: calc(50% - 0.5rem);
-  }
-
-  .feature-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
 }

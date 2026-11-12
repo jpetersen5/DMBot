@@ -4,18 +4,25 @@
 .song-paths {
   display: flex;
   flex-direction: column;
-  gap: $space-sm;
-  margin-top: $space-md;
-  padding: $space-sm;
-  border-radius: $radius-sm;
+  gap: $space-xs;
+  padding-top: $space-sm;
+  border-top: 1px solid;
   font-variant-numeric: tabular-nums;
-  @include theme("background", "color-box-secondary");
+  @include theme("border-color", "color-border");
 }
 
-.song-paths-header {
+.song-paths-empty {
+  margin: 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  @include theme("color", "color-text-secondary");
+}
+
+.song-paths-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: $space-sm;
+  gap: $space-xs $space-sm;
 }
 
 .song-paths-label,
@@ -25,26 +32,8 @@
 }
 
 .song-paths-score {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 700;
-}
-
-.song-paths-notation {
-  margin-left: auto;
-  font-size: 0.8rem;
-  @include theme("color", "color-text-secondary");
-
-  &:hover {
-    @include theme("color", "color-highlight");
-  }
-}
-
-.song-paths-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: $space-sm;
-  min-width: 0;
 }
 
 .song-paths-path,
@@ -56,7 +45,15 @@
 }
 
 .song-paths-path {
-  cursor: help;
+  margin-left: $space-xs;
+}
+
+.song-paths-stepper {
+  display: flex;
+  align-items: center;
+  gap: $space-xs;
+  margin-left: auto;
+  white-space: nowrap;
 }
 
 .song-paths-step,
@@ -66,30 +63,47 @@
   @include themed-button;
 }
 
-.song-paths-details-toggle {
+.song-paths-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-xs $space-md;
+}
+
+.song-paths-links {
+  display: flex;
+  align-items: center;
+  gap: $space-sm;
   margin-left: auto;
   font-size: 0.8rem;
 }
 
-.song-paths-details {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $space-md;
-  align-items: flex-start;
+.song-paths-notation {
+  @include theme("color", "color-text-secondary");
+
+  &:hover {
+    @include theme("color", "color-highlight");
+  }
 }
 
 .path-breakdown {
-  display: grid;
-  grid-template-columns: auto auto;
-  column-gap: $space-md;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 $space-md;
   margin: 0;
+  font-size: 0.8rem;
+
+  div {
+    display: flex;
+    gap: $space-xs;
+  }
 
   dt {
     font-weight: normal;
+    @include theme("color", "color-text-secondary");
   }
 
   dd {
     margin: 0;
-    text-align: right;
   }
 }

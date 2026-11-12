@@ -135,6 +135,7 @@ export interface NotesData {
   hasLyrics: boolean;
   has2xKick: boolean;
   hasFlexLanes: boolean;
+  drumType?: number;
   noteCounts: NoteCount[];
   maxNps: MaxNps[];
 }
@@ -164,7 +165,7 @@ export interface LeaderboardEntry {
   play_count?: number;
 }
 
-type Difficulty = "expert" | "hard" | "medium" | "easy";
+export type Difficulty = "expert" | "hard" | "medium" | "easy";
 
 export const SONG_TABLE_HEADERS = {
   name: "Name",
