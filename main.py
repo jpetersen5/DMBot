@@ -1,4 +1,3 @@
-import asyncio
 from bot.dm_bot import DMBot
 import logging
 
