@@ -1,5 +1,7 @@
 import json
 from types import SimpleNamespace
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 from flask import Flask
 
@@ -9,7 +11,7 @@ from app.utils.achievement_processor import achievement_processor
 
 
 class SelectQuery:
-    def __init__(self, table_name: str, data_map: dict):
+    def __init__(self, table_name: str, data_map: Mapping[str, Sequence[Mapping[str, Any]]]):
         self.table_name = table_name
         self.data_map = data_map
 
@@ -24,14 +26,14 @@ class SelectQuery:
 
 
 class SelectSupabase:
-    def __init__(self, data_map: dict):
+    def __init__(self, data_map: Mapping[str, Sequence[Mapping[str, Any]]]):
         self.data_map = data_map
 
     def table(self, name: str) -> SelectQuery:
         return SelectQuery(name, self.data_map)
 
 
-def make_client(monkeypatch, data_map: dict):
+def make_client(monkeypatch, data_map: Mapping[str, Sequence[Mapping[str, Any]]]):
     app = Flask(__name__)
     app.register_blueprint(achievements_module.bp)
     app.register_blueprint(users_module.bp)
@@ -108,7 +110,7 @@ def test_null_string_fields_in_scores_produce_no_errors():
     assert errors == []
 
 
-def fc_score(identifier: str, is_fc: bool) -> dict:
+def fc_score(identifier: str, is_fc: bool) -> dict[str, Any]:
     return {"identifier": identifier, "score": 100, "is_fc": is_fc, "speed": 100, "percent": 100.0, "play_count": 1}
 
 

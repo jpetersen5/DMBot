@@ -2,6 +2,7 @@ import time
 import requests
 from base64 import b64encode
 from datetime import datetime, UTC
+from typing import Any
 from flask import Blueprint, jsonify
 from ..config import Config
 from ..types import FlaskResponse
@@ -52,7 +53,7 @@ def _get_client_token() -> str | None:
     return token
 
 
-def _spotify_search(token: str, query: str, search_type: str, result_key: str) -> list:
+def _spotify_search(token: str, query: str, search_type: str, result_key: str) -> list[dict[str, Any]]:
     """Run a Spotify search and return the items list. Raises on HTTP failure."""
     response = session.get(
         "https://api.spotify.com/v1/search",

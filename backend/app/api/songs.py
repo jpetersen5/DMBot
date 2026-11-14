@@ -2,7 +2,8 @@ import re
 import requests
 from datetime import datetime, UTC
 from flask import Blueprint, jsonify, request, current_app, Response
-from typing import Any, Dict, Iterator
+from typing import Any
+from collections.abc import Iterator
 from ..services.supabase_service import get_supabase, rows
 from ..utils.helpers import token_required
 from ..types import FlaskResponse
@@ -151,7 +152,7 @@ def get_songs() -> FlaskResponse:
 
     envelope = since is not None or request.args.get("v") == "2"
 
-    body: Dict[str, Any] = {}
+    body: dict[str, Any] = {}
     if since is not None:
         body["since"] = since
 

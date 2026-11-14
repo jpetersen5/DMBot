@@ -1,10 +1,9 @@
 from datetime import datetime, UTC
-from typing import List
 
 from ..types import LeaderboardEntry
 
 
-def sort_and_rank_leaderboard(leaderboard: List[LeaderboardEntry]) -> List[LeaderboardEntry]:
+def sort_and_rank_leaderboard(leaderboard: list[LeaderboardEntry]) -> list[LeaderboardEntry]:
     """
     sorts and ranks the leaderboard
 
@@ -14,7 +13,7 @@ def sort_and_rank_leaderboard(leaderboard: List[LeaderboardEntry]) -> List[Leade
     returns:
         list: sorted and ranked leaderboard
     """
-    def sort_key(entry: LeaderboardEntry) -> tuple:
+    def sort_key(entry: LeaderboardEntry) -> tuple[int, int, int, float]:
         speed = entry.get("speed", 0)
         score = entry.get("score", 0)
         posted = entry.get("posted", "")

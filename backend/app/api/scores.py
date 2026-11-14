@@ -4,7 +4,8 @@ from ..utils.helpers import allowed_file, get_process_songs_script
 from ..extensions import socketio, redis
 from datetime import datetime, UTC
 import re
-from typing import Any, BinaryIO, Callable, Dict, List, Optional
+from typing import IO, Any
+from collections.abc import Callable
 from ..utils.achievement_processor import achievement_processor
 from ..utils.helpers import token_required
 from ..utils.score_processing import (
@@ -25,7 +26,7 @@ bp = Blueprint("scores", __name__)
 # parse_score_data is a proprietary parser injected into module globals at import
 # time by exec()-ing the base64 script from PROCESS_SONGS_SCRIPT (see helpers.py).
 # Declare its shape so downstream `result[...]` access is typed instead of Unknown.
-parse_score_data: Callable[[BinaryIO], Dict[str, Any]]
+parse_score_data: Callable[[IO[bytes]], dict[str, Any]]
 exec(get_process_songs_script())
 
 def update_processing_status(
@@ -41,7 +42,7 @@ def update_processing_status(
         "total": total
     })
 
-def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
+def process_and_save_scores(result: dict[str, Any], user_id: str) -> None:
     """
     Process scoredata.bin content and save scores to the database
     
@@ -57,7 +58,7 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
     total_songs = len(result["songs"])
     processed_songs = 0
     leaderboard_updates = []
-    bugged_scores: List[BuggedScore] = []
+    bugged_scores: list[BuggedScore] = []
 
     logger.info(f"Fetching user data for user {user_id}")
     user_data = rows(supabase.table("users").select("username, scores, unknown_scores, stats, achievements").eq("id", user_id).execute().data)
@@ -307,7 +308,7 @@ def process_and_save_scores(result: Dict[str, Any], user_id: str) -> None:
                 socketio.emit("new_achievement", {"achievement": client_achievement}, to=user_id)
                 logger.info(f"User {user_id} earned new achievement: {client_achievement['name']}")
 
-    update_data: Dict[str, Any] = {
+    update_data: dict[str, Any] = {
         "scores": updated_scores,
         "unknown_scores": updated_unknown_scores,
         "achievements": achievements,
@@ -375,7 +376,7 @@ def upload_scoredata(user_id: str) -> FlaskResponse:
         try:
             socketio.emit("score_processing_start", to=user_id)
             # from process_songs.py, encoded and saved in env
-            result = parse_score_data(file.stream)  # type: ignore
+            result = parse_score_data(file.stream)
             
             if not result:
                 return jsonify({"error": "Invalid score data"}), 400
@@ -383,11 +384,11 @@ def upload_scoredata(user_id: str) -> FlaskResponse:
             if result["version"] != 20211009:
                 return jsonify({"error": "Score data is outdated"}), 400
             
-            def run_with_app_context(app: Any, result: Dict[str, Any], user_id: str) -> None:
+            def run_with_app_context(app: Any, result: dict[str, Any], user_id: str) -> None:
                 with app.app_context():
                     process_and_save_scores(result, user_id)
             
-            app = current_app._get_current_object()  # type: ignore[attr-defined]
+            app = current_app._get_current_object()  # pyright: ignore[reportAttributeAccessIssue]
             socketio.start_background_task(run_with_app_context, app, result, user_id)
             
             return jsonify({"message": "Score processing started", "total_songs": len(result["songs"])}), 202
@@ -406,7 +407,7 @@ def processing_status(user_id: str) -> FlaskResponse:
     returns:
         JSON: Current processing status
     """
-    status: dict = redis.hgetall(f"processing_status:{user_id}")
+    status: dict[bytes, bytes] = redis.hgetall(f"processing_status:{user_id}")
     
     if status:
         return jsonify({
@@ -418,7 +419,7 @@ def processing_status(user_id: str) -> FlaskResponse:
     else:
         return jsonify({"status": "no_active_processing"}), 200
 
-def find_file_path_for_md5(file_content: bytes, md5_hex: str, search_back: int = 1024) -> Optional[str]:
+def find_file_path_for_md5(file_content: bytes, md5_hex: str, search_back: int = 1024) -> str | None:
     """
     Searches for the specified MD5 hash in the binary file and extracts the relevant file path.
     """

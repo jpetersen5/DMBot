@@ -1,4 +1,5 @@
-from typing import Any, Iterable, Mapping, Optional
+from typing import Any
+from collections.abc import Iterable, Mapping
 
 from ..types import UserStats
 
@@ -31,9 +32,9 @@ def _as_number(value: Any) -> float:
 
 
 def compute_user_stats(
-    scores: Optional[Iterable[ScoreLike]],
-    unknown_scores: Optional[Iterable[ScoreLike]],
-    previous_stats: Optional[Mapping[str, Any]] = None,
+    scores: Iterable[ScoreLike] | None,
+    unknown_scores: Iterable[ScoreLike] | None,
+    previous_stats: Mapping[str, Any] | None = None,
 ) -> UserStats:
     """Compute ``users.stats`` exactly as ``compute_user_stats_jsonb`` does.
 

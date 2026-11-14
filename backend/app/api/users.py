@@ -1,4 +1,3 @@
-from typing import List, Optional
 from flask import Blueprint, jsonify, request
 from ..services.supabase_service import get_supabase, rows, rows_as
 from ..utils.achievement_processor import achievement_processor
@@ -140,14 +139,14 @@ def compare_users() -> FlaskResponse:
 
     return jsonify(comparison_results)
 
-def get_user_scores_by_id(user_id: str) -> Optional[UserRow]:
+def get_user_scores_by_id(user_id: str) -> UserRow | None:
     supabase = get_supabase()
     response = supabase.table("users").select("scores, unknown_scores").eq("id", user_id).execute()
     return rows_as(response.data, UserRow)[0] if response.data else None
 
 def compare_user_scores(
-    user1_scores: List[ScoreEntry], user2_scores: List[ScoreEntry]
-) -> Optional[ComparisonResult]:
+    user1_scores: list[ScoreEntry], user2_scores: list[ScoreEntry]
+) -> ComparisonResult | None:
     user1_dict = {score["identifier"]: score for score in user1_scores}
     user2_dict = {score["identifier"]: score for score in user2_scores}
 

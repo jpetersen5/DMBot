@@ -5,7 +5,8 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any
+from collections.abc import Callable
 
 from .supabase_service import Row, rows
 
@@ -36,8 +37,8 @@ UNSET_TRACK = 16000
 
 @dataclass
 class ImportPlan:
-    new: List[Row] = field(default_factory=list)
-    updates: List[Tuple[Row, List[str]]] = field(default_factory=list)
+    new: list[Row] = field(default_factory=list)
+    updates: list[tuple[Row, list[str]]] = field(default_factory=list)
     unchanged: int = 0
     untouched: int = 0
 
@@ -46,14 +47,14 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def _year(value: Any) -> Optional[int]:
+def _year(value: Any) -> int | None:
     try:
         return int(value)
     except (TypeError, ValueError):
         return None
 
 
-def prepare_song(song: Dict[str, Any]) -> Row:
+def prepare_song(song: dict[str, Any]) -> Row:
     notes = song.get("notesData") or {}
     track = song.get("album_track")
     return {
@@ -78,14 +79,14 @@ def prepare_song(song: Dict[str, Any]) -> Row:
     }
 
 
-def changed_columns(new: Row, old: Row) -> List[str]:
+def changed_columns(new: Row, old: Row) -> list[str]:
     return [
         c for c in COMPARED
         if c not in KEPT_ON_UPDATE and (c not in PATH_COLUMNS or c in new) and new.get(c) != old.get(c)
     ]
 
 
-def plan_import(prepared: List[Row], existing: Dict[str, Row]) -> ImportPlan:
+def plan_import(prepared: list[Row], existing: dict[str, Row]) -> ImportPlan:
     plan = ImportPlan()
     for row in prepared:
         old = existing.get(row["md5"])
@@ -102,9 +103,9 @@ def plan_import(prepared: List[Row], existing: Dict[str, Row]) -> ImportPlan:
     return plan
 
 
-def update_batches(plan: ImportPlan, now: str) -> Dict[Tuple[str, ...], List[Row]]:
+def update_batches(plan: ImportPlan, now: str) -> dict[tuple[str, ...], list[Row]]:
     """Group updates by changed columns so each upsert only SETs those, sparing column-scoped triggers."""
-    batches: Dict[Tuple[str, ...], List[Row]] = defaultdict(list)
+    batches: dict[tuple[str, ...], list[Row]] = defaultdict(list)
     for row, cols in plan.updates:
         update = {"md5": row["md5"], **{c: row[c] for c in cols}}
         if not set(cols) <= set(PATH_COLUMNS):
@@ -118,7 +119,7 @@ def _short(value: Any, width: int = 60) -> str:
     return text if len(text) <= width else text[: width - 3] + "..."
 
 
-def describe_plan(plan: ImportPlan, existing: Dict[str, Row]) -> List[str]:
+def describe_plan(plan: ImportPlan, existing: dict[str, Row]) -> list[str]:
     lines = [
         f"  new:       {len(plan.new)}",
         f"  changed:   {len(plan.updates)}",
@@ -134,7 +135,7 @@ def describe_plan(plan: ImportPlan, existing: Dict[str, Row]) -> List[str]:
             lines.extend(f"      {c}: {_short(old.get(c))} -> {_short(row[c])}" for c in cols)
         return lines
 
-    by_column: Dict[str, List[Row]] = defaultdict(list)
+    by_column: dict[str, list[Row]] = defaultdict(list)
     for row, cols in plan.updates:
         for c in cols:
             by_column[c].append(row)
@@ -145,7 +146,7 @@ def describe_plan(plan: ImportPlan, existing: Dict[str, Row]) -> List[str]:
         example = f"{_short(row['name'], 30)}: {_short(existing[row['md5']].get(col), 30)} -> {_short(row[col], 30)}"
         lines.append(f"  {col:<15} {len(changed):>6}   e.g. {example}")
     if plan.new:
-        counts: Dict[str, int] = defaultdict(int)
+        counts: dict[str, int] = defaultdict(int)
         for row in plan.new:
             for playlist in (row["playlist_path"] or "<none>").split(","):
                 counts[playlist] += 1
@@ -154,8 +155,8 @@ def describe_plan(plan: ImportPlan, existing: Dict[str, Row]) -> List[str]:
     return lines
 
 
-def _fetch_all(supabase: Any, table: str, columns: List[str], order: str = "id") -> List[Row]:
-    found: List[Row] = []
+def _fetch_all(supabase: Any, table: str, columns: list[str], order: str = "id") -> list[Row]:
+    found: list[Row] = []
     start = 0
     while True:
         page = rows(
@@ -168,13 +169,13 @@ def _fetch_all(supabase: Any, table: str, columns: List[str], order: str = "id")
         start += PAGE_SIZE
 
 
-def fetch_existing(supabase: Any) -> Dict[str, Row]:
+def fetch_existing(supabase: Any) -> dict[str, Row]:
     return {row["md5"]: row for row in _fetch_all(supabase, "songs_new", ["md5", *COMPARED])}
 
 
-def resolve_aliases(row: Row, aliases: Dict[str, List[str]]) -> Row:
+def resolve_aliases(row: Row, aliases: dict[str, list[str]]) -> Row:
     """Same exact-match expansion as the canonicalize_charter_refs() database function."""
-    resolved: List[str] = []
+    resolved: list[str] = []
     for ref in row["charter_refs"]:
         for name in aliases.get(ref, [ref]):
             if name not in resolved:
@@ -187,11 +188,11 @@ def _fold(name: str) -> str:
     return "".join(ch for ch in decomposed if not unicodedata.combining(ch)).casefold().strip()
 
 
-def lookalike_charters(new_rows: List[Row], profiles: List[str]) -> Dict[str, str]:
+def lookalike_charters(new_rows: list[Row], profiles: list[str]) -> dict[str, str]:
     """Charter names on new songs that differ from an existing profile only by case or accents."""
     known = set(profiles)
     by_fold = {_fold(name): name for name in profiles}
-    found: Dict[str, str] = {}
+    found: dict[str, str] = {}
     for row in new_rows:
         for ref in row["charter_refs"]:
             match = by_fold.get(_fold(ref))
@@ -200,7 +201,7 @@ def lookalike_charters(new_rows: List[Row], profiles: List[str]) -> Dict[str, st
     return found
 
 
-def _chunks(items: List[Any], size: int) -> List[List[Any]]:
+def _chunks(items: list[Any], size: int) -> list[list[Any]]:
     return [items[i:i + size] for i in range(0, len(items), size)]
 
 
@@ -215,11 +216,11 @@ def strip_nul(value: Any) -> Any:
     return value
 
 
-def extra_data(song: Dict[str, Any]) -> Dict[str, Any]:
+def extra_data(song: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in song.items() if k != "folders"}
 
 
-def stale_extra(scanned: List[Dict[str, Any]], stored: Dict[str, Any]) -> List[Row]:
+def stale_extra(scanned: list[dict[str, Any]], stored: dict[str, Any]) -> list[Row]:
     """songs_extra rows missing or out of date, compared directly so an interrupted run can resume."""
     return [
         {"md5": song["md5"], "song_data": extra_data(song)}
@@ -227,7 +228,7 @@ def stale_extra(scanned: List[Dict[str, Any]], stored: Dict[str, Any]) -> List[R
     ]
 
 
-def attach_paths(prepared: List[Row], paths: Dict[str, Any], five_lane: Set[str]) -> int:
+def attach_paths(prepared: list[Row], paths: dict[str, Any], five_lane: set[str]) -> int:
     """Merge Hydra results into prepared rows; returns how many results matched no scanned song."""
     by_md5 = {row["md5"]: row for row in prepared}
     for md5, result in paths.items():
@@ -246,16 +247,16 @@ def import_songs(
     path: Path,
     apply: bool,
     log: Callable[[str], None] = print,
-    paths_file: Optional[Path] = None,
+    paths_file: Path | None = None,
 ) -> ImportPlan:
-    scanned: List[Dict[str, Any]] = strip_nul(json.loads(Path(path).read_text(encoding="utf-8")))
+    scanned: list[dict[str, Any]] = strip_nul(json.loads(Path(path).read_text(encoding="utf-8")))
     existing = fetch_existing(supabase)
     aliases = {row["alias"]: row["canonicals"] for row in _fetch_all(supabase, "charter_aliases", ["alias", "canonicals"], order="alias")}
     profiles = [row["name"] for row in _fetch_all(supabase, "charters", ["id", "name"])]
     prepared = [resolve_aliases(prepare_song(song), aliases) for song in scanned]
     unmatched_paths = 0
     if paths_file is not None:
-        hydra_paths: Dict[str, Any] = json.loads(Path(paths_file).read_text(encoding="utf-8"))
+        hydra_paths: dict[str, Any] = json.loads(Path(paths_file).read_text(encoding="utf-8"))
         five_lane = {song["md5"] for song in scanned if (song.get("notesData") or {}).get("drumType") == FIVE_LANE_DRUM_TYPE}
         unmatched_paths = attach_paths(prepared, hydra_paths, five_lane)
         log(f"Hydra paths for {len(hydra_paths) - unmatched_paths} scanned songs from {paths_file}")

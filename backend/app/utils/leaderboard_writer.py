@@ -1,7 +1,8 @@
 """Chunked writes to ``songs_new.leaderboard`` with exponential backoff."""
 
 import logging
-from typing import Any, Callable, List, Optional
+from typing import Any
+from collections.abc import Callable
 
 from ..types import LeaderboardUpdate
 
@@ -21,16 +22,16 @@ def is_statement_timeout(exc: Exception) -> bool:
 
 def push_leaderboard_updates(
     supabase: Any,
-    updates: List[LeaderboardUpdate],
+    updates: list[LeaderboardUpdate],
     chunk_size: int,
     logger: logging.Logger,
-    on_progress: Optional[Callable[[int], None]] = None,
-) -> List[LeaderboardUpdate]:
+    on_progress: Callable[[int], None] | None = None,
+) -> list[LeaderboardUpdate]:
     """Write ``updates`` to songs_new via the bulk_update_leaderboards RPC.
 
     Timeouts are retried in halves. Failures are non-blocking.
     """
-    failed: List[LeaderboardUpdate] = []
+    failed: list[LeaderboardUpdate] = []
 
     for i in range(0, len(updates), chunk_size):
         chunk = updates[i:i + chunk_size]

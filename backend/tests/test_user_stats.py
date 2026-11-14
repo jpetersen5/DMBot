@@ -1,7 +1,9 @@
+from typing import Any
+
 from app.utils.user_stats import compute_user_stats
 
 
-def s(**kwargs) -> dict:
+def s(**kwargs) -> dict[str, Any]:
     base = {"score": 0, "percent": 0.0, "is_fc": False}
     base.update(kwargs)
     return base

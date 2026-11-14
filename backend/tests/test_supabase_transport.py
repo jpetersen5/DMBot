@@ -1,5 +1,4 @@
 import json
-from typing import List, Optional
 
 import httpx
 import pytest
@@ -12,7 +11,7 @@ from app.services.supabase_service import MAX_TRANSPORT_RETRIES, RetryTransport
 class _StubTransport(httpx.BaseTransport):
     """Raises the queued exceptions in order, then returns 200."""
 
-    def __init__(self, errors: List[Optional[Exception]]):
+    def __init__(self, errors: list[Exception | None]):
         self.errors = errors
         self.calls = 0
         self.closed = False

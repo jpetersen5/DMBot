@@ -6,7 +6,7 @@ import json
 import logging
 from datetime import datetime, UTC
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from ..types import AchievementDef, AchievementError
 
@@ -43,11 +43,11 @@ class AchievementProcessor:
     """Processes user scores and returns earned achievements"""
     
     def __init__(self) -> None:
-        self.achievements: List[AchievementDef] = []
-        self.achievement_songs: Dict[str, Any] = self._load_achievement_songs()
+        self.achievements: list[AchievementDef] = []
+        self.achievement_songs: dict[str, Any] = self._load_achievement_songs()
         self._initialize_achievements()
 
-    def _load_achievement_songs(self) -> Dict[str, Any]:
+    def _load_achievement_songs(self) -> dict[str, Any]:
         """Load achievement song definitions from JSON file"""
         try:
             file_path = Path(__file__).parent.parent / "data" / "achievement_songs.json"
@@ -458,7 +458,7 @@ class AchievementProcessor:
             
         return False
     
-    def serializable_achievements(self) -> List[Dict[str, Any]]:
+    def serializable_achievements(self) -> list[dict[str, Any]]:
         """Return achievement definitions as JSON-serializable dicts.
 
         Strips the non-serializable ``check_function`` and any internal
@@ -475,7 +475,7 @@ class AchievementProcessor:
 
     def build_client_achievement(
         self, achievement_id: str, timestamp: str
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Build the ``new_achievement`` socket payload for a newly earned achievement.
 
         Looks up the definition by id and returns the client-facing dict (the same
@@ -497,10 +497,10 @@ class AchievementProcessor:
             "song_md5": achievement_def.get("song_md5")
         }
 
-    def revoked_achievements(self, user_data: Dict[str, Any]) -> List[str]:
+    def revoked_achievements(self, user_data: dict[str, Any]) -> list[str]:
         """Held achievements whose check no longer passes; unknown ids and failed checks are kept."""
         held = user_data.get("achievements") or {}
-        revoked: List[str] = []
+        revoked: list[str] = []
         for achievement_def in self.achievements:
             if achievement_def["id"] not in held:
                 continue
@@ -515,7 +515,7 @@ class AchievementProcessor:
 
     def process_achievements(
         self, user_data: Any
-    ) -> Tuple[Dict[str, str], List[AchievementError]]:
+    ) -> tuple[dict[str, str], list[AchievementError]]:
         """
         Process user data and return list of achieved achievements and any errors encountered.
 
@@ -523,9 +523,9 @@ class AchievementProcessor:
             user_data: Dict containing user scores and stats, or a list where the first item is such a dict
 
         Returns:
-            Tuple[Dict, List[Dict]]:
-                - Dict: Maps achievement ID to timestamp of achievement
-                - List[Dict]: List of errors encountered during processing, each with 'id' and 'error'
+            tuple[dict, list[dict]]:
+                - dict: Maps achievement ID to timestamp of achievement
+                - list[dict]: List of errors encountered during processing, each with 'id' and 'error'
         """
         user_achievements = {}
         achievement_errors = []

@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request, redirect, session, current_app
 import jwt
 import secrets
 import datetime
+from typing import Any
 import requests
 from postgrest.exceptions import APIError
 from ..extensions import limiter
@@ -75,7 +76,7 @@ def callback() -> FlaskResponse:
             "Authorization": f"Bearer {access_token}"
         })
         user_response.raise_for_status()
-        user_data: dict = user_response.json()
+        user_data: dict[str, Any] = user_response.json()
 
         user_data = {
             "id": user_data["id"],

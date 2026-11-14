@@ -15,7 +15,8 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
+from typing import Any
+from collections.abc import Callable, Iterable
 
 CHART_FILES = ("notes.mid", "notes.chart", "notes.midi")
 MAX_TIED_PATHS = 10
@@ -23,16 +24,16 @@ DEFAULT_OUT = Path(__file__).resolve().parents[1] / "data" / "hydra_paths.json"
 HYDRA_SETTINGS = ("Expert", True, True, "scores", 1)
 
 Analyze = Callable[[bytes, str], Any]
-Result = Dict[str, Any]
+Result = dict[str, Any]
 
 
-def pick_chart(folder: Path) -> Optional[Path]:
+def pick_chart(folder: Path) -> Path | None:
     by_name = {entry.name.lower(): entry for entry in folder.iterdir() if entry.is_file()}
     return next((by_name[name] for name in CHART_FILES if name in by_name), None)
 
 
-def find_song_folders(roots: List[Path]) -> List[Path]:
-    found: List[Path] = []
+def find_song_folders(roots: list[Path]) -> list[Path]:
+    found: list[Path] = []
     for root in roots:
         for dirpath, _dirnames, filenames in os.walk(root):
             if any(name.lower() in CHART_FILES for name in filenames):
@@ -59,7 +60,7 @@ def path_entry(hydra_path: Any) -> Result:
     }
 
 
-def optimal_result(hydra_paths: Iterable[Any]) -> Optional[Result]:
+def optimal_result(hydra_paths: Iterable[Any]) -> Result | None:
     entries = [path_entry(p) for p in hydra_paths]
     if not entries:
         return None
@@ -70,23 +71,23 @@ def optimal_result(hydra_paths: Iterable[Any]) -> Optional[Result]:
     return {"optimal_score": best, "paths": tied}
 
 
-def analyze_chart(chart: Path, analyze: Analyze) -> Tuple[str, Optional[Result]]:
+def analyze_chart(chart: Path, analyze: Analyze) -> tuple[str, Result | None]:
     data = chart.read_bytes()
     fmt = "chart" if chart.suffix.lower() == ".chart" else "mid"
     record = analyze(data, fmt)
     return hashlib.md5(data).hexdigest(), optimal_result(record.all_paths())
 
 
-def scan_folder(folder: Path, analyze: Analyze) -> Tuple[str, Optional[Result]]:
+def scan_folder(folder: Path, analyze: Analyze) -> tuple[str, Result | None]:
     chart = pick_chart(folder)
     if chart is None:
         raise FileNotFoundError("no chart file")
     return analyze_chart(chart, analyze)
 
 
-def scan_folders(folders: List[Path], analyze: Analyze) -> Tuple[Dict[str, Result], List[Dict[str, str]]]:
-    results: Dict[str, Result] = {}
-    errors: List[Dict[str, str]] = []
+def scan_folders(folders: list[Path], analyze: Analyze) -> tuple[dict[str, Result], list[dict[str, str]]]:
+    results: dict[str, Result] = {}
+    errors: list[dict[str, str]] = []
     for folder in folders:
         try:
             md5, result = scan_folder(folder, analyze)
@@ -110,10 +111,10 @@ def hydra_analyzer(hydra_dir: str) -> Analyze:
     return analyze
 
 
-Outcome = Tuple[Path, Optional[str], Optional[Result], Optional[str]]
+Outcome = tuple[Path, str | None, Result | None, str | None]
 
 
-_worker_analyze: Optional[Analyze] = None
+_worker_analyze: Analyze | None = None
 
 
 def _init_worker(hydra_dir: str) -> None:
@@ -132,9 +133,9 @@ def _scan_one(folder: Path) -> Outcome:
 
 def collect_outcomes(
     outcomes: Iterable[Outcome], total: int
-) -> Tuple[Dict[str, Result], List[Dict[str, str]], bool]:
-    results: Dict[str, Result] = {}
-    errors: List[Dict[str, str]] = []
+) -> tuple[dict[str, Result], list[dict[str, str]], bool]:
+    results: dict[str, Result] = {}
+    errors: list[dict[str, str]] = []
     done = 0
     try:
         for folder, md5, result, error in outcomes:
@@ -152,7 +153,7 @@ def collect_outcomes(
     return results, errors, False
 
 
-def write_outputs(out: Path, results: Dict[str, Result], errors: List[Dict[str, str]]) -> Path:
+def write_outputs(out: Path, results: dict[str, Result], errors: list[dict[str, str]]) -> Path:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(results, separators=(",", ":")), encoding="utf-8")
     errors_file = out.with_name(out.stem + "_errors.json")
@@ -163,7 +164,7 @@ def write_outputs(out: Path, results: Dict[str, Result], errors: List[Dict[str, 
     return errors_file
 
 
-def main(argv: List[str]) -> int:
+def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="Write Hydra optimal scores and paths for import-songs.")
     parser.add_argument("roots", nargs="+", type=Path)
     parser.add_argument("--hydra", required=True, type=Path, help="Hydra checkout")

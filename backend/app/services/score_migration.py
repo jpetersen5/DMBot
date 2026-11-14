@@ -1,5 +1,6 @@
 import logging
-from typing import Any, Callable, Dict, List
+from typing import Any
+from collections.abc import Callable
 
 from ..types import LeaderboardEntry, LeaderboardUpdate
 from ..utils.leaderboard_writer import LEADERBOARD_CHUNK_SIZE, push_leaderboard_updates
@@ -15,11 +16,11 @@ def promote_unknown_scores(
     *,
     dry_run: bool = True,
     log: Callable[[str], None] = lambda _msg: None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Promote unknown scores whose songs now exist in ``songs_new``."""
     prefix = "[dry-run] " if dry_run else ""
 
-    users: List[Dict[str, Any]] = []
+    users: list[dict[str, Any]] = []
     offset = 0
     page_size = 1000
     while True:
@@ -39,9 +40,9 @@ def promote_unknown_scores(
 
     log(f"{prefix}Scanning {len(users)} user(s) with pending unknown scores")
 
-    song_leaderboards: Dict[str, List[LeaderboardEntry]] = {}
-    touched_songs: Dict[str, Dict[str, str]] = {}
-    failures: List[str] = []
+    song_leaderboards: dict[str, list[LeaderboardEntry]] = {}
+    touched_songs: dict[str, dict[str, str]] = {}
+    failures: list[str] = []
     total_promoted = 0
     total_dropped = 0
     total_bugged = 0
@@ -61,7 +62,7 @@ def promote_unknown_scores(
                 dict.fromkeys(s["identifier"] for s in unknown if "identifier" in s)
             )
 
-            songs_dict: Dict[str, Any] = {}
+            songs_dict: dict[str, Any] = {}
             for i in range(0, len(identifiers), 500):
                 batch = identifiers[i:i + 500]
                 fetched = rows(
@@ -132,7 +133,7 @@ def promote_unknown_scores(
 
     log(f"{prefix}{len(touched_songs)} song leaderboard(s) touched")
     if not dry_run and touched_songs:
-        updates: List[LeaderboardUpdate] = [
+        updates: list[LeaderboardUpdate] = [
             {
                 "md5": md5,
                 "name": meta["name"],

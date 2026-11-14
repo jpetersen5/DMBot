@@ -165,6 +165,7 @@ class FakeQuery:
     def __init__(self, db, table):
         self.db, self.table = db, table
         self.range_ = (0, 10**9)
+        self.payload = None
 
     def select(self, _cols):
         return self
@@ -182,7 +183,7 @@ class FakeQuery:
         return self
 
     def execute(self):
-        if hasattr(self, "payload"):
+        if self.payload is not None:
             return SimpleNamespace(data=self.payload)
         if self.table == "charters":
             return SimpleNamespace(data=self.db.charters)

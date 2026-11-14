@@ -1,5 +1,7 @@
 import json
 from types import SimpleNamespace
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 import pytest
 import requests
@@ -11,11 +13,11 @@ from app.api import spotify as spotify_module
 class FakeQuery:
     """Records select/update calls on a supabase table and returns canned rows."""
 
-    def __init__(self, table_name: str, log: list, data_map: dict):
+    def __init__(self, table_name: str, log: list[SimpleNamespace], data_map: Mapping[tuple[str, str], Sequence[Mapping[str, Any]]]):
         self.table_name = table_name
         self.log = log
         self.data_map = data_map
-        self.op = None
+        self.op = ""
         self.payload = None
 
     def select(self, *cols):
@@ -36,8 +38,8 @@ class FakeQuery:
 
 
 class FakeSupabase:
-    def __init__(self, data_map: dict):
-        self.log: list = []
+    def __init__(self, data_map: Mapping[tuple[str, str], Sequence[Mapping[str, Any]]]):
+        self.log: list[SimpleNamespace] = []
         self.data_map = data_map
 
     def table(self, name: str) -> FakeQuery:
@@ -45,7 +47,7 @@ class FakeSupabase:
 
 
 class FakeHTTPResp:
-    def __init__(self, payload: dict, status_code: int = 200):
+    def __init__(self, payload: dict[str, Any], status_code: int = 200):
         self._payload = payload
         self.status_code = status_code
 

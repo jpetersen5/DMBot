@@ -1,6 +1,8 @@
 import datetime
 import json
 from types import SimpleNamespace
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 import jwt
 from flask import Flask
@@ -138,11 +140,11 @@ def test_envelope_stripper_handles_key_order_and_strings():
 
 
 class FakeQuery:
-    def __init__(self, table_name: str, log: list, data_map: dict):
+    def __init__(self, table_name: str, log: list[tuple[str, str]], data_map: Mapping[tuple[str, str], Sequence[Mapping[str, Any]]]):
         self.table_name = table_name
         self.log = log
         self.data_map = data_map
-        self.op = None
+        self.op = ""
 
     def select(self, *a):
         self.op = "select"
@@ -169,8 +171,8 @@ class FakeQuery:
 
 
 class FakeSupabase:
-    def __init__(self, data_map: dict):
-        self.log: list = []
+    def __init__(self, data_map: Mapping[tuple[str, str], Sequence[Mapping[str, Any]]]):
+        self.log: list[tuple[str, str]] = []
         self.data_map = data_map
 
     def table(self, name: str) -> FakeQuery:
@@ -199,7 +201,7 @@ class SelectQuery:
     """Records the column list passed to .select() and supports the filter
     chain used by list-style endpoints (eq/in_/overlaps)."""
 
-    def __init__(self, table_name: str, log: list, data_map: dict):
+    def __init__(self, table_name: str, log: list[tuple[str, Any]], data_map: Mapping[str, Sequence[Mapping[str, Any]]]):
         self.table_name = table_name
         self.log = log
         self.data_map = data_map
@@ -224,8 +226,8 @@ class SelectQuery:
 
 
 class SelectSupabase:
-    def __init__(self, data_map: dict):
-        self.log: list = []
+    def __init__(self, data_map: Mapping[str, Sequence[Mapping[str, Any]]]):
+        self.log: list[tuple[str, Any]] = []
         self.data_map = data_map
 
     def table(self, name: str) -> SelectQuery:

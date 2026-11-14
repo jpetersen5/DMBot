@@ -1,20 +1,21 @@
 """Shared types for the database's JSONB objects..
 
-Use alongside :data:`app.services.supabase_service.Row` (raw ``Dict[str, Any]``)
+Use alongside :data:`app.services.supabase_service.Row` (raw ``dict[str, Any]``)
 and :func:`app.services.supabase_service.rows` for narrowing raw PostgREST responses.
 """
 
-from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict, Union
+from typing import Any, TypedDict
+from collections.abc import Callable
 from werkzeug.wrappers import Response
 
-FlaskResponse = Union[
-    Response,
-    str,
-    Dict[str, Any],
-    Tuple[Response, int],
-    Tuple[str, int],
-    Tuple[Response, int, Dict[str, str]],
-]
+FlaskResponse = (
+    Response
+    | str
+    | dict[str, Any]
+    | tuple[Response, int]
+    | tuple[str, int]
+    | tuple[Response, int, dict[str, str]]
+)
 
 class _ScoreCore(TypedDict):
     """Score fields that are always present."""
@@ -30,8 +31,8 @@ class ScoreEntry(_ScoreCore, total=False):
     """Entry in a user's ``scores`` / ``unknown_scores`` JSONB array."""
     song_name: str
     artist: str
-    charter_refs: List[str]
-    rank: Optional[int]
+    charter_refs: list[str]
+    rank: int | None
     filepath: str
 
 class _LeaderboardCore(TypedDict):
@@ -48,7 +49,7 @@ class _LeaderboardCore(TypedDict):
 
 class LeaderboardEntry(_LeaderboardCore, total=False):
     """Entry in a song's ``leaderboard`` JSONB array (``songs_new.leaderboard``)."""
-    rank: Optional[int]
+    rank: int | None
 
 class PathBreakdown(TypedDict):
     """Hydra's score breakdown for one path."""
@@ -81,7 +82,7 @@ class LeaderboardUpdate(TypedDict):
     """A pending write to ``songs_new`` produced while ranking scores."""
     md5: str
     name: str
-    leaderboard: List[LeaderboardEntry]
+    leaderboard: list[LeaderboardEntry]
     last_update: str
 
 
@@ -107,9 +108,9 @@ class AchievementDef(_AchievementCore, total=False):
     threshold: int
     requires_fc: bool
     score: int
-    charter_refs: List[str]
-    remix_artists: List[str]
-    recharts_charter_refs: List[str]
+    charter_refs: list[str]
+    remix_artists: list[str]
+    recharts_charter_refs: list[str]
 
 
 class AchievementError(TypedDict):
@@ -121,7 +122,7 @@ class AchievementError(TypedDict):
 
 class ComparisonResult(TypedDict):
     """Result of comparing two users' scores (``/api/users/compare``)."""
-    common_songs: List[str]
+    common_songs: list[str]
     wins: int
     losses: int
     ties: int
@@ -142,7 +143,7 @@ class UserStats(TypedDict):
     total_fcs: int
     total_score: int
     avg_percent: float
-    rank: Optional[int]
+    rank: int | None
 
 
 class UserRow(TypedDict, total=False):
@@ -151,9 +152,9 @@ class UserRow(TypedDict, total=False):
     username: str
     avatar: str
     permissions: Any
-    stats: Optional[UserStats]  # SQL NULL until update_all_user_stats first runs
+    stats: UserStats | None  # SQL NULL until update_all_user_stats first runs
     elo: int
-    scores: List[ScoreEntry]
-    unknown_scores: List[ScoreEntry]
-    achievements: Dict[str, str]
+    scores: list[ScoreEntry]
+    unknown_scores: list[ScoreEntry]
+    achievements: dict[str, str]
     last_login: str
