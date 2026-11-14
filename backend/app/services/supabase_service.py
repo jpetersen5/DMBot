@@ -1,4 +1,4 @@
-from typing import Any, TypeVar, cast
+from typing import Any, TypeVar, cast, override
 from flask import Flask
 from supabase import ClientOptions, create_client, Client
 import httpx
@@ -46,6 +46,7 @@ class RetryTransport(httpx.BaseTransport):
     def __init__(self, transport: httpx.BaseTransport) -> None:
         self.transport = transport
 
+    @override
     def handle_request(self, request: httpx.Request) -> httpx.Response:
         for attempt in range(MAX_TRANSPORT_RETRIES + 1):
             try:
@@ -64,6 +65,7 @@ class RetryTransport(httpx.BaseTransport):
                 time.sleep(RETRY_BACKOFF[attempt])
         raise AssertionError("unreachable")
 
+    @override
     def close(self) -> None:
         self.transport.close()
 
