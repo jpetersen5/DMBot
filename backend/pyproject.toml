@@ -1,5 +1,5 @@
 [tool.pyright]
-pythonVersion = "3.12"
+pythonVersion = "3.13"
 include = ["app", "tests"]
 exclude = [
     "**/__pycache__",
