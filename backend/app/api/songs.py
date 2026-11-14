@@ -4,7 +4,7 @@ from datetime import datetime, UTC
 from flask import Blueprint, jsonify, request, current_app, Response
 from typing import Any
 from collections.abc import Iterator
-from ..services.supabase_service import get_supabase, rows
+from ..services.supabase_service import Row, get_supabase, rows
 from ..utils.helpers import token_required
 from ..types import FlaskResponse
 
@@ -157,7 +157,7 @@ def get_songs() -> FlaskResponse:
         body["since"] = since
 
     url = f"{current_app.config['SUPABASE_URL']}/rest/v1/rpc/get_song_list"
-    key = current_app.config["SUPABASE_SERVICE_KEY"]
+    key: str = current_app.config["SUPABASE_SERVICE_KEY"]
     headers = {
         "apikey": key,
         "Authorization": f"Bearer {key}",
@@ -256,7 +256,7 @@ def get_songs_by_ids() -> FlaskResponse:
     if not ids:
         return jsonify({"error": "No IDs provided"}), 400
 
-    songs = []
+    songs: list[Row] = []
     for i in range(0, len(ids), 500):
         batch = ids[i:i+500]
         if isinstance(batch[0], int):
@@ -264,7 +264,7 @@ def get_songs_by_ids() -> FlaskResponse:
         else:
             query = supabase.table("songs_new").select(SLIM_SONG_COLUMNS).in_("md5", batch)
         result = query.execute()
-        songs.extend(result.data)
+        songs.extend(rows(result.data))
 
     return jsonify(songs)
 

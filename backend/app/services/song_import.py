@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import Any
 from collections.abc import Callable
 
+from supabase import Client
+
 from .supabase_service import Row, rows
 
 DEFAULT_SCAN_FILE = Path(__file__).resolve().parents[2] / "data" / "scanned_songs.json"
@@ -55,7 +57,7 @@ def _year(value: Any) -> int | None:
 
 
 def prepare_song(song: dict[str, Any]) -> Row:
-    notes = song.get("notesData") or {}
+    notes: dict[str, Any] = song.get("notesData") or {}
     track = song.get("album_track")
     return {
         "md5": song["md5"],
@@ -155,7 +157,7 @@ def describe_plan(plan: ImportPlan, existing: dict[str, Row]) -> list[str]:
     return lines
 
 
-def _fetch_all(supabase: Any, table: str, columns: list[str], order: str = "id") -> list[Row]:
+def _fetch_all(supabase: Client, table: str, columns: list[str], order: str = "id") -> list[Row]:
     found: list[Row] = []
     start = 0
     while True:
@@ -169,7 +171,7 @@ def _fetch_all(supabase: Any, table: str, columns: list[str], order: str = "id")
         start += PAGE_SIZE
 
 
-def fetch_existing(supabase: Any) -> dict[str, Row]:
+def fetch_existing(supabase: Client) -> dict[str, Row]:
     return {row["md5"]: row for row in _fetch_all(supabase, "songs_new", ["md5", *COMPARED])}
 
 
@@ -243,7 +245,7 @@ def attach_paths(prepared: list[Row], paths: dict[str, Any], five_lane: set[str]
 
 
 def import_songs(
-    supabase: Any,
+    supabase: Client,
     path: Path,
     apply: bool,
     log: Callable[[str], None] = print,

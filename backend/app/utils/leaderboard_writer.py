@@ -4,6 +4,8 @@ import logging
 from typing import Any
 from collections.abc import Callable
 
+from supabase import Client
+
 from ..types import LeaderboardUpdate
 
 LEADERBOARD_CHUNK_SIZE = 100
@@ -12,7 +14,7 @@ STATEMENT_TIMEOUT_CODE = "57014"
 
 def is_statement_timeout(exc: Exception) -> bool:
     """Whether ``exc`` is a Postgres statement timeout."""
-    code = getattr(exc, "code", None)
+    code: object = getattr(exc, "code", None)
     if code is None and isinstance(getattr(exc, "args", None), tuple) and exc.args:
         first = exc.args[0]
         if isinstance(first, dict):
@@ -21,7 +23,7 @@ def is_statement_timeout(exc: Exception) -> bool:
 
 
 def push_leaderboard_updates(
-    supabase: Any,
+    supabase: Client,
     updates: list[LeaderboardUpdate],
     chunk_size: int,
     logger: logging.Logger,

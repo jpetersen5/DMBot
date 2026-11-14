@@ -1,11 +1,11 @@
-from flask import Blueprint, jsonify, request, current_app
-from ..services.supabase_service import get_supabase, rows
+from flask import Blueprint, Flask, jsonify, request, current_app
+from ..services.supabase_service import Row, get_supabase, rows
 from ..utils.helpers import allowed_file, get_process_songs_script
 from ..extensions import socketio, redis
 from datetime import datetime, UTC
 import re
 from typing import IO, Any
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from ..utils.achievement_processor import achievement_processor
 from ..utils.helpers import token_required
 from ..utils.score_processing import (
@@ -19,7 +19,7 @@ from ..utils.leaderboard_writer import (
     push_leaderboard_updates as _push_leaderboard_updates,
 )
 from ..utils.score_validation import bugged_score, is_bugged_score, split_bugged_unknown
-from ..types import BuggedScore, FlaskResponse
+from ..types import BuggedScore, FlaskResponse, LeaderboardEntry, LeaderboardUpdate
 
 bp = Blueprint("scores", __name__)
 
@@ -57,23 +57,23 @@ def process_and_save_scores(result: dict[str, Any], user_id: str) -> None:
     logger = current_app.logger
     total_songs = len(result["songs"])
     processed_songs = 0
-    leaderboard_updates = []
+    leaderboard_updates: list[LeaderboardUpdate] = []
     bugged_scores: list[BuggedScore] = []
 
     logger.info(f"Fetching user data for user {user_id}")
     user_data = rows(supabase.table("users").select("username, scores, unknown_scores, stats, achievements").eq("id", user_id).execute().data)
     username = user_data[0]["username"] if user_data else "Unknown User"
 
-    existing_scores = user_data[0].get("scores", []) if user_data else []
-    existing_scores_dict = {}
+    existing_scores: list[Row] = user_data[0].get("scores", []) if user_data else []
+    existing_scores_dict: dict[str, Row] = {}
     if existing_scores:
         existing_scores_dict = {score["identifier"]: score for score in existing_scores if "identifier" in score}
     else:
         existing_scores = []
         logger.info("No existing scores found for user")
 
-    existing_unknown_scores = user_data[0].get("unknown_scores", []) if user_data else []
-    existing_unknown_scores_dict = {}
+    existing_unknown_scores: list[Row] = user_data[0].get("unknown_scores", []) if user_data else []
+    existing_unknown_scores_dict: dict[str, Row] = {}
     if existing_unknown_scores:
         existing_unknown_scores_dict = {score["identifier"]: score for score in existing_unknown_scores if "identifier" in score}
     else:
@@ -81,7 +81,7 @@ def process_and_save_scores(result: dict[str, Any], user_id: str) -> None:
         logger.info("No existing unknown scores found for user")
 
     batch_size = 500
-    songs_dict = {}
+    songs_dict: dict[str, Row] = {}
     unknown_identifiers = [s["identifier"] for s in existing_unknown_scores if "identifier" in s]
     song_identifiers = list(dict.fromkeys(
         [song["identifier"] for song in result["songs"]] + unknown_identifiers
@@ -142,7 +142,7 @@ def process_and_save_scores(result: dict[str, Any], user_id: str) -> None:
                     if existing_user_score and "charter_refs" not in existing_user_score:
                         existing_user_score["charter_refs"] = song_info.get("charter_refs", [])
 
-                    incoming_score_data = {
+                    incoming_score_data: Row = {
                         "identifier": song["identifier"],
                         "song_name": song_info["name"],
                         "artist": song_info["artist"],
@@ -162,13 +162,13 @@ def process_and_save_scores(result: dict[str, Any], user_id: str) -> None:
                                                              else song_info.get("charter_refs", []))
                        existing_scores_dict[song["identifier"]] = incoming_score_data
 
-                    leaderboard = [
+                    leaderboard: list[LeaderboardEntry] = [
                         entry for entry in (song_info.get("leaderboard", []) or [])
                         if not (entry["user_id"] == user_id
                                 and is_bugged_score(entry["score"], entry["is_fc"], optimal_score))
                     ]
 
-                    leaderboard_entry_from_incoming = {
+                    leaderboard_entry_from_incoming: LeaderboardEntry = {
                         "user_id": user_id,
                         "username": username,
                         "score": incoming_score_data["score"],
@@ -198,7 +198,7 @@ def process_and_save_scores(result: dict[str, Any], user_id: str) -> None:
                 else: # Song is unknown
                     existing_unknown_score = existing_unknown_scores_dict.get(song["identifier"], None)
                     
-                    incoming_unknown_score_data = {
+                    incoming_unknown_score_data: Row = {
                         "identifier": song["identifier"],
                         "song_name": f"Unknown Song: {song['identifier']}",
                         "artist": "Unknown Artist",
@@ -277,7 +277,7 @@ def process_and_save_scores(result: dict[str, Any], user_id: str) -> None:
                   {"message": f"Processing achievements for user {username}"},
                   to=user_id)
     
-    previous_stats = (user_data[0].get("stats") or {}) if user_data else {}
+    previous_stats: Mapping[str, Any] = (user_data[0].get("stats") or {}) if user_data else {}
     user_stats = compute_user_stats(updated_scores, updated_unknown_scores, previous_stats)
 
     achievement_filtered_scores = [s for s in updated_scores if s["speed"] >= 100]
@@ -300,7 +300,7 @@ def process_and_save_scores(result: dict[str, Any], user_id: str) -> None:
                       to=user_id)
         return
 
-    existing_achievements = user_data[0].get("achievements", {}) or {}
+    existing_achievements: Mapping[str, str] = user_data[0].get("achievements", {}) or {}
     for achievement_id, timestamp in achievements.items():
         if achievement_id not in existing_achievements:
             client_achievement = achievement_processor.build_client_achievement(achievement_id, timestamp)
@@ -384,11 +384,11 @@ def upload_scoredata(user_id: str) -> FlaskResponse:
             if result["version"] != 20211009:
                 return jsonify({"error": "Score data is outdated"}), 400
             
-            def run_with_app_context(app: Any, result: dict[str, Any], user_id: str) -> None:
+            def run_with_app_context(app: Flask, result: dict[str, Any], user_id: str) -> None:
                 with app.app_context():
                     process_and_save_scores(result, user_id)
             
-            app = current_app._get_current_object()  # pyright: ignore[reportAttributeAccessIssue]
+            app: Flask = current_app._get_current_object()  # pyright: ignore[reportAttributeAccessIssue]
             socketio.start_background_task(run_with_app_context, app, result, user_id)
             
             return jsonify({"message": "Score processing started", "total_songs": len(result["songs"])}), 202
@@ -467,11 +467,11 @@ def upload_songcache(user_id: str) -> FlaskResponse:
         
         supabase = get_supabase()
         user_data = rows(supabase.table("users").select("unknown_scores").eq("id", user_id).execute().data)
-        unknown_scores = user_data[0].get("unknown_scores", []) if user_data else []
+        unknown_scores: list[Row] = user_data[0].get("unknown_scores", []) if user_data else []
 
         file_content = file.read()
 
-        updated_scores = []
+        updated_scores: list[Row] = []
         for score in unknown_scores:
             file_path = find_file_path_for_md5(file_content, score["identifier"])
             if file_path:

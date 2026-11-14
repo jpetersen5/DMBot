@@ -7,10 +7,13 @@ import logging
 from datetime import datetime, UTC
 from pathlib import Path
 from typing import Any
+from collections.abc import Mapping
 
-from ..types import AchievementDef, AchievementError
+from ..types import AchievementDef, AchievementError, ScoreEntry, UserStats
 
 logger = logging.getLogger(__name__)
+
+UserData = Mapping[str, Any]
 
 PERCENT_THRESHOLDS = [96, 98, 99]  # For levels I, II, III (IV is FC)
 SCORE_THRESHOLDS = [2_000_000, 10_000_000, 50_000_000, 200_000_000, 1_000_000_000, 3_000_000_000]
@@ -238,7 +241,7 @@ class AchievementProcessor:
         if category not in self.achievement_songs:
             return
         
-        category_data = self.achievement_songs[category]
+        category_data: dict[str, dict[str, dict[str, Any]]] = self.achievement_songs[category]
         for level_key, achievements in category_data.items():
             level_num = int(level_key.replace("level", "")) if level_key.startswith("level") else 0
             
@@ -258,7 +261,7 @@ class AchievementProcessor:
         achievement_id: str,
         name: str,
         base_description: str,
-        song_md5: Any,
+        song_md5: str | list[str],
         category: str,
         level: int = 0,
         level_key: str = "level1",
@@ -288,51 +291,39 @@ class AchievementProcessor:
                 "requires_fc": rank == 4
             })
     
-    def _check_first_score(self, user_data: Any, _achievement_def: AchievementDef) -> bool:
+    def _check_first_score(self, user_data: UserData, _achievement_def: AchievementDef) -> bool:
         """Check if user has at least one score"""
-        if isinstance(user_data, list):
-            user_data = user_data[0] if user_data else {}
-            
-        return len(user_data.get("scores", [])) > 0
+        scores: list[ScoreEntry] = user_data.get("scores", [])
+        return len(scores) > 0
     
-    def _check_total_score(self, user_data: Any, achievement_def: AchievementDef) -> bool:
+    def _check_total_score(self, user_data: UserData, achievement_def: AchievementDef) -> bool:
         """Check if user's total score meets threshold"""
-        if isinstance(user_data, list):
-            user_data = user_data[0] if user_data else {}
-
-        total_score = (user_data.get("stats") or {}).get("total_score", 0)
+        stats: UserStats | None = user_data.get("stats")
+        total_score = stats.get("total_score", 0) if stats else 0
         return total_score >= achievement_def["threshold"]
     
-    def _check_first_fc(self, user_data: Any, _achievement_def: AchievementDef) -> bool:
+    def _check_first_fc(self, user_data: UserData, _achievement_def: AchievementDef) -> bool:
         """Check if user has at least one FC"""
-        if isinstance(user_data, list):
-            user_data = user_data[0] if user_data else {}
-            
-        scores = user_data.get("scores", [])
+        scores: list[ScoreEntry] = user_data.get("scores", [])
         for score in scores:
             if score.get("is_fc", False):
                 return True
         return False
     
-    def _check_total_fcs(self, user_data: Any, achievement_def: AchievementDef) -> bool:
+    def _check_total_fcs(self, user_data: UserData, achievement_def: AchievementDef) -> bool:
         """Check if user's FC count meets threshold"""
-        if isinstance(user_data, list):
-            user_data = user_data[0] if user_data else {}
-            
-        total_fcs = (user_data.get("stats") or {}).get("total_fcs", 0)
+        stats: UserStats | None = user_data.get("stats")
+        total_fcs = stats.get("total_fcs", 0) if stats else 0
         return total_fcs >= achievement_def["threshold"]
     
-    def _check_charter_count(self, user_data: Any, achievement_def: AchievementDef) -> bool:
+    def _check_charter_count(self, user_data: UserData, achievement_def: AchievementDef) -> bool:
         """Check if user has played enough charts from specified charters using charter_refs"""
-        if isinstance(user_data, list):
-            user_data = user_data[0] if user_data else {}
-            
         charter_refs = achievement_def["charter_refs"]
         charter_refs_lower = [charter.lower() for charter in charter_refs]
         threshold = achievement_def["threshold"]
         
         count = 0
-        scores = user_data.get("scores", [])
+        scores: list[ScoreEntry] = user_data.get("scores", [])
         
         for score in scores:
             score_charter_refs = score.get("charter_refs", [])
@@ -347,16 +338,13 @@ class AchievementProcessor:
         
         return count >= threshold
     
-    def _check_remix_count(self, user_data: Any, achievement_def: AchievementDef) -> bool:
+    def _check_remix_count(self, user_data: UserData, achievement_def: AchievementDef) -> bool:
         """Check if user has played enough remix charts"""
-        if isinstance(user_data, list):
-            user_data = user_data[0] if user_data else {}
-
         remix_artists = achievement_def["remix_artists"]
         threshold = achievement_def["threshold"]
         
         count = 0
-        scores = user_data.get("scores", [])
+        scores: list[ScoreEntry] = user_data.get("scores", [])
         for score in scores:
             artist = (score.get("artist") or "").lower()
             if any(remix_artist.lower() in artist for remix_artist in remix_artists):
@@ -364,17 +352,14 @@ class AchievementProcessor:
         
         return count >= threshold
     
-    def _check_recharts_count(self, user_data: Any, achievement_def: AchievementDef) -> bool:
+    def _check_recharts_count(self, user_data: UserData, achievement_def: AchievementDef) -> bool:
         """Check if user has played enough recharts from official games"""
-        if isinstance(user_data, list):
-            user_data = user_data[0] if user_data else {}
-            
         recharts_charter_refs = achievement_def["recharts_charter_refs"]
         recharts_charter_refs_lower = [charter.lower() for charter in recharts_charter_refs]
         threshold = achievement_def["threshold"]
         
         count = 0
-        scores = user_data.get("scores", [])
+        scores: list[ScoreEntry] = user_data.get("scores", [])
         
         for score in scores:
             score_charter_refs = score.get("charter_refs")
@@ -393,37 +378,28 @@ class AchievementProcessor:
         
         return count >= threshold
     
-    def _check_funny_number(self, user_data: Any, achievement_def: AchievementDef) -> bool:
+    def _check_funny_number(self, user_data: UserData, achievement_def: AchievementDef) -> bool:
         """Check if user has a score of exactly 69,420"""
-        if isinstance(user_data, list):
-            user_data = user_data[0] if user_data else {}
-            
         target_score = achievement_def.get("score", 69420)
-        scores = user_data.get("scores", [])
+        scores: list[ScoreEntry] = user_data.get("scores", [])
         for score in scores:
             if score.get("score") == target_score:
                 return True
         return False
     
-    def _check_album(self, user_data: Any, _achievement_def: AchievementDef) -> bool:
+    def _check_album(self, user_data: UserData, _achievement_def: AchievementDef) -> bool:
         """Check if user has played an album chart"""
-        if isinstance(user_data, list):
-            user_data = user_data[0] if user_data else {}
-            
-        scores = user_data.get("scores", [])
+        scores: list[ScoreEntry] = user_data.get("scores", [])
         for score in scores:
-            song_name: str = score.get("song_name") or ""
+            song_name = score.get("song_name") or ""
             if song_name.lower().find("album") != -1:
                 return True
         
         return False
     
-    def _check_discography(self, user_data: Any, _achievement_def: AchievementDef) -> bool:
+    def _check_discography(self, user_data: UserData, _achievement_def: AchievementDef) -> bool:
         """Check if user has played a discography chart"""
-        if isinstance(user_data, list):
-            user_data = user_data[0] if user_data else {}
-            
-        scores = user_data.get("scores", [])
+        scores: list[ScoreEntry] = user_data.get("scores", [])
         for score in scores:
             song_name = score.get("song_name") or ""
             if "Discography" in song_name:
@@ -431,18 +407,15 @@ class AchievementProcessor:
         
         return False
     
-    def _check_song_achievement(self, user_data: Any, achievement_def: AchievementDef) -> bool:
+    def _check_song_achievement(self, user_data: UserData, achievement_def: AchievementDef) -> bool:
         """Check if user has achieved a specific threshold on a song"""
-        if isinstance(user_data, list):
-            user_data = user_data[0] if user_data else {}
-            
-        scores = user_data.get("scores", [])
+        scores: list[ScoreEntry] = user_data.get("scores", [])
         song_md5s = achievement_def["song_md5"]
         
         if not isinstance(song_md5s, list):
             song_md5s = [song_md5s]
         
-        best_score = None
+        best_score: ScoreEntry | None = None
         for score in scores:
             if score.get("identifier") in song_md5s:
                 if (best_score is None or 
@@ -497,9 +470,9 @@ class AchievementProcessor:
             "song_md5": achievement_def.get("song_md5")
         }
 
-    def revoked_achievements(self, user_data: dict[str, Any]) -> list[str]:
+    def revoked_achievements(self, user_data: UserData) -> list[str]:
         """Held achievements whose check no longer passes; unknown ids and failed checks are kept."""
-        held = user_data.get("achievements") or {}
+        held: Mapping[str, str] = user_data.get("achievements") or {}
         revoked: list[str] = []
         for achievement_def in self.achievements:
             if achievement_def["id"] not in held:
@@ -514,27 +487,24 @@ class AchievementProcessor:
         return revoked
 
     def process_achievements(
-        self, user_data: Any
+        self, user_data: UserData
     ) -> tuple[dict[str, str], list[AchievementError]]:
         """
         Process user data and return list of achieved achievements and any errors encountered.
 
         Args:
-            user_data: Dict containing user scores and stats, or a list where the first item is such a dict
+            user_data: Mapping containing user scores and stats
 
         Returns:
             tuple[dict, list[dict]]:
                 - dict: Maps achievement ID to timestamp of achievement
                 - list[dict]: List of errors encountered during processing, each with 'id' and 'error'
         """
-        user_achievements = {}
-        achievement_errors = []
+        user_achievements: dict[str, str] = {}
+        achievement_errors: list[AchievementError] = []
         current_time = datetime.now(UTC).isoformat()
         
-        if isinstance(user_data, list):
-            user_data = user_data[0] if user_data else {}
-        
-        existing_achievements = user_data.get("achievements", {}) or {}
+        existing_achievements: Mapping[str, str] = user_data.get("achievements", {}) or {}
         
         for achievement_def in self.achievements:
             achievement_id = achievement_def["id"]

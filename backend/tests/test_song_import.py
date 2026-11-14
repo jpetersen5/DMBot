@@ -1,7 +1,9 @@
 import json
 from types import SimpleNamespace
+from typing import cast
 
 import pytest
+from supabase import Client
 
 from app.services import song_import
 from app.services.song_import import (
@@ -219,7 +221,7 @@ def scan_file(tmp_path):
 def test_preview_writes_nothing(scan_file):
     existing = scanned("1" * 32, bpm_dominant=None)
     fake = FakeSupabase([db_row(prepare_song(existing))])
-    import_songs(fake, scan_file([scanned("1" * 32), scanned("2" * 32)]), apply=False, log=lambda _m: None)
+    import_songs(cast(Client, fake), scan_file([scanned("1" * 32), scanned("2" * 32)]), apply=False, log=lambda _m: None)
     assert fake.writes == []
 
 
@@ -227,7 +229,7 @@ def test_apply_inserts_new_updates_changed_and_stores_extra_without_folders(scan
     monkeypatch.setattr(song_import, "utc_now", lambda: NOW)
     existing = prepare_song(scanned("1" * 32))
     fake = FakeSupabase([{**existing, "bpm_dominant": None}])
-    import_songs(fake, scan_file([scanned("1" * 32), scanned("2" * 32)]), apply=True, log=lambda _m: None)
+    import_songs(cast(Client, fake), scan_file([scanned("1" * 32), scanned("2" * 32)]), apply=True, log=lambda _m: None)
 
     songs_writes = [(conflict, payload) for table, conflict, payload in fake.writes if table == "songs_new"]
     assert songs_writes[0] == ("md5", [{**prepare_song(scanned("2" * 32)), "last_update": NOW}])
@@ -249,7 +251,7 @@ def test_extra_is_refreshed_independently_of_songs_new(scan_file):
         {"md5": stale["md5"], "song_data": {**song_import.extra_data(stale), "bpm_dominant": None}},
     ]
     messages = []
-    import_songs(fake, scan_file([in_sync, stale, missing]), apply=True, log=messages.append)
+    import_songs(cast(Client, fake), scan_file([in_sync, stale, missing]), apply=True, log=messages.append)
 
     assert not any(table == "songs_new" for table, _c, _p in fake.writes)
     stored = [row["md5"] for table, _c, batch in fake.writes if table == "songs_extra" for row in batch]
@@ -261,7 +263,7 @@ def test_nul_characters_are_stripped_before_writing(scan_file):
     nul = chr(0)
     song = scanned(folderIssues=[{"description": f"got: 'd{nul}x'"}], name=f"Bad{nul}Name")
     fake = FakeSupabase([])
-    import_songs(fake, scan_file([song]), apply=True, log=lambda _m: None)
+    import_songs(cast(Client, fake), scan_file([song]), apply=True, log=lambda _m: None)
     written = json.dumps([payload for _t, _c, payload in fake.writes])
     assert "\\u0000" not in written
     assert "BadName" in written
@@ -271,7 +273,7 @@ def test_existing_rows_are_paged(scan_file):
     rows = [db_row(prepare_song(scanned(f"{i:032d}"))) for i in range(2500)]
     fake = FakeSupabase(rows)
     messages = []
-    import_songs(fake, scan_file([]), apply=False, log=messages.append)
+    import_songs(cast(Client, fake), scan_file([]), apply=False, log=messages.append)
     assert any("2500" in m for m in messages)
 
 
@@ -312,7 +314,7 @@ class TestCharterNames:
     def test_import_writes_canonical_names_for_new_songs(self, scan_file):
         fake = FakeSupabase([])
         fake.aliases = [{"alias": "ZachsCharts", "canonicals": ["Hababa2"]}]
-        import_songs(fake, scan_file([scanned(charter="ZachsCharts,Bounty")]), apply=True, log=lambda _m: None)
+        import_songs(cast(Client, fake), scan_file([scanned(charter="ZachsCharts,Bounty")]), apply=True, log=lambda _m: None)
         inserted = next(payload for table, _c, payload in fake.writes if table == "songs_new")
         assert inserted[0]["charter_refs"] == ["Hababa2", "Bounty"]
 
@@ -320,7 +322,7 @@ class TestCharterNames:
         fake = FakeSupabase([])
         fake.charters = [{"name": "Sr. Dedos Rápidos"}]
         messages = []
-        import_songs(fake, scan_file([scanned(charter="Sr. Dedos Rapidos,Brand New")]), apply=False, log=messages.append)
+        import_songs(cast(Client, fake), scan_file([scanned(charter="Sr. Dedos Rapidos,Brand New")]), apply=False, log=messages.append)
         text = "\n".join(messages)
         assert "Sr. Dedos Rapidos -> Sr. Dedos Rápidos" in text
         assert "Brand New ->" not in text
@@ -363,7 +365,7 @@ def test_import_attaches_paths_by_md5(scan_file, tmp_path, monkeypatch):
     monkeypatch.setattr(song_import, "utc_now", lambda: NOW)
     fake = FakeSupabase([])
     paths_file = write_paths(tmp_path, {"2" * 32: {"optimal_score": 500, "paths": PATHS}})
-    import_songs(fake, scan_file([scanned("2" * 32)]), apply=True, log=lambda _m: None, paths_file=paths_file)
+    import_songs(cast(Client, fake), scan_file([scanned("2" * 32)]), apply=True, log=lambda _m: None, paths_file=paths_file)
     [inserted] = [row for table, _c, batch in fake.writes if table == "songs_new" for row in batch]
     assert inserted["optimal_score"] == 500 and inserted["paths"] == PATHS
 
@@ -373,7 +375,7 @@ def test_import_updates_paths_without_bumping_last_update(scan_file, tmp_path, m
     song = scanned("1" * 32)
     fake = FakeSupabase([{**prepare_song(song), "optimal_score": None, "paths": None}])
     paths_file = write_paths(tmp_path, {"1" * 32: {"optimal_score": 500, "paths": PATHS}})
-    import_songs(fake, scan_file([song]), apply=True, log=lambda _m: None, paths_file=paths_file)
+    import_songs(cast(Client, fake), scan_file([song]), apply=True, log=lambda _m: None, paths_file=paths_file)
     songs_writes = [batch for table, _c, batch in fake.writes if table == "songs_new"]
     assert songs_writes == [[{"md5": "1" * 32, "optimal_score": 500, "paths": PATHS}]]
 
@@ -385,7 +387,7 @@ def test_five_lane_charts_get_no_paths(scan_file, tmp_path, monkeypatch):
     monkeypatch.setattr(song_import, "utc_now", lambda: NOW)
     fake = FakeSupabase([])
     paths_file = write_paths(tmp_path, {"2" * 32: {"optimal_score": 500, "paths": PATHS}})
-    import_songs(fake, scan_file([scanned("2" * 32, notesData=FIVE_LANE)]), apply=True, log=lambda _m: None, paths_file=paths_file)
+    import_songs(cast(Client, fake), scan_file([scanned("2" * 32, notesData=FIVE_LANE)]), apply=True, log=lambda _m: None, paths_file=paths_file)
     [inserted] = [row for table, _c, batch in fake.writes if table == "songs_new" for row in batch]
     assert inserted.get("optimal_score") is None and inserted.get("paths") is None
 
@@ -395,7 +397,7 @@ def test_import_clears_stored_paths_on_five_lane_charts(scan_file, tmp_path, mon
     song = scanned("1" * 32, notesData=FIVE_LANE)
     fake = FakeSupabase([{**prepare_song(song), "optimal_score": 500, "paths": PATHS}])
     paths_file = write_paths(tmp_path, {"1" * 32: {"optimal_score": 500, "paths": PATHS}})
-    import_songs(fake, scan_file([song]), apply=True, log=lambda _m: None, paths_file=paths_file)
+    import_songs(cast(Client, fake), scan_file([song]), apply=True, log=lambda _m: None, paths_file=paths_file)
     songs_writes = [batch for table, _c, batch in fake.writes if table == "songs_new"]
     assert songs_writes == [[{"md5": "1" * 32, "optimal_score": None, "paths": None}]]
 
@@ -404,7 +406,7 @@ def test_import_reports_paths_for_unscanned_songs(scan_file, tmp_path):
     fake = FakeSupabase([])
     paths_file = write_paths(tmp_path, {"9" * 32: {"optimal_score": 500, "paths": PATHS}})
     messages = []
-    import_songs(fake, scan_file([scanned("2" * 32)]), apply=True, log=messages.append, paths_file=paths_file)
+    import_songs(cast(Client, fake), scan_file([scanned("2" * 32)]), apply=True, log=messages.append, paths_file=paths_file)
     assert any("1 " in m and "not in the scan" in m for m in messages)
     written = json.dumps([payload for _t, _c, payload in fake.writes])
     assert "9" * 32 not in written

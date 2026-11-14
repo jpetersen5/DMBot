@@ -1,3 +1,6 @@
+from collections.abc import Mapping
+from typing import Any
+
 from flask import Blueprint, jsonify, request
 from ..services.supabase_service import get_supabase, rows, rows_as
 from ..utils.achievement_processor import achievement_processor
@@ -80,7 +83,7 @@ def get_all_users() -> FlaskResponse:
     """
     supabase = get_supabase()
     result = supabase.table("users").select("id", "username", "avatar", "stats", "elo").execute()
-    users = []
+    users: list[dict[str, Any]] = []
     for user in rows(result.data):
         stats = user.get("stats")
         slim_stats = {k: stats[k] for k in SLIM_STAT_FIELDS if k in stats} if stats else stats
@@ -207,7 +210,7 @@ def get_user_achievements(user_id: str) -> FlaskResponse:
     if not response.data:
         return jsonify({"error": "User not found"}), 404
 
-    user_achievements = rows(response.data)[0].get("achievements", {}) or {}
+    user_achievements: Mapping[str, str] = rows(response.data)[0].get("achievements", {}) or {}
 
     all_achievements = achievement_processor.serializable_achievements()
 

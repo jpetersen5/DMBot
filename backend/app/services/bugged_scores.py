@@ -4,7 +4,9 @@ from datetime import UTC, datetime
 from typing import Any, TypedDict
 from collections.abc import Callable, Set
 
-from ..types import LeaderboardEntry, LeaderboardUpdate
+from supabase import Client
+
+from ..types import LeaderboardEntry, LeaderboardUpdate, ScoreEntry
 from ..utils.achievement_processor import achievement_processor
 from ..utils.leaderboard import sort_and_rank_leaderboard
 from ..utils.leaderboard_writer import LEADERBOARD_CHUNK_SIZE, push_leaderboard_updates
@@ -44,17 +46,19 @@ def find_flagged(songs: list[Row], users: list[Row]) -> list[FlaggedScore]:
             })
 
     for song in by_md5.values():
-        for entry in song.get("leaderboard") or []:
+        board: list[LeaderboardEntry] = song.get("leaderboard") or []
+        for entry in board:
             flag(str(entry["user_id"]), entry.get("username") or "", song, entry["score"], entry["is_fc"])
     for user in users:
-        for score in user.get("scores") or []:
+        user_scores: list[ScoreEntry] = user.get("scores") or []
+        for score in user_scores:
             song = by_md5.get(score.get("identifier", ""))
             if song:
                 flag(str(user["id"]), user.get("username") or "", song, score["score"], score["is_fc"])
     return list(flagged.values())
 
 
-def _fetch_paged(supabase: Any, table: str, columns: str, only_analysed: bool = False) -> list[Row]:
+def _fetch_paged(supabase: Client, table: str, columns: str, only_analysed: bool = False) -> list[Row]:
     found: list[Row] = []
     start = 0
     while True:
@@ -68,10 +72,11 @@ def _fetch_paged(supabase: Any, table: str, columns: str, only_analysed: bool = 
         start += PAGE_SIZE
 
 
-def _cleaned_user(user: Row, md5s: set[str]) -> tuple[list[dict[str, Any]], dict[str, Any], list[str]]:
-    scores = [s for s in user.get("scores") or [] if s.get("identifier") not in md5s]
-    unknown = user.get("unknown_scores") or []
-    achievements = dict(user.get("achievements") or {})
+def _cleaned_user(user: Row, md5s: set[str]) -> tuple[list[ScoreEntry], dict[str, str], list[str]]:
+    all_scores: list[ScoreEntry] = user.get("scores") or []
+    scores = [s for s in all_scores if s.get("identifier") not in md5s]
+    unknown: list[ScoreEntry] = user.get("unknown_scores") or []
+    achievements: dict[str, str] = dict(user.get("achievements") or {})
     revoked = achievement_processor.revoked_achievements({
         "id": user["id"],
         "scores": [s for s in scores if s.get("speed", 0) >= 100],
@@ -85,7 +90,7 @@ def _cleaned_user(user: Row, md5s: set[str]) -> tuple[list[dict[str, Any]], dict
 
 
 def remove_bugged_scores(
-    supabase: Any, *, apply: bool = False, log: Callable[[str], None] = print, skip: Set[str] = frozenset()
+    supabase: Client, *, apply: bool = False, log: Callable[[str], None] = print, skip: Set[str] = frozenset()
 ) -> list[FlaggedScore]:
     prefix = "" if apply else "[preview] "
     songs = _fetch_paged(supabase, "songs_new", "id,md5,name,artist,optimal_score,leaderboard", only_analysed=True)

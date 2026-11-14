@@ -1,5 +1,5 @@
 from datetime import datetime, UTC
-from typing import Any, cast
+from typing import Any
 from collections.abc import Mapping
 
 from ..types import LeaderboardEntry, LeaderboardUpdate
@@ -26,7 +26,7 @@ def evaluate_score_update(
 
 
 def apply_score_to_leaderboard(
-    leaderboard: list[LeaderboardEntry], entry: Mapping[str, Any], user_id: str | int
+    leaderboard: list[LeaderboardEntry], entry: LeaderboardEntry, user_id: str | int
 ) -> tuple[list[LeaderboardEntry], bool]:
     """Fold ``entry`` for ``user_id`` into ``leaderboard``."""
     user_id = str(user_id)
@@ -44,7 +44,7 @@ def apply_score_to_leaderboard(
             leaderboard.remove(user_entry)
         except ValueError:
             pass
-    leaderboard.append(cast(LeaderboardEntry, entry))
+    leaderboard.append(entry)
     leaderboard = sort_and_rank_leaderboard(leaderboard)
     return leaderboard, True
 
@@ -87,7 +87,7 @@ def merge_unknown_scores(
             if evaluate_score_update(score_data, existing_known_score):
                 newly_known.append(score_data)
 
-            leaderboard_entry = {
+            leaderboard_entry: LeaderboardEntry = {
                 "user_id": user_id,
                 "username": username,
                 "score": unknown_score["score"],
@@ -97,7 +97,7 @@ def merge_unknown_scores(
                 "play_count": unknown_score["play_count"],
                 "posted": now
             }
-            leaderboard = song_info.get("leaderboard", []) or []
+            leaderboard: list[LeaderboardEntry] = song_info.get("leaderboard", []) or []
             leaderboard, changed = apply_score_to_leaderboard(
                 leaderboard, leaderboard_entry, user_id
             )

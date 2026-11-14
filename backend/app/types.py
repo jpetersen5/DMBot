@@ -104,7 +104,7 @@ class AchievementDef(_AchievementCore, total=False):
     extras consumed only by the matching ``check_function``.
     """
     level: int
-    song_md5: Any  # str or List[str]
+    song_md5: str | list[str]
     threshold: int
     requires_fc: bool
     score: int

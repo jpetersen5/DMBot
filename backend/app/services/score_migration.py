@@ -2,17 +2,19 @@ import logging
 from typing import Any
 from collections.abc import Callable
 
+from supabase import Client
+
 from ..types import LeaderboardEntry, LeaderboardUpdate
 from ..utils.leaderboard_writer import LEADERBOARD_CHUNK_SIZE, push_leaderboard_updates
 from ..utils.score_processing import merge_unknown_scores
 from ..utils.score_validation import split_bugged_unknown
-from .supabase_service import rows
+from .supabase_service import Row, rows
 
 logger = logging.getLogger(__name__)
 
 
 def promote_unknown_scores(
-    supabase: Any,
+    supabase: Client,
     *,
     dry_run: bool = True,
     log: Callable[[str], None] = lambda _msg: None,
@@ -20,7 +22,7 @@ def promote_unknown_scores(
     """Promote unknown scores whose songs now exist in ``songs_new``."""
     prefix = "[dry-run] " if dry_run else ""
 
-    users: list[dict[str, Any]] = []
+    users: list[Row] = []
     offset = 0
     page_size = 1000
     while True:
@@ -50,19 +52,19 @@ def promote_unknown_scores(
     for index, user in enumerate(users, 1):
         user_id = str(user["id"])
         username = user.get("username") or "Unknown User"
-        unknown = user.get("unknown_scores") or []
-        existing_scores = user.get("scores") or []
+        unknown: list[Row] = user.get("unknown_scores") or []
+        existing_scores: list[Row] = user.get("scores") or []
 
         try:
-            existing_known = {
+            existing_known: dict[str, Row] = {
                 s["identifier"]: s for s in existing_scores if "identifier" in s
             }
 
-            identifiers = list(
+            identifiers: list[str] = list(
                 dict.fromkeys(s["identifier"] for s in unknown if "identifier" in s)
             )
 
-            songs_dict: dict[str, Any] = {}
+            songs_dict: dict[str, Row] = {}
             for i in range(0, len(identifiers), 500):
                 batch = identifiers[i:i + 500]
                 fetched = rows(
@@ -112,7 +114,7 @@ def promote_unknown_scores(
             changed = bool(newly_known) or len(remaining_unknown) != original_count
             if changed and not dry_run:
                 combined = existing_scores + newly_known
-                merged_scores = {
+                merged_scores: dict[str, Row] = {
                     s["identifier"]: s for s in combined if "identifier" in s
                 }
                 cleaned_unknown = [

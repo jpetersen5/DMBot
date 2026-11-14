@@ -1,6 +1,8 @@
 from types import SimpleNamespace
+from typing import cast
 
 from flask import Flask
+from supabase import Client
 
 from app import cli as cli_module
 from app.services.bugged_scores import find_flagged, remove_bugged_scores
@@ -115,7 +117,7 @@ def test_preview_writes_nothing():
     songs, users = fixture()
     fake = FakeSupabase(songs, users)
     messages = []
-    flagged = remove_bugged_scores(fake, apply=False, log=messages.append)
+    flagged = remove_bugged_scores(cast(Client, fake), apply=False, log=messages.append)
     assert len(flagged) == 2
     assert fake.calls == []
     assert any("u1" in m and "Blight" in m and "180.0%" in m for m in messages)
@@ -125,14 +127,14 @@ def test_preview_writes_nothing():
 def test_skipped_songs_are_left_alone():
     songs, users = fixture()
     fake = FakeSupabase(songs, users)
-    assert remove_bugged_scores(fake, apply=True, log=lambda _m: None, skip={"m1"}) == []
+    assert remove_bugged_scores(cast(Client, fake), apply=True, log=lambda _m: None, skip={"m1"}) == []
     assert fake.calls == []
 
 
 def test_apply_removes_entries_reranks_and_revokes():
     songs, users = fixture()
     fake = FakeSupabase(songs, users)
-    remove_bugged_scores(fake, apply=True, log=lambda _m: None)
+    remove_bugged_scores(cast(Client, fake), apply=True, log=lambda _m: None)
 
     updates = {call[2]: call[3] for call in fake.calls if call[0] == "update"}
     assert set(updates) == {"u1", "u3"}
@@ -148,7 +150,7 @@ def test_apply_removes_entries_reranks_and_revokes():
 def test_users_written_before_leaderboards():
     songs, users = fixture()
     fake = FakeSupabase(songs, users)
-    remove_bugged_scores(fake, apply=True, log=lambda _m: None)
+    remove_bugged_scores(cast(Client, fake), apply=True, log=lambda _m: None)
     kinds = [call[0] for call in fake.calls]
     assert kinds.index("rpc") > max(i for i, k in enumerate(kinds) if k == "update")
 
@@ -157,7 +159,7 @@ def test_failed_leaderboard_write_is_reported_and_found_again():
     songs, users = fixture()
     fake = FakeSupabase(songs, users, fail_md5s={"m1"})
     messages = []
-    remove_bugged_scores(fake, apply=True, log=messages.append)
+    remove_bugged_scores(cast(Client, fake), apply=True, log=messages.append)
     assert any("m1" in m and "failed" in m.lower() for m in messages)
     assert ("u1", "m1") in {(f["user_id"], f["md5"]) for f in find_flagged(fake.songs, [])}
 
