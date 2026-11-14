@@ -5,19 +5,13 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    environment:
-      - NODE_ENV=development
-      - VITE_API_URL=http://localhost:5000
     volumes:
       - ./src:/app/src
       - ./public:/app/public
       - ./vite.config.ts:/app/vite.config.ts
       - ./index.html:/app/index.html
-    command: npm run dev
     depends_on:
       - backend
-    networks:
-      - app-network
 
   backend:
     build:
@@ -26,7 +20,6 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - FLASK_APP=run.py
       - FLASK_ENV=development
       - ALLOWED_ORIGINS=http://localhost:3000
       - REDIS_URL=redis://redis:6379
@@ -37,19 +30,8 @@ services:
       - ./backend:/app
     depends_on:
       - redis
-    networks:
-      - app-network
 
   redis:
-    image: redis:alpine
+    image: redis:8-alpine
     ports:
       - "6379:6379"
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
-
-volumes:
-  redis_data:
