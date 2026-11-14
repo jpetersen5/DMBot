@@ -3,6 +3,7 @@ Flask-Compress==1.26
 Flask-CORS==6.0.5
 Flask-Limiter==4.1.1
 Flask-Session==0.8.0
+cachelib==0.17.2
 Flask-SocketIO==5.7.2
 Flask-redis==0.4.0
 python-dotenv==1.2.4
