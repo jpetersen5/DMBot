@@ -21,12 +21,3 @@ reportUnknownArgumentType = "none"
 reportUnknownVariableType = "none"
 reportUnknownParameterType = "none"
 reportMissingParameterType = "warning"
-
-[[tool.pyright.executionEnvironments]]
-root = "app/migrations"
-extraPaths = ["."]
-reportUnknownMemberType = "none"
-reportUnknownArgumentType = "none"
-reportUnknownVariableType = "none"
-reportUnknownParameterType = "none"
-reportMissingParameterType = "warning"

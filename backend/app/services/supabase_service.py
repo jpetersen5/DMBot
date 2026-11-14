@@ -26,7 +26,7 @@ def rows_as(data: Any, shape: type[_T]) -> list[_T]:
     of the code trusts the DB schema.
     """
     return cast(list[_T], data)
-\
+
 UNSENT_ERRORS = (
     httpx.ConnectError,
     httpx.ConnectTimeout,
