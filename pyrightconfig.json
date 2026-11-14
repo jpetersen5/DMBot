@@ -1,0 +1,19 @@
+{
+  "include": ["backend/app", "backend/tests", "backend/scripts"],
+  "pythonVersion": "3.12",
+  "typeCheckingMode": "standard",
+  "reportMissingModuleSource": "none",
+  "reportMissingTypeStubs": "none",
+  "executionEnvironments": [
+    {
+      "root": "backend/app/scripts",
+      "extraPaths": ["backend"],
+      "reportUnknownMemberType": "none",
+      "reportUnknownArgumentType": "none",
+      "reportUnknownVariableType": "none",
+      "reportUnknownParameterType": "none",
+      "reportMissingParameterType": "warning"
+    },
+    { "root": "backend" }
+  ]
+}
