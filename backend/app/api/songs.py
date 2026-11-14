@@ -192,7 +192,6 @@ def get_related_songs() -> FlaskResponse:
         JSON: list of related songs 
     """
     supabase = get_supabase()
-    logger = current_app.logger
 
     album = request.args.get("album")
     album_songs = []

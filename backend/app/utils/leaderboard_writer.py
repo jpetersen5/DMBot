@@ -1,7 +1,6 @@
 """Chunked writes to ``songs_new.leaderboard`` with exponential backoff."""
 
 import logging
-from typing import Any
 from collections.abc import Callable
 
 from supabase import Client

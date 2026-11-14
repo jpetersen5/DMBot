@@ -54,7 +54,7 @@ class AchievementProcessor:
         """Load achievement song definitions from JSON file"""
         try:
             file_path = Path(__file__).parent.parent / "data" / "achievement_songs.json"
-            with open(file_path, 'r') as f:
+            with open(file_path) as f:
                 return json.load(f)
         except Exception as e:
             logger.error(f"Error loading achievement songs: {e}")
