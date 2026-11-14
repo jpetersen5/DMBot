@@ -34,7 +34,7 @@ def find_flagged(songs: list[Row], users: list[Row]) -> list[FlaggedScore]:
     flagged: dict[tuple[str, str], FlaggedScore] = {}
 
     def flag(user_id: str, username: str, song: Row, score: int, is_fc: bool) -> None:
-        if is_bugged_score(score, is_fc, song["optimal_score"]):
+        if is_bugged_score(score, song["optimal_score"]):
             flagged.setdefault((user_id, song["md5"]), {
                 "user_id": user_id,
                 "username": username,

@@ -129,13 +129,13 @@ def process_and_save_scores(result: dict[str, Any], user_id: str) -> None:
                 play_count = song["play_count"]
                 if song_info:
                     optimal_score = song_info.get("optimal_score")
-                    if is_bugged_score(score["score"], score["is_fc"], optimal_score):
+                    if is_bugged_score(score["score"], optimal_score):
                         bugged_scores.append(bugged_score(song["identifier"], song_info, score))
                         continue
 
                     existing_user_score = existing_scores_dict.get(song["identifier"], None)
                     if existing_user_score and is_bugged_score(
-                        existing_user_score["score"], existing_user_score["is_fc"], optimal_score
+                        existing_user_score["score"], optimal_score
                     ):
                         existing_user_score = None
 
@@ -165,7 +165,7 @@ def process_and_save_scores(result: dict[str, Any], user_id: str) -> None:
                     leaderboard: list[LeaderboardEntry] = [
                         entry for entry in (song_info.get("leaderboard", []) or [])
                         if not (entry["user_id"] == user_id
-                                and is_bugged_score(entry["score"], entry["is_fc"], optimal_score))
+                                and is_bugged_score(entry["score"], optimal_score))
                     ]
 
                     leaderboard_entry_from_incoming: LeaderboardEntry = {

@@ -7,7 +7,7 @@ from ..types import BuggedScore
 BUG_MARGIN = 0.05
 
 
-def is_bugged_score(score: int, is_fc: bool, optimal_score: int | None) -> bool:
+def is_bugged_score(score: int, optimal_score: int | None) -> bool:
     if not optimal_score or optimal_score <= 0:
         return False
     return score > optimal_score * (1 + BUG_MARGIN)
@@ -31,7 +31,7 @@ def split_bugged_unknown(
     bugged: list[BuggedScore] = []
     for entry in unknown:
         song = songs_dict.get(entry.get("identifier", ""))
-        if song and is_bugged_score(entry["score"], entry["is_fc"], song.get("optimal_score")):
+        if song and is_bugged_score(entry["score"], song.get("optimal_score")):
             bugged.append(bugged_score(entry["identifier"], song, entry))
         else:
             kept.append(entry)
