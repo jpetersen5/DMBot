@@ -73,39 +73,15 @@ Docker is a platform that allows users to develop, ship, and run applications in
    cd backend
    ```
 
-2. Create a file named `.env.dev` and add this to its content or rename `.env.dev.example` to `.env.dev`:
+2. Copy `.env.dev.example` to `.env.dev` and fill in the blank values.
 
-   ```env
-   FLASK_APP=app.py
-   FLASK_ENV=development
-
-   ALLOWED_ORIGINS=http://localhost:3000
-
-   SECRET_KEY=
-   JWT_SECRET=
-
-   SUPABASE_URL=https://tczhxtrzfaqgsjoudhoi.supabase.co
-   SUPABASE_KEY=
-   SUPABASE_SERVICE_ROLE_KEY=
-
-   DISCORD_CLIENT_ID=1230729896393703425
-   DISCORD_CLIENT_SECRET=
-   DISCORD_REDIRECT_URI=http://localhost:5000/api/auth/callback # change to 5001 for Mac
-   FRONTEND_URL=http://localhost:3000
-
-   REDIS_URL=redis://redis:6379
-   
-   VITE_SPOTIFY_CLIENT_ID=
-   VITE_SPOTIFY_CLIENT_SECRET=
-
-   PROCESS_SONGS_SCRIPT=
-   ```
+   There is no local or staging database: with a Supabase key set, your local backend reads and writes the production database.
 
    Contact me `@._satan` on Discord for sensitive environment variables.
 
    Production secrets aren't necessary for local development
 
-   Supabase keys are only necessary for working with the data in the Supabase hosted database. Contact me for the service role key but be really careful with it!
+   Supabase keys are only necessary for working with the data in the Supabase hosted database. Contact me for the Supabase secret key but be really careful with it!
 
    Discord client secret is for me, the bot master, only.
 
