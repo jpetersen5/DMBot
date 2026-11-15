@@ -1,7 +1,9 @@
 """Chunked writes to ``songs_new.leaderboard`` with exponential backoff."""
 
 import logging
-from typing import Any, Callable, List, Optional
+from collections.abc import Callable
+
+from supabase import Client
 
 from ..types import LeaderboardUpdate
 
@@ -11,7 +13,7 @@ STATEMENT_TIMEOUT_CODE = "57014"
 
 def is_statement_timeout(exc: Exception) -> bool:
     """Whether ``exc`` is a Postgres statement timeout."""
-    code = getattr(exc, "code", None)
+    code: object = getattr(exc, "code", None)
     if code is None and isinstance(getattr(exc, "args", None), tuple) and exc.args:
         first = exc.args[0]
         if isinstance(first, dict):
@@ -20,17 +22,17 @@ def is_statement_timeout(exc: Exception) -> bool:
 
 
 def push_leaderboard_updates(
-    supabase: Any,
-    updates: List[LeaderboardUpdate],
+    supabase: Client,
+    updates: list[LeaderboardUpdate],
     chunk_size: int,
     logger: logging.Logger,
-    on_progress: Optional[Callable[[int], None]] = None,
-) -> List[LeaderboardUpdate]:
+    on_progress: Callable[[int], None] | None = None,
+) -> list[LeaderboardUpdate]:
     """Write ``updates`` to songs_new via the bulk_update_leaderboards RPC.
 
     Timeouts are retried in halves. Failures are non-blocking.
     """
-    failed: List[LeaderboardUpdate] = []
+    failed: list[LeaderboardUpdate] = []
 
     for i in range(0, len(updates), chunk_size):
         chunk = updates[i:i + chunk_size]

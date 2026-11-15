@@ -1,12 +1,13 @@
 from datetime import datetime, UTC
-from typing import Any, Dict, List, Mapping, Optional, Tuple, cast
+from typing import Any
+from collections.abc import Mapping
 
 from ..types import LeaderboardEntry, LeaderboardUpdate
 from .leaderboard import sort_and_rank_leaderboard
 
 
 def evaluate_score_update(
-    incoming: Mapping[str, Any], existing: Optional[Mapping[str, Any]]
+    incoming: Mapping[str, Any], existing: Mapping[str, Any] | None
 ) -> bool:
     """Decide whether ``incoming`` should replace ``existing``.
 
@@ -25,8 +26,8 @@ def evaluate_score_update(
 
 
 def apply_score_to_leaderboard(
-    leaderboard: List[LeaderboardEntry], entry: Mapping[str, Any], user_id: str | int
-) -> Tuple[List[LeaderboardEntry], bool]:
+    leaderboard: list[LeaderboardEntry], entry: LeaderboardEntry, user_id: str | int
+) -> tuple[list[LeaderboardEntry], bool]:
     """Fold ``entry`` for ``user_id`` into ``leaderboard``."""
     user_id = str(user_id)
     user_entry = next((e for e in leaderboard if e["user_id"] == user_id), None)
@@ -43,26 +44,26 @@ def apply_score_to_leaderboard(
             leaderboard.remove(user_entry)
         except ValueError:
             pass
-    leaderboard.append(cast(LeaderboardEntry, entry))
+    leaderboard.append(entry)
     leaderboard = sort_and_rank_leaderboard(leaderboard)
     return leaderboard, True
 
 
 def merge_unknown_scores(
-    existing_unknown: List[Dict[str, Any]],
-    songs_dict: Dict[str, Any],
+    existing_unknown: list[dict[str, Any]],
+    songs_dict: dict[str, Any],
     user_id: str | int,
     username: str,
     existing_known: Mapping[str, Any],
-) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[LeaderboardUpdate]]:
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[LeaderboardUpdate]]:
     """Promote previously-unknown scores whose songs are now known.
 
     Returns ``(newly_known, remaining_unknown, leaderboard_updates)``.
     """
     user_id = str(user_id)
-    newly_known: List[Dict[str, Any]] = []
-    remaining_unknown: List[Dict[str, Any]] = []
-    leaderboard_updates: List[LeaderboardUpdate] = []
+    newly_known: list[dict[str, Any]] = []
+    remaining_unknown: list[dict[str, Any]] = []
+    leaderboard_updates: list[LeaderboardUpdate] = []
 
     for unknown_score in existing_unknown:
         identifier = unknown_score["identifier"]
@@ -86,7 +87,7 @@ def merge_unknown_scores(
             if evaluate_score_update(score_data, existing_known_score):
                 newly_known.append(score_data)
 
-            leaderboard_entry = {
+            leaderboard_entry: LeaderboardEntry = {
                 "user_id": user_id,
                 "username": username,
                 "score": unknown_score["score"],
@@ -96,7 +97,7 @@ def merge_unknown_scores(
                 "play_count": unknown_score["play_count"],
                 "posted": now
             }
-            leaderboard = song_info.get("leaderboard", []) or []
+            leaderboard: list[LeaderboardEntry] = song_info.get("leaderboard", []) or []
             leaderboard, changed = apply_score_to_leaderboard(
                 leaderboard, leaderboard_entry, user_id
             )

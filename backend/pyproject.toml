@@ -1,5 +1,5 @@
 [tool.pyright]
-pythonVersion = "3.12"
+pythonVersion = "3.13"
 include = ["app", "tests"]
 exclude = [
     "**/__pycache__",
@@ -15,15 +15,6 @@ reportMissingTypeStubs = "none"
 # TODO: Enforce stricter unknown typing for dynamic modules.
 [[tool.pyright.executionEnvironments]]
 root = "app/scripts"
-extraPaths = ["."]
-reportUnknownMemberType = "none"
-reportUnknownArgumentType = "none"
-reportUnknownVariableType = "none"
-reportUnknownParameterType = "none"
-reportMissingParameterType = "warning"
-
-[[tool.pyright.executionEnvironments]]
-root = "app/migrations"
 extraPaths = ["."]
 reportUnknownMemberType = "none"
 reportUnknownArgumentType = "none"

@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.13-slim
 
 WORKDIR /app
 COPY requirements.txt .
@@ -8,4 +8,4 @@ EXPOSE 5000
 ENV FLASK_APP=run.py
 ENV FLASK_ENV=production
 
-CMD ["gunicorn", "--worker-class", "geventwebsocket.gunicorn.workers.GeventWebSocketWorker", "-w", "1", "-b", "0.0.0.0:5000", "run:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:5000", "run:app"]

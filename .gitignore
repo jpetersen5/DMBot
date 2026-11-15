@@ -165,7 +165,6 @@ CLAUDE.md
 /dist/
 
 # ignore data and sensitive scripts
-utils/process_songs.py
 /data
 backend/data
 backend/app/scripts/process_songs.py

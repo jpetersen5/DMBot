@@ -2,10 +2,9 @@ from gevent import monkey
 monkey.patch_all()
 
 from app import create_app
-from gevent.pywsgi import WSGIServer
-from geventwebsocket.handler import WebSocketHandler
+from app.extensions import socketio
 
 app = create_app()
 
 if __name__ == "__main__":
-    WSGIServer(("", 5000), app, handler_class=WebSocketHandler).serve_forever()
+    socketio.run(app, host="0.0.0.0", port=5000)

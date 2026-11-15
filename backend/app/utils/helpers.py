@@ -2,7 +2,8 @@ import os
 import base64
 import jwt
 from functools import wraps
-from typing import Callable, Concatenate, ParamSpec
+from typing import Concatenate, ParamSpec
+from collections.abc import Callable
 from flask import request, jsonify
 from ..config import Config
 from ..types import FlaskResponse

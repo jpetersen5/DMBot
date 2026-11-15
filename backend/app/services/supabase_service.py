@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Type, TypeVar, cast
+from typing import Any, TypeVar, cast, override
 from flask import Flask
 from supabase import ClientOptions, create_client, Client
 import httpx
@@ -7,26 +7,26 @@ import time
 
 logger = logging.getLogger(__name__)
 
-Row = Dict[str, Any]
+Row = dict[str, Any]
 _T = TypeVar("_T")
 
-def rows(data: Any) -> List[Row]:
+def rows(data: Any) -> list[Row]:
     """Narrow postgrest's recursive JSON-typed response.data to plain dict rows.
 
     Supabase table queries always return a list of JSON objects at runtime;
     postgrest's JSON type alias is too broad for static analysis to follow.
     """
-    return cast(List[Row], data)
+    return cast(list[Row], data)
 
-def rows_as(data: Any, shape: Type[_T]) -> List[_T]:
+def rows_as(data: Any, shape: type[_T]) -> list[_T]:
     """Like :func:`rows`, but narrow to a specific TypedDict/row shape.
 
     ``shape`` is only used for static typing (e.g. ``rows_as(resp.data, UserRow)``);
     no runtime validation is performed — the rows are cast, matching how the rest
     of the code trusts the DB schema.
     """
-    return cast(List[_T], data)
-\
+    return cast(list[_T], data)
+
 UNSENT_ERRORS = (
     httpx.ConnectError,
     httpx.ConnectTimeout,
@@ -46,6 +46,7 @@ class RetryTransport(httpx.BaseTransport):
     def __init__(self, transport: httpx.BaseTransport) -> None:
         self.transport = transport
 
+    @override
     def handle_request(self, request: httpx.Request) -> httpx.Response:
         for attempt in range(MAX_TRANSPORT_RETRIES + 1):
             try:
@@ -64,10 +65,11 @@ class RetryTransport(httpx.BaseTransport):
                 time.sleep(RETRY_BACKOFF[attempt])
         raise AssertionError("unreachable")
 
+    @override
     def close(self) -> None:
         self.transport.close()
 
-supabase: Optional[Client] = None
+supabase: Client | None = None
 
 def init_supabase(app: Flask):
     global supabase

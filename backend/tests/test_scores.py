@@ -1,5 +1,6 @@
 from types import SimpleNamespace
 from unittest.mock import MagicMock
+from typing import Any
 
 from flask import Flask
 
@@ -74,7 +75,7 @@ class FakeRpc:
       (should not be retried).
     """
 
-    def __init__(self, fn_name: str, params: dict, holder: SimpleNamespace):
+    def __init__(self, fn_name: str, params: dict[str, Any], holder: SimpleNamespace):
         self.fn_name = fn_name
         self.params = params
         self.holder = holder
@@ -105,11 +106,11 @@ class FakeSupabase:
     def table(self, name: str) -> FakeQuery:
         return FakeQuery(name, self.holder)
 
-    def rpc(self, fn_name: str, params: dict) -> FakeRpc:
+    def rpc(self, fn_name: str, params: dict[str, Any]) -> FakeRpc:
         return FakeRpc(fn_name, params, self.holder)
 
 
-def score(identifier: str, score_value: int, speed: int) -> dict:
+def score(identifier: str, score_value: int, speed: int) -> dict[str, Any]:
     return {
         "identifier": identifier,
         "song_name": f"Song {identifier}",
@@ -122,7 +123,7 @@ def score(identifier: str, score_value: int, speed: int) -> dict:
     }
 
 
-def unknown_score(identifier: str, score_value: int, speed: int, filepath: str) -> dict:
+def unknown_score(identifier: str, score_value: int, speed: int, filepath: str) -> dict[str, Any]:
     return {
         "identifier": identifier,
         "song_name": f"Unknown Song: {identifier}",
@@ -136,7 +137,7 @@ def unknown_score(identifier: str, score_value: int, speed: int, filepath: str) 
     }
 
 
-def incoming_song(identifier: str, score_value: int, speed: int = 100, play_count: int = 1, is_fc: bool = False) -> dict:
+def incoming_song(identifier: str, score_value: int, speed: int = 100, play_count: int = 1, is_fc: bool = False) -> dict[str, Any]:
     """A song as it arrives from the scoredata parser (drums == instrument 9)."""
     return {
         "identifier": identifier,
@@ -210,7 +211,7 @@ def run_process(
     return holder, ach_input
 
 
-def completion_event(holder) -> dict:
+def completion_event(holder) -> dict[str, Any]:
     """The payload of the terminal score_processing_complete emit."""
     for call in holder.socketio.emit.call_args_list:
         if call.args and call.args[0] == "score_processing_complete":

@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Optional, Tuple
 
 import click
 from flask import Flask
@@ -28,7 +27,7 @@ def register_cli(app: Flask) -> None:
         help=f"Output of backend/scripts/hydra_scan.py (default: {DEFAULT_PATHS_FILE.name} if it exists).",
     )
     @click.option("--apply", is_flag=True, help="Write the changes (default: preview only).")
-    def import_songs_command(scan_file: Path, paths_file: Optional[Path], apply: bool) -> None:
+    def import_songs_command(scan_file: Path, paths_file: Path | None, apply: bool) -> None:
         """Insert new songs and update changed ones from a song scan."""
         if paths_file is None and DEFAULT_PATHS_FILE.exists():
             paths_file = DEFAULT_PATHS_FILE
@@ -38,7 +37,7 @@ def register_cli(app: Flask) -> None:
     @app.cli.command("remove-bugged-scores")
     @click.option("--apply", is_flag=True, help="Write the changes (default: preview only).")
     @click.option("--skip", "skip", multiple=True, metavar="MD5", help="Leave this song's scores alone (repeatable).")
-    def remove_bugged_scores_command(apply: bool, skip: Tuple[str, ...]) -> None:
+    def remove_bugged_scores_command(apply: bool, skip: tuple[str, ...]) -> None:
         """Remove scores above Hydra's optimal from leaderboards and profiles, revoking achievements they earned."""
         with app.app_context():
             remove_bugged_scores(get_supabase(), apply=apply, log=click.echo, skip=set(skip))

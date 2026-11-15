@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from typing import Any
 
 from flask import Flask
 
@@ -7,10 +8,10 @@ from app.api import leaderboards as leaderboards_module
 
 class RpcSupabase:
     def __init__(self, rpc_data):
-        self.rpc_calls: list = []
+        self.rpc_calls: list[SimpleNamespace] = []
         self.rpc_data = rpc_data
 
-    def rpc(self, fn: str, params: dict):
+    def rpc(self, fn: str, params: dict[str, Any]):
         self.rpc_calls.append(SimpleNamespace(fn=fn, params=params))
         return SimpleNamespace(execute=lambda: SimpleNamespace(data=self.rpc_data))
 

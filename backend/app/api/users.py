@@ -1,4 +1,6 @@
-from typing import List, Optional
+from collections.abc import Mapping
+from typing import Any
+
 from flask import Blueprint, jsonify, request
 from ..services.supabase_service import get_supabase, rows, rows_as
 from ..utils.achievement_processor import achievement_processor
@@ -81,7 +83,7 @@ def get_all_users() -> FlaskResponse:
     """
     supabase = get_supabase()
     result = supabase.table("users").select("id", "username", "avatar", "stats", "elo").execute()
-    users = []
+    users: list[dict[str, Any]] = []
     for user in rows(result.data):
         stats = user.get("stats")
         slim_stats = {k: stats[k] for k in SLIM_STAT_FIELDS if k in stats} if stats else stats
@@ -140,14 +142,14 @@ def compare_users() -> FlaskResponse:
 
     return jsonify(comparison_results)
 
-def get_user_scores_by_id(user_id: str) -> Optional[UserRow]:
+def get_user_scores_by_id(user_id: str) -> UserRow | None:
     supabase = get_supabase()
     response = supabase.table("users").select("scores, unknown_scores").eq("id", user_id).execute()
     return rows_as(response.data, UserRow)[0] if response.data else None
 
 def compare_user_scores(
-    user1_scores: List[ScoreEntry], user2_scores: List[ScoreEntry]
-) -> Optional[ComparisonResult]:
+    user1_scores: list[ScoreEntry], user2_scores: list[ScoreEntry]
+) -> ComparisonResult | None:
     user1_dict = {score["identifier"]: score for score in user1_scores}
     user2_dict = {score["identifier"]: score for score in user2_scores}
 
@@ -208,7 +210,7 @@ def get_user_achievements(user_id: str) -> FlaskResponse:
     if not response.data:
         return jsonify({"error": "User not found"}), 404
 
-    user_achievements = rows(response.data)[0].get("achievements", {}) or {}
+    user_achievements: Mapping[str, str] = rows(response.data)[0].get("achievements", {}) or {}
 
     all_achievements = achievement_processor.serializable_achievements()
 

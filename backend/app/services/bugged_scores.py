@@ -1,9 +1,12 @@
 """Removes scores inflated by Clone Hero's solo-after-online bug from leaderboards and profiles."""
 import logging
 from datetime import UTC, datetime
-from typing import AbstractSet, Any, Callable, Dict, List, Set, Tuple, TypedDict
+from typing import Any, TypedDict
+from collections.abc import Callable, Set
 
-from ..types import LeaderboardEntry, LeaderboardUpdate
+from supabase import Client
+
+from ..types import LeaderboardEntry, LeaderboardUpdate, ScoreEntry
 from ..utils.achievement_processor import achievement_processor
 from ..utils.leaderboard import sort_and_rank_leaderboard
 from ..utils.leaderboard_writer import LEADERBOARD_CHUNK_SIZE, push_leaderboard_updates
@@ -26,12 +29,12 @@ class FlaggedScore(TypedDict):
     is_fc: bool
 
 
-def find_flagged(songs: List[Row], users: List[Row]) -> List[FlaggedScore]:
+def find_flagged(songs: list[Row], users: list[Row]) -> list[FlaggedScore]:
     by_md5 = {song["md5"]: song for song in songs if song.get("optimal_score")}
-    flagged: Dict[Tuple[str, str], FlaggedScore] = {}
+    flagged: dict[tuple[str, str], FlaggedScore] = {}
 
     def flag(user_id: str, username: str, song: Row, score: int, is_fc: bool) -> None:
-        if is_bugged_score(score, is_fc, song["optimal_score"]):
+        if is_bugged_score(score, song["optimal_score"]):
             flagged.setdefault((user_id, song["md5"]), {
                 "user_id": user_id,
                 "username": username,
@@ -43,18 +46,20 @@ def find_flagged(songs: List[Row], users: List[Row]) -> List[FlaggedScore]:
             })
 
     for song in by_md5.values():
-        for entry in song.get("leaderboard") or []:
+        board: list[LeaderboardEntry] = song.get("leaderboard") or []
+        for entry in board:
             flag(str(entry["user_id"]), entry.get("username") or "", song, entry["score"], entry["is_fc"])
     for user in users:
-        for score in user.get("scores") or []:
+        user_scores: list[ScoreEntry] = user.get("scores") or []
+        for score in user_scores:
             song = by_md5.get(score.get("identifier", ""))
             if song:
                 flag(str(user["id"]), user.get("username") or "", song, score["score"], score["is_fc"])
     return list(flagged.values())
 
 
-def _fetch_paged(supabase: Any, table: str, columns: str, only_analysed: bool = False) -> List[Row]:
-    found: List[Row] = []
+def _fetch_paged(supabase: Client, table: str, columns: str, only_analysed: bool = False) -> list[Row]:
+    found: list[Row] = []
     start = 0
     while True:
         query = supabase.table(table).select(columns)
@@ -67,10 +72,11 @@ def _fetch_paged(supabase: Any, table: str, columns: str, only_analysed: bool = 
         start += PAGE_SIZE
 
 
-def _cleaned_user(user: Row, md5s: Set[str]) -> Tuple[List[Dict[str, Any]], Dict[str, Any], List[str]]:
-    scores = [s for s in user.get("scores") or [] if s.get("identifier") not in md5s]
-    unknown = user.get("unknown_scores") or []
-    achievements = dict(user.get("achievements") or {})
+def _cleaned_user(user: Row, md5s: set[str]) -> tuple[list[ScoreEntry], dict[str, str], list[str]]:
+    all_scores: list[ScoreEntry] = user.get("scores") or []
+    scores = [s for s in all_scores if s.get("identifier") not in md5s]
+    unknown: list[ScoreEntry] = user.get("unknown_scores") or []
+    achievements: dict[str, str] = dict(user.get("achievements") or {})
     revoked = achievement_processor.revoked_achievements({
         "id": user["id"],
         "scores": [s for s in scores if s.get("speed", 0) >= 100],
@@ -84,8 +90,8 @@ def _cleaned_user(user: Row, md5s: Set[str]) -> Tuple[List[Dict[str, Any]], Dict
 
 
 def remove_bugged_scores(
-    supabase: Any, *, apply: bool = False, log: Callable[[str], None] = print, skip: AbstractSet[str] = frozenset()
-) -> List[FlaggedScore]:
+    supabase: Client, *, apply: bool = False, log: Callable[[str], None] = print, skip: Set[str] = frozenset()
+) -> list[FlaggedScore]:
     prefix = "" if apply else "[preview] "
     songs = _fetch_paged(supabase, "songs_new", "id,md5,name,artist,optimal_score,leaderboard", only_analysed=True)
     songs = [song for song in songs if song["md5"] not in skip]
@@ -97,11 +103,11 @@ def remove_bugged_scores(
         log(f"  {f['username']} ({f['user_id']}): {f['song_name']} {f['score']:,} vs optimal "
             f"{f['optimal_score']:,} ({ratio:.1f}%, {'FC' if f['is_fc'] else 'non-FC'})")
 
-    md5s_by_user: Dict[str, Set[str]] = {}
+    md5s_by_user: dict[str, set[str]] = {}
     for f in flagged:
         md5s_by_user.setdefault(f["user_id"], set()).add(f["md5"])
 
-    user_writes: List[Tuple[str, Dict[str, Any]]] = []
+    user_writes: list[tuple[str, dict[str, Any]]] = []
     total_revoked = 0
     for user in users:
         md5s = md5s_by_user.get(str(user["id"]))
@@ -115,9 +121,9 @@ def remove_bugged_scores(
 
     now = datetime.now(UTC).isoformat()
     flagged_keys = {(f["user_id"], f["md5"]) for f in flagged}
-    leaderboard_updates: List[LeaderboardUpdate] = []
+    leaderboard_updates: list[LeaderboardUpdate] = []
     for song in songs:
-        board: List[LeaderboardEntry] = song.get("leaderboard") or []
+        board: list[LeaderboardEntry] = song.get("leaderboard") or []
         kept = [e for e in board if (str(e["user_id"]), song["md5"]) not in flagged_keys]
         if len(kept) != len(board):
             leaderboard_updates.append({

@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify
 from ..services.supabase_service import get_supabase, rows
-from ..types import FlaskResponse
+from ..types import FlaskResponse, LeaderboardEntry
 
 bp = Blueprint("leaderboard", __name__)
 
@@ -14,7 +14,7 @@ def get_leaderboard(song_id: str) -> FlaskResponse:
     if not result.data:
         return jsonify({"error": "Song not found"}), 404
 
-    leaderboard = rows(result.data)[0].get("leaderboard", []) or []
+    leaderboard: list[LeaderboardEntry] = rows(result.data)[0].get("leaderboard", []) or []
     return jsonify({"leaderboard": leaderboard})
 
 @bp.route("/api/user/<string:user_id>/scores", methods=["GET"])

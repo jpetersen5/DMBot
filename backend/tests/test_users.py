@@ -1,5 +1,7 @@
 import json
 from types import SimpleNamespace
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 from flask import Flask
 
@@ -30,7 +32,7 @@ class SelectQuery:
     """Records the column list passed to .select() and returns per-table data.
     Emulates server-side .order() so ordering can be delegated to the query."""
 
-    def __init__(self, table_name: str, log: list, data_map: dict, order_log: list):
+    def __init__(self, table_name: str, log: list[tuple[str, Any]], data_map: Mapping[str, Sequence[Mapping[str, Any]]], order_log: list[tuple[str, str, bool]]):
         self.table_name = table_name
         self.log = log
         self.data_map = data_map
@@ -60,9 +62,9 @@ class SelectQuery:
 
 
 class SelectSupabase:
-    def __init__(self, data_map: dict):
-        self.log: list = []
-        self.order_log: list = []
+    def __init__(self, data_map: Mapping[str, Sequence[Mapping[str, Any]]]):
+        self.log: list[tuple[str, Any]] = []
+        self.order_log: list[tuple[str, str, bool]] = []
         self.data_map = data_map
 
     def table(self, name: str) -> SelectQuery:

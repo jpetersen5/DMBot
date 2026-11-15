@@ -29,11 +29,12 @@ def test_session_uses_redis_when_url_set(reload_config, monkeypatch):
     assert cfg.Config.SESSION_REDIS is not None
 
 
-def test_session_falls_back_to_filesystem_without_url(reload_config, monkeypatch):
+def test_session_falls_back_to_file_cache_without_url(reload_config, monkeypatch):
     monkeypatch.delenv("REDIS_URL", raising=False)
     cfg = reload_config()
 
-    assert cfg.Config.SESSION_TYPE == "filesystem"
+    assert cfg.Config.SESSION_TYPE == "cachelib"
+    assert cfg.Config.SESSION_CACHELIB is not None
     assert not hasattr(cfg.Config, "SESSION_REDIS")
 
 

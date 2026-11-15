@@ -1,4 +1,5 @@
 import json
+from typing import Any
 
 from app.utils.score_processing import (
     apply_score_to_leaderboard,
@@ -9,7 +10,7 @@ from app.utils.achievement_processor import achievement_processor
 from app.types import LeaderboardEntry
 
 
-def score(score_value: int, play_count: int = 1) -> dict:
+def score(score_value: int, play_count: int = 1) -> dict[str, Any]:
     return {
         "identifier": "md5",
         "percent": 100.0,

@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from typing import Any
 
 from flask import Flask
 
@@ -68,7 +69,7 @@ class FakeQuery:
 class FakeRpc:
     """Stands in for the bulk_update_leaderboards RPC."""
 
-    def __init__(self, holder: SimpleNamespace, params: dict):
+    def __init__(self, holder: SimpleNamespace, params: dict[str, Any]):
         self.holder = holder
         self.params = params
 
@@ -89,12 +90,12 @@ class FakeSupabase:
     def table(self, name: str) -> FakeQuery:
         return FakeQuery(name, self.holder)
 
-    def rpc(self, name: str, params: dict) -> FakeRpc:
+    def rpc(self, name: str, params: dict[str, Any]) -> FakeRpc:
         assert name == "bulk_update_leaderboards", name
         return FakeRpc(self.holder, params)
 
 
-def unknown(identifier: str, score_value: int, user_id: str) -> dict:
+def unknown(identifier: str, score_value: int, user_id: str) -> dict[str, Any]:
     return {
         "identifier": identifier,
         "song_name": f"Unknown Song: {identifier}",

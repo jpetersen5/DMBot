@@ -3,20 +3,18 @@ import pytest
 from app.utils.score_validation import is_bugged_score, split_bugged_unknown
 
 
-@pytest.mark.parametrize("score, is_fc, optimal, expected", [
-    (105_000, True, 100_000, False),
-    (105_001, True, 100_000, True),
-    (101_290, True, 100_000, False),
-    (100_001, False, 100_000, False),
-    (105_000, False, 100_000, False),
-    (105_001, False, 100_000, True),
-    (100_000, False, 100_000, False),
-    (3_303_175, False, 410_230, True),
-    (999_999, False, None, False),
-    (999_999, False, 0, False),
+@pytest.mark.parametrize("score, optimal, expected", [
+    (105_000, 100_000, False),
+    (105_001, 100_000, True),
+    (101_290, 100_000, False),
+    (100_001, 100_000, False),
+    (100_000, 100_000, False),
+    (3_303_175, 410_230, True),
+    (999_999, None, False),
+    (999_999, 0, False),
 ])
-def test_is_bugged_score(score, is_fc, optimal, expected):
-    assert is_bugged_score(score, is_fc, optimal) is expected
+def test_is_bugged_score(score, optimal, expected):
+    assert is_bugged_score(score, optimal) is expected
 
 
 def unknown(identifier, score, is_fc=False):
