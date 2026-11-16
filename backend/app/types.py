@@ -21,7 +21,7 @@ class _ScoreCore(TypedDict):
     """Score fields that are always present."""
     identifier: str
     percent: float
-    is_fc: bool
+    is_fc: int
     speed: int
     score: int
     play_count: int
@@ -44,7 +44,7 @@ class _LeaderboardCore(TypedDict):
     username: str
     score: int
     percent: float
-    is_fc: bool
+    is_fc: int
     speed: int
     play_count: int
     posted: str
