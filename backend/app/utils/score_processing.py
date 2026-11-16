@@ -14,8 +14,8 @@ def classify_score_update(
 ) -> ScoreUpdate:
     """How ``incoming`` folds into the stored ``existing`` entry.
 
-    * ``replace``: new entry, higher score, or equal score with a higher percent,
-      a new FC or a higher speed. Takes the incoming entry and its ``posted``.
+    * ``replace``: new entry, higher score, or equal score that is better by
+      (FC, percent, speed) in that order. Takes the incoming entry and its ``posted``.
     * ``refresh``: equal score with more plays. Updates plays and run fields in
       place, keeping ``posted``.
     * ``fill``: equal score, and only ``incoming`` has run fields (an entry
@@ -26,11 +26,9 @@ def classify_score_update(
         return "replace"
     if incoming["score"] != existing["score"]:
         return "replace" if incoming["score"] > existing["score"] else "keep"
-    if (
-        incoming["percent"] > existing.get("percent", 0)
-        or (bool(incoming["is_fc"]) and not existing.get("is_fc"))
-        or incoming["speed"] > existing.get("speed", 0)
-    ):
+    incoming_run = (bool(incoming["is_fc"]), incoming["percent"], incoming["speed"])
+    existing_run = (bool(existing.get("is_fc")), existing.get("percent", 0), existing.get("speed", 0))
+    if incoming_run > existing_run:
         return "replace"
     if incoming["play_count"] > existing.get("play_count", 0):
         return "refresh"

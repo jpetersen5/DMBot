@@ -78,6 +78,17 @@ def test_equal_score_higher_speed_replaces():
     assert classify_score_update({**score(100), "speed": 110}, score(100)) == "replace"
 
 
+def test_equal_score_faster_without_fc_does_not_replace_fc():
+    incoming = {**score(100), "is_fc": 0, "speed": 110}
+    existing = {**score(100), "is_fc": 1, "percent": 100}
+    assert classify_score_update(incoming, existing) == "keep"
+
+
+def test_equal_score_faster_with_lower_percent_does_not_replace():
+    incoming = {**score(100), "percent": 97, "speed": 110}
+    assert classify_score_update(incoming, {**score(100), "percent": 98}) == "keep"
+
+
 def test_equal_score_lower_percent_more_plays_refreshes():
     incoming = {**score(100, play_count=5), "percent": 90}
     assert classify_score_update(incoming, score(100, play_count=3)) == "refresh"
