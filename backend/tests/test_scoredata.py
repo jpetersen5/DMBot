@@ -20,12 +20,12 @@ def pack_record(record: Record) -> bytes:
     md5_hex, play_count, runs = record
     out = bytes.fromhex(md5_hex) + struct.pack("<BHB", len(runs), play_count, 0)
     for run in runs:
-        out += struct.pack("<HBBBHBII", *run)
+        out += struct.pack("<hBBBHBIi", *run)
     return out
 
 
 def build(records: list[Record], version: int = 20211009, trailing: bytes = b"", count: int | None = None) -> bytes:
-    header = struct.pack("<II", version, len(records) if count is None else count)
+    header = struct.pack("<ii", version, len(records) if count is None else count)
     return header + b"".join(pack_record(r) for r in records) + trailing
 
 
@@ -83,3 +83,10 @@ def test_unsupported_version_rejected():
     with pytest.raises(UnsupportedScoreDataVersion) as excinfo:
         parse_score_data(build([], version=20251011))
     assert excinfo.value.version == 20251011
+
+
+@pytest.mark.parametrize("version", [0, 1, 0x7FFFFFFF, -1, 19991231])
+def test_non_date_version_is_not_scoredata(version: int):
+    with pytest.raises(ScoreDataError) as excinfo:
+        parse_score_data(build([], version=version))
+    assert not isinstance(excinfo.value, UnsupportedScoreDataVersion)
