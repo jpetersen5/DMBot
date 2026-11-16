@@ -1,7 +1,7 @@
 """Parser for Clone Hero's ``scoredata.bin``.
 
 Layout (little-endian): ``u32 version, u32 count``, then ``count`` records of
-``md5[16], u8 entries, u16 play_count, u8 unknown`` followed by 16-byte entries
+``md5[16], u8 entries, u16 play_count, u8 reserved`` followed by 16-byte entries
 of ``u16 instrument, u8 difficulty, u8 percent, u8 is_fc, u16 speed, u8 stars,
 u32 modifiers, i32 score``. Checked against the game's own save code: it opens
 the file with ``File.OpenWrite``, which doesn't truncate, so bytes after the
