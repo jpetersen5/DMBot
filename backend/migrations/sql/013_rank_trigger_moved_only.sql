@@ -61,7 +61,6 @@ BEGIN
   )
   FROM per_user pu
   WHERE u.id = pu.user_id
-    AND u.scores IS NOT NULL
     AND EXISTS (
       SELECT 1 FROM unnest(u.scores) AS x
       WHERE pu.ranks ? (x->>'identifier')
