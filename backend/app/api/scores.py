@@ -11,7 +11,9 @@ from ..utils.helpers import token_required
 from ..utils.score_processing import (
     apply_score_to_leaderboard,
     evaluate_score_update,
+    fill_in_run_fields,
     merge_unknown_scores,
+    needs_fill_in,
 )
 from ..utils.user_stats import compute_user_stats
 from ..utils.leaderboard_writer import (
@@ -150,12 +152,15 @@ def process_and_save_scores(result: ScoreDataFile, user_id: str) -> None:
                         "posted": datetime.now(UTC).isoformat(),
                         "rank": None
                     }
+                    fill_in_run_fields(incoming_score_data, score)
                     
                     if evaluate_score_update(incoming_score_data, existing_user_score):
                        incoming_score_data["charter_refs"] = (existing_user_score.get("charter_refs") 
                                                              if existing_user_score and "charter_refs" in existing_user_score 
                                                              else song_info.get("charter_refs", []))
                        existing_scores_dict[song["identifier"]] = incoming_score_data
+                    elif existing_user_score is not None and needs_fill_in(incoming_score_data, existing_user_score):
+                        fill_in_run_fields(existing_user_score, incoming_score_data)
 
                     leaderboard: list[LeaderboardEntry] = [
                         entry for entry in (song_info.get("leaderboard", []) or [])
@@ -173,6 +178,7 @@ def process_and_save_scores(result: ScoreDataFile, user_id: str) -> None:
                         "play_count": incoming_score_data["play_count"],
                         "posted": incoming_score_data["posted"]
                     }
+                    fill_in_run_fields(leaderboard_entry_from_incoming, score)
 
                     leaderboard, should_update_leaderboard = apply_score_to_leaderboard(
                         leaderboard, leaderboard_entry_from_incoming, user_id
@@ -207,8 +213,12 @@ def process_and_save_scores(result: ScoreDataFile, user_id: str) -> None:
                         "rank": None
                     }
 
+                    fill_in_run_fields(incoming_unknown_score_data, score)
+
                     if evaluate_score_update(incoming_unknown_score_data, existing_unknown_score):
                         existing_unknown_scores_dict[song["identifier"]] = incoming_unknown_score_data
+                    elif existing_unknown_score is not None and needs_fill_in(incoming_unknown_score_data, existing_unknown_score):
+                        fill_in_run_fields(existing_unknown_score, incoming_unknown_score_data)
 
         progress = (processed_songs / total_songs) * 100
         update_processing_status(user_id, "in_progress", progress, processed_songs, total_songs)

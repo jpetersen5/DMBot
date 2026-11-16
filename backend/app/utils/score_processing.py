@@ -2,7 +2,7 @@ from datetime import datetime, UTC
 from typing import Any
 from collections.abc import Mapping
 
-from ..types import LeaderboardEntry, LeaderboardUpdate
+from ..types import LeaderboardEntry, LeaderboardUpdate, ScoreEntry
 from .leaderboard import sort_and_rank_leaderboard
 
 
@@ -25,6 +25,28 @@ def evaluate_score_update(
     return False
 
 
+def needs_fill_in(incoming: Mapping[str, Any], existing: Mapping[str, Any] | None) -> bool:
+    """Equal score, and only ``incoming`` knows its modifiers (a pre-parser-rewrite entry)."""
+    return (
+        existing is not None
+        and "modifiers" in incoming
+        and "modifiers" not in existing
+        and incoming["score"] == existing["score"]
+    )
+
+
+def fill_in_run_fields(
+    target: ScoreEntry | LeaderboardEntry | dict[str, Any], source: Mapping[str, Any]
+) -> None:
+    """Copy difficulty, modifiers and stars from ``source`` where it has them."""
+    if "difficulty" in source:
+        target["difficulty"] = source["difficulty"]
+    if "modifiers" in source:
+        target["modifiers"] = source["modifiers"]
+    if "stars" in source:
+        target["stars"] = source["stars"]
+
+
 def apply_score_to_leaderboard(
     leaderboard: list[LeaderboardEntry], entry: LeaderboardEntry, user_id: str | int
 ) -> tuple[list[LeaderboardEntry], bool]:
@@ -37,6 +59,9 @@ def apply_score_to_leaderboard(
         should_update = True
 
     if not should_update:
+        if user_entry is not None and needs_fill_in(entry, user_entry):
+            fill_in_run_fields(user_entry, entry)
+            return leaderboard, True
         return leaderboard, False
 
     if user_entry is not None:
@@ -83,6 +108,7 @@ def merge_unknown_scores(
                 "posted": now,
                 "rank": None
             }
+            fill_in_run_fields(score_data, unknown_score)
             existing_known_score = existing_known.get(identifier)
             if evaluate_score_update(score_data, existing_known_score):
                 newly_known.append(score_data)
@@ -97,6 +123,7 @@ def merge_unknown_scores(
                 "play_count": unknown_score["play_count"],
                 "posted": now
             }
+            fill_in_run_fields(leaderboard_entry, unknown_score)
             leaderboard: list[LeaderboardEntry] = song_info.get("leaderboard", []) or []
             leaderboard, changed = apply_score_to_leaderboard(
                 leaderboard, leaderboard_entry, user_id

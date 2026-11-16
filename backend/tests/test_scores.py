@@ -141,16 +141,28 @@ def unknown_score(identifier: str, score_value: int, speed: int, filepath: str) 
     }
 
 
-def incoming_song(identifier: str, score_value: int, speed: int = 100, play_count: int = 1, is_fc: bool = False) -> dict[str, Any]:
+def incoming_song(
+    identifier: str,
+    score_value: int,
+    speed: int = 100,
+    play_count: int = 1,
+    is_fc: bool = False,
+    difficulty: int = 3,
+    modifiers: int = 2,
+    stars: int = 5,
+) -> dict[str, Any]:
     """A song as it arrives from the scoredata parser (drums == instrument 9)."""
     return {
         "identifier": identifier,
         "play_count": play_count,
         "scores": [{
             "instrument": 9,
+            "difficulty": difficulty,
             "percent": 100.0,
             "is_fc": is_fc,
             "speed": speed,
+            "stars": stars,
+            "modifiers": modifiers,
             "score": score_value,
         }],
     }
@@ -661,3 +673,61 @@ def test_upload_starts_processing_with_parsed_songs(monkeypatch, jwt_secret):
     assert response.get_json()["total_songs"] == 2
     result = socketio.start_background_task.call_args.args[2]
     assert result["songs"][0]["identifier"] == MD5_A
+
+
+RUN = {"difficulty": 3, "modifiers": 2, "stars": 5}
+OLD_POSTED = "2025-01-01T00:00:00+00:00"
+
+
+def run_fields(entry: dict[str, Any]) -> dict[str, Any]:
+    return {k: entry.get(k) for k in RUN}
+
+
+def legacy_board(identifier: str, score_value: int, filled: bool = False) -> dict[str, Any]:
+    entry = {"user_id": "u1", "username": "tester", "score": score_value, "percent": 100.0,
+             "is_fc": False, "speed": 100, "play_count": 1, "posted": OLD_POSTED, "rank": 1}
+    return {"md5": identifier, "name": "Song", "artist": "Artist",
+            "leaderboard": [{**entry, **RUN} if filled else entry]}
+
+
+def test_new_score_stores_run_fields(monkeypatch):
+    song_rows = [{"md5": "a", "name": "Song", "artist": "Artist", "leaderboard": []}]
+    holder, _ = run_process(monkeypatch, existing_scores=[], songs_new=song_rows,
+                            songs=[incoming_song("a", 500)])
+    assert run_fields(holder.update_data["scores"][0]) == RUN
+    assert run_fields(holder.leaderboard_updates[0]["leaderboard"][0]) == RUN
+
+
+def test_equal_score_fills_in_legacy_entry_without_reposting(monkeypatch):
+    existing = [{**score("a", 500, 100), "posted": OLD_POSTED, "rank": 1}]
+    holder, _ = run_process(monkeypatch, existing_scores=existing, songs_new=[legacy_board("a", 500)],
+                            songs=[incoming_song("a", 500)])
+
+    saved = holder.update_data["scores"][0]
+    assert run_fields(saved) == RUN
+    assert saved["posted"] == OLD_POSTED
+
+    assert [u["md5"] for u in holder.leaderboard_updates] == ["a"]
+    board_entry = holder.leaderboard_updates[0]["leaderboard"][0]
+    assert run_fields(board_entry) == RUN
+    assert board_entry["posted"] == OLD_POSTED
+    assert board_entry["rank"] == 1
+
+
+def test_second_identical_upload_writes_no_leaderboards(monkeypatch):
+    existing = [{**score("a", 500, 100), **RUN, "posted": OLD_POSTED, "rank": 1}]
+    holder, _ = run_process(monkeypatch, existing_scores=existing,
+                            songs_new=[legacy_board("a", 500, filled=True)],
+                            songs=[incoming_song("a", 500)])
+    assert holder.leaderboard_updates == []
+    assert holder.update_data["scores"][0]["posted"] == OLD_POSTED
+
+
+def test_unknown_equal_score_fills_in(monkeypatch):
+    unknown = {**unknown_score("m2", 500, 100, "songs/bar/notes.chart"), "posted": OLD_POSTED}
+    holder, _ = run_process(monkeypatch, existing_scores=[], unknown_scores=[unknown], songs_new=[],
+                            songs=[incoming_song("m2", 500)])
+    saved = holder.update_data["unknown_scores"][0]
+    assert run_fields(saved) == RUN
+    assert saved["posted"] == OLD_POSTED
+    assert saved["filepath"] == "songs/bar/notes.chart"

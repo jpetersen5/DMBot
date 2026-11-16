@@ -5,6 +5,7 @@ from app.utils.score_processing import (
     apply_score_to_leaderboard,
     evaluate_score_update,
     merge_unknown_scores,
+    needs_fill_in,
 )
 from app.utils.achievement_processor import achievement_processor
 from app.types import LeaderboardEntry
@@ -255,3 +256,57 @@ def test_build_client_achievement_matches_definition_shape():
 
 def test_build_client_achievement_returns_none_for_unknown_id():
     assert achievement_processor.build_client_achievement("does_not_exist", "ts") is None
+
+
+# --- run field fill-in -------------------------------------------------------
+
+RUN = {"difficulty": 3, "modifiers": 2, "stars": 5}
+
+
+def test_needs_fill_in_equal_score_legacy_entry():
+    assert needs_fill_in({"score": 500, "modifiers": 2}, {"score": 500}) is True
+
+
+def test_needs_fill_in_false_when_existing_has_modifiers():
+    assert needs_fill_in({"score": 500, "modifiers": 2}, {"score": 500, "modifiers": 1}) is False
+
+
+def test_needs_fill_in_false_when_scores_differ():
+    assert needs_fill_in({"score": 500, "modifiers": 2}, {"score": 400}) is False
+
+
+def test_leaderboard_fill_in_keeps_rank_order_and_posted():
+    other = lb_entry(600, user_id="u2")
+    other["rank"] = 1
+    mine = lb_entry(500)
+    mine["rank"] = 2
+    incoming = lb_entry(500, posted="2026-11-15T00:00:00+00:00")
+    incoming.update(difficulty=3, modifiers=2, stars=5)
+
+    result, changed = apply_score_to_leaderboard([other, mine], incoming, "u1")
+
+    assert changed is True
+    assert [e["user_id"] for e in result] == ["u2", "u1"]
+    filled = result[1]
+    assert {k: filled.get(k) for k in RUN} == RUN
+    assert filled["posted"] == "2025-01-01T00:00:00+00:00"
+    assert filled.get("rank") == 2
+
+
+def test_leaderboard_already_filled_is_unchanged():
+    mine = lb_entry(500)
+    mine.update(difficulty=3, modifiers=2, stars=5, rank=1)
+    incoming = lb_entry(500, posted="2026-11-15T00:00:00+00:00")
+    incoming.update(difficulty=3, modifiers=2, stars=5)
+    _, changed = apply_score_to_leaderboard([mine], incoming, "u1")
+    assert changed is False
+
+
+def test_merge_unknown_carries_run_fields():
+    unknown = [{**score(1000), "difficulty": 3, "modifiers": 2, "stars": 4}]
+    songs_dict = {"md5": {"name": "Song Name", "artist": "Artist", "leaderboard": []}}
+    newly_known, _, lb_updates = merge_unknown_scores(unknown, songs_dict, "u1", "tester", {})
+    expected = {"difficulty": 3, "modifiers": 2, "stars": 4}
+    assert {k: newly_known[0].get(k) for k in expected} == expected
+    entry = lb_updates[0]["leaderboard"][0]
+    assert {k: entry.get(k) for k in expected} == expected
