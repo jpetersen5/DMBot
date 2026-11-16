@@ -1,5 +1,3 @@
-import os
-import base64
 import jwt
 from functools import wraps
 from typing import Concatenate, ParamSpec
@@ -15,23 +13,6 @@ P = ParamSpec("P")
 AuthedView = Callable[Concatenate[str, P], FlaskResponse]
 View = Callable[P, FlaskResponse]
 
-
-def get_process_songs_script() -> str:
-    """
-    retrieve and decode the process songs script from environment variables
-
-    returns:
-        str: decoded process songs script (run with exec to use, i.e. exec(get_process_songs_script()) )
-    """
-    encoded_script = os.getenv("PROCESS_SONGS_SCRIPT")
-    if not encoded_script:
-        return """
-def parse_score_data(file_object):
-    print("This is a dummy implementation of parse_score_data")
-    print("The actual implementation is not available in this environment")
-    return {}
-"""
-    return base64.b64decode(encoded_script).decode("utf-8")
 
 def allowed_file(filename: str) -> bool:
     """

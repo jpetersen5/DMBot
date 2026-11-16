@@ -164,7 +164,6 @@ CLAUDE.md
 # Build output
 /dist/
 
-# ignore data and sensitive scripts
+# ignore data
 /data
 backend/data
-backend/app/scripts/process_songs.py

@@ -21,7 +21,7 @@ class _ScoreCore(TypedDict):
     """Score fields that are always present."""
     identifier: str
     percent: float
-    is_fc: bool
+    is_fc: int
     speed: int
     score: int
     play_count: int
@@ -34,6 +34,9 @@ class ScoreEntry(_ScoreCore, total=False):
     charter_refs: list[str]
     rank: int | None
     filepath: str
+    difficulty: int
+    modifiers: int
+    stars: int
 
 class _LeaderboardCore(TypedDict):
     """Leaderboard fields that are always present."""
@@ -41,7 +44,7 @@ class _LeaderboardCore(TypedDict):
     username: str
     score: int
     percent: float
-    is_fc: bool
+    is_fc: int
     speed: int
     play_count: int
     posted: str
@@ -50,6 +53,9 @@ class _LeaderboardCore(TypedDict):
 class LeaderboardEntry(_LeaderboardCore, total=False):
     """Entry in a song's ``leaderboard`` JSONB array (``songs_new.leaderboard``)."""
     rank: int | None
+    difficulty: int
+    modifiers: int
+    stars: int
 
 class PathBreakdown(TypedDict):
     """Hydra's score breakdown for one path."""

@@ -1,10 +1,14 @@
+import datetime
+import io
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 from typing import Any
 
+import jwt
 from flask import Flask
 
 from app.api import scores as scores_module
+from tests.test_scoredata import MD5_A, MD5_B, build, drum_run
 
 
 class FakeQuery:
@@ -137,16 +141,28 @@ def unknown_score(identifier: str, score_value: int, speed: int, filepath: str) 
     }
 
 
-def incoming_song(identifier: str, score_value: int, speed: int = 100, play_count: int = 1, is_fc: bool = False) -> dict[str, Any]:
+def incoming_song(
+    identifier: str,
+    score_value: int,
+    speed: int = 100,
+    play_count: int = 1,
+    is_fc: bool = False,
+    difficulty: int = 3,
+    modifiers: int = 2,
+    stars: int = 5,
+) -> dict[str, Any]:
     """A song as it arrives from the scoredata parser (drums == instrument 9)."""
     return {
         "identifier": identifier,
         "play_count": play_count,
         "scores": [{
             "instrument": 9,
+            "difficulty": difficulty,
             "percent": 100.0,
             "is_fc": is_fc,
             "speed": speed,
+            "stars": stars,
+            "modifiers": modifiers,
             "score": score_value,
         }],
     }
@@ -206,7 +222,7 @@ def run_process(
 
     app = Flask(__name__)
     with app.app_context():
-        scores_module.process_and_save_scores({"songs": songs or []}, "u1")
+        scores_module.process_and_save_scores({"version": 20211009, "songs": songs or []}, "u1")
 
     return holder, ach_input
 
@@ -286,7 +302,7 @@ def test_batch_song_fetch_uses_slim_columns(monkeypatch):
 
     assert holder.songs_new_columns, "expected a songs_new batch fetch"
     for cols in holder.songs_new_columns:
-        assert cols == "md5,name,artist,charter_refs,leaderboard,optimal_score"
+        assert cols == "md5,name,artist,charter_refs,leaderboard,optimal_score,last_update"
         assert cols != "*"
 
 
@@ -615,3 +631,161 @@ def test_bugged_score_listed_once_when_unknown_and_incoming(monkeypatch):
     event = bugged_event(holder)
     assert event is not None
     assert [(s["identifier"], s["score"]) for s in event["scores"]] == [("m1", 950)]
+
+
+def upload(monkeypatch, jwt_secret: str, payload: bytes):
+    """POST ``payload`` as scoredata.bin; returns (response, socketio mock)."""
+    socketio = MagicMock()
+    monkeypatch.setattr(scores_module, "socketio", socketio)
+    app = Flask(__name__)
+    app.register_blueprint(scores_module.bp)
+    token = jwt.encode(
+        {"user_id": 42, "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=1)},
+        jwt_secret, algorithm="HS256",
+    )
+    response = app.test_client().post(
+        "/api/upload_scoredata",
+        data={"file": (io.BytesIO(payload), "scoredata.bin")},
+        headers={"Authorization": f"Bearer {token}"},
+        content_type="multipart/form-data",
+    )
+    return response, socketio
+
+
+def test_upload_rejects_newer_version(monkeypatch, jwt_secret):
+    response, socketio = upload(monkeypatch, jwt_secret, build([], version=20251011))
+    assert response.status_code == 400
+    assert response.get_json() == {"error": "Score data format is new, please wait for DMBot to be updated!"}
+    socketio.start_background_task.assert_not_called()
+
+
+def test_upload_rejects_older_version(monkeypatch, jwt_secret):
+    response, socketio = upload(monkeypatch, jwt_secret, build([], version=20200101))
+    assert response.status_code == 400
+    assert response.get_json() == {"error": "Score data format is outdated."}
+    socketio.start_background_task.assert_not_called()
+
+
+def test_upload_rejects_truncated_file(monkeypatch, jwt_secret):
+    response, socketio = upload(monkeypatch, jwt_secret, build([(MD5_A, 1, [drum_run(100)])], count=2))
+    assert response.status_code == 400
+    assert response.get_json() == {"error": "Invalid or corrupted score data file"}
+    socketio.start_background_task.assert_not_called()
+
+
+def test_upload_starts_processing_with_parsed_songs(monkeypatch, jwt_secret):
+    payload = build([(MD5_A, 1, [drum_run(100)]), (MD5_B, 1, [drum_run(200)])])
+    response, socketio = upload(monkeypatch, jwt_secret, payload)
+    assert response.status_code == 202
+    assert response.get_json()["total_songs"] == 2
+    result = socketio.start_background_task.call_args.args[2]
+    assert result["songs"][0]["identifier"] == MD5_A
+
+
+RUN = {"difficulty": 3, "modifiers": 2, "stars": 5}
+OLD_POSTED = "2025-01-01T00:00:00+00:00"
+
+
+def run_fields(entry: dict[str, Any]) -> dict[str, Any]:
+    return {k: entry.get(k) for k in RUN}
+
+
+def legacy_board(identifier: str, score_value: int, filled: bool = False) -> dict[str, Any]:
+    entry = {"user_id": "u1", "username": "tester", "score": score_value, "percent": 100.0,
+             "is_fc": False, "speed": 100, "play_count": 1, "posted": OLD_POSTED, "rank": 1}
+    return {"md5": identifier, "name": "Song", "artist": "Artist",
+            "leaderboard": [{**entry, **RUN} if filled else entry]}
+
+
+def test_new_score_stores_run_fields(monkeypatch):
+    song_rows = [{"md5": "a", "name": "Song", "artist": "Artist", "leaderboard": []}]
+    holder, _ = run_process(monkeypatch, existing_scores=[], songs_new=song_rows,
+                            songs=[incoming_song("a", 500)])
+    assert run_fields(holder.update_data["scores"][0]) == RUN
+    assert run_fields(holder.leaderboard_updates[0]["leaderboard"][0]) == RUN
+
+
+def test_equal_score_fills_in_legacy_entry_without_reposting(monkeypatch):
+    existing = [{**score("a", 500, 100), "posted": OLD_POSTED, "rank": 1}]
+    holder, _ = run_process(monkeypatch, existing_scores=existing, songs_new=[legacy_board("a", 500)],
+                            songs=[incoming_song("a", 500)])
+
+    saved = holder.update_data["scores"][0]
+    assert run_fields(saved) == RUN
+    assert saved["posted"] == OLD_POSTED
+
+    assert [u["md5"] for u in holder.leaderboard_updates] == ["a"]
+    board_entry = holder.leaderboard_updates[0]["leaderboard"][0]
+    assert run_fields(board_entry) == RUN
+    assert board_entry["posted"] == OLD_POSTED
+    assert board_entry["rank"] == 1
+
+
+def test_second_identical_upload_writes_no_leaderboards(monkeypatch):
+    existing = [{**score("a", 500, 100), **RUN, "posted": OLD_POSTED, "rank": 1}]
+    holder, _ = run_process(monkeypatch, existing_scores=existing,
+                            songs_new=[legacy_board("a", 500, filled=True)],
+                            songs=[incoming_song("a", 500)])
+    assert holder.leaderboard_updates == []
+    assert holder.update_data["scores"][0]["posted"] == OLD_POSTED
+
+
+def test_unknown_equal_score_fills_in(monkeypatch):
+    unknown = {**unknown_score("m2", 500, 100, "songs/bar/notes.chart"), "posted": OLD_POSTED}
+    holder, _ = run_process(monkeypatch, existing_scores=[], unknown_scores=[unknown], songs_new=[],
+                            songs=[incoming_song("m2", 500)])
+    saved = holder.update_data["unknown_scores"][0]
+    assert run_fields(saved) == RUN
+    assert saved["posted"] == OLD_POSTED
+    assert saved["filepath"] == "songs/bar/notes.chart"
+
+
+SONG_LAST_UPDATE = "2025-06-01T00:00:00+00:00"
+
+
+def board_row(identifier: str, **entry_fields: Any) -> dict[str, Any]:
+    entry = {"user_id": "u1", "username": "tester", "score": 500, "percent": 100.0, "is_fc": False,
+             "speed": 100, "play_count": 1, "posted": OLD_POSTED, "rank": 1, **entry_fields}
+    return {"md5": identifier, "name": "Song", "artist": "Artist", "leaderboard": [entry],
+            "last_update": SONG_LAST_UPDATE}
+
+
+def stored(**fields: Any) -> list[dict[str, Any]]:
+    return [{**score("a", 500, 100), "posted": OLD_POSTED, "rank": 1, **fields}]
+
+
+def test_equal_score_more_plays_keeps_posted(monkeypatch):
+    holder, _ = run_process(monkeypatch, existing_scores=stored(**RUN), songs_new=[board_row("a", **RUN)],
+                            songs=[incoming_song("a", 500, play_count=4)])
+    saved = holder.update_data["scores"][0]
+    assert saved["play_count"] == 4
+    assert saved["posted"] == OLD_POSTED
+    entry = holder.leaderboard_updates[0]["leaderboard"][0]
+    assert entry["play_count"] == 4
+    assert entry["posted"] == OLD_POSTED
+
+
+def test_play_count_refresh_bumps_song_last_update(monkeypatch):
+    holder, _ = run_process(monkeypatch, existing_scores=stored(**RUN), songs_new=[board_row("a", **RUN)],
+                            songs=[incoming_song("a", 500, play_count=4)])
+    assert holder.leaderboard_updates[0]["last_update"] != SONG_LAST_UPDATE
+
+
+def test_equal_score_new_fc_reposts(monkeypatch):
+    holder, _ = run_process(monkeypatch, existing_scores=stored(**RUN), songs_new=[board_row("a", **RUN)],
+                            songs=[incoming_song("a", 500, is_fc=True)])
+    saved = holder.update_data["scores"][0]
+    assert saved["is_fc"]
+    assert saved["posted"] != OLD_POSTED
+
+
+def test_fill_in_keeps_song_last_update(monkeypatch):
+    holder, _ = run_process(monkeypatch, existing_scores=stored(), songs_new=[board_row("a")],
+                            songs=[incoming_song("a", 500)])
+    assert holder.leaderboard_updates[0]["last_update"] == SONG_LAST_UPDATE
+
+
+def test_rank_is_kept_when_only_a_fill_in_write_failed(monkeypatch):
+    holder, _ = run_process(monkeypatch, existing_scores=stored(), songs_new=[board_row("a")],
+                            songs=[incoming_song("a", 500)], rpc_fail_md5s={"a"})
+    assert holder.update_data["scores"][0]["rank"] == 1
