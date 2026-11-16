@@ -1,11 +1,11 @@
 from flask import Blueprint, Flask, jsonify, request, current_app
 from ..services.supabase_service import Row, get_supabase, rows
-from ..utils.helpers import allowed_file, get_process_songs_script
+from ..utils.helpers import allowed_file
 from ..extensions import socketio, redis
 from datetime import datetime, UTC
 import re
-from typing import IO, Any
-from collections.abc import Callable, Mapping
+from typing import Any
+from collections.abc import Mapping
 from ..utils.achievement_processor import achievement_processor
 from ..utils.helpers import token_required
 from ..utils.score_processing import (
@@ -19,15 +19,10 @@ from ..utils.leaderboard_writer import (
     push_leaderboard_updates as _push_leaderboard_updates,
 )
 from ..utils.score_validation import bugged_score, is_bugged_score, split_bugged_unknown
+from ..utils.scoredata import ScoreDataFile, UnsupportedScoreDataVersion, parse_score_data
 from ..types import BuggedScore, FlaskResponse, LeaderboardEntry, LeaderboardUpdate
 
 bp = Blueprint("scores", __name__)
-
-# parse_score_data is a proprietary parser injected into module globals at import
-# time by exec()-ing the base64 script from PROCESS_SONGS_SCRIPT (see helpers.py).
-# Declare its shape so downstream `result[...]` access is typed instead of Unknown.
-parse_score_data: Callable[[IO[bytes]], dict[str, Any]]
-exec(get_process_songs_script())
 
 def update_processing_status(
     user_id: str, status: str, progress: float, processed: int, total: int
@@ -42,12 +37,12 @@ def update_processing_status(
         "total": total
     })
 
-def process_and_save_scores(result: dict[str, Any], user_id: str) -> None:
+def process_and_save_scores(result: ScoreDataFile, user_id: str) -> None:
     """
     Process scoredata.bin content and save scores to the database
     
     Args:
-        result: Result from PSDF.parse()
+        result: Parsed scoredata.bin
         user_id: Discord ID of the user
         
     Returns:
@@ -375,16 +370,9 @@ def upload_scoredata(user_id: str) -> FlaskResponse:
         
         try:
             socketio.emit("score_processing_start", to=user_id)
-            # from process_songs.py, encoded and saved in env
-            result = parse_score_data(file.stream)
-            
-            if not result:
-                return jsonify({"error": "Invalid score data"}), 400
+            result = parse_score_data(file.read())
 
-            if result["version"] != 20211009:
-                return jsonify({"error": "Score data is outdated"}), 400
-            
-            def run_with_app_context(app: Flask, result: dict[str, Any], user_id: str) -> None:
+            def run_with_app_context(app: Flask, result: ScoreDataFile, user_id: str) -> None:
                 with app.app_context():
                     process_and_save_scores(result, user_id)
             
@@ -392,6 +380,8 @@ def upload_scoredata(user_id: str) -> FlaskResponse:
             socketio.start_background_task(run_with_app_context, app, result, user_id)
             
             return jsonify({"message": "Score processing started", "total_songs": len(result["songs"])}), 202
+        except UnsupportedScoreDataVersion:
+            return jsonify({"error": "Score data is outdated"}), 400
         except ValueError as e:
             logger.error(f"Error parsing score data: {str(e)}", exc_info=True)
             return jsonify({"error": "Invalid or corrupted score data file"}), 400

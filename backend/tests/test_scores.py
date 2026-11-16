@@ -1,10 +1,14 @@
+import datetime
+import io
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 from typing import Any
 
+import jwt
 from flask import Flask
 
 from app.api import scores as scores_module
+from tests.test_scoredata import MD5_A, MD5_B, build, drum_run
 
 
 class FakeQuery:
@@ -206,7 +210,7 @@ def run_process(
 
     app = Flask(__name__)
     with app.app_context():
-        scores_module.process_and_save_scores({"songs": songs or []}, "u1")
+        scores_module.process_and_save_scores({"version": 20211009, "songs": songs or []}, "u1")
 
     return holder, ach_input
 
@@ -615,3 +619,45 @@ def test_bugged_score_listed_once_when_unknown_and_incoming(monkeypatch):
     event = bugged_event(holder)
     assert event is not None
     assert [(s["identifier"], s["score"]) for s in event["scores"]] == [("m1", 950)]
+
+
+def upload(monkeypatch, jwt_secret: str, payload: bytes):
+    """POST ``payload`` as scoredata.bin; returns (response, socketio mock)."""
+    socketio = MagicMock()
+    monkeypatch.setattr(scores_module, "socketio", socketio)
+    app = Flask(__name__)
+    app.register_blueprint(scores_module.bp)
+    token = jwt.encode(
+        {"user_id": 42, "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=1)},
+        jwt_secret, algorithm="HS256",
+    )
+    response = app.test_client().post(
+        "/api/upload_scoredata",
+        data={"file": (io.BytesIO(payload), "scoredata.bin")},
+        headers={"Authorization": f"Bearer {token}"},
+        content_type="multipart/form-data",
+    )
+    return response, socketio
+
+
+def test_upload_rejects_unsupported_version(monkeypatch, jwt_secret):
+    response, socketio = upload(monkeypatch, jwt_secret, build([], version=20251011))
+    assert response.status_code == 400
+    assert response.get_json() == {"error": "Score data is outdated"}
+    socketio.start_background_task.assert_not_called()
+
+
+def test_upload_rejects_truncated_file(monkeypatch, jwt_secret):
+    response, socketio = upload(monkeypatch, jwt_secret, build([(MD5_A, 1, [drum_run(100)])], count=2))
+    assert response.status_code == 400
+    assert response.get_json() == {"error": "Invalid or corrupted score data file"}
+    socketio.start_background_task.assert_not_called()
+
+
+def test_upload_starts_processing_with_parsed_songs(monkeypatch, jwt_secret):
+    payload = build([(MD5_A, 1, [drum_run(100)]), (MD5_B, 1, [drum_run(200)])])
+    response, socketio = upload(monkeypatch, jwt_secret, payload)
+    assert response.status_code == 202
+    assert response.get_json()["total_songs"] == 2
+    result = socketio.start_background_task.call_args.args[2]
+    assert result["songs"][0]["identifier"] == MD5_A
