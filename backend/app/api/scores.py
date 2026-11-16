@@ -10,10 +10,11 @@ from ..utils.achievement_processor import achievement_processor
 from ..utils.helpers import token_required
 from ..utils.score_processing import (
     apply_score_to_leaderboard,
-    evaluate_score_update,
+    classify_score_update,
     fill_in_run_fields,
     merge_unknown_scores,
-    needs_fill_in,
+    refresh_entry,
+    song_last_update,
 )
 from ..utils.user_stats import compute_user_stats
 from ..utils.leaderboard_writer import (
@@ -21,7 +22,7 @@ from ..utils.leaderboard_writer import (
     push_leaderboard_updates as _push_leaderboard_updates,
 )
 from ..utils.score_validation import bugged_score, is_bugged_score, split_bugged_unknown
-from ..utils.scoredata import ScoreDataFile, UnsupportedScoreDataVersion, parse_score_data
+from ..utils.scoredata import SUPPORTED_VERSION, ScoreDataFile, UnsupportedScoreDataVersion, parse_score_data
 from ..types import BuggedScore, FlaskResponse, LeaderboardEntry, LeaderboardUpdate
 
 bp = Blueprint("scores", __name__)
@@ -91,7 +92,7 @@ def process_and_save_scores(result: ScoreDataFile, user_id: str) -> None:
         socketio.emit("score_processing_fetching_songs",
                         {"message": f"Fetching user scores for songs {i+1} - {i+len(batch)}"},
                         to=user_id)
-        batch_songs_info = rows(supabase.table("songs_new").select("md5,name,artist,charter_refs,leaderboard,optimal_score").in_("md5", batch).execute().data)
+        batch_songs_info = rows(supabase.table("songs_new").select("md5,name,artist,charter_refs,leaderboard,optimal_score,last_update").in_("md5", batch).execute().data)
         songs_dict.update({song["md5"]: song for song in batch_songs_info})
 
     existing_unknown_scores, bugged_unknown = split_bugged_unknown(existing_unknown_scores, songs_dict)
@@ -101,6 +102,7 @@ def process_and_save_scores(result: ScoreDataFile, user_id: str) -> None:
         existing_unknown_scores, songs_dict, user_id, username, existing_scores_dict
     )
     leaderboard_updates.extend(unknown_leaderboard_updates)
+    replaced_md5s = {update["md5"] for update in unknown_leaderboard_updates}
 
     if existing_scores:
         existing_scores.extend(newly_known_scores)
@@ -154,13 +156,14 @@ def process_and_save_scores(result: ScoreDataFile, user_id: str) -> None:
                     }
                     fill_in_run_fields(incoming_score_data, score)
                     
-                    if evaluate_score_update(incoming_score_data, existing_user_score):
+                    score_kind = classify_score_update(incoming_score_data, existing_user_score)
+                    if score_kind == "replace":
                        incoming_score_data["charter_refs"] = (existing_user_score.get("charter_refs") 
                                                              if existing_user_score and "charter_refs" in existing_user_score 
                                                              else song_info.get("charter_refs", []))
                        existing_scores_dict[song["identifier"]] = incoming_score_data
-                    elif existing_user_score is not None and needs_fill_in(incoming_score_data, existing_user_score):
-                        fill_in_run_fields(existing_user_score, incoming_score_data)
+                    elif score_kind != "keep" and existing_user_score is not None:
+                        refresh_entry(existing_user_score, incoming_score_data)
 
                     leaderboard: list[LeaderboardEntry] = [
                         entry for entry in (song_info.get("leaderboard", []) or [])
@@ -180,15 +183,19 @@ def process_and_save_scores(result: ScoreDataFile, user_id: str) -> None:
                     }
                     fill_in_run_fields(leaderboard_entry_from_incoming, score)
 
-                    leaderboard, should_update_leaderboard = apply_score_to_leaderboard(
+                    leaderboard, board_kind = apply_score_to_leaderboard(
                         leaderboard, leaderboard_entry_from_incoming, user_id
                     )
-                    if should_update_leaderboard:
+                    if board_kind != "keep":
+                        if board_kind == "replace":
+                            replaced_md5s.add(song["identifier"])
                         leaderboard_updates.append({
                             "md5": song["identifier"],
                             "name": song_info["name"],
                             "leaderboard": leaderboard,
-                            "last_update": datetime.now(UTC).isoformat()
+                            "last_update": song_last_update(
+                                song_info, board_kind, datetime.now(UTC).isoformat()
+                            )
                         })
 
                     final_user_rank_on_leaderboard = next((entry.get("rank") for entry in leaderboard if entry["user_id"] == user_id), None)
@@ -215,10 +222,11 @@ def process_and_save_scores(result: ScoreDataFile, user_id: str) -> None:
 
                     fill_in_run_fields(incoming_unknown_score_data, score)
 
-                    if evaluate_score_update(incoming_unknown_score_data, existing_unknown_score):
+                    unknown_kind = classify_score_update(incoming_unknown_score_data, existing_unknown_score)
+                    if unknown_kind == "replace":
                         existing_unknown_scores_dict[song["identifier"]] = incoming_unknown_score_data
-                    elif existing_unknown_score is not None and needs_fill_in(incoming_unknown_score_data, existing_unknown_score):
-                        fill_in_run_fields(existing_unknown_score, incoming_unknown_score_data)
+                    elif unknown_kind != "keep" and existing_unknown_score is not None:
+                        refresh_entry(existing_unknown_score, incoming_unknown_score_data)
 
         progress = (processed_songs / total_songs) * 100
         update_processing_status(user_id, "in_progress", progress, processed_songs, total_songs)
@@ -262,7 +270,7 @@ def process_and_save_scores(result: ScoreDataFile, user_id: str) -> None:
         else:
             logger.info("Leaderboard updates completed")
 
-    for identifier in failed_md5s:
+    for identifier in failed_md5s & replaced_md5s:
         if identifier in existing_scores_dict:
             existing_scores_dict[identifier]["rank"] = None
 
@@ -390,8 +398,11 @@ def upload_scoredata(user_id: str) -> FlaskResponse:
             socketio.start_background_task(run_with_app_context, app, result, user_id)
             
             return jsonify({"message": "Score processing started", "total_songs": len(result["songs"])}), 202
-        except UnsupportedScoreDataVersion:
-            return jsonify({"error": "Score data is outdated"}), 400
+        except UnsupportedScoreDataVersion as e:
+            logger.warning(f"Rejected score data version {e.version} (supported: {SUPPORTED_VERSION})")
+            if e.version > SUPPORTED_VERSION:
+                return jsonify({"error": "Score data format is new, please wait for DMBot to be updated!"}), 400
+            return jsonify({"error": "Score data format is outdated."}), 400
         except ValueError as e:
             logger.error(f"Error parsing score data: {str(e)}", exc_info=True)
             return jsonify({"error": "Invalid or corrupted score data file"}), 400

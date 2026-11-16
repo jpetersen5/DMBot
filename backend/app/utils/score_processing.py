@@ -1,38 +1,42 @@
 from datetime import datetime, UTC
-from typing import Any
+from typing import Any, Literal
 from collections.abc import Mapping
 
 from ..types import LeaderboardEntry, LeaderboardUpdate, ScoreEntry
 from .leaderboard import sort_and_rank_leaderboard
 
 
-def evaluate_score_update(
-    incoming: Mapping[str, Any], existing: Mapping[str, Any] | None
-) -> bool:
-    """Decide whether ``incoming`` should replace ``existing``.
+ScoreUpdate = Literal["replace", "refresh", "fill", "keep"]
 
-    * no existing entry -> always update
-    * strictly higher score -> update
-    * equal score but strictly higher play count -> update
-    * otherwise -> keep the existing entry
+
+def classify_score_update(
+    incoming: Mapping[str, Any], existing: Mapping[str, Any] | None
+) -> ScoreUpdate:
+    """How ``incoming`` folds into the stored ``existing`` entry.
+
+    * ``replace``: new entry, higher score, or equal score with a higher percent,
+      a new FC or a higher speed. Takes the incoming entry and its ``posted``.
+    * ``refresh``: equal score with more plays. Updates plays and run fields in
+      place, keeping ``posted``.
+    * ``fill``: equal score, and only ``incoming`` has run fields (an entry
+      stored before the parser rewrite). Same in-place update.
+    * ``keep``: nothing to change.
     """
     if not existing:
-        return True
-    if incoming["score"] > existing["score"]:
-        return True
-    if incoming["score"] == existing["score"] and incoming["play_count"] > existing.get("play_count", 0):
-        return True
-    return False
-
-
-def needs_fill_in(incoming: Mapping[str, Any], existing: Mapping[str, Any] | None) -> bool:
-    """Equal score, and only ``incoming`` knows its modifiers (a pre-parser-rewrite entry)."""
-    return (
-        existing is not None
-        and "modifiers" in incoming
-        and "modifiers" not in existing
-        and incoming["score"] == existing["score"]
-    )
+        return "replace"
+    if incoming["score"] != existing["score"]:
+        return "replace" if incoming["score"] > existing["score"] else "keep"
+    if (
+        incoming["percent"] > existing.get("percent", 0)
+        or (bool(incoming["is_fc"]) and not existing.get("is_fc"))
+        or incoming["speed"] > existing.get("speed", 0)
+    ):
+        return "replace"
+    if incoming["play_count"] > existing.get("play_count", 0):
+        return "refresh"
+    if "modifiers" in incoming and "modifiers" not in existing:
+        return "fill"
+    return "keep"
 
 
 def fill_in_run_fields(
@@ -47,22 +51,38 @@ def fill_in_run_fields(
         target["stars"] = source["stars"]
 
 
+def refresh_entry(
+    target: ScoreEntry | LeaderboardEntry | dict[str, Any], source: Mapping[str, Any]
+) -> None:
+    """Apply a ``refresh`` or ``fill`` in place: plays and run fields, never ``posted``."""
+    target["play_count"] = max(target.get("play_count", 0), source["play_count"])
+    fill_in_run_fields(target, source)
+
+
+def song_last_update(song_info: Mapping[str, Any], kind: ScoreUpdate, now: str) -> str:
+    """A fill-in changes nothing the song list shows, so the song keeps its timestamp."""
+    if kind == "fill" and song_info.get("last_update"):
+        return song_info["last_update"]
+    return now
+
+
 def apply_score_to_leaderboard(
     leaderboard: list[LeaderboardEntry], entry: LeaderboardEntry, user_id: str | int
-) -> tuple[list[LeaderboardEntry], bool]:
+) -> tuple[list[LeaderboardEntry], ScoreUpdate]:
     """Fold ``entry`` for ``user_id`` into ``leaderboard``."""
     user_id = str(user_id)
     user_entry = next((e for e in leaderboard if e["user_id"] == user_id), None)
 
-    should_update = evaluate_score_update(entry, user_entry)
-    if not should_update and user_entry is not None and user_entry.get("posted", "") == "":
-        should_update = True
+    kind = classify_score_update(entry, user_entry)
+    if kind == "keep" and user_entry is not None and user_entry.get("posted", "") == "":
+        kind = "replace"
 
-    if not should_update:
-        if user_entry is not None and needs_fill_in(entry, user_entry):
-            fill_in_run_fields(user_entry, entry)
-            return leaderboard, True
-        return leaderboard, False
+    if kind == "keep":
+        return leaderboard, kind
+    if kind != "replace":
+        assert user_entry is not None
+        refresh_entry(user_entry, entry)
+        return leaderboard, kind
 
     if user_entry is not None:
         try:
@@ -71,7 +91,7 @@ def apply_score_to_leaderboard(
             pass
     leaderboard.append(entry)
     leaderboard = sort_and_rank_leaderboard(leaderboard)
-    return leaderboard, True
+    return leaderboard, kind
 
 
 def merge_unknown_scores(
@@ -95,6 +115,7 @@ def merge_unknown_scores(
         song_info = songs_dict.get(identifier)
         if song_info:
             now = datetime.now(UTC).isoformat()
+            posted = unknown_score.get("posted") or now
             score_data = {
                 "identifier": identifier,
                 "song_name": song_info["name"],
@@ -105,13 +126,16 @@ def merge_unknown_scores(
                 "speed": unknown_score["speed"],
                 "score": unknown_score["score"],
                 "play_count": unknown_score["play_count"],
-                "posted": now,
+                "posted": posted,
                 "rank": None
             }
             fill_in_run_fields(score_data, unknown_score)
             existing_known_score = existing_known.get(identifier)
-            if evaluate_score_update(score_data, existing_known_score):
+            known_kind = classify_score_update(score_data, existing_known_score)
+            if known_kind == "replace":
                 newly_known.append(score_data)
+            elif known_kind != "keep" and existing_known_score is not None:
+                refresh_entry(existing_known_score, score_data)
 
             leaderboard_entry: LeaderboardEntry = {
                 "user_id": user_id,
@@ -121,19 +145,19 @@ def merge_unknown_scores(
                 "is_fc": unknown_score["is_fc"],
                 "speed": unknown_score["speed"],
                 "play_count": unknown_score["play_count"],
-                "posted": now
+                "posted": posted
             }
             fill_in_run_fields(leaderboard_entry, unknown_score)
             leaderboard: list[LeaderboardEntry] = song_info.get("leaderboard", []) or []
-            leaderboard, changed = apply_score_to_leaderboard(
+            leaderboard, board_kind = apply_score_to_leaderboard(
                 leaderboard, leaderboard_entry, user_id
             )
-            if changed:
+            if board_kind != "keep":
                 leaderboard_updates.append({
                     "md5": identifier,
                     "name": song_info["name"],
                     "leaderboard": leaderboard,
-                    "last_update": now
+                    "last_update": song_last_update(song_info, board_kind, now)
                 })
         else:
             remaining_unknown.append(unknown_score)

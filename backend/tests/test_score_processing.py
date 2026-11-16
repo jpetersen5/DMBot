@@ -3,9 +3,8 @@ from typing import Any
 
 from app.utils.score_processing import (
     apply_score_to_leaderboard,
-    evaluate_score_update,
+    classify_score_update,
     merge_unknown_scores,
-    needs_fill_in,
 )
 from app.utils.achievement_processor import achievement_processor
 from app.types import LeaderboardEntry
@@ -41,41 +40,74 @@ def lb_entry(
     }
 
 
-# --- evaluate_score_update ---------------------------------------------------
+# --- classify_score_update ---------------------------------------------------
 
-def test_new_score_always_updates():
-    assert evaluate_score_update(score(100), None) is True
-
-
-def test_higher_score_updates():
-    assert evaluate_score_update(score(200), score(100)) is True
+def with_run(entry: dict[str, Any]) -> dict[str, Any]:
+    return {**entry, "difficulty": 3, "modifiers": 2, "stars": 5}
 
 
-def test_equal_score_higher_playcount_updates():
-    assert evaluate_score_update(score(100, play_count=5), score(100, play_count=3)) is True
+def test_new_score_replaces():
+    assert classify_score_update(score(100), None) == "replace"
 
 
-def test_equal_score_equal_playcount_ignored():
-    assert evaluate_score_update(score(100, play_count=3), score(100, play_count=3)) is False
+def test_higher_score_replaces():
+    assert classify_score_update(score(200), score(100)) == "replace"
 
 
-def test_lower_score_ignored():
-    assert evaluate_score_update(score(50), score(100)) is False
+def test_equal_score_higher_playcount_refreshes():
+    assert classify_score_update(score(100, play_count=5), score(100, play_count=3)) == "refresh"
+
+
+def test_equal_score_equal_playcount_kept():
+    assert classify_score_update(score(100, play_count=3), score(100, play_count=3)) == "keep"
+
+
+def test_lower_score_kept():
+    assert classify_score_update(score(50), score(100)) == "keep"
+
+
+def test_equal_score_higher_percent_replaces():
+    assert classify_score_update({**score(100), "percent": 99}, {**score(100), "percent": 98}) == "replace"
+
+
+def test_equal_score_new_fc_replaces():
+    assert classify_score_update({**score(100), "is_fc": 1}, {**score(100), "is_fc": 0}) == "replace"
+
+
+def test_equal_score_higher_speed_replaces():
+    assert classify_score_update({**score(100), "speed": 110}, score(100)) == "replace"
+
+
+def test_equal_score_lower_percent_more_plays_refreshes():
+    incoming = {**score(100, play_count=5), "percent": 90}
+    assert classify_score_update(incoming, score(100, play_count=3)) == "refresh"
+
+
+def test_legacy_entry_is_filled():
+    assert classify_score_update(with_run(score(100)), score(100)) == "fill"
+
+
+def test_filled_entry_with_same_plays_kept():
+    assert classify_score_update(with_run(score(100)), with_run(score(100))) == "keep"
+
+
+def test_lower_score_does_not_fill():
+    assert classify_score_update(with_run(score(50)), score(100)) == "keep"
 
 
 # --- apply_score_to_leaderboard ---------------------------------------------
 
 def test_new_user_added_to_leaderboard():
     leaderboard = [lb_entry(500, user_id="other")]
-    result, updated = apply_score_to_leaderboard(leaderboard, lb_entry(300, user_id="u1"), "u1")
-    assert updated is True
+    result, kind = apply_score_to_leaderboard(leaderboard, lb_entry(300, user_id="u1"), "u1")
+    assert kind == "replace"
     assert {e["user_id"] for e in result} == {"other", "u1"}
 
 
 def test_lower_score_leaves_leaderboard_untouched():
     original = [lb_entry(500, user_id="u1")]
-    result, updated = apply_score_to_leaderboard(original, lb_entry(300, user_id="u1"), "u1")
-    assert updated is False
+    result, kind = apply_score_to_leaderboard(original, lb_entry(300, user_id="u1"), "u1")
+    assert kind == "keep"
     assert result is original
     assert [e["score"] for e in result] == [500]
 
@@ -83,8 +115,8 @@ def test_lower_score_leaves_leaderboard_untouched():
 def test_missing_timestamp_entry_is_replaced_even_at_equal_score():
     leaderboard = [lb_entry(400, posted="", user_id="u1")]
     incoming = lb_entry(400, posted="2025-06-01T00:00:00+00:00", user_id="u1")
-    result, updated = apply_score_to_leaderboard(leaderboard, incoming, "u1")
-    assert updated is True
+    result, kind = apply_score_to_leaderboard(leaderboard, incoming, "u1")
+    assert kind == "replace"
     u1_entries = [e for e in result if e["user_id"] == "u1"]
     assert len(u1_entries) == 1
     assert u1_entries[0]["posted"] == "2025-06-01T00:00:00+00:00"
@@ -93,8 +125,8 @@ def test_missing_timestamp_entry_is_replaced_even_at_equal_score():
 
 def test_higher_score_replaces_single_leaderboard_entry():
     leaderboard = [lb_entry(300, user_id="u1")]
-    result, updated = apply_score_to_leaderboard(leaderboard, lb_entry(900, user_id="u1"), "u1")
-    assert updated is True
+    result, kind = apply_score_to_leaderboard(leaderboard, lb_entry(900, user_id="u1"), "u1")
+    assert kind == "replace"
     u1_entries = [e for e in result if e["user_id"] == "u1"]
     assert len(u1_entries) == 1
     assert u1_entries[0]["score"] == 900
@@ -263,18 +295,6 @@ def test_build_client_achievement_returns_none_for_unknown_id():
 RUN = {"difficulty": 3, "modifiers": 2, "stars": 5}
 
 
-def test_needs_fill_in_equal_score_legacy_entry():
-    assert needs_fill_in({"score": 500, "modifiers": 2}, {"score": 500}) is True
-
-
-def test_needs_fill_in_false_when_existing_has_modifiers():
-    assert needs_fill_in({"score": 500, "modifiers": 2}, {"score": 500, "modifiers": 1}) is False
-
-
-def test_needs_fill_in_false_when_scores_differ():
-    assert needs_fill_in({"score": 500, "modifiers": 2}, {"score": 400}) is False
-
-
 def test_leaderboard_fill_in_keeps_rank_order_and_posted():
     other = lb_entry(600, user_id="u2")
     other["rank"] = 1
@@ -283,9 +303,9 @@ def test_leaderboard_fill_in_keeps_rank_order_and_posted():
     incoming = lb_entry(500, posted="2026-11-15T00:00:00+00:00")
     incoming.update(difficulty=3, modifiers=2, stars=5)
 
-    result, changed = apply_score_to_leaderboard([other, mine], incoming, "u1")
+    result, kind = apply_score_to_leaderboard([other, mine], incoming, "u1")
 
-    assert changed is True
+    assert kind == "fill"
     assert [e["user_id"] for e in result] == ["u2", "u1"]
     filled = result[1]
     assert {k: filled.get(k) for k in RUN} == RUN
@@ -298,8 +318,8 @@ def test_leaderboard_already_filled_is_unchanged():
     mine.update(difficulty=3, modifiers=2, stars=5, rank=1)
     incoming = lb_entry(500, posted="2026-11-15T00:00:00+00:00")
     incoming.update(difficulty=3, modifiers=2, stars=5)
-    _, changed = apply_score_to_leaderboard([mine], incoming, "u1")
-    assert changed is False
+    _, kind = apply_score_to_leaderboard([mine], incoming, "u1")
+    assert kind == "keep"
 
 
 def test_merge_unknown_carries_run_fields():
@@ -310,3 +330,23 @@ def test_merge_unknown_carries_run_fields():
     assert {k: newly_known[0].get(k) for k in expected} == expected
     entry = lb_updates[0]["leaderboard"][0]
     assert {k: entry.get(k) for k in expected} == expected
+
+
+def test_leaderboard_refresh_updates_plays_and_keeps_posted():
+    mine = lb_entry(500)
+    mine["rank"] = 1
+    incoming = lb_entry(500, play_count=4, posted="2026-11-15T00:00:00+00:00")
+    result, kind = apply_score_to_leaderboard([mine], incoming, "u1")
+    assert kind == "refresh"
+    assert result[0]["play_count"] == 4
+    assert result[0]["posted"] == "2025-01-01T00:00:00+00:00"
+
+
+def test_promotion_fills_equal_known_entry_in_place():
+    known = score(1000)
+    unknown = [with_run(score(1000))]
+    songs_dict = {"md5": {"name": "Song Name", "artist": "Artist", "leaderboard": []}}
+    newly_known, _, _ = merge_unknown_scores(unknown, songs_dict, "u1", "tester", {"md5": known})
+    assert newly_known == []
+    assert known["modifiers"] == 2
+    assert known["posted"] == "2025-01-01T00:00:00+00:00"
